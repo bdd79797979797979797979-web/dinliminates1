@@ -115,7 +115,18 @@
       if(next!==t)b.textContent=next;
     });
   }
-  function setupRestaurantTools(){ dedupeRestaurantControls(); syncRestaurantTools(); }
+  function watchRestaurantUtilityCleanup(){
+    const host=$('restaurantPanel'); if(!host || host.__dinliminateUtilityObserver)return;
+    const clean=()=>{
+      const canonical=host.querySelector('#restaurantUtilityBar');
+      if(canonical) host.querySelectorAll('.restaurant-utility-row').forEach(row=>row.remove());
+      dedupeRestaurantControls();
+    };
+    host.__dinliminateUtilityObserver=new MutationObserver(()=>clean());
+    host.__dinliminateUtilityObserver.observe(host,{subtree:true,childList:true});
+    clean();
+  }
+  function setupRestaurantTools(){ watchRestaurantUtilityCleanup(); dedupeRestaurantControls(); syncRestaurantTools(); }
   function syncRestaurantTools(){
     dedupeRestaurantControls();
     const b=$('restaurantUtilityBar'),q=$('restaurantInlineQuery'),s=$('restaurantSearchBtn');
