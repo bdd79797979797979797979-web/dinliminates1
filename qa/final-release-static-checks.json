@@ -1,0 +1,59 @@
+{
+  "checks": {
+    "Syntax: api/restaurant-search.js": true,
+    "Syntax: api/clean-entry.js": true,
+    "Syntax: launch-hardening.js": true,
+    "Syntax: dinliminate-sw.js": true,
+    "Inline script syntax": true,
+    "JSON valid: dinliminate.webmanifest": true,
+    "JSON valid: vercel.json": true,
+    "PNG valid: dinliminate-icon-180.png": true,
+    "PNG valid: dinliminate-icon-512.png": true,
+    "PNG valid: dinliminate-icon.png": true,
+    "Version p636-clean-final present": true,
+    "100-mile cap": true,
+    "100-mile 3x3 tiling": true,
+    "Address geocoder stack": true,
+    "Fast food included": true,
+    "Requested restaurant quickcuts": true,
+    "Open Now control removed": true,
+    "Restaurant search clear control removed": true,
+    "Order UI wording removed": true,
+    "Internal licensing warning removed": true,
+    "Internal source copy removed": true,
+    "Rating UI removed": true,
+    "Restaurant fallback present": true,
+    "Hungry fallback present": true,
+    "Stable OSM IDs": true,
+    "About copy": true,
+    "Manifest root paths": true,
+    "Manifest icons": true,
+    "SW cache final": true,
+    "Initial DOM duplicate IDs": true,
+    "Large-radius 3x3 tiling present": true
+  },
+  "inline_scripts": [
+    [
+      0,
+      true,
+      ""
+    ],
+    [
+      2,
+      true,
+      ""
+    ],
+    [
+      3,
+      true,
+      ""
+    ],
+    [
+      4,
+      true,
+      ""
+    ]
+  ],
+  "initial_dom_duplicate_ids": [],
+  "overall": true
+}

@@ -1,0 +1,488 @@
+/* Dinliminate p624 launch hardening */
+.menu-search-hidden{display:none!important}
+.restaurant-utility-filters{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:2px}
+.restaurant-utility-btn{height:34px;min-height:34px;border:1px solid rgba(255,255,255,.14);border-radius:11px;background:rgba(255,255,255,.06);color:#d8e8df;font:800 .58rem/1 Inter,system-ui,sans-serif;padding:0 10px;cursor:pointer;white-space:nowrap}
+.restaurant-utility-btn.active{background:rgba(103,196,155,.14);border-color:rgba(103,196,155,.42);color:#a8e7cb}
+.restaurant-inline-search{display:none}
+.pass-around-btn{border:1px solid rgba(103,196,155,.35)!important;background:rgba(103,196,155,.09)!important;color:#a8e7cb!important}
+.pass-status{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:7px 10px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.035);color:#dce9e2;font-size:.56rem;font-weight:800}
+.pass-status strong{font-size:.62rem;color:#fff}.pass-status button{border:0;background:transparent;color:#9fd6bd;font:800 .53rem/1 inherit;cursor:pointer;padding:4px 2px}
+.pass-modal-backdrop{position:fixed;inset:0;background:rgba(2,10,8,.78);backdrop-filter:blur(14px);z-index:1300;display:flex;align-items:center;justify-content:center;padding:18px}
+.pass-modal-backdrop.hidden{display:none!important}
+.pass-modal{width:min(430px,100%);background:#10221c;border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.45);padding:20px;color:#f3f8f5}
+.pass-modal h3{margin:0 0 7px;font-size:1.15rem}.pass-modal p{margin:0 0 14px;color:rgba(255,255,255,.67);font-size:.72rem;line-height:1.5}
+.pass-count-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.pass-count-btn{height:46px;border:1px solid rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.06);color:#fff;font-weight:900;cursor:pointer}.pass-count-btn:hover{background:rgba(103,196,155,.12);border-color:rgba(103,196,155,.36)}
+.pass-modal-actions{display:flex;justify-content:flex-end;margin-top:12px}.pass-cancel-btn{border:0;background:transparent;color:rgba(255,255,255,.55);font-weight:800;cursor:pointer;padding:9px}
+.pass-handoff{text-align:center}.pass-handoff .pass-icon{font-size:2.2rem;margin-bottom:8px}.pass-handoff h4{margin:0 0 6px;font-size:1.1rem}.pass-handoff p{margin-bottom:14px}.pass-primary-btn{width:100%;height:46px;border:0;border-radius:14px;background:#67c49b;color:#062018;font-weight:950;cursor:pointer}
+.history-calendar-wrap{display:flex;flex-direction:column;gap:10px}
+.history-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}.history-calendar-toolbar h4{margin:0;font-size:.9rem}.history-calendar-toolbar button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#e9f3ee;border-radius:10px;height:32px;padding:0 9px;font-weight:850;cursor:pointer}
+.history-calendar-nav{display:flex;gap:5px}.history-weekdays,.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.history-weekdays div{text-align:center;color:rgba(255,255,255,.42);font-size:.46rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:3px 0}
+.history-day{min-width:0;min-height:66px;border:1px solid rgba(255,255,255,.075);border-radius:10px;background:rgba(255,255,255,.025);padding:4px;display:flex;flex-direction:column;gap:3px}.history-day.other-month{opacity:.42}.history-day.today{border-color:rgba(103,196,155,.42)}.history-day-number{font-size:.48rem;font-weight:900;color:rgba(255,255,255,.65);display:flex;justify-content:space-between;align-items:center}.history-events{display:flex;gap:3px;flex-wrap:wrap;align-content:flex-start}.history-event{position:relative;width:34px;height:34px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#173229;cursor:pointer;padding:0}.history-event img{display:block;width:100%;height:100%;object-fit:cover}.history-event-x{position:absolute;top:-4px;right:-3px;width:15px;height:15px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:#14211d;color:#fff;font-size:.52rem;line-height:13px;font-weight:950;cursor:pointer;padding:0;z-index:2}.history-more{font-size:.42rem;color:rgba(255,255,255,.47);font-weight:800}.history-empty-calendar{padding:28px 12px;text-align:center;color:rgba(255,255,255,.55);border:1px dashed rgba(255,255,255,.11);border-radius:14px}
+.history-legend{display:flex;gap:10px;align-items:center;color:rgba(255,255,255,.48);font-size:.48rem;font-weight:700}.history-legend span{display:inline-flex;align-items:center;gap:4px}
+@media(max-width:520px){.restaurant-location-row{grid-template-columns:minmax(0,1fr) 72px 56px 50px!important}.restaurant-utility-filters{grid-column:1/-1;margin:0}.restaurant-utility-btn{flex:1}.history-day{min-height:58px}.history-event{width:30px;height:30px}.history-event-x{width:14px;height:14px;line-height:12px}}
+@media(max-width:390px){.restaurant-location-row{grid-template-columns:minmax(0,1fr) 66px 50px 46px!important}.history-day{min-height:54px;padding:3px}.history-event{width:26px;height:26px}}
+@media(prefers-reduced-motion:reduce){.pass-modal-backdrop,.history-calendar-wrap{scroll-behavior:auto!important}}
+.quick-cut.is-quick-hidden{opacity:.58!important;border-color:rgba(103,196,155,.45)!important;box-shadow:inset 0 0 0 1px rgba(103,196,155,.12)!important}
+.quick-cut.is-quick-hidden .quick-cut-copy em{color:#a8e7cb!important}
+.history-event{position:relative}
+.history-event-open{display:block;width:100%;height:100%;border:0;padding:0;background:transparent;cursor:pointer}
+.history-event-open img{display:block;width:100%;height:100%;object-fit:cover}
+.history-event-x{position:absolute!important;top:-4px!important;right:-3px!important;z-index:4!important}
+/* p624 calendar action target */
+.history-event{position:relative;overflow:visible;border:0;background:transparent;padding:0;width:34px;height:34px}
+.history-event-main{display:block;width:100%;height:100%;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#173229;cursor:pointer;padding:0}
+.history-event-main img{display:block;width:100%;height:100%;object-fit:cover}
+.history-event-x{position:absolute!important;top:-5px!important;right:-5px!important;width:16px!important;height:16px!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.35)!important;background:#14211d!important;color:#fff!important;font-size:.55rem!important;line-height:14px!important;font-weight:950!important;cursor:pointer!important;padding:0!important;z-index:6!important}
+@media(max-width:520px){.history-event{width:30px;height:30px}.history-event-main{border-radius:7px}.history-event-x{width:14px!important;height:14px!important;line-height:12px!important}}
+@media(max-width:390px){.history-event{width:26px;height:26px}.history-event-x{width:14px!important;height:14px!important}}
+/* P626 restaurant controls + pass/history polish */
+.restaurant-utility-bar{display:flex;align-items:center;gap:6px;margin-top:6px;position:relative;z-index:80;overflow:visible}
+.restaurant-utility-btn{height:32px;min-height:32px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(255,255,255,.055);color:#dcebe4;font:850 .55rem/1 Inter,system-ui,sans-serif;padding:0 10px;cursor:pointer;white-space:nowrap}
+.restaurant-utility-btn.active{background:rgba(103,196,155,.13);border-color:rgba(103,196,155,.35);color:#a8e7cb}
+.restaurant-inline-search-wrap{display:none;align-items:center;gap:4px;min-width:0;flex:1}
+.restaurant-utility-bar.search-open .restaurant-inline-search-wrap{display:flex}
+.restaurant-inline-query{height:32px;min-width:0;flex:1;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;padding:0 9px;font:700 .57rem/1 Inter,system-ui,sans-serif;outline:none}
+.restaurant-inline-query:focus{border-color:rgba(103,196,155,.6);box-shadow:0 0 0 2px rgba(103,196,155,.10)}
+.restaurant-search-clear{width:28px;height:28px;border:0;border-radius:9px;background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-weight:900}
+.pass-around-btn{border:1px solid rgba(103,196,155,.32)!important;background:rgba(103,196,155,.08)!important;color:#a8e7cb!important}
+.pass-status{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:7px 10px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.035);color:#dce9e2;font-size:.55rem;font-weight:800}
+.pass-status strong{font-size:.61rem;color:#fff}.pass-status-detail{color:rgba(255,255,255,.53)}.pass-status button{border:0;background:transparent;color:#9fd6bd;font:800 .52rem/1 inherit;cursor:pointer;padding:4px 2px}
+.pass-modal-backdrop{position:fixed;inset:0;background:rgba(2,10,8,.80);backdrop-filter:blur(14px);z-index:1300;display:flex;align-items:center;justify-content:center;padding:18px}
+.pass-modal{width:min(430px,100%);background:#10221c;border:1px solid rgba(255,255,255,.11);border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.45);padding:20px;color:#f3f8f5}.pass-modal h3{margin:0 0 7px;font-size:1.15rem}.pass-modal h4{margin:0 0 6px;font-size:1.1rem}.pass-modal p{margin:0 0 14px;color:rgba(255,255,255,.67);font-size:.72rem;line-height:1.5}.pass-count-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.pass-count-btn{height:46px;border:1px solid rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.06);color:#fff;font-weight:900;cursor:pointer}.pass-count-btn:hover{background:rgba(103,196,155,.12);border-color:rgba(103,196,155,.36)}.pass-modal-actions{display:flex;justify-content:flex-end;margin-top:12px}.pass-cancel-btn{border:0;background:transparent;color:rgba(255,255,255,.55);font-weight:800;cursor:pointer;padding:9px}.pass-handoff{text-align:center}.pass-handoff .pass-icon{font-size:2.2rem;margin-bottom:8px}.pass-primary-btn{width:100%;height:46px;border:0;border-radius:14px;background:#67c49b;color:#062018;font-weight:950;cursor:pointer}
+.history-calendar-wrap{display:flex;flex-direction:column;gap:10px}.history-calendar-kicker{font-size:.43rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.40);font-weight:900}.history-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}.history-calendar-toolbar h4{margin:1px 0 0;font-size:.92rem}.history-calendar-toolbar button{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#e9f3ee;border-radius:10px;height:31px;padding:0 9px;font-weight:850;cursor:pointer}.history-calendar-nav{display:flex;gap:5px}.history-weekdays,.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.history-weekdays div{text-align:center;color:rgba(255,255,255,.42);font-size:.46rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:3px 0}.history-day{min-width:0;min-height:66px;border:1px solid rgba(255,255,255,.075);border-radius:10px;background:rgba(255,255,255,.025);padding:4px;display:flex;flex-direction:column;gap:3px}.history-day.other-month{opacity:.42}.history-day.today{border-color:rgba(103,196,155,.42)}.history-day-number{font-size:.48rem;font-weight:900;color:rgba(255,255,255,.65);display:flex;justify-content:space-between;align-items:center}.history-events{display:flex;gap:3px;flex-wrap:wrap;align-content:flex-start}.history-event{position:relative;width:34px;height:34px;overflow:visible;border:0;background:transparent;padding:0}.history-event-main{display:block;width:100%;height:100%;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#173229;cursor:pointer;padding:0}.history-event-main img{display:block;width:100%;height:100%;object-fit:cover}.history-event-x{position:absolute!important;top:-5px!important;right:-5px!important;width:16px!important;height:16px!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.35)!important;background:#14211d!important;color:#fff!important;font-size:.55rem!important;line-height:14px!important;font-weight:950!important;cursor:pointer!important;padding:0!important;z-index:6!important}.history-more{font-size:.42rem;color:rgba(255,255,255,.47);font-weight:800}.history-legend{display:flex;gap:10px;align-items:center;color:rgba(255,255,255,.48);font-size:.48rem;font-weight:700}
+.restaurant-search-empty{margin-top:8px}
+@media(max-width:520px){.restaurant-utility-bar{gap:5px}.restaurant-utility-btn{height:31px;min-height:31px;padding:0 8px}.restaurant-inline-query{height:31px}.history-day{min-height:58px}.history-event{width:30px;height:30px}.history-event-x{width:14px!important;height:14px!important;line-height:12px!important}.pass-count-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:390px){.restaurant-utility-bar{flex-wrap:wrap}.restaurant-inline-search-wrap{flex-basis:100%}.history-day{min-height:54px;padding:3px}.history-event{width:26px;height:26px}.history-event-x{width:14px!important;height:14px!important}}
+
+/* P626 pass button placement: stays with the food gesture controls. */
+#passAroundBtn{min-height:40px;border-radius:12px;font:800 .58rem/1 Inter,system-ui,sans-serif;cursor:pointer;padding:0 11px;white-space:nowrap}
+#passAroundBtn:disabled{opacity:.45;cursor:not-allowed}
+.menu-search-hidden{display:none!important}
+
+/* P627 calendar accessibility */
+.history-calendar-grid[role="grid"]{outline:0}
+.history-calendar-grid [role="gridcell"]:focus-within{box-shadow:0 0 0 2px rgba(103,196,155,.28)}
+
+/* ================================================================
+   P631 — Professional control-system pass
+   One geometry system for game actions, restaurant controls, menus,
+   and history/calendar actions. Final overrides intentionally live here.
+================================================================ */
+
+button,
+input,
+select,
+textarea{box-sizing:border-box;}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+/* Primary navigation / Menu controls */
+.home-topbar-menu,
+body.game-mode .game-menu,
+body.restaurant-mode .restaurant-menu-btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:0!important;
+  border-radius:12px!important;
+  background:#17372d!important;
+  border:1px solid rgba(136,216,184,.38)!important;
+  color:#f5fbf8!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.20)!important;
+  font-size:0!important;
+  line-height:1!important;
+}
+.home-topbar-menu::before,
+body.game-mode .game-menu::before,
+body.restaurant-mode .restaurant-menu-btn::before{
+  content:'☰';
+  display:block;
+  font-family:Arial,system-ui,sans-serif!important;
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:0!important;
+}
+.home-topbar-menu:focus-visible,
+body.game-mode .game-menu:focus-visible,
+body.restaurant-mode .restaurant-menu-btn:focus-visible{
+  outline:3px solid rgba(134,216,183,.65)!important;
+  outline-offset:2px!important;
+}
+
+/* Consistent close control on light sheets */
+.drawer .icon-btn,
+.library-sheet .icon-btn,
+.modal .icon-btn,
+.search-sheet .icon-btn,
+.info-sheet .icon-btn{
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  border-radius:12px!important;
+  background:#17372d!important;
+  border:1px solid rgba(103,196,155,.38)!important;
+  color:#fff!important;
+  font-size:18px!important;
+  font-weight:900!important;
+  box-shadow:0 7px 16px rgba(23,32,29,.16)!important;
+}
+
+/* Food + restaurant action dock: four equal primary actions + separate Pass Around. */
+body.game-mode .gesture-actions,
+body.restaurant-mode .restaurant-gesture-actions{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:100%!important;
+  max-width:520px!important;
+  margin:8px auto 0!important;
+  padding:8px max(7px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-right))!important;
+  background:rgba(7,24,19,.985)!important;
+  border-top:1px solid rgba(255,255,255,.11)!important;
+}
+body.game-mode .gesture-actions .gesture-btn,
+body.restaurant-mode .restaurant-gesture-actions .gesture-btn{
+  width:100%!important;
+  min-width:0!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:0 8px!important;
+  border-radius:13px!important;
+  font-size:.62rem!important;
+  font-weight:850!important;
+  letter-spacing:.02em!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+}
+body.game-mode .gesture-actions .hide-btn,
+body.game-mode .gesture-actions .back-btn,
+body.restaurant-mode .restaurant-gesture-actions .hide-btn,
+body.restaurant-mode .restaurant-gesture-actions .back-btn{
+  background:rgba(255,255,255,.075)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  color:#e6efea!important;
+}
+body.game-mode .gesture-actions .cut-btn,
+body.restaurant-mode .restaurant-gesture-actions .cut-btn{
+  background:rgba(255,111,97,.16)!important;
+  border:1px solid rgba(255,111,97,.42)!important;
+  color:#ffb0a7!important;
+}
+body.game-mode .gesture-actions .hold-btn,
+body.restaurant-mode .restaurant-gesture-actions .hold-btn{
+  background:rgba(103,196,155,.15)!important;
+  border:1px solid rgba(103,196,155,.40)!important;
+  color:#a5ebcc!important;
+}
+body.game-mode .gesture-actions .gesture-btn:active,
+body.restaurant-mode .restaurant-gesture-actions .gesture-btn:active{
+  transform:translateY(1px)!important;
+  box-shadow:none!important;
+}
+
+/* Pass Around is a secondary full-width action, never a 40px orphan. */
+#passAroundBtn,
+#restaurantPassAroundBtn{
+  order:9!important;
+  grid-column:1 / -1!important;
+  width:100%!important;
+  min-height:38px!important;
+  height:38px!important;
+  margin:0!important;
+  border-radius:11px!important;
+  padding:0 12px!important;
+  background:rgba(103,196,155,.08)!important;
+  border:1px solid rgba(103,196,155,.33)!important;
+  color:#a5ebcc!important;
+  font-size:.58rem!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+}
+
+/* Restaurant search controls align as one compact utility row. */
+body.restaurant-mode .restaurant-filters,
+body.restaurant-mode .restaurant-filter-row{
+  align-items:stretch!important;
+}
+body.restaurant-mode .restaurant-utility-filters,
+body.restaurant-mode .restaurant-utility-bar{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  width:100%!important;
+}
+body.restaurant-mode .restaurant-utility-btn{
+  width:100%!important;
+  min-width:0!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 8px!important;
+  border-radius:11px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:.58rem!important;
+  font-weight:850!important;
+}
+
+/* Restaurant location controls: consistent height and alignment. */
+body.restaurant-mode .restaurant-location-row{
+  align-items:stretch!important;
+}
+body.restaurant-mode .restaurant-location-field,
+body.restaurant-mode .restaurant-location-btn,
+body.restaurant-mode .restaurant-find-btn{
+  height:38px!important;
+  min-height:38px!important;
+}
+body.restaurant-mode .restaurant-location-btn,
+body.restaurant-mode .restaurant-find-btn{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:.56rem!important;
+  font-weight:850!important;
+}
+
+/* Card-level secondary actions stay together and never overlap. */
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions,
+body.restaurant-mode .restaurant-stage .restaurant-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:100%!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240,
+body.restaurant-mode .restaurant-stage .restaurant-detail-btn,
+body.restaurant-mode .restaurant-stage .restaurant-order-btn{
+  width:100%!important;
+  min-width:0!important;
+  height:40px!important;
+  min-height:40px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:11px!important;
+  font-size:.57rem!important;
+  font-weight:850!important;
+}
+
+/* History/calendar: dark ink on the cream sheet for clear contrast. */
+.library-sheet{
+  color:#183129!important;
+}
+.library-sheet .library-head h3,
+.library-sheet .library-kicker,
+.library-sheet .library-tab,
+.library-sheet .library-clear{
+  color:#183129!important;
+}
+.history-calendar-kicker{
+  color:#6f7e76!important;
+}
+.history-calendar-toolbar h4{
+  color:#183129!important;
+  font-size:.98rem!important;
+  font-weight:750!important;
+}
+.history-calendar-nav{
+  display:grid!important;
+  grid-template-columns:40px 68px 40px!important;
+  gap:5px!important;
+}
+.history-calendar-toolbar button{
+  width:100%!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  border:1px solid #d8cec0!important;
+  border-radius:10px!important;
+  background:#fffdf9!important;
+  color:#183129!important;
+  font-size:.60rem!important;
+  font-weight:850!important;
+  box-shadow:0 3px 9px rgba(23,32,29,.05)!important;
+}
+.history-calendar-toolbar button[data-cal-today]{
+  background:#17372d!important;
+  border-color:#17372d!important;
+  color:#fff!important;
+}
+.history-weekdays div{
+  color:#718077!important;
+  font-size:.49rem!important;
+  font-weight:850!important;
+}
+.history-day{
+  background:#fffdf9!important;
+  border-color:#e1d8ca!important;
+}
+.history-day.today{
+  background:#eef8f2!important;
+  border-color:#67c49b!important;
+  box-shadow:inset 0 0 0 1px rgba(103,196,155,.16)!important;
+}
+.history-day-number{
+  color:#42564d!important;
+}
+.history-day.other-month .history-day-number{
+  color:#95a099!important;
+}
+.history-event-main{
+  border-color:#d9d0c4!important;
+  background:#17372d!important;
+  box-shadow:0 2px 7px rgba(23,32,29,.08)!important;
+}
+.history-event-x{
+  background:#17372d!important;
+  border-color:#f7f2e9!important;
+  color:#fff!important;
+  box-shadow:0 2px 6px rgba(23,32,29,.20)!important;
+}
+.history-more,
+.history-legend{
+  color:#68786f!important;
+}
+
+@media(max-width:430px){
+  body.game-mode .gesture-actions,
+  body.restaurant-mode .restaurant-gesture-actions{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;
+    padding-left:7px!important;
+    padding-right:7px!important;
+  }
+  body.game-mode .gesture-actions .gesture-btn,
+  body.restaurant-mode .restaurant-gesture-actions .gesture-btn{
+    height:44px!important;
+    min-height:44px!important;
+    padding:0 5px!important;
+    font-size:.57rem!important;
+  }
+  #passAroundBtn,#restaurantPassAroundBtn{
+    height:37px!important;
+    min-height:37px!important;
+  }
+  body.restaurant-mode .restaurant-utility-filters,
+  body.restaurant-mode .restaurant-utility-bar{
+    gap:5px!important;
+  }
+  body.restaurant-mode .restaurant-utility-btn{font-size:.56rem!important;}
+}
+
+@media(max-width:360px){
+  body.game-mode .gesture-actions .gesture-btn,
+  body.restaurant-mode .restaurant-gesture-actions .gesture-btn{
+    font-size:.54rem!important;
+  }
+  .history-calendar-nav{
+    grid-template-columns:36px 62px 36px!important;
+  }
+}
+
+/* P631 final contrast correction: active library tab uses white text on dark surface. */
+.library-tabs .library-tab.active,
+.library-sheet .library-tab.active{
+  color:#fff!important;
+}
+
+
+/* ================================================================
+   P633 — Final UX hierarchy
+================================================================ */
+body.game-mode .gesture-actions,body.restaurant-mode .restaurant-gesture-actions{display:grid!important;grid-template-columns:46px 46px minmax(0,1fr) minmax(0,1fr)!important;gap:7px!important;align-items:center!important;}
+body.game-mode .gesture-actions .gesture-btn,body.restaurant-mode .restaurant-gesture-actions .gesture-btn{height:42px!important;min-height:42px!important;width:100%!important;padding:0 5px!important;border-radius:13px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-weight:850!important;letter-spacing:.02em!important;}
+body.game-mode .gesture-actions .cut-btn,body.game-mode .gesture-actions .hold-btn,body.restaurant-mode .restaurant-gesture-actions .cut-btn,body.restaurant-mode .restaurant-gesture-actions .hold-btn{height:52px!important;min-height:52px!important;border-radius:17px!important;font-size:.76rem!important;box-shadow:0 8px 18px rgba(0,0,0,.16)!important;}
+body.game-mode .gesture-actions .cut-btn,body.restaurant-mode .restaurant-gesture-actions .cut-btn{background:linear-gradient(180deg,#ff7b6d,#f15f53)!important;border-color:#ef594c!important;color:#fff!important;}
+body.game-mode .gesture-actions .hold-btn,body.restaurant-mode .restaurant-gesture-actions .hold-btn{background:linear-gradient(180deg,#79d9ad,#5fbe93)!important;border-color:#58ad86!important;color:#06271d!important;}
+body.game-mode .gesture-actions .cut-btn span,body.game-mode .gesture-actions .hold-btn span,body.restaurant-mode .restaurant-gesture-actions .cut-btn span,body.restaurant-mode .restaurant-gesture-actions .hold-btn span{font-size:1.25rem!important;line-height:1!important;}
+body.game-mode .gesture-actions .hide-btn,body.game-mode .gesture-actions .back-btn,body.restaurant-mode .restaurant-gesture-actions .hide-btn,body.restaurant-mode .restaurant-gesture-actions .back-btn{width:46px!important;min-width:46px!important;height:42px!important;min-height:42px!important;padding:0!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.15)!important;color:rgba(255,255,255,.70)!important;font-size:.50rem!important;font-weight:750!important;}
+body.game-mode .gesture-actions .back-btn span,body.restaurant-mode .restaurant-gesture-actions .back-btn span{font-size:1rem!important;}
+#passAroundBtn,#restaurantPassAroundBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:0!important;height:28px!important;min-height:28px!important;padding:0 8px!important;margin:0 auto!important;background:transparent!important;border:0!important;color:rgba(255,255,255,.40)!important;box-shadow:none!important;font-size:.49rem!important;font-weight:750!important;letter-spacing:.04em!important;}
+#passAroundBtn:hover,#restaurantPassAroundBtn:hover{color:rgba(255,255,255,.68)!important;background:transparent!important;border:0!important;}
+.restaurant-pass-footer{display:flex!important;align-items:center!important;justify-content:center!important;height:30px!important;min-height:30px!important;}
+body.game-mode .game-bottom{display:flex!important;align-items:center!important;justify-content:center!important;flex-wrap:wrap!important;gap:12px!important;}
+body.game-mode .quick-cuts .quick-cut{flex:0 0 96px!important;width:96px!important;height:54px!important;min-height:54px!important;background-image:var(--quick-photo)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;position:relative!important;overflow:hidden!important;border-radius:14px!important;color:#fff!important;}
+body.game-mode .quick-cuts .quick-cut::after,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.80))!important;pointer-events:none!important;}
+body.game-mode .quick-cuts .quick-cut .quick-cut-copy,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut .quick-cut-copy{position:absolute!important;left:9px!important;right:20px!important;bottom:7px!important;z-index:2!important;padding:0!important;}
+body.game-mode .quick-cuts .quick-cut .quick-cut-copy strong,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut .quick-cut-copy strong{display:block!important;color:#fff!important;font-size:.60rem!important;font-weight:850!important;line-height:1.05!important;text-shadow:0 1px 6px rgba(0,0,0,.45)!important;}
+body.game-mode .quick-cuts .quick-cut .quick-cut-copy em,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut .quick-cut-copy em{display:block!important;margin-top:2px!important;color:rgba(255,255,255,.80)!important;font-size:.46rem!important;font-style:normal!important;font-weight:750!important;}
+body.game-mode .quick-cuts .quick-cut .quick-cut-x,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut .quick-cut-x{position:absolute!important;right:8px!important;bottom:7px!important;z-index:3!important;color:#fff!important;font-size:.72rem!important;font-weight:900!important;}
+body.restaurant-mode .restaurant-utility-bar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;width:100%!important;}
+body.restaurant-mode .restaurant-utility-btn{width:100%!important;height:34px!important;min-height:34px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+body.restaurant-mode .restaurant-inline-search-wrap{grid-column:1/-1!important;min-width:0!important;}
+body.restaurant-mode .restaurant-location-row{grid-template-columns:minmax(0,1fr) 72px 52px 54px!important;gap:5px!important;}
+body.restaurant-mode #restaurantQuickCuts{display:flex!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:0 1px 7px!important;scrollbar-width:thin!important;}
+body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut{flex:0 0 104px!important;width:104px!important;height:58px!important;min-height:58px!important;background-image:var(--quick-photo)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;position:relative!important;overflow:hidden!important;border-radius:14px!important;color:#fff!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240{height:100%!important;min-height:0!important;}
+body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex:0 0 55%!important;height:55%!important;min-height:0!important;}
+body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex:1 1 45%!important;height:45%!important;min-height:0!important;padding:9px 12px 8px!important;display:flex!important;flex-direction:column!important;}
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;margin-top:auto!important;padding-top:7px!important;flex:0 0 auto!important;}
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions button{height:40px!important;min-height:40px!important;visibility:visible!important;opacity:1!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+body.restaurant-mode .restaurant-stage .restaurant-address-v240{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;}
+@media(max-width:430px){
+ body.game-mode .gesture-actions,body.restaurant-mode .restaurant-gesture-actions{grid-template-columns:42px 42px minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;}
+ body.game-mode .gesture-actions .hide-btn,body.game-mode .gesture-actions .back-btn,body.restaurant-mode .restaurant-gesture-actions .hide-btn,body.restaurant-mode .restaurant-gesture-actions .back-btn{width:42px!important;min-width:42px!important;}
+ body.game-mode .gesture-actions .cut-btn,body.game-mode .gesture-actions .hold-btn,body.restaurant-mode .restaurant-gesture-actions .cut-btn,body.restaurant-mode .restaurant-gesture-actions .hold-btn{height:50px!important;min-height:50px!important;font-size:.70rem!important;}
+ body.game-mode .quick-cuts .quick-cut,body.restaurant-mode #restaurantQuickCuts .restaurant-quick-cut{flex-basis:92px!important;width:92px!important;height:54px!important;min-height:54px!important;}
+ body.restaurant-mode .restaurant-location-row{grid-template-columns:minmax(0,1fr) 68px 48px 50px!important;gap:4px!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex-basis:52%!important;height:52%!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:48%!important;height:48%!important;padding:8px 9px 8px!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-v240-actions button{height:37px!important;min-height:37px!important;font-size:.54rem!important;}
+}
+@media(max-width:360px){
+ body.game-mode .gesture-actions,body.restaurant-mode .restaurant-gesture-actions{grid-template-columns:39px 39px minmax(0,1fr) minmax(0,1fr)!important;gap:5px!important;}
+ body.game-mode .gesture-actions .hide-btn,body.game-mode .gesture-actions .back-btn,body.restaurant-mode .restaurant-gesture-actions .hide-btn,body.restaurant-mode .restaurant-gesture-actions .back-btn{width:39px!important;min-width:39px!important;font-size:.45rem!important;}
+ body.restaurant-mode .restaurant-location-row{grid-template-columns:minmax(0,1fr) 62px 46px 48px!important;gap:3px!important;}
+}
+
+/* P634: secondary action hierarchy + restaurant utility row */
+body.game-mode .game-bottom{display:flex!important;flex:0 0 auto!important;order:6!important;align-items:center!important;justify-content:center!important;gap:7px!important;margin:6px auto 0!important;padding:0!important;width:100%!important;}
+body.game-mode .game-bottom .food-secondary-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;height:34px!important;padding:0 12px!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:11px!important;background:rgba(255,255,255,.055)!important;color:rgba(255,255,255,.78)!important;font-size:.54rem!important;font-weight:850!important;letter-spacing:.02em!important;}
+body.game-mode .game-bottom .random-food-btn{background:rgba(217,181,109,.11)!important;border-color:rgba(217,181,109,.22)!important;color:#ead59f!important;}
+body.game-mode .game-bottom .add-food-btn{background:rgba(103,196,155,.10)!important;border-color:rgba(103,196,155,.22)!important;color:#a4e0c3!important;}
+body.game-mode .game-bottom .pass-food-btn{background:rgba(255,255,255,.045)!important;border-color:rgba(255,255,255,.12)!important;color:rgba(255,255,255,.64)!important;}
+body.restaurant-mode .restaurant-utility-bar{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+body.restaurant-mode .restaurant-pass-utility{background:rgba(103,196,155,.10)!important;border-color:rgba(103,196,155,.24)!important;color:#a5e3c4!important;}
+body.restaurant-mode .restaurant-inline-search-wrap{grid-column:1/-1!important;}
+body.restaurant-mode .restaurant-menu-card{margin:5px 0 0;padding:6px 8px;border-radius:10px;background:rgba(18,52,41,.07);border:1px solid rgba(25,48,39,.08);color:#5f7168;display:grid;gap:2px;}
+body.restaurant-mode .restaurant-menu-card span{font-size:.44rem;text-transform:uppercase;letter-spacing:.10em;font-weight:900;color:#839087;}
+body.restaurant-mode .restaurant-menu-card strong{font-size:.57rem;line-height:1.2;color:#2c4037;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:430px){body.game-mode .game-bottom{gap:5px!important;margin-top:5px!important;}body.game-mode .game-bottom .food-secondary-action{min-height:32px!important;height:32px!important;padding:0 9px!important;font-size:.50rem!important;}body.restaurant-mode .restaurant-utility-bar{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;}body.restaurant-mode .restaurant-utility-btn{padding:0 6px!important;font-size:.51rem!important;}body.restaurant-mode .restaurant-menu-card strong{font-size:.54rem!important;}}
+
+
+/* P636 user-requested final interaction polish */
+body.game-mode .game-bottom .random-food-btn{
+  background:rgba(217,181,109,.14)!important;
+  border-color:rgba(217,181,109,.40)!important;
+  color:#f1d891!important;
+}
+body.game-mode .game-bottom .add-food-btn{
+  background:rgba(239,115,95,.13)!important;
+  border-color:rgba(239,115,95,.38)!important;
+  color:#ffb0a1!important;
+}
+body.game-mode .game-bottom .pass-food-btn,
+body.game-mode .game-bottom .pass-around-btn{
+  background:rgba(103,196,155,.13)!important;
+  border-color:rgba(103,196,155,.40)!important;
+  color:#a9e8cb!important;
+}
+body.game-mode .game-bottom .food-secondary-action:active{
+  transform:translateY(1px) scale(.985)!important;
+}
+.quick-cut.is-quick-hidden{
+  border-color:rgba(103,196,155,.55)!important;
+  box-shadow:inset 0 0 0 1px rgba(103,196,155,.13)!important;
+}
+.quick-cut.is-quick-hidden .quick-cut-x{font-size:.78rem!important;font-weight:950!important;}
+.quick-cut.is-quick-hidden .quick-cut-copy em{color:#9de3c2!important;}
