@@ -29,7 +29,7 @@ function makeRes(){
 }
 
 (async()=>{
-  let req=makeReq({mode:'health'}),res=makeRes();await handler(req,res);assert.equal(res.statusCode,200);assert.equal(res.body.version,'restaurant-v629');
+  let req=makeReq({mode:'health'}),res=makeRes();await handler(req,res);assert.equal(res.statusCode,200);assert.equal(res.body.version,'restaurant-v636-final');
   req=makeReq({mode:'search',lat:'36.5298',lon:'-87.3595',radius:'5'});res=makeRes();await handler(req,res);assert.equal(res.statusCode,200);assert.equal(res.body.results.length,2);assert.equal(res.body.results[0].photoName,'places/qa-photo');assert.match(res.headers['Cache-Control'],/s-maxage=90/);assert.equal('postpassEndpoint' in res.body.diagnostics,false);
   const photoReq=makeReq({mode:'photo',name:'places/qa-photo'});res=makeRes();await handler(photoReq,res);assert.equal(res.statusCode,200);assert.equal(Buffer.from(res.body).toString(),'JPEGDATA');assert.equal(res.headers['Content-Type'],'image/jpeg');
   // Bad-coordinate protection.
