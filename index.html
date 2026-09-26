@@ -6596,7 +6596,6 @@ function photoFor(item) {
     'goulash': PHOTO_LIBRARY.goulash,
     'santa fe soup': PHOTO_LIBRARY.santaFeSoup,
     'southern vegetable beef soup': PHOTO_LIBRARY.southernVegBeef,
-    'southern vegetable beef soup': PHOTO_LIBRARY.southernVegBeef,
     'southern vegetable beef': PHOTO_LIBRARY.southernVegBeef,
     'chicken fried steak': PHOTO_LIBRARY.chickenFriedSteak,
     'country fried chicken': PHOTO_LIBRARY.countryFriedChicken,
@@ -7224,10 +7223,10 @@ function showWinner(isReopen=false) {
     $('winnerMapBtn')?.addEventListener('click',()=>{const q=(Number.isFinite(winner.lat)&&Number.isFinite(winner.lon))?`${winner.lat},${winner.lon}`:winner.name;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener,noreferrer');});
     $('winnerOrderBtn')?.addEventListener('click',()=>{const u=safeExternalUrl(winner.website);if(u)window.open(u,'_blank','noopener,noreferrer');});
     $('winnerSearchBtn')?.addEventListener('click',()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(winner.name)}`,'_blank','noopener,noreferrer'));
-    $('winnerDetailsBtn')?.addEventListener('click',()=>openDetails(winner));
+    qa.querySelector('[data-winner-details]')?.addEventListener('click',()=>openDetails(winner));
   } else {
     qa.innerHTML=`<button class="winner-v240-action primary" data-winner-details type="button">Details</button><button class="winner-v240-action" data-winner-save type="button">${saveLabel}</button>`;
-    $('winnerDetailsBtn')?.addEventListener('click',()=>openDetails(winner));
+    qa.querySelector('[data-winner-details]')?.addEventListener('click',()=>openDetails(winner));
   }
   qa.querySelector('[data-winner-save]')?.addEventListener('click',()=>{const now=toggleSaved(winner);const b=qa.querySelector('[data-winner-save]');if(b)b.textContent=now?'♥ Saved':'♡ Save';});
   if(!isReopen) recordHistory(winner,isRestaurant?'restaurant':'food');
