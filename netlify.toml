@@ -1,0 +1,10 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/restaurant-search"
+  to = "/.netlify/functions/restaurant-search"
+  status = 200
