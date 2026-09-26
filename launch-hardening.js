@@ -164,7 +164,7 @@
   function openPass(mode){
     if(pass)return;
     let pool;
-    if(mode==='restaurant') pool=uniq(filterRestaurants(),restKey);
+    if(mode==='restaurant') pool=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
     else pool=uniq([...(activeItems||[]),...(holdingItems||[])].filter(x=>x&&!isDeletedFood(x)),foodKey);
     if(pool.length<2){toast('Pass Around needs at least two choices.');return;}
     const b=document.createElement('div');b.id='passSetupBackdrop';b.className='pass-modal-backdrop';
