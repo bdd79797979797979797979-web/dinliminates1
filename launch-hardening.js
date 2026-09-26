@@ -262,8 +262,13 @@
     window.showRestaurantMode=()=>{
       if(!restaurantHydrationDone){restaurantHydrationPromise.then(()=>window.showRestaurantMode());return true;}
       const hasRound=restaurantRoundInProgress&&((activeRestaurants||[]).length+(holdingRestaurants||[]).length)>0;
+      const v3State=window.DinliminateRestaurantSearchV3?.state?.();
+      const searchInFlight=!!v3State?.searching;
       const r=legacyShowRestaurant.apply(this,arguments);setupRestaurantTools();renderRestaurantQuickCuts();
-      if(hasRound){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
+      // A V3 search calls applyRestaurantData(), and the legacy renderer calls showRestaurantMode().
+      // Never refresh from inside that in-flight search or it recursively starts another search,
+      // causing the restaurant card to cycle rapidly on its own.
+      if(hasRound&&!searchInFlight){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
       return r;
     };
     window.applyRestaurantData=function(){const r=legacyApplyRestaurant.apply(this,arguments);restaurantBase=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);restaurantManual.clear();restaurantRoundInProgress=!!restaurantItems.length;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
