@@ -24,20 +24,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           DINLIMINATE_BASE_URL: https://dinliminates1.vercel.app
-        run: node - <<'NODE'
-        const base = process.env.DINLIMINATE_BASE_URL;
-        const start = Date.now();
-        while (Date.now() - start < 360000) {
-          try {
-            const r = await fetch(base + '/');
-            const t = await r.text();
-            if (r.ok && t.includes('p677-launch-complete')) process.exit(0);
-          } catch {}
-          await new Promise(r => setTimeout(r, 10000));
-        }
-        console.error('Production did not expose p677-launch-complete within six minutes.');
-        process.exit(1);
-NODE
+        run: node qa/wait-for-production.mjs
       - name: Run launch smoke suite
         if: github.ref == 'refs/heads/main'
         env:
