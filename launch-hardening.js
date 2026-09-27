@@ -282,6 +282,12 @@
   }
   function visibleRestaurants(){return restaurantCurrentEligiblePool();}
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
+  function refreshRestaurantQuickCutsNow(){
+    try{ syncRestaurantQuickCutScope(); }catch{}
+    try{ renderRestaurantQuickCuts(); }catch{}
+    return true;
+  }
+  window.DinliminateRefreshRestaurantQuickCuts=refreshRestaurantQuickCutsNow;
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
     const scope=restaurantQuickCutDisplayPool(k);
@@ -515,19 +521,18 @@
     };
     window.renderRestaurantStage=wrapRestaurantRender();
     window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;window.DinliminateSyncRestaurantQuickCutScope=syncRestaurantQuickCutScope;
-    window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
+    window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();refreshRestaurantQuickCutsNow();},250);return r;};
     window.restaurantKeep=function(card){
       if(pass?.mode==='restaurant')return passAct('hold',card);
       const r=legacyRestaurantKeep.apply(this,arguments);
       setTimeout(()=>{
         restaurantRoundInProgress=true;
         saveRestaurantRoundState();
-        syncRestaurantQuickCutScope();
-        renderRestaurantQuickCuts();
+        refreshRestaurantQuickCutsNow();
       },250);
       return r;
     };
-    window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
+    window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();refreshRestaurantQuickCutsNow();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
     const foodBottom=$('gamePanel')?.querySelector('.game-bottom');
     const foodPass=$('foodPassAroundBtn');
