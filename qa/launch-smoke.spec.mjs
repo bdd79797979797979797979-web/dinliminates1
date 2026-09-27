@@ -1,3 +1,24 @@
+import { test, expect } from '@playwright/test';
+
+const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
+const TEST_ADDRESS = '1 Titans Way, Nashville, TN 37213';
+
+test.describe.configure({ timeout: 120000 });
+
+async function swipe(page, selector, dx) {
+  const card = page.locator(selector).first();
+  await expect(card).toBeVisible({ timeout: 15000 });
+  const box = await card.boundingBox();
+  if (!box) throw new Error('Could not measure swipe card.');
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + dx, y, { steps: 10 });
+  await page.mouse.up();
+}
+
+
 test('P683 priority: restaurant Quick Cuts follow live radius and current choices', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
@@ -34,26 +55,6 @@ test('P683 priority: restaurant Quick Cuts follow live radius and current choice
 
   expect(pageErrors).toEqual([]);
 });
-
-import { test, expect } from '@playwright/test';
-
-const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
-const TEST_ADDRESS = '1 Titans Way, Nashville, TN 37213';
-
-test.describe.configure({ timeout: 120000 });
-
-async function swipe(page, selector, dx) {
-  const card = page.locator(selector).first();
-  await expect(card).toBeVisible({ timeout: 15000 });
-  const box = await card.boundingBox();
-  if (!box) throw new Error('Could not measure swipe card.');
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(x, y);
-  await page.mouse.down();
-  await page.mouse.move(x + dx, y, { steps: 10 });
-  await page.mouse.up();
-}
 
 test('production HTML and search API are healthy', async ({ request }) => {
   const html = await request.get(BASE + '/');
