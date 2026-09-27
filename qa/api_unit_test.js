@@ -25,11 +25,16 @@ global.fetch = async (url, opts={}) => {
   if(u.hostname==='postpass.geofabrik.de'){
     const body=decodeURIComponent(String(opts.body||''));
     const m=body.match(/options\[geojson\]=false/); assert(m);
-    return jsonResponse({result:[
-      {osm_type:'node',osm_id:'1',lat:36.44268,lon:-87.17841,tags:{name:"McDonald's",amenity:'fast_food'}},
-      {osm_type:'node',osm_id:'2',lat:36.45,lon:-87.18,tags:{name:'Waffle House',amenity:'restaurant',cuisine:'american'}},
-      {osm_type:'node',osm_id:'3',lat:37.9,lon:-87.18,tags:{name:'Outside',amenity:'restaurant'}}
-    ]});
+    const result = fallbackSupplementMode
+      ? [
+          {osm_type:'node',osm_id:'20',lat:36.45,lon:-87.18,tags:{name:'Waffle House',amenity:'restaurant',cuisine:'american'}}
+        ]
+      : [
+          {osm_type:'node',osm_id:'1',lat:36.44268,lon:-87.17841,tags:{name:"McDonald's",amenity:'fast_food'}},
+          {osm_type:'node',osm_id:'2',lat:36.45,lon:-87.18,tags:{name:'Waffle House',amenity:'restaurant',cuisine:'american'}},
+          {osm_type:'node',osm_id:'3',lat:37.9,lon:-87.18,tags:{name:'Outside',amenity:'restaurant'}}
+        ];
+    return jsonResponse({result});
   }
   throw new Error('Unexpected URL '+url);
 };
