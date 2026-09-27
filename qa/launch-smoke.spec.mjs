@@ -1,3 +1,40 @@
+test('P683 priority: restaurant Quick Cuts follow live radius and current choices', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => window.showRestaurantMode?.());
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+
+  await page.evaluate(() => {
+    window.applyRestaurantData?.({
+      businesses: [
+        { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5 },
+        { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0 },
+        { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:6.0 }
+      ]
+    }, 'QA Scope');
+    window.DinliminateRestaurantSearchV3?.setRadius(5, false);
+    window.renderRestaurantQuickCuts?.();
+  });
+
+  const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
+  await expect(fastFood).toContainText('2');
+
+  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
+
+  await page.evaluate(() => {
+    window.restaurantCut?.(document.querySelector('#restaurantStage .restaurant-card.active'));
+  });
+  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('0');
+
+  await page.locator('#restaurantBackAction').click();
+  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
+
+  expect(pageErrors).toEqual([]);
+});
+
 import { test, expect } from '@playwright/test';
 
 const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
