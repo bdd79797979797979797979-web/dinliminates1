@@ -24,7 +24,7 @@ test('production HTML and search API are healthy', async ({ request }) => {
   expect(html.ok()).toBeTruthy();
   const body = await html.text();
   expect(body).toContain('Dinliminate');
-  expect(body).toContain('p684-restaurant-quickcut-state-sync');
+  expect(body).toContain('p687-authoritative-quickcut-refresh');
   expect(body).toContain('restaurantOpenUnknownBtn');
   expect(body).toContain('restaurantPassAroundBtn');
 
