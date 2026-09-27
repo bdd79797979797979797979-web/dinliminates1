@@ -101,7 +101,7 @@ test('full simulated user journey — home, food, custom food, hidden choices, s
   await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn');
   await page.locator('#closeInfoBtn').click();
   await openHomeMenu(page);
-  await page.locator('#phoneHelpBtn').click();
+  await page.locator('#homePhoneHelpBtn').click();
   await expect(page.locator('#infoBackdrop')).toContainText('Add to Home Screen');
   await page.locator('#closeInfoBtn').click();
 
