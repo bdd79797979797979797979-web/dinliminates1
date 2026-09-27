@@ -8,3 +8,20 @@
   from = "/api/restaurant-search"
   to = "/.netlify/functions/restaurant-search"
   status = 200
+
+
+# P641 recovery: always fetch the latest app shell during launch iteration.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+
+[[headers]]
+  for = "/api/restaurant-search"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
