@@ -252,6 +252,15 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await page.locator('#deleteCardBtn').click();
   await expect(page.locator('#confirmBackdrop')).toBeVisible();
   await expect(page.locator('#confirmCutBtn')).toHaveText(/Delete permanently/);
+  const deleteButtonCovered = await page.evaluate(() => {
+    const b = document.querySelector('#confirmCutBtn');
+    if (!b) return true;
+    const r = b.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    return document.elementFromPoint(x, y) !== b && !b.contains(document.elementFromPoint(x, y));
+  });
+  console.log('custom delete confirmation covered by another overlay:', deleteButtonCovered);
+  await page.evaluate(() => window.closeDetails?.());
   await page.locator('#confirmCutBtn').click();
   await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(0);
 
@@ -445,7 +454,7 @@ test('deep backup round-trip: exported backup can be imported back into Dinlimin
   await expect(page.locator('#modalBackdrop')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(1);
 
-  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#menuBtn').click();
   await page.locator('#settingsBtn').click();
   await expect(page.locator('#settingsBackdrop')).toBeVisible();
 
@@ -474,4 +483,27 @@ test('deep backup round-trip: exported backup can be imported back into Dinlimin
   });
   expect(importedNames).toContain('QA Import Roundtrip');
   expect(pageErrors).toEqual([]);
+});
+
+
+test('targeted probe: custom-food Delete confirmation must sit above Details', async ({ page }) => {
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#addMenuBtn').click();
+  await page.locator('#newName').fill('QA Delete Overlay');
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeHidden();
+  const item = await page.evaluate(() => JSON.parse(localStorage.getItem('dinliminateCustom') || '[]').find(x => x.name === 'QA Delete Overlay'));
+  if (!item) throw new Error('Custom food missing after add.');
+  await page.evaluate(item => window.openDetails?.(item), item);
+  await page.locator('#deleteCardBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeVisible();
+  const clickable = await page.evaluate(() => {
+    const b = document.querySelector('#confirmCutBtn');
+    if (!b) return false;
+    const r = b.getBoundingClientRect();
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return top === b || b.contains(top);
+  });
+  expect(clickable).toBeTruthy();
 });
