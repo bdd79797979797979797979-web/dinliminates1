@@ -386,6 +386,26 @@
   }
   window.DinliminateBackToStart=backToStartFresh;
 
+  let passActionCaptureInstalled=false;
+  function installPassActionCapture(){
+    if(passActionCaptureInstalled)return;
+    passActionCaptureInstalled=true;
+    document.addEventListener('click',e=>{
+      const btn=e.target?.closest?.('#foodPassAroundBtn,#restaurantPassAroundBtn,#cutBtn,#holdBtn,#restaurantCutBtn,#restaurantKeepBtn');
+      if(!btn)return;
+      const id=btn.id;
+      const activePass=!!pass&&pass.phase==='voting';
+      const passOpen=id==='foodPassAroundBtn'||id==='restaurantPassAroundBtn';
+      const decision= id==='cutBtn'||id==='restaurantCutBtn' ? 'cut' : id==='holdBtn'||id==='restaurantKeepBtn' ? 'hold' : null;
+      if(passOpen || (activePass&&decision)){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(passOpen)openPass(id==='restaurantPassAroundBtn'?'restaurant':'food');
+        else passAct(decision,btn);
+      }
+    },true);
+  }
+
   function replaceTapControl(id,handler){
     const el=$(id);
     if(!el)return null;
@@ -396,6 +416,7 @@
   }
   function install(){
     safeWrite('dinliminateLaunchVersion',VERSION);
+    installPassActionCapture();
     $('startOverBtn')?.replaceChildren(document.createTextNode('Start fresh'));
     legacyShowGame=window.showGame;legacyResetList=window.resetList;legacyRenderStage=window.renderStage;legacyUndo=window.undoLast;legacyCut=window.cutCurrent;legacyHold=window.holdCurrent;legacyShowRestaurant=window.showRestaurantMode;legacyApplyRestaurant=window.applyRestaurantData;legacyRenderRestaurant=window.renderRestaurantStage;legacyRestaurantCut=window.restaurantCut;legacyRestaurantKeep=window.restaurantKeep;legacyRestaurantUndo=window.restaurantUndo;legacyRenderLibrary=window.renderLibrary;legacyShowWinner=window.showWinner;
     window.showGame=()=>{if(!foodHydrationDone){foodHydrationPromise.then(()=>window.showGame());return;}return foodInProgress&&((activeItems||[]).length+(holdingItems||[]).length)>0?resumeFood():freshFood();};window.resetList=()=>{foodHydrationDone=true;return freshFood();};
