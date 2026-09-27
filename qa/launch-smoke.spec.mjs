@@ -568,8 +568,13 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
   await page.locator('#restaurantRadiusFilter').selectOption('10');
   await expect.poll(async () => {
     const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-    return d?.radius === 10 && d?.pool > diag1.pool;
-  }, { timeout: 70000 }).toBe(true);
+    const finding = await page.locator('#restaurantLoadBtn').isDisabled().catch(() => true);
+    return d?.radius === 10 && finding;
+  }, { timeout: 10000 }).toBe(true);
+  // Expansion must repaint immediately from cached in-radius results.
+  const immediate10 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(immediate10.active).toBe(immediate10.pool);
+  await expect.poll(async () => page.locator('#restaurantLoadBtn').isDisabled(), { timeout: 70000 }).toBe(false);
 
   const diagFresh = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
   const freshButtonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
