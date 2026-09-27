@@ -317,7 +317,8 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
     renderRestaurantQuickCuts();
   });
   await expect(fastFood).toHaveAttribute('aria-pressed','true');
-  await expect.poll(countText).toContain('3');
+  // Only 0.5 mi and 2.0 mi are inside the 5-mile radius; the 6-mile result is out of scope.
+  await expect.poll(countText).toContain('2');
 
   // Toggling the active Quick Cut back off restores the refreshed choices.
   await fastFood.click();
