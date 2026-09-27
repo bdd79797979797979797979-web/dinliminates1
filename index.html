@@ -5502,7 +5502,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
 })();
 </script>
-<link rel="stylesheet" href="./launch-hardening.css?v=p649-passaround-full-repair"><script src="./launch-hardening.js?v=p649-passaround-full-repair" defer></script><style id="dinliminate-p636-final-controls">
+<link rel="stylesheet" href="./launch-hardening.css?v=p650-restaurant-pass-repair"><script src="./launch-hardening.js?v=p650-restaurant-pass-repair" defer></script><style id="dinliminate-p636-final-controls">
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
@@ -5648,6 +5648,7 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
   </div>
 
   <div class="restaurant-status-line" aria-live="polite"><span id="restaurantStatus">Enter a city or ZIP to find restaurants.</span><span id="restaurantFilterNote" class="filter-note"></span></div>
+  <div class="pass-status-slot" id="restaurantPassStatusSlot"></div>
   <div class="stage restaurant-stage" id="restaurantStage">
     <div class="restaurant-empty">
       <div class="restaurant-empty-icon">⌖</div>
@@ -6139,7 +6140,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p649-passaround-full-repair';
+const DINLIMINATE_VERSION = 'p650-restaurant-pass-repair';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8372,6 +8373,23 @@ body.restaurant-mode #restaurantPassAroundBtn:focus-visible{
     padding:0 9px!important;
     font-size:.52rem!important;
   }
+}
+</style>
+<style id="dinliminate-p650-pass-status-and-add-food">
+.pass-status-slot{width:100%;max-width:620px;margin:0 auto 8px;position:relative;z-index:70}
+.pass-status-slot:empty{display:none!important}
+.pass-status{margin:0!important}
+body.game-mode #addDuringBtn{
+  border:1px solid #9bcce8!important;
+  background:#dff2ff!important;
+  color:#2d6787!important;
+  box-shadow:0 5px 13px rgba(70,135,171,.16)!important;
+}
+body.game-mode #addDuringBtn:hover,
+body.game-mode #addDuringBtn:focus-visible{
+  background:#cdeaff!important;
+  border-color:#83bddf!important;
+  color:#245a78!important;
 }
 </style>
 <style id="dinliminate-p649-winner-order">
