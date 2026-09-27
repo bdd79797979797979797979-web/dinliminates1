@@ -35,8 +35,8 @@ test('production HTML and search API are healthy', async ({ request }) => {
   const suggest = await request.get(BASE + '/api/restaurant-search?mode=suggest&q=' + encodeURIComponent('1 Titans Way Nashville'));
   expect(suggest.ok()).toBeTruthy();
   const suggestions = await suggest.json();
-  expect(Array.isArray(suggestions.suggestions)).toBeTruthy();
-  expect(suggestions.suggestions.length).toBeGreaterThan(0);
+  expect(Array.isArray(suggestions.results)).toBeTruthy();
+  expect(suggestions.results.length).toBeGreaterThan(0);
 
   const resolve = await request.get(BASE + '/api/restaurant-search?mode=resolve&q=' + encodeURIComponent(TEST_ADDRESS));
   expect(resolve.ok()).toBeTruthy();
