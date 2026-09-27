@@ -6139,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p644-single-passaround';
+const DINLIMINATE_VERSION = 'p645-restaurant-pass-fix';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8381,6 +8381,62 @@ body.game-mode #foodPassAroundBtn:focus-visible{
     height:32px!important;
     min-height:32px!important;
     padding:0 10px!important;
+    font-size:.52rem!important;
+  }
+}
+</style>
+<style id="dinliminate-p645-restaurant-pass-fix">
+/* P645 — compact Restaurant tools; both controls sit naturally beside each other. */
+body.restaurant-mode .restaurant-utility-row{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  overflow:visible!important;
+}
+body.restaurant-mode #restaurantSearchBtn,
+body.restaurant-mode #restaurantPassAroundBtn{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  font-size:.54rem!important;
+  font-weight:850!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+body.restaurant-mode #restaurantSearchBtn{
+  border:1px solid rgba(31,55,45,.18)!important;
+  background:#f7f4ed!important;
+  color:#2e4139!important;
+}
+body.restaurant-mode #restaurantSearchBtn[aria-expanded="true"]{
+  background:#ece7dc!important;
+  border-color:rgba(46,65,57,.28)!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn{
+  border:1px solid #8b7bff!important;
+  background:linear-gradient(135deg,#7b68ee,#5d4bc4)!important;
+  color:#fff!important;
+  opacity:1!important;
+  box-shadow:0 5px 13px rgba(91,73,194,.20)!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn:hover,
+body.restaurant-mode #restaurantPassAroundBtn:focus-visible{
+  border-color:#b0a6ff!important;
+  background:linear-gradient(135deg,#8d7df5,#6856d6)!important;
+  color:#fff!important;
+}
+@media(max-width:390px){
+  body.restaurant-mode #restaurantSearchBtn,
+  body.restaurant-mode #restaurantPassAroundBtn{
+    height:30px!important;
+    min-height:30px!important;
+    padding:0 9px!important;
     font-size:.52rem!important;
   }
 }
