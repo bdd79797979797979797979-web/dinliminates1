@@ -524,6 +524,8 @@ body.game-mode .game-bottom .food-secondary-action:active{
 
 /* P652 — one universal Pass Around control bar for Food + Restaurant. */
 #passStatus{
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
   position:fixed!important;
   top:calc(env(safe-area-inset-top, 0px) + 8px)!important;
   left:50%!important;
