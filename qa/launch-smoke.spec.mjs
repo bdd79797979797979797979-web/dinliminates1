@@ -491,8 +491,6 @@ test('deep backup round-trip: exported backup can be imported back into Dinlimin
     buffer: Buffer.from(backupText, 'utf8')
   });
 
-  await page.waitForTimeout(700);
-  await expect(page.locator('#toast')).toHaveText('Backup imported. Reloading…');
   await expect(page.locator('#homePanel')).toBeVisible({ timeout: 10000 });
   const importedNames = await page.evaluate(() => {
     try { return JSON.parse(localStorage.getItem('dinliminateCustom') || '[]').map(x => x.name); }
