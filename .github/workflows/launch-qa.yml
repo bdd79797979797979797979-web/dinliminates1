@@ -17,10 +17,10 @@ jobs:
       - name: API unit and fallback regression tests
         run: node qa/api_unit_test.js
       - name: Install Playwright
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/p683-quickcut-targeted-test'
         run: npm install --no-save --no-package-lock @playwright/test
       - name: Install Chromium
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/p683-quickcut-targeted-test'
         run: npx playwright install --with-deps chromium
       - name: Start local QA server
         run: |
