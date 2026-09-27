@@ -407,22 +407,33 @@
   window.DinliminateBackToStart=backToStartFresh;
 
   let passActionCaptureInstalled=false;
+  let passActionPointerHandledUntil=0;
+  function handlePassActionTarget(btn,e){
+    const id=btn?.id;
+    if(!id)return false;
+    const passOpen=id==='foodPassAroundBtn'||id==='restaurantPassAroundBtn';
+    const decision=id==='cutBtn'||id==='restaurantCutBtn'?'cut':id==='holdBtn'||id==='restaurantKeepBtn'?'hold':null;
+    if(!passOpen && !(pass&&pass.phase==='voting'&&decision))return false;
+    e?.preventDefault?.();
+    e?.stopImmediatePropagation?.();
+    if(passOpen)openPass(id==='restaurantPassAroundBtn'?'restaurant':'food');
+    else passAct(decision,btn);
+    return true;
+  }
   function installPassActionCapture(){
     if(passActionCaptureInstalled)return;
     passActionCaptureInstalled=true;
-    document.addEventListener('click',e=>{
+    document.addEventListener('pointerup',e=>{
       const btn=e.target?.closest?.('#foodPassAroundBtn,#restaurantPassAroundBtn,#cutBtn,#holdBtn,#restaurantCutBtn,#restaurantKeepBtn');
       if(!btn)return;
-      const id=btn.id;
-      const activePass=!!pass&&pass.phase==='voting';
-      const passOpen=id==='foodPassAroundBtn'||id==='restaurantPassAroundBtn';
-      const decision= id==='cutBtn'||id==='restaurantCutBtn' ? 'cut' : id==='holdBtn'||id==='restaurantKeepBtn' ? 'hold' : null;
-      if(passOpen || (activePass&&decision)){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        if(passOpen)openPass(id==='restaurantPassAroundBtn'?'restaurant':'food');
-        else passAct(decision,btn);
-      }
+      passActionPointerHandledUntil=Date.now()+650;
+      handlePassActionTarget(btn,e);
+    },true);
+    document.addEventListener('click',e=>{
+      if(Date.now()<passActionPointerHandledUntil)return;
+      const btn=e.target?.closest?.('#foodPassAroundBtn,#restaurantPassAroundBtn,#cutBtn,#holdBtn,#restaurantCutBtn,#restaurantKeepBtn');
+      if(!btn)return;
+      handlePassActionTarget(btn,e);
     },true);
   }
 
