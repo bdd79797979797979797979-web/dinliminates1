@@ -288,6 +288,14 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
 
   // Hours filter is part of the same live Quick Cut scope.
   await page.locator('#restaurantOpenUnknownBtn').click();
+  console.log('hours closed probe:', await page.evaluate(() => ({
+    hoursStorage: localStorage.getItem('dinliminateRestaurantHoursFilter'),
+    active: (activeRestaurants||[]).map(r => ({name:r.name, openNow:r.openNow, id:r.id})),
+    holding: (holdingRestaurants||[]).map(r => ({name:r.name, openNow:r.openNow, id:r.id})),
+    filtered: (typeof filteredRestaurants==='function' ? filteredRestaurants() : []).map(r => ({name:r.name, openNow:r.openNow, id:r.id})),
+    quickText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || '',
+    quickPressed: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"]')?.getAttribute('aria-pressed') || ''
+  })));
   await expect.poll(countText).toContain('1');
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect.poll(countText).toContain('2');
