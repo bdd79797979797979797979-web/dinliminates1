@@ -1,0 +1,24 @@
+name: Deploy Dinliminate to Vercel
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy existing Vercel project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN" --scope="bdd79797979797979797979-7642"
+      - name: Verify release marker
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();if(!r.ok||!t.includes('p677-launch-complete')){console.error('Release marker not live on production');process.exit(1)}console.log('Dinliminate p677 is live on production')}).catch(e=>{console.error(e);process.exit(1)})"
