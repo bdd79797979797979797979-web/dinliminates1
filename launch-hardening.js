@@ -402,7 +402,6 @@
     if(foodPass){
       foodPass.classList.add('pass-food-btn');
       foodPass.setAttribute('aria-label','Pass Around with other people');
-      foodPass.onclick=()=>openPass('food');
     } else if(foodBottom){
       const b=document.createElement('button');
       b.id='foodPassAroundBtn';b.type='button';b.className='text-btn food-secondary-action pass-around-btn pass-food-btn';b.textContent='Pass Around';b.setAttribute('aria-label','Pass Around with other people');
