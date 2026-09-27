@@ -7758,8 +7758,6 @@ bind('homeWinnerBtn','click',()=>openLastWinner());
 bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
 
 bind('searchBtn','click',startSearch);
-bind('foodPassAroundBtn','click',()=>window.DinliminateOpenPassAround?.('food'));
-bind('restaurantPassAroundBtn','click',()=>window.DinliminateOpenPassAround?.('restaurant'));
 
 bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');const btn=$('restaurantSearchBtn');if(!box||!btn)return;const open=!box.classList.contains('hidden');box.classList.toggle('hidden',open);btn.setAttribute('aria-expanded',String(!open));if(!open)$('restaurantInlineSearchInput')?.focus();});
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();});
