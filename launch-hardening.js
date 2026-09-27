@@ -296,7 +296,7 @@
     if(foodPass){
       foodPass.classList.add('pass-food-btn');
       foodPass.setAttribute('aria-label','Pass Around with other people');
-      foodPass.onclick=()=>openPass('food');
+      foodPass.onclick=(e)=>{e?.preventDefault?.();openPass('food');};
     } else if(foodBottom){
       const b=document.createElement('button');
       b.id='foodPassAroundBtn';b.type='button';b.className='text-btn food-secondary-action pass-around-btn pass-food-btn';b.textContent='Pass Around';b.setAttribute('aria-label','Pass Around with other people');b.onclick=()=>openPass('food');
@@ -306,8 +306,13 @@
     const restaurantPassButton=$('restaurantPassAroundBtn');
     if(restaurantPassButton){
       restaurantPassButton.type='button';
-      restaurantPassButton.onclick=()=>window.DinliminateOpenPassAround?.('restaurant');
+      restaurantPassButton.onclick=(e)=>{e?.preventDefault?.();openPass('restaurant');};
       restaurantPassButton.setAttribute('aria-label','Pass Around restaurant choices');
+    }
+    const winnerHomeButton=$('winnerHomeBtn');
+    if(winnerHomeButton){
+      winnerHomeButton.type='button';
+      winnerHomeButton.addEventListener('click',(e)=>{e?.preventDefault?.();e?.stopImmediatePropagation?.();if(typeof window.DinliminateBackToStart==='function')window.DinliminateBackToStart();else if(typeof goHome==='function')goHome();},true);
     }
     document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibraryLaunch();}));$('historyMenuBtn')?.addEventListener('click',()=>setTimeout(renderLibraryLaunch,0));
     // Disable the legacy website-metadata image hydrator so it cannot substitute another restaurant's photo.
