@@ -72,7 +72,8 @@ test('deep user journey: menu, about, food personalization, hidden restore, hist
 
   await page.evaluate(() => window.openLibrary?.('history'));
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
-  await expect(page.locator('#libraryList')).toContainText('History');
+  await expect(page.locator('#libraryList')).toContainText('DECISIONS');
+  await expect(page.locator('#libraryList')).toContainText('September');
   await page.locator('#closeLibraryBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeHidden();
 
