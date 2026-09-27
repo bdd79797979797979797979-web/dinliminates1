@@ -314,45 +314,81 @@ test('iPhone viewport has no horizontal overflow and keeps primary controls visi
   expect(foodRect.x + foodRect.width).toBeLessThanOrEqual(391);
 });
 
-test('P683 live restaurant Quick Cut scope follows radius and current choices', async ({ page }) => {
+test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refresh', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.locator('#homeRestaurantQuick').click();
   await expect(page.locator('#restaurantPanel')).toBeVisible();
 
-  // Deterministic restaurant deck: all three are Fast Food, but only two
-  // are inside the initial 5-mile radius.
   await page.evaluate(() => {
     window.applyRestaurantData?.({
       businesses: [
-        { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5 },
-        { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0 },
-        { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:6.0 }
+        { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5, openNow:true },
+        { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0, openNow:true },
+        { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:6.0, openNow:false }
       ]
     }, 'QA Scope');
-    window.DinliminateRestaurantSearchV3?.setRadius(5, false);
-    window.renderRestaurantQuickCuts?.();
-    window.renderRestaurantStage?.();
+    restaurantQuickCuts=new Set();
+    restaurantManual=new Set();
+    restaurantFilters={query:'',sort:'shuffle'};
+    restaurantRadiusMiles=5;
+    localStorage.setItem('dinliminateRestaurantHoursFilter','open-unknown');
+    renderRestaurantQuickCuts();
+    renderRestaurantStage();
   });
 
   const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
-  await expect(fastFood).toContainText('2');
+  const countText = async () => fastFood.locator('em').textContent();
 
-  // Narrowing the radius must immediately update the same Quick Cut count.
-  await page.locator('#restaurantRadiusFilter').selectOption('1');
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
+  // At 5 miles, the two open fast-food restaurants are actionable.
+  await expect.poll(countText).toContain('2');
 
-  // Current-round elimination must immediately reduce the category count.
-  await page.evaluate(() => {
-    window.restaurantCut?.(document.querySelector('#restaurantStage .restaurant-card.active'));
-  });
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('0');
+  // Maybe removes the active restaurant from the actionable Quick Cut count immediately.
+  await page.locator('#restaurantKeepBtn').click();
+  await expect.poll(countText).toContain('1');
 
-  // Back restores the restaurant and the Quick Cut count with it.
+  // Back restores it and therefore restores the Quick Cut count.
   await page.locator('#restaurantBackAction').click();
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
+  await expect.poll(countText).toContain('2');
 
-  // No browser runtime errors during the live-scope transitions.
+  // Hours filter is part of the same live Quick Cut scope.
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect.poll(countText).toContain('2');
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect.poll(countText).toContain('2');
+
+  // Narrowing radius from 5 to 1 immediately drops the 2-mile restaurant.
+  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  await expect.poll(countText).toContain('1');
+
+  // Cutting the only remaining matching restaurant drops the count to zero.
+  await page.locator('#restaurantCutBtn').click();
+  await expect.poll(countText).toContain('0');
+
+  // A same-location refresh must preserve an active Quick Cut selection.
+  await page.evaluate(() => {
+    restaurantRadiusMiles=5;
+    restaurantQuickCuts=new Set(['fast_food']);
+    restaurantManual=new Set();
+    restaurantFilters={query:'',sort:'shuffle'};
+    const refreshed=[
+      { id:'qa-ff-refresh-1', name:'QA Refresh Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5, openNow:true },
+      { id:'qa-ff-refresh-2', name:'QA Refresh Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0, openNow:true },
+      { id:'qa-ff-refresh-3', name:'QA Refresh Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:6.0, openNow:true }
+    ];
+    window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();
+    window.applyRestaurantData?.({businesses:refreshed}, 'QA Scope Refresh');
+    restaurantRadiusMiles=5;
+    renderRestaurantQuickCuts();
+  });
+  await expect(fastFood).toHaveAttribute('aria-pressed','true');
+  await expect.poll(countText).toContain('3');
+
+  // Toggling the active Quick Cut back off restores the refreshed choices.
+  await fastFood.click();
+  await expect(fastFood).toHaveAttribute('aria-pressed','false');
+  await expect.poll(async () => page.evaluate(() => activeRestaurants.length)).toBe(3);
+
   expect(pageErrors).toEqual([]);
 });
