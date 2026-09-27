@@ -88,6 +88,8 @@ test('food, pass around, swipe, maybe, winner and settings controls work', async
   await page.locator('#dinliminateReportBtn').click();
   await expect(page.locator('.launch-diagnostics')).toBeVisible();
   await page.locator('.launch-sheet-close').click();
+  await page.locator('#closeSettingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeHidden();
 
   await page.evaluate(() => { document.querySelector('#stage .stack-card.active [data-card-action="choose"]')?.click(); });
   await expect(page.locator('#winnerPanel')).toBeVisible();
