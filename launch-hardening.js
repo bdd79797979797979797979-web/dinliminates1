@@ -267,9 +267,22 @@
   function installPassInputRouter(){
     if(document.documentElement.dataset.passRouterInstalled==='1')return;
     document.documentElement.dataset.passRouterInstalled='1';
-    document.addEventListener('pointerdown',passHandleCardPointerDown,true);
-    document.addEventListener('pointermove',passHandleCardPointerMove,true);
-    document.addEventListener('pointerup',passHandleCardPointerUp,true);
+    document.addEventListener('pointerdown',e=>{
+      if(!pass||pass.phase!=='voting')return;
+      const before=passPointer;
+      passHandleCardPointerDown(e);
+      if(passPointer!==before && passPointer){
+        e.preventDefault();e.stopImmediatePropagation();
+      }
+    },true);
+    document.addEventListener('pointermove',e=>{
+      if(!pass||pass.phase!=='voting'||!passPointer)return;
+      e.preventDefault();e.stopImmediatePropagation();passHandleCardPointerMove(e);
+    },true);
+    document.addEventListener('pointerup',e=>{
+      if(!pass||pass.phase!=='voting'||!passPointer)return;
+      e.preventDefault();e.stopImmediatePropagation();passHandleCardPointerUp(e);
+    },true);
     document.addEventListener('pointercancel',e=>{
       if(!passPointer||passPointer.id!==e.pointerId)return;
       passPointer.card.style.transform='';passPointer.card.classList.remove('show-cut','show-hold');passPointer=null;
