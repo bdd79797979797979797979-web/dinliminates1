@@ -1,7 +1,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p649-passaround-full-repair';
+  const VERSION='p650-restaurant-pass-repair';
   const $=id=>document.getElementById(id);
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const foodKey=x=>`food::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
@@ -258,8 +258,11 @@
     $('passSetupBackdrop')?.remove();document.body.classList.remove('pass-setup');
     const snapshot=passSnapshot(mode);
     pass={schema:PASS_SCHEMA,startedAt:Date.now(),mode,count,participant:1,phase:'voting',pool:uniq(pool.map(compactPassItem).filter(Boolean),passKey),votes:Array.from({length:count},()=>new Map()),snapshot,finalists:[],busy:false};
-    if(mode==='restaurant'){activeRestaurants=[...pass.pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();}
-    else{activeItems=[...pass.pool];holdingItems=[];finalistMode=false;searchQuery='';originalCount=pass.pool.length;foodInProgress=true;saveFoodRoundState();foodShowUI(null);}
+    if(mode==='restaurant'){
+      activeRestaurants=[...pass.pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;
+      restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};restaurantRoundInProgress=true;
+      showRestaurantUIForPass();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();
+    }else{activeItems=[...pass.pool];holdingItems=[];finalistMode=false;searchQuery='';originalCount=pass.pool.length;foodInProgress=true;saveFoodRoundState();foodShowUI(null);}
     applyPassLock();savePassState();renderPassStatus();toast('Person 1 of '+count+': start swiping.');
   }
   function showRestaurantUIForPass(){legacyShowRestaurant?.();document.body.classList.add('restaurant-mode');setupRestaurantTools();renderRestaurantStage();syncRestaurantActionLabels?.();}
@@ -329,13 +332,23 @@
     document.body.appendChild(b);b.querySelector('[data-pass-restart]')?.addEventListener('click',restartPass);b.querySelector('[data-pass-end]')?.addEventListener('click',cancelPass);b.querySelector('[data-pass-restart]')?.focus?.();
   }
   function renderPassStatus(){
-    const old=$('passStatus');if(!pass){old?.remove();return;}
-    const host=pass.mode==='restaurant'?$('restaurantStage'):$('stage');if(!host)return;
-    let bar=old;if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';host.parentNode?.insertBefore(bar,host);}
-    const remaining=pass.phase==='voting'?passViewItems().length:0,done=Math.max(0,pass.pool.length-remaining);
-    const label=pass.phase==='voting'?'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length:pass.phase==='handoff'?'Person '+pass.participant+' finished · '+pass.count+' people':'No unanimous finalists';
-    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End pass</button>';
-    $('passEndBtn').onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
+    const old=$('passStatus');
+    if(!pass){old?.remove();return;}
+    const slot=$(pass.mode==='restaurant'?'restaurantPassStatusSlot':'foodPassStatusSlot');
+    if(!slot)return;
+    let bar=old;
+    if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';slot.replaceChildren(bar);}
+    else if(bar.parentElement!==slot)slot.replaceChildren(bar);
+    const remaining=pass.phase==='voting'?passViewItems().length:0;
+    const done=Math.max(0,pass.pool.length-remaining);
+    const label=pass.phase==='voting'
+      ? 'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length
+      : pass.phase==='handoff'
+      ? 'Person '+pass.participant+' finished · '+pass.count+' people'
+      : 'No unanimous finalists';
+    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End Pass</button>';
+    const end=$('passEndBtn');
+    if(end)end.onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
   }
 
   function historyDayKey(value){const d=new Date(value||Date.now());return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
