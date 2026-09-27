@@ -7091,7 +7091,7 @@ function finishPassAroundSession(){
     activeItems=[...finalists]; holdingItems=[]; finalistMode=false; searchQuery=''; renderStage(); syncDecisionActionLabels();
   }
   const label=finalists.length===1?'1 choice':`${finalists.length} choices`;
-  setStatus(`${label} left · keep cutting/maybeing or choose one`,'live');
+  setStatus(`${label} left · use Cut, Maybe, or Choose`,'live');
   toast(`Group round complete · ${label} remain. Keep cutting, maybeing, or choose.`);
 }
 function advancePassAroundParticipant(){
