@@ -521,3 +521,42 @@ body.game-mode .game-bottom .food-secondary-action:active{
     line-height:9px!important;
   }
 }
+
+
+/* P652 — unified Pass Around status and touch isolation. */
+#passStatus{
+  position:fixed!important;
+  top:max(10px,calc(env(safe-area-inset-top) + 8px))!important;
+  left:12px!important;
+  right:12px!important;
+  width:auto!important;
+  max-width:620px!important;
+  margin:0 auto!important;
+  z-index:2400!important;
+  background:rgba(16,34,28,.96)!important;
+  border-color:rgba(103,196,155,.28)!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(12px)!important;
+}
+#passStatus button{
+  min-width:76px!important;
+  min-height:30px!important;
+  border-radius:999px!important;
+  background:rgba(103,196,155,.12)!important;
+  border:1px solid rgba(103,196,155,.28)!important;
+  color:#b7ead4!important;
+  padding:6px 11px!important;
+}
+body.pass-voting #foodPassAroundBtn,
+body.pass-voting #restaurantPassAroundBtn{
+  pointer-events:none!important;
+}
+body.pass-voting .gesture-actions .hide-btn,
+body.pass-voting .gesture-actions .back-btn,
+body.pass-voting .gesture-actions #chooseBtn,
+body.pass-voting .restaurant-gesture-actions .hide-btn,
+body.pass-voting .restaurant-gesture-actions .back-btn,
+body.pass-voting .restaurant-gesture-actions #restaurantChooseBtn{
+  pointer-events:none!important;
+}
+
