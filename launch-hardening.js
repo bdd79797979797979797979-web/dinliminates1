@@ -4,6 +4,7 @@
   'use strict';
   const VERSION='p652-passaround-clean-repair';
   const $=id=>document.getElementById(id);
+  const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const foodKey=x=>`food::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
   const restKey=x=>`restaurant::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
