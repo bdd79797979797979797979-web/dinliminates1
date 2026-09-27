@@ -265,19 +265,32 @@
   function showRestaurantUIForPass(){legacyShowRestaurant?.();document.body.classList.add('restaurant-mode');setupRestaurantTools();renderRestaurantStage();syncRestaurantActionLabels?.();}
   function passCurrent(){return pass?.phase==='voting'?(passViewItems()[0]||null):null;}
   function passAct(kind,card){
-    if(kind!=='cut'&&kind!=='hold')return false;
-    if(!pass||pass.phase!=='voting'||pass.busy)return false;
-    const item=passCurrent();if(!item)return true;
-    const keyFn=pass.mode==='restaurant'?restKey:foodKey,key=passKey(item);const voter=pass.votes?.[pass.participant-1];if(!voter||voter.has(key))return false;
-    voter.set(key,kind==='cut');pass.busy=true;savePassState();lockPassControls();
-    const finish=()=>{if(!pass)return;pass.busy=false;const remaining=passViewItems().length;if(remaining===0){finishPassParticipant();return;}if(pass.mode==='restaurant')activeRestaurants=passViewItems();else activeItems=passViewItems();pass.mode==='restaurant'?renderRestaurantStage():renderStage();renderPassStatus();lockPassControls();savePassState();};
-    try{
-      if(card&&pass.mode==='food'&&typeof transitionCard==='function')transitionCard(card,kind==='cut'?-1:1,finish);
-      else if(card&&pass.mode==='restaurant'&&typeof transitionRestaurantCard==='function')transitionRestaurantCard(card,kind==='cut'?-1:1,finish);
-      else finish();
-    }catch(e){pass.busy=false;voter.delete(key);savePassState();throw e;}
-    return true;
-  }
+     if(kind!=='cut'&&kind!=='hold')return false;
+     if(!pass||pass.phase!=='voting'||pass.busy)return false;
+     const item=passCurrent();if(!item)return true;
+     const key=passKey(item),voter=pass.votes?.[pass.participant-1];
+     if(!voter||voter.has(key))return false;
+     voter.set(key,kind==='cut');
+     pass.busy=true;
+     savePassState();
+     lockPassControls();
+     try{
+       const remaining=passViewItems();
+       if(remaining.length===0){finishPassParticipant();return true;}
+       pass.busy=false;
+       if(pass.mode==='restaurant')activeRestaurants=[...remaining];else activeItems=[...remaining];
+       if(pass.mode==='restaurant')renderRestaurantStage();else renderStage();
+       renderPassStatus();
+       lockPassControls();
+       savePassState();
+       return true;
+     }catch(e){
+       pass.busy=false;
+       voter.delete(key);
+       savePassState();
+       throw e;
+     }
+   }
   function finishPassParticipant(){
     if(!pass)return;pass.busy=false;
     if(pass.participant<pass.count){pass.phase='handoff';savePassState();applyPassLock();showPassHandoff();renderPassStatus();return;}
@@ -373,6 +386,14 @@
   }
   window.DinliminateBackToStart=backToStartFresh;
 
+  function replaceTapControl(id,handler){
+    const el=$(id);
+    if(!el)return null;
+    const clone=el.cloneNode(true);
+    el.replaceWith(clone);
+    clone.addEventListener('click',handler);
+    return clone;
+  }
   function install(){
     safeWrite('dinliminateLaunchVersion',VERSION);
     $('startOverBtn')?.replaceChildren(document.createTextNode('Start fresh'));
@@ -400,6 +421,14 @@
     window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
     window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
+    // Replace static tap controls so older inline listeners cannot swallow or duplicate taps.
+    replaceTapControl('cutBtn',e=>{e.preventDefault();window.cutCurrent?.($('stage')?.querySelector('.active'));});
+    replaceTapControl('holdBtn',e=>{e.preventDefault();window.holdCurrent?.($('stage')?.querySelector('.active'));});
+    replaceTapControl('foodPassAroundBtn',e=>{e.preventDefault();e.stopPropagation();openPass('food');});
+    replaceTapControl('restaurantCutBtn',e=>{e.preventDefault();window.restaurantCut?.($('restaurantStage')?.querySelector('.active'));});
+    replaceTapControl('restaurantKeepBtn',e=>{e.preventDefault();window.restaurantKeep?.($('restaurantStage')?.querySelector('.active'));});
+    replaceTapControl('restaurantPassAroundBtn',e=>{e.preventDefault();e.stopPropagation();openPass('restaurant');});
+
     const foodBottom=$('gamePanel')?.querySelector('.game-bottom');
     const foodPass=$('foodPassAroundBtn');
     const legacyPass=$('passAroundBtn');
