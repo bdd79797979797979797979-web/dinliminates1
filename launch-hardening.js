@@ -194,6 +194,15 @@
   }
 
   function syncRestaurantQuickCutScope(){
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    const withinRadius=item=>{
+      const d=Number(item?.distanceMiles);
+      return !Number.isFinite(d)||d<=radius;
+    };
+    // Radius is authoritative: every live restaurant state used by Quick Cuts
+    // must remain inside the currently selected radius.
+    if(Array.isArray(activeRestaurants)) activeRestaurants=activeRestaurants.filter(withinRadius);
+    if(Array.isArray(holdingRestaurants)) holdingRestaurants=holdingRestaurants.filter(withinRadius);
     const pool=currentRestaurantQuickCutUniverse();
     if(pool.length || !Array.isArray(restaurantItems) || restaurantItems.length===0) restaurantBase=[...pool];
     return restaurantBase;
