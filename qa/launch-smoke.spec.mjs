@@ -370,19 +370,30 @@ test('deep Pass Around: two-person vote, handoff, restore by End Pass', async ({
   expect(pageErrors).toEqual([]);
 });
 
-test('deep restaurant journey: search, details, save, maybe, undo, filters and no-error return', async ({ page }) => {
+test('deep restaurant journey: details, save, maybe, undo, filters and no-error return', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.locator('#homeRestaurantQuick').click();
   await expect(page.locator('#restaurantPanel')).toBeVisible();
-  await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
-  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
-  await page.locator('.restaurant-address-suggestion').first().click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
+
+  // The real API/autocomplete path is covered by the dedicated restaurant smoke test.
+  // Use deterministic restaurant fixtures here so the lifecycle test cannot fail because
+  // a public provider is slow or rate-limited while still exercising the real UI/state path.
+  await page.evaluate(() => {
+    window.DinliminateRestaurantSearchV3?.setRadius?.(10, false);
+    window.applyRestaurantData?.({
+      businesses: [
+        { id:'qa-mcd', name:"McDonald's", category:'Fast Food', amenity:'fast_food', fastFood:true, tags:['restaurant','fast_food'], address:'1 QA Way, Nashville, TN', distanceMiles:0.4, website:'https://www.mcdonalds.com' },
+        { id:'qa-waffle', name:'Waffle House', category:'American', cuisine:'american', tags:['restaurant','american'], address:'2 QA Way, Nashville, TN', distanceMiles:0.8 },
+        { id:'qa-pasta', name:'QA Pasta House', category:'Italian', cuisine:'italian', tags:['restaurant','italian','pasta'], address:'3 QA Way, Nashville, TN', distanceMiles:2.5 }
+      ]
+    }, 'QA Test Area');
+  });
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 10000 });
 
   const count = Number(await page.locator('#restaurantTopCount').textContent());
-  expect(count).toBeGreaterThan(0);
+  expect(count).toBe(3);
 
   // Card Details + Save.
   await page.locator('.restaurant-card-v240 [data-rest-action="details"]').click();
@@ -395,25 +406,28 @@ test('deep restaurant journey: search, details, save, maybe, undo, filters and n
 
   // Restaurant Maybe then Back.
   await page.locator('#restaurantKeepBtn').click();
-  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(count - 1);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(2);
   await page.locator('#restaurantBackAction').click();
-  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(count);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(3);
 
-  // Search utility and Quick Cut reversible state.
+  // Search utility + Quick Cut reversible state.
   await page.locator('#restaurantSearchBtn').click();
   await expect(page.locator('#restaurantInlineSearchInput')).toBeVisible();
   await page.locator('#restaurantInlineSearchInput').fill('McDonald');
   await page.locator('#restaurantInlineSearchInput').press('Enter');
-  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThanOrEqual(count);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(1);
   await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill('').catch(()=>{});
+  await page.evaluate(() => { restaurantFilters.query=''; renderRestaurantStage(); });
 
-  const rq = page.locator('#restaurantQuickCuts button').filter({ hasText: /Fast Food|American|Pasta|Healthy|Southern|Potato|Soup \/ Stew/i }).first();
-  if (await rq.count() && await rq.isEnabled()) {
-    await rq.click();
-    await expect(rq).toHaveAttribute('aria-pressed', 'true');
-    await rq.click();
-    await expect(rq).toHaveAttribute('aria-pressed', 'false');
-  }
+  const rq = page.locator('#restaurantQuickCuts [data-launch-rq="fast_food"]');
+  await expect(rq).toBeVisible();
+  await rq.click();
+  await expect(rq).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(2);
+  await rq.click();
+  await expect(rq).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(3);
 
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
@@ -531,83 +545,84 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   await page.locator('#homeRestaurantQuick').click();
   await expect(page.locator('#restaurantPanel')).toBeVisible();
-  await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
-  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
-  await page.locator('.restaurant-address-suggestion').first().click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
 
-  const diag100 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-  expect(diag100).toBeTruthy();
-  expect(diag100.radius).toBe(10);
-  expect(diag100.pool).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    window.DinliminateRestaurantSearchV3?.setRadius?.(10, false);
+    window.applyRestaurantData?.({
+      businesses: [
+        { id:'qa-fast', name:"McDonald's", category:'Fast Food', amenity:'fast_food', fastFood:true, tags:['restaurant','fast_food'], address:'1 QA Way, Nashville, TN', distanceMiles:0.4 },
+        { id:'qa-american', name:'Waffle House', category:'American', cuisine:'american', tags:['restaurant','american'], address:'2 QA Way, Nashville, TN', distanceMiles:0.8 },
+        { id:'qa-pasta', name:'QA Pasta House', category:'Italian', cuisine:'italian', tags:['restaurant','italian','pasta'], address:'3 QA Way, Nashville, TN', distanceMiles:2.5 },
+        { id:'qa-far', name:'QA Far Burger', category:'Burgers', cuisine:'american', tags:['restaurant','burger','american'], address:'4 QA Way, Nashville, TN', distanceMiles:7.0 }
+      ]
+    }, 'QA Radius Area');
+  });
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 10000 });
 
+  const initial = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(initial.radius).toBe(10);
+  expect(initial.pool).toBe(4);
+
+  // Narrowing must immediately repaint the restaurant deck and every Quick Cut
+  // against the 1-mile set; no provider round-trip is needed.
   await page.locator('#restaurantRadiusFilter').selectOption('1');
-  await page.evaluate(() => window.DinliminateRestaurantSearchV3?.setRadius?.(1,true));
-  await page.waitForTimeout(50);
-  await expect.poll(async () => {
-    const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-    return d?.radius;
-  }).toBe(1);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(2);
+  const oneMile = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(oneMile.radius).toBe(1);
+  expect(oneMile.pool).toBe(2);
 
-  const diag1 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-  console.log('P682 radius=1 diagnostic', diag1, 'topCount', await page.locator('#restaurantTopCount').textContent());
-  expect(diag1.pool).toBeLessThanOrEqual(diag100.pool);
-  expect(Number(await page.locator('#restaurantTopCount').textContent())).toBe(diag1.pool);
-
-  const buttonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
+  const oneMileButtons = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
     Object.fromEntries(btns.map(btn => {
       const key = btn.getAttribute('data-launch-rq');
-      const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
-      const m = text.match(/(\d+)\s*(?:left)?$/i);
-      return [key, m ? Number(m[1]) : -1];
+      const label = btn.querySelector('.quick-cut-copy em')?.textContent || '';
+      const match = label.match(/(\d+)\s*(?:left)?$/i);
+      return [key, match ? Number(match[1]) : -1];
     }))
   );
-  for (const [key, count] of Object.entries(diag1.counts)) {
-    expect(buttonCounts[key]).toBe(count);
-  }
+  for (const [key, count] of Object.entries(oneMile.counts)) expect(oneMileButtons[key]).toBe(count);
 
-  // Changing the radius back out triggers a fresh provider search. The Quick Cuts
-  // must then reflect the newly loaded restaurant pool, not the old 1-mile subset.
+  // Widening must immediately restore the cached 10-mile pool, then remain safe for
+  // a fresh search replacement. The visible Quick Cut counts must follow that pool.
   await page.locator('#restaurantRadiusFilter').selectOption('10');
-  await expect.poll(async () => {
-    const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-    const finding = await page.locator('#restaurantLoadBtn').isDisabled().catch(() => true);
-    return d?.radius === 10 && finding;
-  }, { timeout: 10000 }).toBe(true);
-  // Expansion must repaint immediately from cached in-radius results.
-  const immediate10 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-  expect(Number(await page.locator('#restaurantTopCount').textContent())).toBe(immediate10.pool);
-  await expect.poll(async () => page.locator('#restaurantLoadBtn').isDisabled(), { timeout: 70000 }).toBe(false);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(4);
+  const tenMile = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(tenMile.radius).toBe(10);
+  expect(tenMile.pool).toBe(4);
 
-  const diagFresh = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-  const freshButtonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
+  // Simulate a new search result set; Quick Cuts must immediately rebuild from it.
+  await page.evaluate(() => {
+    window.applyRestaurantData?.({
+      businesses: [
+        { id:'qa-new-fast', name:"Burger King", category:'Fast Food', amenity:'fast_food', fastFood:true, tags:['restaurant','fast_food'], address:'10 New QA Way, Nashville, TN', distanceMiles:0.3 },
+        { id:'qa-new-soup', name:'QA Soup House', category:'Soup / Stew', cuisine:'american', tags:['restaurant','american','soup'], address:'11 New QA Way, Nashville, TN', distanceMiles:1.4 },
+        { id:'qa-new-pasta', name:'QA Pasta House 2', category:'Italian', cuisine:'italian', tags:['restaurant','italian','pasta'], address:'12 New QA Way, Nashville, TN', distanceMiles:4.2 }
+      ]
+    }, 'QA Fresh Search');
+  });
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(3);
+
+  const fresh = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(fresh.radius).toBe(10);
+  expect(fresh.pool).toBe(3);
+  const freshButtons = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
     Object.fromEntries(btns.map(btn => {
       const key = btn.getAttribute('data-launch-rq');
-      const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
-      const m = text.match(/(\d+)\s*(?:left)?$/i);
-      return [key, m ? Number(m[1]) : -1];
+      const label = btn.querySelector('.quick-cut-copy em')?.textContent || '';
+      const match = label.match(/(\d+)\s*(?:left)?$/i);
+      return [key, match ? Number(match[1]) : -1];
     }))
   );
-  for (const [key, count] of Object.entries(diagFresh.counts)) {
-    expect(freshButtonCounts[key]).toBe(count);
-  }
+  for (const [key, count] of Object.entries(fresh.counts)) expect(freshButtons[key]).toBe(count);
 
-  // Apply and restore one live Quick Cut when it has matches. The visible restaurant
-  // count should change, then return, without resurrecting an out-of-radius result.
-  const candidate = Object.entries(diagFresh.counts).find(([, count]) => Number(count) > 0);
-  expect(candidate).toBeTruthy();
-  const [candidateKey, candidateCount] = candidate;
-  const quick = page.locator('#restaurantQuickCuts [data-launch-rq="'+candidateKey+'"]');
-  const beforeActive = Number(await page.locator('#restaurantTopCount').textContent());
-  await quick.click();
-  await expect(quick).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThan(beforeActive);
-  const hiddenActive = Number(await page.locator('#restaurantTopCount').textContent());
-  expect(hiddenActive).toBeLessThan(beforeActive);
-  await quick.click();
-  await expect(quick).toHaveAttribute('aria-pressed', 'false');
-  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(beforeActive);
+  // Apply and restore a live Quick Cut.
+  const fast = page.locator('#restaurantQuickCuts [data-launch-rq="fast_food"]');
+  await expect(fast).toBeVisible();
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(2);
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(3);
 
-  expect(Number(candidateCount)).toBeGreaterThan(0);
   expect(pageErrors).toEqual([]);
 });
