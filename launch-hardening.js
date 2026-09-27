@@ -1,7 +1,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p636-clean-final';
+  const VERSION='p649-passaround-full-repair';
   const $=id=>document.getElementById(id);
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const foodKey=x=>`food::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
@@ -19,7 +19,7 @@
     let state=null;
     try{const raw=safeRead(FOOD_ROUND_KEY,'');if(raw)state=JSON.parse(raw);}catch{}
     if(!state){const row=await idbGet('foodRound');state=row?.value||null;if(state)safeWrite(FOOD_ROUND_KEY,JSON.stringify(state));}
-    if(!state || !['p633','p634','p636-launch','p636-final','p636-clean-final'].includes(state.version) || !Number.isFinite(state.savedAt) || Date.now()-state.savedAt>FOOD_ROUND_MAX_AGE || !Array.isArray(state.base) || state.base.length<2)return false;
+    if(!state || !['p633','p634','p636-launch','p636-final','p636-clean-final','p648-passaround-click-fix'].includes(state.version) || !Number.isFinite(state.savedAt) || Date.now()-state.savedAt>FOOD_ROUND_MAX_AGE || !Array.isArray(state.base) || state.base.length<2)return false;
     foodBase=uniq(state.base,foodKey);activeItems=uniq(state.active||[],foodKey);holdingItems=uniq(state.holding||[],foodKey);foodManual=new Set(Array.isArray(state.manual)?state.manual:[]);foodQuickHidden=new Set(Array.isArray(state.quick)?state.quick:[]);foodInProgress=true;finalistMode=!!state.finalist;originalCount=Number(state.originalCount)||foodBase.length;searchQuery=String(state.searchQuery||'');
     return true;
   }
@@ -161,57 +161,181 @@
     const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
   }
 
+  const PASS_SCHEMA='p647-passaround-v2';
+  const PASS_MAX_AGE=7*24*60*60*1000;
+  const PASS_PHASES=new Set(['voting','handoff','no_finalists']);
+  function passKey(item){return String(item?.type||'home').toLowerCase()+'::'+String(item?.id||item?.name||'').trim().toLowerCase();}
+  function compactPassItem(item){
+    if(!item)return null;
+    const base={id:item.id??null,name:String(item.name||''),type:item.type||'home',tags:Array.isArray(item.tags)?item.tags.slice(0,20):[],category:item.category||'',mealType:item.mealType||'',cuisine:item.cuisine||'',subcategory:item.subcategory||'',notes:item.notes||'',recipe:item.recipe||'',photo:item.photo||'',icon:item.icon||'',prep:item.prep||'',budget:item.budget||'',accent:item.accent||'',createdAt:item.createdAt||null,updatedAt:item.updatedAt||null};
+    if(item.type==='restaurant')Object.assign(base,{address:item.address||'',website:item.website||'',phone:item.phone||'',lat:Number.isFinite(Number(item.lat))?Number(item.lat):null,lon:Number.isFinite(Number(item.lon))?Number(item.lon):null,distanceMiles:Number.isFinite(Number(item.distanceMiles))?Number(item.distanceMiles):null,brand:item.brand||'',operator:item.operator||'',fastFood:item.fastFood===true,amenity:item.amenity||'',openingHours:item.openingHours||'',opening_hours:item.opening_hours||'',hours:item.hours||'',openNow:typeof item.openNow==='boolean'?item.openNow:null,currentlyOpen:typeof item.currentlyOpen==='boolean'?item.currentlyOpen:null,timeZone:item.timeZone||item.timezone||'',photoName:item.photoName||'',photoUrl:item.photoUrl||'',menuItems:Array.isArray(item.menuItems)?item.menuItems.slice(0,6):undefined,menu_items:Array.isArray(item.menu_items)?item.menu_items.slice(0,6):undefined,commonMenuItems:Array.isArray(item.commonMenuItems)?item.commonMenuItems.slice(0,6):undefined,common_menu_items:Array.isArray(item.common_menu_items)?item.common_menu_items.slice(0,6):undefined,searchArea:item.searchArea||''});
+    return base;
+  }
+  function compactPassList(list){return uniq((list||[]).map(compactPassItem).filter(Boolean),passKey);}
+  function passSnapshot(mode){
+    if(mode==='restaurant')return {active:compactPassList(activeRestaurants),holding:compactPassList(holdingRestaurants),finalist:!!restaurantFinalistMode,exhausted:!!restaurantEliminationExhausted,quick:[...restaurantQuickCuts],filters:{query:String(restaurantFilters?.query||''),sort:restaurantFilters?.sort==='closest'?'closest':'shuffle'}};
+    return {active:compactPassList(activeItems),holding:compactPassList(holdingItems),finalist:!!finalistMode,originalCount:Number(originalCount)||0,searchQuery:String(searchQuery||''),quick:[...foodQuickHidden],manual:[...foodManual]};
+  }
+  function serializePassState(){
+    if(!pass)return null;
+    return {schema:PASS_SCHEMA,savedAt:Date.now(),startedAt:pass.startedAt,mode:pass.mode,count:pass.count,participant:pass.participant,phase:pass.phase,pool:compactPassList(pass.pool),votes:(pass.votes||[]).map(m=>[...m.entries()]),snapshot:pass.snapshot||{},finalists:compactPassList(pass.finalists||[])};
+  }
+  function savePassState(){
+    const payload=serializePassState();
+    try{
+      if(payload){safeWrite(PASS_STATE_KEY,JSON.stringify(payload));idbPut?.('passState',payload);}
+      else{localStorage.removeItem(PASS_STATE_KEY);idbDelete?.('passState');}
+    }catch(e){console.warn('Pass Around state save failed',e);}
+  }
+  function clearPassState(){try{localStorage.removeItem(PASS_STATE_KEY);}catch{}try{idbDelete?.('passState');}catch{}}
+  function validatePassState(s){
+    if(!s||s.schema!==PASS_SCHEMA||!['food','restaurant'].includes(s.mode))return false;
+    if(!Number.isFinite(Number(s.savedAt))||Date.now()-Number(s.savedAt)>PASS_MAX_AGE)return false;
+    const count=Number(s.count),participant=Number(s.participant);
+    if(!Number.isInteger(count)||count<2||count>6||!Number.isInteger(participant)||participant<1||participant>count)return false;
+    if(!PASS_PHASES.has(s.phase)||!Array.isArray(s.pool)||s.pool.length<2||s.pool.length>2000)return false;
+    if(!Array.isArray(s.votes)||s.votes.length!==count)return false;
+    const keys=new Set(s.pool.map(passKey));if(keys.size!==s.pool.length||[...keys].some(k=>!k||/^(food|restaurant)::$/i.test(k)))return false;
+    return true;
+  }
+  async function restorePassState(){
+    let s=null;
+    try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{}
+    if(!validatePassState(s)){
+      s=null;
+      try{const row=await idbGet('passState');s=row?.value||null;}catch{}
+    }
+    if(!validatePassState(s)){clearPassState();return false;}
+    const pool=compactPassList(s.pool);if(pool.length<2){clearPassState();return false;}
+    const votes=Array.from({length:s.count},(_,i)=>new Map(Array.isArray(s.votes?.[i])?s.votes[i]:[]));
+    const validKeys=new Set(pool.map(passKey));
+    for(const map of votes)for(const [k,v] of map)if(!validKeys.has(k)||typeof v!=='boolean')map.delete(k);
+    pass={schema:PASS_SCHEMA,startedAt:Number(s.startedAt)||Number(s.savedAt),mode:s.mode,count:Number(s.count),participant:Number(s.participant),phase:s.phase,pool,votes,snapshot:s.snapshot||{},finalists:compactPassList(s.finalists||[]),busy:false};
+    if(pass.phase==='voting')syncPassParticipantView();else if(pass.phase==='handoff')showPassHandoff();else showPassNoFinalists();
+    renderPassStatus();
+    const msg=pass.phase==='handoff'?'Pass Around restored · waiting for Person '+(pass.participant+1)+'.':pass.phase==='no_finalists'?'Pass Around restored · no unanimous finalists.':'Pass Around restored · Person '+pass.participant+' of '+pass.count+'.';
+    toast(msg);return true;
+  }
+  function lockPassControls(){
+    const selectors=pass?.mode==='restaurant'
+      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
+      : ['#backBtn','#hideBtn','#chooseBtn','#randomBtn','#addDuringBtn','#menuBtn','#homeMenuTopBtn','#foodPassAroundBtn','.card-choose-btn','.choice-utilities button'];
+    document.querySelectorAll(selectors.join(',')).forEach(el=>{
+      if(el.id==='passEndBtn'||el.id==='cutBtn'||el.id==='holdBtn'||el.id==='restaurantCutBtn'||el.id==='restaurantKeepBtn')return;
+      if(!el.dataset.passPrevDisabled)el.dataset.passPrevDisabled=el.disabled?'1':'0';
+      el.disabled=true;el.setAttribute('aria-disabled','true');
+    });
+  }
+  function unlockPassControls(){
+    document.querySelectorAll('[data-pass-prev-disabled]').forEach(el=>{el.disabled=el.dataset.passPrevDisabled==='1';delete el.dataset.passPrevDisabled;el.removeAttribute('aria-disabled');});
+  }
+  function applyPassLock(){
+    document.body.classList.remove('pass-setup','pass-voting','pass-handoff','pass-no-finalists');
+    const cls=pass?.phase==='voting'?'pass-voting':pass?.phase==='handoff'?'pass-handoff':'pass-no-finalists';
+    document.body.classList.add('pass-active',cls,'overlay-open');lockPassControls();
+  }
+  function clearPassLock(){unlockPassControls();document.body.classList.remove('pass-active','pass-setup','pass-voting','pass-handoff','pass-no-finalists','overlay-open');}
+  function passViewItems(){if(!pass)return [];const voter=pass.votes?.[pass.participant-1];if(!voter)return [];return pass.pool.filter(item=>!voter.has(passKey(item)));}
+  function syncPassParticipantView(){
+    if(!pass||pass.phase!=='voting')return;
+    applyPassLock();const view=passViewItems();
+    if(pass.mode==='restaurant'){activeRestaurants=[...view];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};showRestaurantUIForPass();renderRestaurantStage();lockPassControls();}
+    else{activeItems=[...view];holdingItems=[];finalistMode=false;searchQuery='';foodInProgress=true;foodShowUI(null);lockPassControls();}
+    renderPassStatus();savePassState();
+  }
   function openPass(mode){
-    if(pass)return;
-    let pool;
-    if(mode==='restaurant') pool=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
-    else pool=uniq([...(activeItems||[]),...(holdingItems||[])].filter(x=>x&&!isDeletedFood(x)),foodKey);
-    if(pool.length<2){toast('Pass Around needs at least two choices.');return;}
-    const b=document.createElement('div');b.id='passSetupBackdrop';b.className='pass-modal-backdrop';
-    savePassState();b.innerHTML=`<div class="pass-modal" role="dialog" aria-modal="true" aria-labelledby="passSetupTitle"><h3 id="passSetupTitle">Pass Around</h3><p>Each person gets the complete same list and swipes through every choice. Left cuts it; right keeps it. After everyone finishes, only the choices everyone kept become finalists.</p><div class="pass-count-grid">${[2,3,4,5,6].map(n=>`<button type="button" class="pass-count-btn" data-pass-n="${n}">${n} people</button>`).join('')}</div><div class="pass-modal-actions"><button type="button" class="pass-cancel-btn" data-pass-cancel>Cancel</button></div></div>`;
-    document.body.appendChild(b);b.querySelector('[data-pass-cancel]').onclick=()=>b.remove();b.querySelectorAll('[data-pass-n]').forEach(btn=>btn.onclick=()=>startPass(mode,Number(btn.dataset.passN),pool));
+    if(pass){toast('Pass Around is already in progress.');return;}
+    let pool=mode==='restaurant'?uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey):uniq([...(activeItems||[]),...(holdingItems||[])].filter(x=>x&&!isDeletedFood(x)),foodKey);
+    pool=uniq(pool.map(compactPassItem).filter(Boolean),passKey);if(pool.length<2){toast('Pass Around needs at least two choices.');return;}
+    const b=document.createElement('div');b.id='passSetupBackdrop';b.className='pass-modal-backdrop';document.body.classList.add('pass-active','pass-setup','overlay-open');
+    b.innerHTML='<div class="pass-modal" role="dialog" aria-modal="true" aria-labelledby="passSetupTitle"><h3 id="passSetupTitle">Pass Around</h3><p>Everyone gets the exact same list. Swipe left or tap Cut to remove a choice. Swipe right or tap Maybe to keep it. Only choices kept by everyone become finalists.</p><div class="pass-count-grid">'+[2,3,4,5,6].map(n=>'<button type="button" class="pass-count-btn" data-pass-n="'+n+'">'+n+' people</button>').join('')+'</div><div class="pass-modal-actions"><button type="button" class="pass-cancel-btn" data-pass-cancel>Cancel</button></div></div>';
+    document.body.appendChild(b);
+    b.querySelector('[data-pass-cancel]')?.addEventListener('click',()=>{b.remove();document.body.classList.remove('pass-active','pass-setup','overlay-open');});
+    b.querySelectorAll('[data-pass-n]').forEach(btn=>btn.addEventListener('click',()=>startPass(mode,Number(btn.dataset.passN),pool)));
   }
   window.DinliminateOpenPassAround=openPass;
   function startPass(mode,count,pool){
-    $('passSetupBackdrop')?.remove();
-    pass={mode,count,current:1,pool:[...pool],votes:Array.from({length:count},()=>new Map()),snapshot:mode==='restaurant'?{active:[...activeRestaurants],holding:[...holdingRestaurants],finalist:restaurantFinalistMode,exhausted:restaurantEliminationExhausted,quick:[...restaurantQuickCuts],filters:{...restaurantFilters}}:{active:[...activeItems],holding:[...holdingItems],finalist:finalistMode,originalCount,searchQuery,quick:[...foodQuickHidden],manual:[...foodManual]}};
-    if(mode==='restaurant'){activeRestaurants=[...pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...restaurantFilters,query:'',sort:'shuffle'};showRestaurantUIForPass();}
-    else{activeItems=[...pool];holdingItems=[];finalistMode=false;searchQuery='';originalCount=pool.length;foodShowUI(null);}
-    saveFoodRoundState();savePassState();renderPassStatus();toast(`Person 1 of ${count}: swipe through every choice.`);
+    $('passSetupBackdrop')?.remove();document.body.classList.remove('pass-setup');
+    const snapshot=passSnapshot(mode);
+    pass={schema:PASS_SCHEMA,startedAt:Date.now(),mode,count,participant:1,phase:'voting',pool:uniq(pool.map(compactPassItem).filter(Boolean),passKey),votes:Array.from({length:count},()=>new Map()),snapshot,finalists:[],busy:false};
+    if(mode==='restaurant'){activeRestaurants=[...pass.pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();}
+    else{activeItems=[...pass.pool];holdingItems=[];finalistMode=false;searchQuery='';originalCount=pass.pool.length;foodInProgress=true;saveFoodRoundState();foodShowUI(null);}
+    applyPassLock();savePassState();renderPassStatus();toast('Person 1 of '+count+': start swiping.');
   }
   function showRestaurantUIForPass(){legacyShowRestaurant?.();document.body.classList.add('restaurant-mode');setupRestaurantTools();renderRestaurantStage();syncRestaurantActionLabels?.();}
-  function passCurrent(){return pass?.mode==='restaurant'?(filterRestaurants()[0]||null):(activeItems?.[0]||null);}
+  function passCurrent(){return pass?.phase==='voting'?(passViewItems()[0]||null):null;}
   function passAct(kind,card){
-    if(!pass)return false;const item=passCurrent();if(!item)return true;
-    const list=pass.mode==='restaurant'?activeRestaurants:activeItems;
-    const keyFn=pass.mode==='restaurant'?restKey:foodKey;const idx=list.findIndex(x=>keyFn(x)===keyFn(item));if(idx<0)return true;
-    pass.votes[pass.current-1].set(keyFn(item),kind==='cut');savePassState();
-    const finish=()=>{list.splice(idx,1);if(!list.length){if(pass.current<pass.count)showHandoff();else finishPass();return;}pass.mode==='restaurant'?renderRestaurantStage():renderStage();renderPassStatus();};
-    if(card&&pass.mode==='food'&&typeof transitionCard==='function')transitionCard(card,kind==='cut'?-1:1,finish);else if(card&&pass.mode==='restaurant'&&typeof transitionRestaurantCard==='function')transitionRestaurantCard(card,kind==='cut'?-1:1,finish);else finish();return true;
+     if(kind!=='cut'&&kind!=='hold')return false;
+     if(!pass||pass.phase!=='voting'||pass.busy)return false;
+     const item=passCurrent();if(!item)return true;
+     const key=passKey(item),voter=pass.votes?.[pass.participant-1];
+     if(!voter||voter.has(key))return false;
+     voter.set(key,kind==='cut');
+     pass.busy=true;
+     savePassState();
+     lockPassControls();
+     try{
+       const remaining=passViewItems();
+       if(remaining.length===0){finishPassParticipant();return true;}
+       pass.busy=false;
+       if(pass.mode==='restaurant')activeRestaurants=[...remaining];else activeItems=[...remaining];
+       if(pass.mode==='restaurant')renderRestaurantStage();else renderStage();
+       renderPassStatus();
+       lockPassControls();
+       savePassState();
+       return true;
+     }catch(e){
+       pass.busy=false;
+       voter.delete(key);
+       savePassState();
+       throw e;
+     }
+   }
+  function finishPassParticipant(){
+    if(!pass)return;pass.busy=false;
+    if(pass.participant<pass.count){pass.phase='handoff';savePassState();applyPassLock();showPassHandoff();renderPassStatus();return;}
+    completePass();
   }
-  function showHandoff(){
-    const n=pass.current+1,b=document.createElement('div');b.id='passHandoffBackdrop';b.className='pass-modal-backdrop';
-    savePassState();b.innerHTML=`<div class="pass-modal pass-handoff" role="dialog" aria-modal="true" aria-labelledby="handoffTitle"><div class="pass-icon">↔</div><h4 id="handoffTitle">Pass the phone to Person ${n}</h4><p>Person ${n} gets the complete same list. Everyone must swipe through every choice.</p><button type="button" class="pass-primary-btn" data-pass-start>Start Person ${n}</button><div class="pass-modal-actions"><button type="button" class="pass-cancel-btn" data-pass-end>End Pass Around</button></div></div>`;
-    document.body.appendChild(b);b.querySelector('[data-pass-start]').onclick=()=>{b.remove();pass.current=n;savePassState();if(pass.mode==='restaurant'){activeRestaurants=[...pass.pool];holdingRestaurants=[];renderRestaurantStage();}else{activeItems=[...pass.pool];holdingItems=[];saveFoodRoundState();renderStage();}renderPassStatus();toast(`Person ${n} of ${pass.count}: your turn.`);};b.querySelector('[data-pass-end]').onclick=cancelPass;
+  function showPassHandoff(){
+    $('passHandoffBackdrop')?.remove();if(!pass||pass.phase!=='handoff')return;applyPassLock();
+    const next=pass.participant+1,b=document.createElement('div');b.id='passHandoffBackdrop';b.className='pass-modal-backdrop';
+    b.innerHTML='<div class="pass-modal pass-handoff" role="dialog" aria-modal="true" aria-labelledby="handoffTitle"><div class="pass-icon">↔</div><h4 id="handoffTitle">Pass the phone to Person '+next+'</h4><p>Person '+pass.participant+' is finished. Person '+next+' gets the exact same complete list.</p><button type="button" class="pass-primary-btn" data-pass-start>Start Person '+next+'</button><div class="pass-modal-actions"><button type="button" class="pass-cancel-btn" data-pass-end>End Pass Around</button></div></div>';
+    document.body.appendChild(b);const startBtn=b.querySelector('[data-pass-start]'),endBtn=b.querySelector('[data-pass-end]');
+    startBtn?.addEventListener('click',()=>{b.remove();pass.participant=next;pass.phase='voting';pass.busy=false;savePassState();syncPassParticipantView();toast('Person '+next+' of '+pass.count+': your turn.');});
+    endBtn?.addEventListener('click',()=>cancelPass());startBtn?.focus?.();
   }
-  function finishPass(){
-    const p=pass,keyFn=p.mode==='restaurant'?restKey:foodKey,cutCount=new Map();p.votes.forEach(v=>v.forEach((cut,k)=>{if(cut)cutCount.set(k,(cutCount.get(k)||0)+1);}));
-    let finals=p.pool.filter(x=>p.votes.every(v=>v.get(keyFn(x))===false));
-    if(!finals.length)finals=[...p.pool].sort((a,b)=>(cutCount.get(keyFn(a))||0)-(cutCount.get(keyFn(b))||0)).slice(0,Math.min(4,p.pool.length));
-    pass=null;clearPassState();$('passStatus')?.remove();
-    if(p.mode==='restaurant'){activeRestaurants=[...finals];holdingRestaurants=[];restaurantFinalistMode=true;restaurantUndoStack=[];restaurantQuickCuts.clear();restaurantFilters={query:'',sort:p.snapshot.filters?.sort==='closest'?'closest':'shuffle'};renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();setStatus(`${finals.length} finalists left · choose one`,'live');}
-    else{activeItems=[...finals];holdingItems=[];finalistMode=true;undoStack=[];originalCount=p.pool.length;searchQuery='';saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();document.body.classList.add('finalist-mode');setStatus(`${finals.length} finalists left · choose one`,'live');}
-    toast('Everyone finished. The finalists are ready to choose.');
+  function completePass(){
+    const p=pass;if(!p)return;
+    const finals=p.pool.filter(item=>p.votes.every(v=>v.has(passKey(item))&&v.get(passKey(item))===false));p.finalists=finals;
+    if(!finals.length){p.phase='no_finalists';p.busy=false;savePassState();applyPassLock();showPassNoFinalists();renderPassStatus();return;}
+    pass=null;clearPassState();clearPassLock();$('passStatus')?.remove();
+    if(p.mode==='restaurant'){activeRestaurants=[...finals];holdingRestaurants=[];restaurantFinalistMode=true;restaurantEliminationExhausted=false;restaurantUndoStack=[];restaurantQuickCuts.clear();restaurantFilters={query:'',sort:p.snapshot.filters?.sort==='closest'?'closest':'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();setStatus(finals.length+' finalists left · choose one','live');}
+    else{activeItems=[...finals];holdingItems=[];finalistMode=true;undoStack=[];originalCount=p.pool.length;searchQuery='';foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();document.body.classList.add('finalist-mode');setStatus(finals.length+' finalists left · choose one','live');}
+    toast('Everyone finished. Only the choices everyone kept are finalists.');
+  }
+  function restorePassSnapshot(p){
+    if(!p)return;
+    if(p.mode==='restaurant'){activeRestaurants=compactPassList(p.snapshot?.active||[]);holdingRestaurants=compactPassList(p.snapshot?.holding||[]);restaurantFinalistMode=!!p.snapshot?.finalist;restaurantEliminationExhausted=!!p.snapshot?.exhausted;restaurantQuickCuts=new Set(Array.isArray(p.snapshot?.quick)?p.snapshot.quick:[]);restaurantFilters={query:String(p.snapshot?.filters?.query||''),sort:p.snapshot?.filters?.sort==='closest'?'closest':'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();}
+    else{activeItems=compactPassList(p.snapshot?.active||[]);holdingItems=compactPassList(p.snapshot?.holding||[]);finalistMode=!!p.snapshot?.finalist;originalCount=Number(p.snapshot?.originalCount)||activeItems.length+holdingItems.length||1;searchQuery=String(p.snapshot?.searchQuery||'');foodQuickHidden=new Set(Array.isArray(p.snapshot?.quick)?p.snapshot.quick:[]);foodManual=new Set(Array.isArray(p.snapshot?.manual)?p.snapshot.manual:[]);foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();}
   }
   function cancelPass(){
-    const p=pass;if(!p)return;pass=null;clearPassState();$('passStatus')?.remove();$('passHandoffBackdrop')?.remove();
-    if(p.mode==='restaurant'){activeRestaurants=[...(p.snapshot.active||[])];holdingRestaurants=[...(p.snapshot.holding||[])];restaurantFinalistMode=!!p.snapshot.finalist;restaurantEliminationExhausted=!!p.snapshot.exhausted;restaurantQuickCuts=new Set(p.snapshot.quick||[]);restaurantFilters={query:String(p.snapshot.filters?.query||''),sort:p.snapshot.filters?.sort==='closest'?'closest':'shuffle'};renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();}
-    else{activeItems=[...(p.snapshot.active||[])];holdingItems=[...(p.snapshot.holding||[])];finalistMode=!!p.snapshot.finalist;originalCount=p.snapshot.originalCount;searchQuery=p.snapshot.searchQuery||'';foodQuickHidden=new Set(p.snapshot.quick||[]);foodManual=new Set(p.snapshot.manual||[]);saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();}
-    toast('Pass Around ended. Your round is restored.');
+    const p=pass;if(!p)return;pass=null;clearPassState();$('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();toast('Pass Around ended. Your round is restored.');
+  }
+  function restartPass(){const p=pass;if(!p)return;const mode=p.mode;pass=null;clearPassState();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();openPass(mode);}
+  function showPassNoFinalists(){
+    $('passNoFinalistsBackdrop')?.remove();if(!pass||pass.phase!=='no_finalists')return;applyPassLock();
+    const b=document.createElement('div');b.id='passNoFinalistsBackdrop';b.className='pass-modal-backdrop';
+    b.innerHTML='<div class="pass-modal pass-no-finalists" role="dialog" aria-modal="true" aria-labelledby="noFinalistsTitle"><div class="pass-icon">↔</div><h4 id="noFinalistsTitle">No unanimous finalists</h4><p>No choice was kept by everyone. Pass Around will not invent a winner. You can run the group round again or end it and restore your previous choices.</p><div class="pass-modal-actions pass-no-finalist-actions"><button type="button" class="pass-primary-btn" data-pass-restart>Run Pass Around Again</button><button type="button" class="pass-cancel-btn" data-pass-end>End Pass Around</button></div></div>';
+    document.body.appendChild(b);b.querySelector('[data-pass-restart]')?.addEventListener('click',restartPass);b.querySelector('[data-pass-end]')?.addEventListener('click',cancelPass);b.querySelector('[data-pass-restart]')?.focus?.();
   }
   function renderPassStatus(){
-    if(!pass)return;const host=pass.mode==='restaurant'?$('restaurantStage'):$('stage');if(!host)return;let bar=$('passStatus');if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';host.parentNode?.insertBefore(bar,host);}
-    const remaining=pass.mode==='restaurant'?filterRestaurants().length:(activeItems||[]).length,done=pass.pool.length-remaining;bar.innerHTML=`<span><strong>Person ${pass.current} of ${pass.count}</strong><span class="pass-status-detail"> · ${done} of ${pass.pool.length}</span></span><button type="button" id="passEndBtn">End pass</button>`;$('passEndBtn').onclick=cancelPass;
+    const old=$('passStatus');if(!pass){old?.remove();return;}
+    const host=pass.mode==='restaurant'?$('restaurantStage'):$('stage');if(!host)return;
+    let bar=old;if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';host.parentNode?.insertBefore(bar,host);}
+    const remaining=pass.phase==='voting'?passViewItems().length:0,done=Math.max(0,pass.pool.length-remaining);
+    const label=pass.phase==='voting'?'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length:pass.phase==='handoff'?'Person '+pass.participant+' finished · '+pass.count+' people':'No unanimous finalists';
+    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End pass</button>';
+    $('passEndBtn').onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
   }
 
   function historyDayKey(value){const d=new Date(value||Date.now());return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -262,8 +386,37 @@
   }
   window.DinliminateBackToStart=backToStartFresh;
 
+  let passActionCaptureInstalled=false;
+  function installPassActionCapture(){
+    if(passActionCaptureInstalled)return;
+    passActionCaptureInstalled=true;
+    document.addEventListener('click',e=>{
+      const btn=e.target?.closest?.('#foodPassAroundBtn,#restaurantPassAroundBtn,#cutBtn,#holdBtn,#restaurantCutBtn,#restaurantKeepBtn');
+      if(!btn)return;
+      const id=btn.id;
+      const activePass=!!pass&&pass.phase==='voting';
+      const passOpen=id==='foodPassAroundBtn'||id==='restaurantPassAroundBtn';
+      const decision= id==='cutBtn'||id==='restaurantCutBtn' ? 'cut' : id==='holdBtn'||id==='restaurantKeepBtn' ? 'hold' : null;
+      if(passOpen || (activePass&&decision)){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(passOpen)openPass(id==='restaurantPassAroundBtn'?'restaurant':'food');
+        else passAct(decision,btn);
+      }
+    },true);
+  }
+
+  function replaceTapControl(id,handler){
+    const el=$(id);
+    if(!el)return null;
+    const clone=el.cloneNode(true);
+    el.replaceWith(clone);
+    clone.onclick=handler;
+    return clone;
+  }
   function install(){
     safeWrite('dinliminateLaunchVersion',VERSION);
+    installPassActionCapture();
     $('startOverBtn')?.replaceChildren(document.createTextNode('Start fresh'));
     legacyShowGame=window.showGame;legacyResetList=window.resetList;legacyRenderStage=window.renderStage;legacyUndo=window.undoLast;legacyCut=window.cutCurrent;legacyHold=window.holdCurrent;legacyShowRestaurant=window.showRestaurantMode;legacyApplyRestaurant=window.applyRestaurantData;legacyRenderRestaurant=window.renderRestaurantStage;legacyRestaurantCut=window.restaurantCut;legacyRestaurantKeep=window.restaurantKeep;legacyRestaurantUndo=window.restaurantUndo;legacyRenderLibrary=window.renderLibrary;legacyShowWinner=window.showWinner;
     window.showGame=()=>{if(!foodHydrationDone){foodHydrationPromise.then(()=>window.showGame());return;}return foodInProgress&&((activeItems||[]).length+(holdingItems||[]).length)>0?resumeFood():freshFood();};window.resetList=()=>{foodHydrationDone=true;return freshFood();};
@@ -289,6 +442,14 @@
     window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
     window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
+    // Replace static tap controls so older inline listeners cannot swallow or duplicate taps.
+    replaceTapControl('cutBtn',e=>{e.preventDefault();window.cutCurrent?.($('stage')?.querySelector('.active'));});
+    replaceTapControl('holdBtn',e=>{e.preventDefault();window.holdCurrent?.($('stage')?.querySelector('.active'));});
+    replaceTapControl('foodPassAroundBtn',e=>{e.preventDefault();e.stopPropagation();openPass('food');});
+    replaceTapControl('restaurantCutBtn',e=>{e.preventDefault();window.restaurantCut?.($('restaurantStage')?.querySelector('.active'));});
+    replaceTapControl('restaurantKeepBtn',e=>{e.preventDefault();window.restaurantKeep?.($('restaurantStage')?.querySelector('.active'));});
+    replaceTapControl('restaurantPassAroundBtn',e=>{e.preventDefault();e.stopPropagation();openPass('restaurant');});
+
     const foodBottom=$('gamePanel')?.querySelector('.game-bottom');
     const foodPass=$('foodPassAroundBtn');
     const legacyPass=$('passAroundBtn');
@@ -296,7 +457,7 @@
     if(foodPass){
       foodPass.classList.add('pass-food-btn');
       foodPass.setAttribute('aria-label','Pass Around with other people');
-      foodPass.onclick=()=>openPass('food');
+      foodPass.onclick=(e)=>{e?.preventDefault?.();e?.stopImmediatePropagation?.();openPass('food');};
     } else if(foodBottom){
       const b=document.createElement('button');
       b.id='foodPassAroundBtn';b.type='button';b.className='text-btn food-secondary-action pass-around-btn pass-food-btn';b.textContent='Pass Around';b.setAttribute('aria-label','Pass Around with other people');b.onclick=()=>openPass('food');
@@ -306,8 +467,13 @@
     const restaurantPassButton=$('restaurantPassAroundBtn');
     if(restaurantPassButton){
       restaurantPassButton.type='button';
-      restaurantPassButton.onclick=()=>window.DinliminateOpenPassAround?.('restaurant');
+      restaurantPassButton.onclick=(e)=>{e?.preventDefault?.();e?.stopImmediatePropagation?.();openPass('restaurant');};
       restaurantPassButton.setAttribute('aria-label','Pass Around restaurant choices');
+    }
+    const winnerHomeButton=$('winnerHomeBtn');
+    if(winnerHomeButton){
+      winnerHomeButton.type='button';
+      winnerHomeButton.addEventListener('click',(e)=>{e?.preventDefault?.();e?.stopImmediatePropagation?.();if(typeof window.DinliminateBackToStart==='function')window.DinliminateBackToStart();else if(typeof goHome==='function')goHome();},true);
     }
     document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibraryLaunch();}));$('historyMenuBtn')?.addEventListener('click',()=>setTimeout(renderLibraryLaunch,0));
     // Disable the legacy website-metadata image hydrator so it cannot substitute another restaurant's photo.
