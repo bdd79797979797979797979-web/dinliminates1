@@ -302,6 +302,12 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   await hoursButton.click();
   await expect(hoursButton).toHaveText(/Open \/ Unknown/);
 
+  // Reset hours state so this assertion isolates radius behavior only.
+  await page.evaluate(() => {
+    localStorage.setItem('dinliminateRestaurantHoursFilter','open-unknown');
+    try { restaurantHoursFilter='open-unknown'; } catch {}
+    window.renderRestaurantQuickCuts?.();
+  });
   // Narrowing radius from 5 to 1 immediately drops the 2-mile restaurant.
   await page.locator('#restaurantRadiusFilter').selectOption('1');
   await expect.poll(countText).toContain('1');
