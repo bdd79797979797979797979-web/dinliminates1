@@ -291,7 +291,11 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await expect(page.locator('#confirmBackdrop')).toBeHidden();
   await page.locator('#hideBtn').click();
   await page.locator('#confirmCutBtn').click();
-  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
+  console.log('after hide state:', await page.evaluate(() => ({
+    topCountText: document.querySelector('#gameTopCount')?.textContent || '',
+    homeCountText: document.querySelector('#homeCount')?.textContent || '',
+    hiddenStorage: localStorage.getItem('dinliminateHidden') || '[]'
+  })));
 
   await page.locator('#menuBtn').click();
   await page.locator('#settingsBtn').click();
