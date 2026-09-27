@@ -271,9 +271,9 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await expect(page.locator('#gamePanel')).toBeVisible();
   const beforeMaybe = Number(await page.locator('#gameTopCount').textContent());
   await page.locator('#holdBtn').click();
-  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
   await page.locator('#backBtn').click();
-  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(beforeMaybe);
 
   const qc = page.locator('#quickCutsBar [data-launch-quick]').filter({ hasText: /Burgers|Pizza|Chicken/i }).first();
   if (await qc.count()) {
@@ -291,7 +291,7 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await expect(page.locator('#confirmBackdrop')).toBeHidden();
   await page.locator('#hideBtn').click();
   await page.locator('#confirmCutBtn').click();
-  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
 
   await page.locator('#menuBtn').click();
   await page.locator('#settingsBtn').click();
@@ -331,10 +331,16 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
   await expect(page.locator('#libraryList .history-calendar-wrap')).toBeVisible();
   await expect(page.locator('#libraryList [data-history-open]').first()).toBeVisible();
-  await page.locator('#libraryList [data-history-open]').first().click();
+  const historyOpen = page.locator('#libraryList [data-history-open]').first();
+  await historyOpen.click();
   await expect(page.locator('#detailBackdrop')).toBeVisible();
   await page.locator('#detailCloseBtn').click();
-  await page.locator('#homeMenuTopBtn').click().catch(() => {});
+
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryList [data-history-remove]').first()).toBeVisible();
+  await page.locator('#libraryList [data-history-remove]').first().click();
+  await expect(page.locator('#libraryList [data-history-open]')).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 
@@ -355,7 +361,7 @@ test('deep Pass Around: two-person vote, handoff, restore by End Pass', async ({
   await page.locator('#passEndBtn').click();
   await expect(page.locator('#passStatus')).toHaveCount(0);
   await expect(page.locator('#gamePanel')).toBeVisible();
-  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(initial);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(initial);
   expect(pageErrors).toEqual([]);
 });
 
@@ -481,6 +487,7 @@ test('deep backup round-trip: exported backup can be imported back into Dinlimin
   });
 
   await page.waitForTimeout(700);
+  await expect(page.locator('#toast')).toHaveText('Backup imported. Reloading…');
   await expect(page.locator('#homePanel')).toBeVisible({ timeout: 10000 });
   const importedNames = await page.evaluate(() => {
     try { return JSON.parse(localStorage.getItem('dinliminateCustom') || '[]').map(x => x.name); }
