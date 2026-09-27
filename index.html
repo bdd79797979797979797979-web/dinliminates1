@@ -7367,7 +7367,11 @@ function restaurantSortValue(item){
   return Number.isFinite(d)?d:Infinity;
 }
 function filteredRestaurants(){
-  let list=[...activeRestaurants];
+  const radius=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(restaurantRadiusMiles)||10));
+  let list=[...activeRestaurants].filter(r=>{
+    const d=Number(r?.distanceMiles);
+    return !Number.isFinite(d)||d<=radius;
+  });
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
   if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
