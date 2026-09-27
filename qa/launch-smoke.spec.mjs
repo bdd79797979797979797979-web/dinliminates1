@@ -219,6 +219,25 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   expect(pageErrors).toEqual([]);
 });
 
+
+test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours and inline search', async ({ page }) => {
+  const pageErrors=[]; page.on('pageerror',e=>pageErrors.push(String(e)));
+  const fixture=[
+    {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true},
+    {id:'qa-bk',name:'Burger King',type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:2,openNow:true},
+    {id:'qa-wh',name:'Waffle House',type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:3,openNow:false},
+    {id:'qa-ab',name:"Applebee's",type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:4,openNow:true},
+    {id:'qa-pasta',name:'Pasta House',type:'restaurant',fastFood:false,category:'pasta',cuisine:'italian',tags:['restaurant','pasta'],distanceMiles:4.5,openNow:true},
+    {id:'qa-south',name:'Southern Kitchen',type:'restaurant',fastFood:false,category:'southern',cuisine:'southern',tags:['restaurant','southern'],distanceMiles:8,openNow:false}
+  ];
+  await page.route('**/api/restaurant-search?*',async route=>{const u=new URL(route.request().url()),m=u.searchParams.get('mode');let body={};if(m==='suggest')body={results:[{display:'QA Test Address, Nashville, TN',query:'QA Test Address, Nashville, TN',precision:'address',lat:36.1,lon:-86.8}]};else if(m==='resolve')body={location:{lat:36.1,lon:-86.8},display:'QA Test Address, Nashville, TN',precision:'address'};else if(m==='search'){const radius=Number(u.searchParams.get('radius')||10),rows=fixture.filter(r=>r.distanceMiles<=radius);body={results:rows,businesses:rows,restaurants:rows,items:rows,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,providersUsed:['QA fixture'],diagnostics:{}};}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});});
+  await page.goto(BASE,{waitUntil:'domcontentloaded'}); await page.locator('#homeRestaurantQuick').click(); await page.locator('#restaurantLocationInput').fill('QA Test Address Nashville'); await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible(); await page.locator('.restaurant-address-suggestion').first().click(); await expect(page.locator('.restaurant-card-v240')).toBeVisible();
+  const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first(), american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first(); const count=async b=>{const t=await b.locator('.quick-cut-copy em').textContent(),m=String(t||'').match(/(\\d+)\\s*$/);return m?Number(m[1]):-1;};
+  await page.locator('#restaurantRadiusFilter').selectOption('10'); await expect.poll(()=>count(fast)).toBe(2); await page.locator('#restaurantRadiusFilter').selectOption('1'); await expect.poll(()=>count(fast)).toBe(1); await page.locator('#restaurantRadiusFilter').selectOption('5'); await expect.poll(()=>count(fast)).toBe(2);
+  await page.evaluate(()=>{restaurantFilters.sort='closest';renderRestaurantStage();}); await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("McDonald's"); await page.locator('#restaurantKeepBtn').click(); await expect.poll(()=>count(fast)).toBe(1);
+  await expect.poll(()=>count(american)).toBe(2); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed'); await expect.poll(()=>count(american)).toBe(1); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown'); await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantSearchBtn').click(); await page.locator('#restaurantInlineSearchInput').fill('Burger King'); await expect.poll(()=>count(fast)).toBe(1); expect(pageErrors).toEqual([]);
+});
 test('iPhone viewport has no horizontal overflow and keeps primary controls visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
