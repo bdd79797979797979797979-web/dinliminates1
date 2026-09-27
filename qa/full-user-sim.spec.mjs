@@ -11,6 +11,36 @@ function dataPhoto(label, bg='e8d9c6') {
 }
 
 async function waitUi(page, ms=120) { await page.waitForTimeout(ms); }
+async function installApiFixture(page) {
+  await page.route('**/api/restaurant-search**', async route => {
+    const u=new URL(route.request().url());
+    const mode=u.searchParams.get('mode')||'health';
+    const photo=(label,bg)=>dataPhoto(label,bg);
+    const rows=[
+      {id:'qa-mcd',name:"McDonald's",type:'restaurant',amenity:'fast_food',fastFood:true,category:'Fast Food',cuisine:'american',tags:['restaurant','fast_food'],address:'101 Main St, Clarksville, TN 37040',website:'https://www.mcdonalds.com',opening_hours:'Monday: 5:00 AM – 11:00 PM',openNow:true,lat:36.4430,lon:-87.1780,distanceMiles:0.5,photo:photo("McDonald's",'f0d7bd')},
+      {id:'qa-wendys',name:"Wendy's",type:'restaurant',amenity:'fast_food',fastFood:true,category:'Fast Food',cuisine:'american',tags:['restaurant','fast_food'],address:'102 Main St, Clarksville, TN 37040',website:'https://www.wendys.com',opening_hours:'Monday: 10:00 AM – 1:00 AM',openNow:false,lat:36.4440,lon:-87.1780,distanceMiles:0.7,photo:photo("Wendy's",'f2cabf')},
+      {id:'qa-bk',name:'Burger King',type:'restaurant',amenity:'fast_food',fastFood:true,category:'Fast Food',cuisine:'american',tags:['restaurant','fast_food'],address:'103 Main St, Clarksville, TN 37040',website:'https://www.bk.com',opening_hours:'Monday: 6:00 AM – 11:00 PM',openNow:true,lat:36.4450,lon:-87.1780,distanceMiles:0.9,photo:photo('Burger King','d7e0c5')},
+      {id:'qa-waffle',name:'Waffle House',type:'restaurant',amenity:'restaurant',fastFood:false,category:'American',cuisine:'american',tags:['restaurant','american'],address:'104 Main St, Clarksville, TN 37040',website:'https://www.wafflehouse.com',opening_hours:'Open 24 hours',openNow:true,lat:36.4460,lon:-87.1780,distanceMiles:1.1,photo:photo('Waffle House','e5cfaa'),menuItems:['Waffles','Hash Browns','Bacon']},
+      {id:'qa-applebees',name:"Applebee's",type:'restaurant',amenity:'restaurant',fastFood:false,category:'American',cuisine:'american',tags:['restaurant','american'],address:'105 Main St, Clarksville, TN 37040',website:'https://www.applebees.com',opening_hours:'Monday: 11:00 AM – 12:00 AM',openNow:false,lat:36.4470,lon:-87.1780,distanceMiles:1.3,photo:photo("Applebee's",'e1d7c4'),menuItems:['Burgers','Ribs','Salads']},
+      {id:'qa-roux',name:'Roux',type:'restaurant',amenity:'restaurant',fastFood:false,category:'Southern',cuisine:'southern',tags:['restaurant','southern'],address:'106 Main St, Clarksville, TN 37040',website:'https://example.com/roux',opening_hours:'Monday: 11:00 AM – 9:00 PM',openNow:true,lat:36.4480,lon:-87.1780,distanceMiles:1.5,photo:photo('Roux','c8d8c4')}
+    ];
+    let body;
+    if(mode==='suggest'){
+      body={ok:true,results:[{lat:36.4426778,lon:-87.1784093,display:'801 Iron Workers Rd, Clarksville, Tennessee, 37043',query:'801 Iron Workers Rd, Clarksville, Tennessee, 37043',precision:'pointaddress',source:'Fixture'}]};
+    } else if(mode==='resolve'){
+      body={ok:true,location:{lat:36.4426778,lon:-87.1784093},display:'801 Iron Workers Rd, Clarksville, Tennessee, 37043',precision:'pointaddress'};
+    } else if(mode==='reverse'){
+      body={ok:true,display:'Clarksville, Tennessee',city:'Clarksville'};
+    } else if(mode==='search'){
+      const requested=Math.max(1,Math.min(100,Number(u.searchParams.get('radius')||10)));
+      const filtered=rows.filter(r=>r.distanceMiles<=requested);
+      body={ok:true,radiusMiles:requested,results:filtered,restaurants:filtered,items:filtered,count:filtered.length,total:filtered.length,fastFoodCount:filtered.filter(r=>r.fastFood).length,providersUsed:['Fixture'],diagnostics:{}};
+    } else {
+      body={ok:true,version:'fixture',providers:['Fixture']};
+    }
+    await route.fulfill({status:200,headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  });
+}
 
 async function fresh(page) {
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:4173', { waitUntil:'domcontentloaded' });
@@ -58,6 +88,7 @@ async function passAllCurrent(page, holdSelector, doneSelector, max=20) {
 test('full simulated user journey — home, food, custom food, hidden choices, saved/history/settings/restore', async ({ page }) => {
   const errors = errorWatch(page);
   await page.setViewportSize({width:390,height:844});
+  await installApiFixture(page);
   await fresh(page);
 
   // HOME / MENU / ABOUT / IPHONE HELP
