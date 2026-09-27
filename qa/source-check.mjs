@@ -17,7 +17,7 @@ for (const rel of files) {
     const html = fs.readFileSync(full, 'utf8');
     for (const script of [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)]) {
       const tag = script[0].slice(0, script[0].indexOf('>') + 1).toLowerCase();
-      if (/type=["']application\\/(?:ld\\+json|json)["']/.test(tag)) continue;
+      if (/application\/(?:ld\+json|json)/.test(tag)) continue;
       const temp = path.join(os.tmpdir(), 'dinliminate-inline-' + Math.random().toString(36).slice(2) + '.mjs');
       fs.writeFileSync(temp, script[1], 'utf8');
       const r = spawnSync(process.execPath, ['--check', temp], { encoding:'utf8' });
