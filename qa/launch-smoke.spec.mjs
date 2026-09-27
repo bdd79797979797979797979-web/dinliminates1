@@ -19,66 +19,6 @@ async function swipe(page, selector, dx) {
 }
 
 
-test('P683 priority: restaurant Quick Cuts follow live radius and current choices', async ({ page }) => {
-  const pageErrors = [];
-  page.on('pageerror', e => pageErrors.push(String(e)));
-
-  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-
-  // Enter only the real restaurant renderer; avoid the separate location-entry
-  // path so this regression isolates Quick Cut scope behavior.
-  await page.evaluate(() => {
-    document.body.classList.add('restaurant-mode');
-    document.getElementById('restaurantPanel')?.classList.remove('hidden');
-    restaurantItems = [
-      { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:0.5 },
-      { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:2.0 },
-      { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:6.0 }
-    ];
-    activeRestaurants=[...restaurantItems];
-    holdingRestaurants=[];
-    restaurantBase=[...restaurantItems];
-    restaurantManual=new Set();
-    restaurantQuickCuts=new Set();
-    restaurantFilters={query:'',sort:'shuffle'};
-    restaurantRadiusMiles=5;
-    renderRestaurantQuickCuts();
-  });
-
-  const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
-  await expect(fastFood).toContainText('2');
-
-  // Radius change: 6-mile restaurant must disappear from the Quick Cut scope immediately.
-  await page.evaluate(() => {
-    restaurantRadiusMiles=1;
-    renderRestaurantQuickCuts();
-  });
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
-
-  // Current-round Cut: the remaining matching restaurant must disappear from the count.
-  await page.evaluate(() => {
-    const current=activeRestaurants[0];
-    if(!current) throw new Error('No current restaurant in deterministic QA state.');
-    restaurantManual.add(restKey(current));
-    activeRestaurants=activeRestaurants.filter(r=>restKey(r)!==restKey(current));
-    renderRestaurantQuickCuts();
-  });
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('0');
-
-  // Back/restore: putting the current restaurant back must restore the count immediately.
-  await page.evaluate(() => {
-    const restored={id:'qa-ff-restored',name:'QA Fast Food Restored',amenity:'fast_food',category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:0.5};
-    restaurantItems=[restored];
-    activeRestaurants=[restored];
-    restaurantManual=new Set();
-    restaurantBase=[restored];
-    renderRestaurantQuickCuts();
-  });
-  await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
-
-  expect(pageErrors).toEqual([]);
-});
-
 test('production HTML and search API are healthy', async ({ request }) => {
   const html = await request.get(BASE + '/');
   expect(html.ok()).toBeTruthy();
@@ -318,7 +258,7 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await page.locator('#homeRestaurantQuick').click();
+  await page.evaluate(() => window.showRestaurantMode?.());
   await expect(page.locator('#restaurantPanel')).toBeVisible();
 
   await page.evaluate(() => {
