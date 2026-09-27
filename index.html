@@ -5604,7 +5604,6 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 <div class="game-bottom">
 <button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random cut one</button>
 <button class="text-btn food-secondary-action add-food-btn" id="addDuringBtn" type="button">Add food</button>
-<button class="text-btn food-secondary-action choose-secondary-action" id="chooseBtn" type="button" aria-label="Choose this food">Choose</button>
 <button aria-label="Pass Around with other people" class="text-btn food-secondary-action pass-around-btn pass-food-btn" id="foodPassAroundBtn" type="button">Pass Around</button>
 </div>
 </section>
@@ -5637,7 +5636,6 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 
   <div class="restaurant-utility-row" aria-label="Restaurant tools">
     <button class="restaurant-tool-btn" id="restaurantSearchBtn" type="button" aria-expanded="false" aria-controls="restaurantInlineSearch">Search</button>
-    <button class="restaurant-tool-btn restaurant-choose-btn" id="restaurantChooseBtn" type="button" aria-label="Choose this restaurant">Choose</button>
     <button class="restaurant-tool-btn restaurant-pass-btn" id="restaurantPassAroundBtn" type="button">Pass Around</button>
   </div>
   <div class="restaurant-inline-search hidden" id="restaurantInlineSearch">
@@ -6141,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p637-recycle-maybe-choose';
+const DINLIMINATE_VERSION = 'p638-card-choose-passaround-accent';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -6808,7 +6806,7 @@ function renderStage() {
         <div class="card-name">${escapeHtml(item.name)}</div>
         <div class="card-meta">${escapeHtml((item.tags || []).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Just a food')}${item.prep ? ` · ${escapeHtml(item.prep)}` : ''}${item.budget ? ` · ${escapeHtml(item.budget)}` : ''}</div>
         ${item.notes ? `<div class="card-note">${escapeHtml(item.notes)}</div>` : ''}
-        <div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>options left</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility details" type="button" data-card-action="details">Details</button><button class="choice-utility save" type="button" data-card-action="save" aria-label="${saved?'Remove food from Saved':'Save food'}">${saved?'♥ Saved':'♡ Save'}</button></div></div>
+        <div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>options left</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility choose-card-action" type="button" data-card-action="choose" aria-label="Choose this food">Choose</button><button class="choice-utility details" type="button" data-card-action="details">Details</button><button class="choice-utility save" type="button" data-card-action="save" aria-label="${saved?'Remove food from Saved':'Save food'}">${saved?'♥ Saved':'♡ Save'}</button></div></div>
       </div>
     </article>`;
   }).join('');
@@ -7023,6 +7021,8 @@ function randomEliminate() {
 function afterEliminate(action) {
   if (searchQuery) searchQuery = '';
   if (activeItems.length === 0 && holdingItems.length > 0) {
+    $('countNumber').textContent = holdingItems.length;
+    $('gameTopCount').textContent = holdingItems.length;
     activeItems = dedupe([...holdingItems]);
     holdingItems = [];
     finalistMode = false;
@@ -7164,7 +7164,6 @@ function applyFoodPreferences(){
 }
 function syncDecisionActionLabels(){
   const hold=$('holdBtn'); if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this food as a maybe');hold.disabled=!activeItems.length;}
-  const choose=$('chooseBtn'); if(choose){choose.disabled=!activeItems.length || !!passAroundSession;}
   const cut=$('cutBtn'); if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!activeItems.length;}
 }
 function showGame() {
@@ -7553,6 +7552,7 @@ function showRestaurantHungryState(reason='exhausted'){
 function afterRestaurantEliminate(action){
   if(restaurantFilters.query)restaurantFilters.query='';
   if(activeRestaurants.length===0 && holdingRestaurants.length>0){
+    $('restaurantTopCount').textContent = holdingRestaurants.length;
     activeRestaurants=dedupe([...holdingRestaurants]);
     holdingRestaurants=[];
     restaurantFinalistMode=false;
@@ -7599,9 +7599,9 @@ function renderRestaurantStage(){
     syncRestaurantActionLabels();return;
   }
   const open=restaurantOpenStatus(first);const website=safeExternalUrl(first.website);const distance=Number.isFinite(first.distanceMiles)?`${first.distanceMiles.toFixed(1)} mi`:'Distance unavailable';const photoSrc=restaurantPhotoUrl(first);const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';const isSavedNow=isSaved(first);const menuItems=restaurantMenuItems(first);const menuBox=menuItems.length?`<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>${menuItems.map(x=>escapeHtml(x)).join(' · ')}</strong></div>`:'';
-  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div><button class="restaurant-save-btn restaurant-save-v240 ${isSavedNow?'saved':''}" data-rest-action="save" type="button" aria-label="${isSavedNow?'Remove restaurant from Saved':'Save restaurant'}">${isSavedNow?'♥':'♡'}</button></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
+  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div><button class="restaurant-save-btn restaurant-save-v240 ${isSavedNow?'saved':''}" data-rest-action="save" type="button" aria-label="${isSavedNow?'Remove restaurant from Saved':'Save restaurant'}">${isSavedNow?'♥':'♡'}</button></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-v240-actions"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
   const card=$('restaurantStage').querySelector('.active');bindRestaurantSwipe(card);
-  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}if(a==='save'){const now=toggleSaved(first);btn.textContent=now?'♥':'♡';btn.classList.toggle('saved',now);btn.setAttribute('aria-label',now?'Remove restaurant from Saved':'Save restaurant');}}));
+  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='choose'){chooseRestaurantCurrent();return;}if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}if(a==='save'){const now=toggleSaved(first);btn.textContent=now?'♥':'♡';btn.classList.toggle('saved',now);btn.setAttribute('aria-label',now?'Remove restaurant from Saved':'Save restaurant');}}));
   syncRestaurantActionLabels();
 }
 function currentRestaurant(){return filteredRestaurants()[0]||null;}
@@ -7618,7 +7618,6 @@ function bindRestaurantSwipe(card){
 function syncRestaurantActionLabels(){
   const hold=$('restaurantKeepBtn');
   if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this restaurant as a maybe');hold.disabled=!currentRestaurant();}
-  const choose=$('restaurantChooseBtn');if(choose)choose.disabled=!currentRestaurant() || !!passAroundSession;
   const cut=$('restaurantCutBtn');if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!currentRestaurant();}
   const hide=$('restaurantHideBtn');if(hide)hide.disabled=!currentRestaurant();
   const back=$('restaurantBackAction');if(back)back.disabled=restaurantUndoStack.length===0;
@@ -7820,6 +7819,7 @@ bind('stage','click',(e)=>{
   const btn=e.target.closest('[data-card-action]');
   if(!btn) return;
   e.preventDefault(); e.stopPropagation();
+  if(btn.dataset.cardAction==='choose'){chooseCurrent();return;}
   if(btn.dataset.cardAction==='details') openCurrentDetails();
   if(btn.dataset.cardAction==='menu') openMenu();
   if(btn.dataset.cardAction==='save'){const item=activeItems[currentIndex()];if(item){const now=toggleSaved(item);btn.textContent=now?'♥':'♡';toast(now?'Saved ♥':'Removed from Saved');}}
@@ -8230,3 +8230,40 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
 <!-- Dinliminate final engineering hardening: restaurant filter readability, exact-device location path, elimination-vs-filter state separation. -->
 
 </html>
+
+<style id="dinliminate-p638-passaround-card-choose">
+/* P638: Pass Around is the same distinctive accent on Food and Restaurant. */
+.pass-around-btn,
+.restaurant-pass-btn{
+  border-color:rgba(111,99,216,.58)!important;
+  color:#d8d4ff!important;
+  background:rgba(111,99,216,.16)!important;
+  box-shadow:0 5px 16px rgba(111,99,216,.14)!important;
+}
+.pass-around-btn:hover,
+.restaurant-pass-btn:hover,
+.pass-around-btn:focus-visible,
+.restaurant-pass-btn:focus-visible{
+  border-color:rgba(145,136,246,.82)!important;
+  color:#f0eeff!important;
+  background:rgba(111,99,216,.24)!important;
+}
+body.game-mode .choose-card-action,
+body.restaurant-mode .restaurant-card-choose-btn{
+  border:1px solid rgba(31,61,49,.15)!important;
+  background:#f3efe7!important;
+  color:#30463d!important;
+  box-shadow:none!important;
+  font-weight:850!important;
+}
+body.game-mode .choose-card-action{
+  min-width:54px!important;
+}
+body.restaurant-mode .restaurant-card-choose-btn{
+  flex:0 0 auto!important;
+}
+@media(max-width:430px){
+  body.game-mode .choice-utilities{gap:4px!important;flex-wrap:wrap!important;justify-content:flex-end!important;}
+  body.game-mode .choose-card-action{height:27px!important;padding:0 9px!important;}
+}
+</style>
