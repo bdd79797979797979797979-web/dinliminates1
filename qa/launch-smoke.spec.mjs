@@ -174,7 +174,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   expect(Number.isFinite(area.lon)).toBeTruthy();
 
   // The UI count itself is the contract; provider totals can include records the UI intentionally filters.
-  const fastButton = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
+  const fastButton = page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const countFromButton = async () => {
     const t = await fastButton.locator('.quick-cut-copy em').textContent();
     const m = String(t || '').match(/(\d+)\s*$/);
