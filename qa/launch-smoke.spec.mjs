@@ -53,7 +53,7 @@ test('production HTML and search API are healthy', async ({ request }) => {
   for (const row of data.results.slice(0, 100)) expect(Number(row.distanceMiles)).toBeLessThanOrEqual(5.001);
 });
 
-test.skip('food, pass around, swipe, maybe, winner and settings controls work', async ({ page }) => {
+test('food, pass around, click actions, winner and settings controls work', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
