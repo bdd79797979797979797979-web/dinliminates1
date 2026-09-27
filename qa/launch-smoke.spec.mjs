@@ -265,6 +265,8 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(0);
 
   // Start a clean food round; test Maybe/Back and a Quick Cut hide/restore.
+  await page.evaluate(() => window.DinliminateBackToStart?.());
+  await expect(page.locator('#homePanel')).toBeVisible();
   await page.locator('#startBtn').click();
   await expect(page.locator('#gamePanel')).toBeVisible();
   const beforeMaybe = Number(await page.locator('#gameTopCount').textContent());
@@ -349,7 +351,7 @@ test('deep Pass Around: two-person vote, handoff, restore by End Pass', async ({
 
   // One real vote before ending; End Pass must restore the pre-pass state.
   await page.locator('#cutBtn').click();
-  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(initial - 1);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBe(initial - 1);
   await page.locator('#passEndBtn').click();
   await expect(page.locator('#passStatus')).toHaveCount(0);
   await expect(page.locator('#gamePanel')).toBeVisible();
@@ -382,9 +384,9 @@ test('deep restaurant journey: search, details, save, maybe, undo, filters and n
 
   // Restaurant Maybe then Back.
   await page.locator('#restaurantKeepBtn').click();
-  await expect.poll(() => Number(page.locator('#restaurantTopCount').textContent())).toBe(count - 1);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(count - 1);
   await page.locator('#restaurantBackAction').click();
-  await expect.poll(() => Number(page.locator('#restaurantTopCount').textContent())).toBe(count);
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(count);
 
   // Search utility and Quick Cut reversible state.
   await page.locator('#restaurantSearchBtn').click();
@@ -466,7 +468,10 @@ test('deep backup round-trip: exported backup can be imported back into Dinlimin
   const fs = await import('node:fs/promises');
   const backupText = await fs.readFile(exportPath, 'utf8');
   const backup = JSON.parse(backupText);
-  expect(backup?.data?.custom?.length).toBe(1);
+  const backupCustom = typeof backup?.data?.custom === 'string' ? JSON.parse(backup.data.custom) : backup?.data?.custom;
+  expect(Array.isArray(backupCustom)).toBeTruthy();
+  expect(backupCustom.length).toBe(1);
+  console.log('exported backup version:', backup.version);
 
   const input = page.locator('#importDataInput');
   await input.setInputFiles({
