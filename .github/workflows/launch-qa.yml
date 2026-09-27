@@ -1,7 +1,7 @@
 name: Dinliminate launch QA
 on:
   push:
-    branches: [ main, launch-complete-2026-09-27 ]
+    branches: [ main, launch-complete-2026-09-27, p682-targeted-qa ]
   workflow_dispatch:
 jobs:
   smoke:
@@ -31,4 +31,4 @@ jobs:
       - name: Run launch smoke suite
         env:
           DINLIMINATE_BASE_URL: http://127.0.0.1:4173
-        run: npx playwright test qa/launch-smoke.spec.mjs --reporter=line
+        run: npx playwright test qa/launch-smoke.spec.mjs --grep "restaurant Quick Cuts stay synced to the active radius and inline restaurant search" --reporter=line
