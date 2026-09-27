@@ -522,3 +522,84 @@ test('targeted probe: custom-food Delete confirmation must sit above Details', a
   });
   expect(clickable).toBeTruthy();
 });
+
+
+test('targeted restaurant Quick Cuts stay live with radius and fresh search results', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#homeRestaurantQuick').click();
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+  await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
+
+  const diag100 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(diag100).toBeTruthy();
+  expect(diag100.radius).toBe(10);
+  expect(diag100.pool).toBeGreaterThan(0);
+
+  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  await expect.poll(async () => {
+    const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+    return d?.radius;
+  }).toBe(1);
+
+  const diag1 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  expect(diag1.pool).toBeLessThanOrEqual(diag100.pool);
+  expect(diag1.active).toBe(diag1.pool);
+
+  const buttonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
+    Object.fromEntries(btns.map(btn => {
+      const key = btn.getAttribute('data-launch-rq');
+      const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
+      const m = text.match(/(\d+) left/);
+      return [key, m ? Number(m[1]) : -1];
+    }))
+  );
+  for (const [key, count] of Object.entries(diag1.counts)) {
+    expect(buttonCounts[key]).toBe(count);
+  }
+
+  // Changing the radius back out triggers a fresh provider search. The Quick Cuts
+  // must then reflect the newly loaded restaurant pool, not the old 1-mile subset.
+  await page.locator('#restaurantRadiusFilter').selectOption('10');
+  await expect.poll(async () => {
+    const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+    return d?.radius === 10 && d?.pool > diag1.pool;
+  }, { timeout: 70000 }).toBe(true);
+
+  const diagFresh = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  const freshButtonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
+    Object.fromEntries(btns.map(btn => {
+      const key = btn.getAttribute('data-launch-rq');
+      const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
+      const m = text.match(/(\d+) left/);
+      return [key, m ? Number(m[1]) : -1];
+    }))
+  );
+  for (const [key, count] of Object.entries(diagFresh.counts)) {
+    expect(freshButtonCounts[key]).toBe(count);
+  }
+
+  // Apply and restore one live Quick Cut when it has matches. The visible restaurant
+  // count should change, then return, without resurrecting an out-of-radius result.
+  const candidate = Object.entries(diagFresh.counts).find(([, count]) => Number(count) > 0);
+  expect(candidate).toBeTruthy();
+  const [candidateKey, candidateCount] = candidate;
+  const quick = page.locator('#restaurantQuickCuts [data-launch-rq="'+candidateKey+'"]');
+  const beforeActive = Number(await page.locator('#restaurantTopCount').textContent());
+  await quick.click();
+  await expect(quick).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThan(beforeActive);
+  const hiddenActive = Number(await page.locator('#restaurantTopCount').textContent());
+  expect(hiddenActive).toBeLessThan(beforeActive);
+  await quick.click();
+  await expect(quick).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBe(beforeActive);
+
+  expect(Number(candidateCount)).toBeGreaterThan(0);
+  expect(pageErrors).toEqual([]);
+});
