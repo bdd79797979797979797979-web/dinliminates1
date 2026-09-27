@@ -267,6 +267,14 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
     restaurantManual=new Set();
     restaurantFilters={query:'',sort:'shuffle'};
     restaurantRadiusMiles=5;
+    // Keep the fixture order deterministic so Maybe removes a known Fast Food item.
+    activeRestaurants=[
+      { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5, openNow:true },
+      { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0, openNow:true },
+      { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:3.0, openNow:false },
+      { id:'qa-ff-4', name:'QA Fast Food Four', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.13, lon:-86.73, distanceMiles:6.0, openNow:true }
+    ];
+    restaurantItems=[...activeRestaurants];
     localStorage.setItem('dinliminateRestaurantHoursFilter','open-unknown');
     renderRestaurantQuickCuts();
     renderRestaurantStage();
