@@ -7236,7 +7236,7 @@ body.game-mode .gesture-btn{
   function registerPwaWorker() {
     if (!('serviceWorker' in navigator)) return;
     window.setTimeout(() => {
-      navigator.serviceWorker.register('/dinliminate-sw.js', { updateViaCache:'none' }).catch(() => {});
+      
     }, 700);
   }
 
@@ -8025,7 +8025,7 @@ function restaurantPhotoUrl(item){
   // Prefer a provider-verified Google Places photo through our same-origin proxy.
   // This prevents a generic chain website image from replacing a restaurant-specific photo.
   if(typeof item.photoName==='string' && /^places\//.test(item.photoName.trim())){
-    return `./api/restaurant-search?mode=photo&name=${encodeURIComponent(item.photoName.trim())}`;
+    return `https://dinliminates1.vercel.app/api/restaurant-search?mode=photo&name=${encodeURIComponent(item.photoName.trim())}`;
   }
   const candidates=[item.photo,item.photoUrl,item.image,item.imageUrl,item.coverPhoto,item.cover_photo,item.thumbnail,item.thumbnailUrl];
   for(const c of candidates){
@@ -9724,7 +9724,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   const input=()=>$('restaurantLocationInput');
   const box=()=>$('restaurantAddressSuggestions');
   const http=()=>location.protocol==='https:'||location.protocol==='http:';
-  const apiBase=()=>location.hostname.endsWith('.floot.app')?'/_api/restaurant-search':'/api/restaurant-search'; const api=(params)=>{if(!http())throw Object.assign(new Error('Restaurant search needs the deployed HTTPS app.'),{code:'NO_HTTP'});return new URL(apiBase()+'?'+new URLSearchParams(params),location.origin).toString();};
+  const apiBase=()=>location.hostname.endsWith('.floot.app')?'/_api/restaurant-search':'https://dinliminates1.vercel.app/api/restaurant-search'; const api=(params)=>{if(!http())throw Object.assign(new Error('Restaurant search needs the deployed HTTPS app.'),{code:'NO_HTTP'});return new URL(apiBase()+'?'+new URLSearchParams(params),location.origin).toString();};
   const clamp=v=>Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(v)||10));
   const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/[,;]+/g,',').replace(/\s*,\s*/g,',');
   const esc=s=>typeof escapeHtml==='function'?escapeHtml(String(s??'')):String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
