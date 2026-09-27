@@ -234,7 +234,7 @@
     $('passSetupBackdrop')?.remove();document.body.classList.remove('pass-setup');
     const snapshot=passSnapshot(mode);
     pass={schema:PASS_SCHEMA,startedAt:Date.now(),mode,count,participant:1,phase:'voting',pool:uniq(pool.map(compactPassItem).filter(Boolean),passKey),votes:Array.from({length:count},()=>new Map()),snapshot,finalists:[],busy:false};
-    if(mode==='restaurant'){activeRestaurants=[...pass.pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();}
+    if(mode==='restaurant'){activeRestaurants=[...pass.pool];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};restaurantRoundInProgress=true;showRestaurantUIForPass();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();}
     else{activeItems=[...pass.pool];holdingItems=[];finalistMode=false;searchQuery='';originalCount=pass.pool.length;foodInProgress=true;saveFoodRoundState();foodShowUI(null);}
     applyPassLock();savePassState();renderPassStatus();toast('Person 1 of '+count+': start swiping.');
   }
