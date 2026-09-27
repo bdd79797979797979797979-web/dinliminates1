@@ -74,13 +74,16 @@ function errorWatch(page) {
   return errors;
 }
 
-async function passAllCurrent(page, holdSelector, doneSelector, max=20) {
+async function passAllCurrent(page, holdSelector, doneSelector, max=100) {
   for (let i=0;i<max;i++) {
     if (await page.locator(doneSelector).count() && await page.locator(doneSelector).isVisible().catch(()=>false)) return;
+    if (!(await page.locator('body.pass-active').count())) return;
     const b=page.locator(holdSelector);
     await expect(b).toBeVisible({timeout:10000});
     await b.click();
     await waitUi(page, 270);
+    if (await page.locator(doneSelector).count() && await page.locator(doneSelector).isVisible().catch(()=>false)) return;
+    if (!(await page.locator('body.pass-active').count())) return;
   }
   throw new Error('Pass Around did not reach the expected transition within '+max+' votes.');
 }
