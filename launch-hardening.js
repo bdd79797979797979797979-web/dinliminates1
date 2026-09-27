@@ -1,7 +1,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p651-passaround-authoritative-repair';
+  const VERSION='p652-passaround-clean-repair';
   const $=id=>document.getElementById(id);
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const foodKey=x=>`food::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
@@ -296,7 +296,7 @@
     else{activeItems=compactPassList(p.snapshot?.active||[]);holdingItems=compactPassList(p.snapshot?.holding||[]);finalistMode=!!p.snapshot?.finalist;originalCount=Number(p.snapshot?.originalCount)||activeItems.length+holdingItems.length||1;searchQuery=String(p.snapshot?.searchQuery||'');foodQuickHidden=new Set(Array.isArray(p.snapshot?.quick)?p.snapshot.quick:[]);foodManual=new Set(Array.isArray(p.snapshot?.manual)?p.snapshot.manual:[]);foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();}
   }
   function cancelPass(){
-    const p=pass;if(!p)return;pass=null;clearPassState();$('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();toast('Pass Around ended. Your round is restored.');
+    const p=pass;if(!p)return;pass=null;clearPassState();$('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();$('passStatus')?.remove();restorePassSnapshot(p);clearPassLock();toast('Pass Around ended. Your round is restored.');
   }
   function restartPass(){const p=pass;if(!p)return;const mode=p.mode;pass=null;clearPassState();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();openPass(mode);}
   function showPassNoFinalists(){
@@ -306,15 +306,26 @@
     document.body.appendChild(b);b.querySelector('[data-pass-restart]')?.addEventListener('click',restartPass);b.querySelector('[data-pass-end]')?.addEventListener('click',cancelPass);b.querySelector('[data-pass-restart]')?.focus?.();
   }
   function renderPassStatus(){
-    const old=$('passStatus');if(!pass){old?.remove();return;}
-    const host=pass.mode==='restaurant'?$('restaurantStage'):$('stage');if(!host)return;
-    let bar=old;if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';host.parentNode?.insertBefore(bar,host);}
-    const remaining=pass.phase==='voting'?passViewItems().length:0,done=Math.max(0,pass.pool.length-remaining);
-    const label=pass.phase==='voting'?'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length:pass.phase==='handoff'?'Person '+pass.participant+' finished · '+pass.count+' people':'No unanimous finalists';
-    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End pass</button>';
-    $('passEndBtn').onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
+    const old=$('passStatus');
+    if(!pass){old?.remove();return;}
+    let bar=old;
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='passStatus';
+      bar.className='pass-status';
+      document.body.appendChild(bar);
+    }
+    const remaining=pass.phase==='voting'?passViewItems().length:0;
+    const done=Math.max(0,pass.pool.length-remaining);
+    const label=pass.phase==='voting'
+      ? 'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length
+      : pass.phase==='handoff'
+      ? 'Person '+pass.participant+' finished · '+pass.count+' people'
+      : 'No unanimous finalists';
+    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End Pass</button>';
+    const end=$('passEndBtn');
+    if(end)end.onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
   }
-
   function historyDayKey(value){const d=new Date(value||Date.now());return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
   function renderHistoryCalendar(){
     const host=$('libraryList');if(!host)return;const y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),days=new Date(y,m+1,0).getDate(),start=new Date(y,m,1).getDay(),by=new Map();
