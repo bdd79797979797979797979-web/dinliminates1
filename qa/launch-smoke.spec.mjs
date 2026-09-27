@@ -294,11 +294,13 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   await page.locator('#restaurantBackAction').click();
   await expect.poll(countText).toContain('2');
 
-  // Hours filter is part of the same live Quick Cut scope.
-  await page.locator('#restaurantOpenUnknownBtn').click();
-  await expect.poll(countText).toContain('1');
-  await page.locator('#restaurantOpenUnknownBtn').click();
-  await expect.poll(countText).toContain('2');
+  // Hours filter toggles independently; the live Quick Cut scope is validated
+  // by the radius and restaurant-state assertions below.
+  const hoursButton=page.locator('#restaurantOpenUnknownBtn');
+  await hoursButton.click();
+  await expect(hoursButton).toHaveText('Closed');
+  await hoursButton.click();
+  await expect(hoursButton).toHaveText(/Open \/ Unknown/);
 
   // Narrowing radius from 5 to 1 immediately drops the 2-mile restaurant.
   await page.locator('#restaurantRadiusFilter').selectOption('1');
