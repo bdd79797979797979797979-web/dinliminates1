@@ -731,6 +731,7 @@ body.game-mode .bottom-nav{z-index:90;bottom:0;border-radius:18px 18px 0 0;width
 
 /* Make details reliably closable and visually clean. */
 .detail-backdrop{z-index:300!important;pointer-events:auto!important;}
+.confirm-backdrop{z-index:420!important;pointer-events:auto!important;}
 .detail-sheet{position:relative;z-index:301;pointer-events:auto;}
 .detail-close{z-index:305!important;pointer-events:auto!important;touch-action:manipulation;}
 .detail-actions .detail-action{touch-action:manipulation;}
@@ -7795,7 +7796,7 @@ function exportDinliminateData(){
 }
 async function importDinliminateData(file){
   if(!file)return; if(file.size>5*1024*1024){toast('That backup is too large.');return;}
-  try{const text=await file.text();const payload=JSON.parse(text);const d=payload?.data;if(!d||typeof d!=='object')throw new Error('Invalid backup'); if(payload.version && !/^p\d+$/.test(String(payload.version)))throw new Error('Unsupported backup version');
+  try{const text=await file.text();const payload=JSON.parse(text);const d=payload?.data;if(!d||typeof d!=='object')throw new Error('Invalid backup'); if(payload.version && !/^p\d+(?:-[a-z0-9]+)*$/i.test(String(payload.version)))throw new Error('Unsupported backup version');
     const arrays={custom:200,hidden:500,saved:100,history:100,deletedFoods:500}; Object.entries(arrays).forEach(([k,max])=>{if(d[k]===undefined)return;let value=d[k];if(typeof value==='string'){try{value=JSON.parse(value);}catch{throw new Error(`Invalid ${k} data`);}}if(!Array.isArray(value)||value.length>max)throw new Error(`Invalid ${k} data`);});
     if(d.preferences!==undefined){let p=d.preferences;if(typeof p==='string'){try{p=JSON.parse(p);}catch{throw new Error('Invalid preferences');}}if(!p||typeof p!=='object')throw new Error('Invalid preferences');}
     if(d.restaurantFilters!==undefined){let rf=d.restaurantFilters;if(typeof rf==='string'){try{rf=JSON.parse(rf);}catch{throw new Error('Invalid restaurant filters');}}if(!rf||typeof rf!=='object')throw new Error('Invalid restaurant filters');}
