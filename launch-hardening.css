@@ -551,3 +551,17 @@ body.game-mode .game-bottom .food-secondary-action:active{
   font:900 .58rem/1 Inter,system-ui,sans-serif!important;
   padding:0 10px!important;
 }
+
+/* P652 — requested light-blue Add Food control. */
+body.game-mode #addDuringBtn{
+  border:1px solid #9bcce8!important;
+  background:#dff2ff!important;
+  color:#2d6787!important;
+  box-shadow:0 5px 13px rgba(70,135,171,.16)!important;
+}
+body.game-mode #addDuringBtn:hover,
+body.game-mode #addDuringBtn:focus-visible{
+  background:#cdeaff!important;
+  border-color:#83bddf!important;
+  color:#245a78!important;
+}
