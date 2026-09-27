@@ -153,3 +153,23 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('#passStatus')).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
+test('iPhone viewport has no horizontal overflow and keeps primary controls visible', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  const metrics = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    bodyScrollWidth: document.body.scrollWidth
+  }));
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
+  expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
+  await expect(page.locator('#startBtn')).toBeVisible();
+  await expect(page.locator('#homeRestaurantQuick')).toBeVisible();
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#cutBtn')).toBeVisible();
+  await expect(page.locator('#holdBtn')).toBeVisible();
+  const foodRect = await page.locator('#stage .stack-card.active').boundingBox();
+  expect(foodRect?.x ?? -1).toBeGreaterThanOrEqual(0);
+  expect((foodRect?.x ?? 0) + (foodRect?.width ?? 9999)).toBeLessThanOrEqual(391);
+  await page.locator('#homeBtn').click().catch(() => {});
+});
