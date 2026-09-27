@@ -7491,7 +7491,7 @@ function afterRestaurantEliminate(action){
     restaurantEliminationExhausted=false;
     renderRestaurantQuickCuts();
     renderRestaurantStage();
-    window.renderRestaurantQuickCuts?.();
+    window.DinliminateRefreshRestaurantQuickCuts?.();
     syncRestaurantActionLabels();
     setStatus('Maybes are back around · cut, maybe again, or choose one.','live');
     toast('Your restaurant Maybes are coming back around. ↻');
@@ -7500,7 +7500,7 @@ function afterRestaurantEliminate(action){
   if(activeRestaurants.length===0){showRestaurantHungryState();return;}
   restaurantFinalistMode=false;
   renderRestaurantStage();
-  window.renderRestaurantQuickCuts?.();
+  window.DinliminateRefreshRestaurantQuickCuts?.();
   setStatus(activeRestaurants.length<=5?'Narrow it down…':'Keep swiping.','live');
 }
 function renderRestaurantStage(){
