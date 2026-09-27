@@ -6139,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p642-stability';
+const DINLIMINATE_VERSION = 'p643-passaround-consistency';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8282,6 +8282,64 @@ body.restaurant-mode #restaurantPassAroundBtn:focus-visible{
   body.restaurant-mode .restaurant-utility-row{gap:5px!important;}
   body.restaurant-mode #restaurantSearchBtn{font-size:.60rem!important;padding:0 10px!important;}
   body.restaurant-mode #restaurantPassAroundBtn{min-width:96px!important;padding:0 10px!important;font-size:.60rem!important;}
+}
+</style>
+<style id="dinliminate-p643-passaround-consistency">
+/* P643 — compact Restaurant Search + one shared Pass Around treatment. */
+body.restaurant-mode .restaurant-utility-row{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:5px!important;
+}
+body.restaurant-mode #restaurantSearchBtn{
+  min-width:0!important;
+  min-height:31px!important;
+  height:31px!important;
+  padding:0 10px!important;
+  border-radius:9px!important;
+  font-size:.56rem!important;
+  font-weight:850!important;
+  letter-spacing:.01em!important;
+  box-shadow:none!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn,
+body.game-mode #foodPassAroundBtn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  height:32px!important;
+  min-height:32px!important;
+  min-width:0!important;
+  padding:0 11px!important;
+  border:1px solid #8b7bff!important;
+  border-radius:9px!important;
+  background:linear-gradient(135deg,#7b68ee,#5d4bc4)!important;
+  color:#fff!important;
+  font-size:.56rem!important;
+  font-weight:850!important;
+  letter-spacing:.01em!important;
+  box-shadow:0 5px 13px rgba(91,73,194,.22)!important;
+  opacity:1!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn{
+  min-width:92px!important;
+}
+body.game-mode #foodPassAroundBtn{
+  min-width:0!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn:hover,
+body.restaurant-mode #restaurantPassAroundBtn:focus-visible,
+body.game-mode #foodPassAroundBtn:hover,
+body.game-mode #foodPassAroundBtn:focus-visible{
+  border-color:#b0a6ff!important;
+  background:linear-gradient(135deg,#8d7df5,#6856d6)!important;
+  color:#fff!important;
+}
+@media(max-width:390px){
+  body.restaurant-mode #restaurantSearchBtn{height:30px!important;min-height:30px!important;padding:0 9px!important;font-size:.55rem!important;}
+  body.restaurant-mode #restaurantPassAroundBtn,
+  body.game-mode #foodPassAroundBtn{height:30px!important;min-height:30px!important;padding:0 9px!important;font-size:.55rem!important;}
+  body.restaurant-mode #restaurantPassAroundBtn{min-width:88px!important;}
 }
 </style>
 </html>
