@@ -173,19 +173,40 @@
     if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
     return a;
   }
+  // P682 — Quick Cuts stay synchronized with the current restaurant radius and round.
+  function restaurantCurrentRadiusPool(){
+    const radius=Number(restaurantRadiusMiles);
+    if(!Number.isFinite(radius)) return [...(restaurantBase||[])];
+    return (restaurantBase||[]).filter(x=>{
+      const d=Number(x?.distanceMiles);
+      return Number.isFinite(d) && d<=radius+0.000001;
+    });
+  }
+  function restaurantQuickCutCountLive(key){
+    const pool=restaurantCurrentRadiusPool();
+    return pool.filter(x=>{
+      const rk=restKey(x);
+      if(restaurantManual.has(rk)) return false;
+      for(const other of (restaurantQuickCuts||[])){
+        if(other===key) continue;
+        if(restQuickMatch(x,other)) return false;
+      }
+      return restQuickMatch(x,key);
+    }).length;
+  }
   function renderRestaurantQuickCuts(){
     const host=$('restaurantQuickCuts'),title=$('restaurantQuickCutsTitle');if(!host)return;
     if(restaurantFinalistMode){host.innerHTML='';if(title)title.textContent='FINALISTS';return;}
     if(title)title.textContent='Quick Cuts';
     const list=Array.isArray(RESTAURANT_QUICK_CUTS)?RESTAURANT_QUICK_CUTS:[];
-    host.innerHTML=list.map(([label,k,photoKey])=>{const n=restaurantBase.filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;}).join('');
+    host.innerHTML=list.map(([label,k,photoKey])=>{const n=restaurantQuickCutCountLive(k),h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;}).join('');
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
   }
-  function visibleRestaurants(){return restaurantBase.filter(x=>!restaurantManual.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k)));}
+  function visibleRestaurants(){return restaurantCurrentRadiusPool().filter(x=>!restaurantManual.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k)));}
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
-    if(!restaurantBase.length)restaurantBase=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
+    if(!restaurantBase.length)restaurantBase=uniq([...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
     if(!restaurantBase.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
     restaurantQuickCuts.has(k)?restaurantQuickCuts.delete(k):restaurantQuickCuts.add(k);
     activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
