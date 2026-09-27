@@ -7606,8 +7606,10 @@ function chooseRestaurantCurrent(){
 function restaurantUndo(){
   if(restaurantTransitioning)return;
   const snap=restaurantUndoStack.pop(); if(!snap)return;
-  activeRestaurants=[...(snap.activeRestaurants||[])];
-  holdingRestaurants=[...(snap.holdingRestaurants||[])];
+  const radius=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(restaurantRadiusMiles)||10));
+  const inRadius=item=>{const d=Number(item?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
+  activeRestaurants=[...(snap.activeRestaurants||[])].filter(inRadius);
+  holdingRestaurants=[...(snap.holdingRestaurants||[])].filter(inRadius);
   restaurantFinalistMode=false;
   restaurantEliminationExhausted=!!snap.exhausted;
   restaurantFilters.query='';
