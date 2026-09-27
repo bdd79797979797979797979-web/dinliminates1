@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
 const TEST_ADDRESS = '1 Titans Way, Nashville, TN 37213';
 
-test.describe.configure({ mode: 'serial', timeout: 120000 });
+test.describe.configure({ timeout: 120000 });
 
 async function swipe(page, selector, dx) {
   const card = page.locator(selector).first();
