@@ -170,72 +170,18 @@
   }
   function filterRestaurants(){
     let a=[...(activeRestaurants||[])];
-    const q=String(restaurantFilters.query||'').trim().toLowerCase();
-    if(q)a=a.filter(r=>`${r.name||''} ${r.address||''} ${r.brand||''} ${r.operator||''} ${r.category||''}`.toLowerCase().includes(q));
-    if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
-    return a;
-  }
-  /*
-   * P682 — restaurant Quick Cuts always use the current search universe.
-   * The universe is rebuilt from restaurantItems and bounded to the active
-   * radius, so changing radius cannot leave stale category counts or allow
-   * an old restaurant back into a smaller round.
-   */
-  let preserveRestaurantQuickCutsOnNextApply=null;
-  function currentRestaurantQuickCutUniverse(){
     const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
-    const source=(Array.isArray(restaurantItems)&&restaurantItems.length)
-      ? restaurantItems
-      : uniq([...(restaurantBase||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
-    return uniq(source.filter(r=>{
-      const d=Number(r?.distanceMiles);
-      return !Number.isFinite(d) || d<=radius;
-    }),restKey);
-  }
-
-  function syncRestaurantQuickCutScope(){
-    const pool=currentRestaurantQuickCutUniverse();
-    if(pool.length || !Array.isArray(restaurantItems) || restaurantItems.length===0) restaurantBase=[...pool];
-    return restaurantBase;
-  }
-
-  function restaurantQuickCutDisplayPool(forKey=''){
-    const scope=[...syncRestaurantQuickCutScope()];
-    const manual=new Set(restaurantManual||new Set());
-    const held=new Set((holdingRestaurants||[]).map(restKey));
-    const activeQuick=new Set(restaurantQuickCuts||[]);
-    const currentActive=new Set((activeRestaurants||[]).map(restKey));
-    const key=String(forKey||'').trim();
-
-    // Live actionable universe: active choices for normal counts. When a Quick Cut
-    // is already active, count only its own restorable matches that are not held,
-    // manually cut, or excluded by another active Quick Cut.
-    let pool;
-    if(key && activeQuick.has(key)){
-      pool=scope.filter(r=>{
-        const id=restKey(r);
-        if(currentActive.has(id)||manual.has(id)||held.has(id))return false;
-        if(!restaurantQuickCutMatches(r,key))return false;
-        return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
-      });
-    }else{
-      pool=(activeRestaurants||[]).filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
-    }
-
-    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
-    pool=pool.filter(r=>{
+    a=a.filter(r=>{
       const d=Number(r?.distanceMiles);
       return !Number.isFinite(d)||d<=radius;
     });
-
-    const q=String(restaurantFilters?.query||'').trim().toLowerCase();
-    if(q){
-      pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
-    }
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
-    if(hours==='closed') pool=pool.filter(r=>restaurantOpenStatus?.(r)===false);
-    else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
-    return pool;
+    if(hours==='closed')a=a.filter(r=>typeof restaurantOpenStatus==='function' ? restaurantOpenStatus(r)===false : r?.openNow===false || r?.currentlyOpen===false);
+    else a=a.filter(r=>typeof restaurantOpenStatus==='function' ? restaurantOpenStatus(r)!==false : r?.openNow!==false && r?.currentlyOpen!==false);
+    const q=String(restaurantFilters.query||'').trim().toLowerCase();
+    if(q)a=a.filter(r=>`${r.name||''} ${r.address||''} ${r.brand||''} ${r.operator||''} ${r.category||''} ${r.cuisine||''} ${Array.isArray(r.tags)?r.tags.join(' '):r.tags||''}`.toLowerCase().includes(q));
+    if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
+    return a;
   }
   function renderRestaurantQuickCuts(){
     const host=$('restaurantQuickCuts'),title=$('restaurantQuickCutsTitle');if(!host)return;
