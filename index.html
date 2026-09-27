@@ -5502,7 +5502,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
 })();
 </script>
-<link rel="stylesheet" href="./launch-hardening.css?v=p682-restaurant-quickcuts-live-sync"><script src="./launch-hardening.js?v=p682-restaurant-quickcuts-live-sync" defer></script><style id="dinliminate-p636-final-controls">
+<link rel="stylesheet" href="./launch-hardening.css?v=p683-restaurant-quickcuts-live"><script src="./launch-hardening.js?v=p683-restaurant-quickcuts-live" defer></script><style id="dinliminate-p636-final-controls">
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
@@ -6140,7 +6140,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p682-restaurant-quickcuts-live-sync';
+const DINLIMINATE_VERSION = 'p683-restaurant-quickcuts-live';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
