@@ -65,10 +65,9 @@ test.skip('food, pass around, swipe, maybe, winner and settings controls work', 
   await expect(page.locator('#foodPassAroundBtn')).toBeVisible();
 
   const initial = Number(await page.locator('#gameTopCount').textContent());
-  await swipe(page, '#stage .stack-card.active', -140);
+  await page.locator('#cutBtn').click();
   await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(initial);
-
-  await swipe(page, '#stage .stack-card.active', 140);
+  await page.locator('#holdBtn').click();
   await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThanOrEqual(initial);
 
   await page.locator('#foodPassAroundBtn').click();
@@ -142,7 +141,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   }
 
   const firstCount = Number(await page.locator('#restaurantTopCount').textContent());
-  await swipe(page, '#restaurantStage .restaurant-card.active', -140);
+  await page.locator('#restaurantCutBtn').click();
   await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThan(firstCount);
 
   await page.locator('#restaurantPassAroundBtn').click();
