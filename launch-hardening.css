@@ -486,3 +486,38 @@ body.game-mode .game-bottom .food-secondary-action:active{
 }
 .quick-cut.is-quick-hidden .quick-cut-x{font-size:.78rem!important;font-weight:950!important;}
 .quick-cut.is-quick-hidden .quick-cut-copy em{color:#9de3c2!important;}
+
+
+/* Final calendar photo delete control: keep the X compact and inside the photo corner. */
+.history-event-x{
+  top:2px!important;
+  right:2px!important;
+  width:12px!important;
+  height:12px!important;
+  min-width:12px!important;
+  min-height:12px!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:50%!important;
+  font-size:.42rem!important;
+  line-height:10px!important;
+  font-weight:900!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  z-index:8!important;
+  box-sizing:border-box!important;
+  transform:none!important;
+}
+@media(max-width:390px){
+  .history-event-x{
+    top:2px!important;
+    right:2px!important;
+    width:11px!important;
+    height:11px!important;
+    min-width:11px!important;
+    min-height:11px!important;
+    font-size:.38rem!important;
+    line-height:9px!important;
+  }
+}
