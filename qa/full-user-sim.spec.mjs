@@ -88,6 +88,7 @@ async function passAllCurrent(page, holdSelector, doneSelector, max=20) {
 test('full simulated user journey — home, food, custom food, hidden choices, saved/history/settings/restore', async ({ page }) => {
   const errors = errorWatch(page);
   await page.setViewportSize({width:390,height:844});
+  page.setDefaultTimeout(10000);
   await installApiFixture(page);
   await fresh(page);
 
