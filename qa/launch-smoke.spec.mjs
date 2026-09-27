@@ -104,6 +104,9 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('#restaurantPanel')).toBeVisible();
   await expect(page.locator('#restaurantLocationInput')).toBeVisible();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toBeVisible();
+
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 36.16655, longitude: -86.77135 });
   await page.locator('#restaurantUseLocationBtn').click();
   await expect(page.locator('#restaurantLocationLabel')).toContainText(/Nashville|location/i, { timeout: 20000 });
   await expect(page.locator('#restaurantPassAroundBtn')).toBeVisible();
@@ -112,6 +115,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('1 mi');
   await page.locator('#restaurantRadiusFilter').selectOption('100');
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('100 mi');
+
   const location = page.locator('#restaurantLocationInput');
   await location.fill(TEST_ADDRESS);
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
@@ -126,9 +130,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(hours).toHaveText(/Open \/ Unknown/);
 
   for (const label of ['Fast Food','American','Pasta','Healthy','Southern','Potato','Soup / Stew']) {
-    const btn = page.getByRole('button', { name: new RegExp('^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\  for (const label of ['Fast Food','American','Pasta','Healthy','Southern','Potato','Soup / Stew']) {
-    await expect(page.getByRole('button', { name: new RegExp(label, 'i') }).first()).toBeVisible();
-  }'), 'i') }).first();
+    const btn = page.locator('#restaurantQuickCuts button').filter({ hasText: label }).first();
     await expect(btn).toBeVisible();
     await expect(btn).toHaveAttribute('aria-pressed','false');
     await btn.click();
