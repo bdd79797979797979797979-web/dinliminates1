@@ -6139,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p638-card-choose-passaround-accent';
+const DINLIMINATE_VERSION = 'p639-refined-choose-buttons';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -6791,7 +6791,6 @@ function renderStage() {
     const idx = activeItems.indexOf(item);
     const cls = i === 0 ? 'stack-card active' : i === 1 ? 'stack-card back-one' : 'stack-card back-two';
     const accentClass = item.accent && item.accent !== 'classic' ? ` accent-${escapeHtml(item.accent)}` : '';
-    const saved=isSaved(item);
     return `<article class="${cls}${accentClass}" data-index="${idx}">
       <div class="card-photo" style="background-position:${photoPosition(item)}">
         <div class="photo-fallback" aria-hidden="true">${displayIcon(item)}</div>
@@ -6806,7 +6805,7 @@ function renderStage() {
         <div class="card-name">${escapeHtml(item.name)}</div>
         <div class="card-meta">${escapeHtml((item.tags || []).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Just a food')}${item.prep ? ` · ${escapeHtml(item.prep)}` : ''}${item.budget ? ` · ${escapeHtml(item.budget)}` : ''}</div>
         ${item.notes ? `<div class="card-note">${escapeHtml(item.notes)}</div>` : ''}
-        <div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>options left</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility choose-card-action" type="button" data-card-action="choose" aria-label="Choose this food">Choose</button><button class="choice-utility details" type="button" data-card-action="details">Details</button><button class="choice-utility save" type="button" data-card-action="save" aria-label="${saved?'Remove food from Saved':'Save food'}">${saved?'♥ Saved':'♡ Save'}</button></div></div>
+        <div class="card-choose-row"><button class="card-choose-btn" type="button" data-card-action="choose" aria-label="Choose this food">Choose</button></div><div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>options left</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility details" type="button" data-card-action="details">Details</button></div></div>
       </div>
     </article>`;
   }).join('');
@@ -7598,10 +7597,10 @@ function renderRestaurantStage(){
     $('restaurantEmptyLocation')?.addEventListener('click',()=>window.locateRestaurants?.());
     syncRestaurantActionLabels();return;
   }
-  const open=restaurantOpenStatus(first);const website=safeExternalUrl(first.website);const distance=Number.isFinite(first.distanceMiles)?`${first.distanceMiles.toFixed(1)} mi`:'Distance unavailable';const photoSrc=restaurantPhotoUrl(first);const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';const isSavedNow=isSaved(first);const menuItems=restaurantMenuItems(first);const menuBox=menuItems.length?`<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>${menuItems.map(x=>escapeHtml(x)).join(' · ')}</strong></div>`:'';
-  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div><button class="restaurant-save-btn restaurant-save-v240 ${isSavedNow?'saved':''}" data-rest-action="save" type="button" aria-label="${isSavedNow?'Remove restaurant from Saved':'Save restaurant'}">${isSavedNow?'♥':'♡'}</button></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-v240-actions"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
+  const open=restaurantOpenStatus(first);const website=safeExternalUrl(first.website);const distance=Number.isFinite(first.distanceMiles)?`${first.distanceMiles.toFixed(1)} mi`:'Distance unavailable';const photoSrc=restaurantPhotoUrl(first);const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';const menuItems=restaurantMenuItems(first);const menuBox=menuItems.length?`<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>${menuItems.map(x=>escapeHtml(x)).join(' · ')}</strong></div>`:'';
+  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
   const card=$('restaurantStage').querySelector('.active');bindRestaurantSwipe(card);
-  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='choose'){chooseRestaurantCurrent();return;}if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}if(a==='save'){const now=toggleSaved(first);btn.textContent=now?'♥':'♡';btn.classList.toggle('saved',now);btn.setAttribute('aria-label',now?'Remove restaurant from Saved':'Save restaurant');}}));
+  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='choose'){chooseRestaurantCurrent();return;}if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}}));
   syncRestaurantActionLabels();
 }
 function currentRestaurant(){return filteredRestaurants()[0]||null;}
@@ -7822,7 +7821,6 @@ bind('stage','click',(e)=>{
   if(btn.dataset.cardAction==='choose'){chooseCurrent();return;}
   if(btn.dataset.cardAction==='details') openCurrentDetails();
   if(btn.dataset.cardAction==='menu') openMenu();
-  if(btn.dataset.cardAction==='save'){const item=activeItems[currentIndex()];if(item){const now=toggleSaved(item);btn.textContent=now?'♥':'♡';toast(now?'Saved ♥':'Removed from Saved');}}
 });
 bind('hideBtn','click',(e)=>{ e?.stopPropagation?.(); hideCurrent(); });
 bind('settingsBtn','click',openSettings); bind('historyMenuBtn','click',()=>openLibrary('history'));
@@ -8265,5 +8263,69 @@ body.restaurant-mode .restaurant-card-choose-btn{
 @media(max-width:430px){
   body.game-mode .choice-utilities{gap:4px!important;flex-wrap:wrap!important;justify-content:flex-end!important;}
   body.game-mode .choose-card-action{height:27px!important;padding:0 9px!important;}
+}
+</style>
+
+<style id="dinliminate-p639-choose-passaround">
+/* P639 — isolated, compact Choose controls; Details/Website retain their original layout. */
+.card-choose-row{
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  margin-top:9px!important;
+  min-height:30px!important;
+}
+.card-choose-btn,
+.restaurant-card-choose-btn{
+  height:30px!important;
+  min-height:30px!important;
+  width:auto!important;
+  min-width:62px!important;
+  padding:0 11px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(177,130,49,.48)!important;
+  background:rgba(177,130,49,.08)!important;
+  color:#836321!important;
+  font-size:.52rem!important;
+  font-weight:900!important;
+  letter-spacing:.07em!important;
+  box-shadow:none!important;
+}
+.card-choose-btn:focus-visible,
+.restaurant-card-choose-btn:focus-visible{
+  outline:2px solid rgba(177,130,49,.30)!important;
+  outline-offset:3px!important;
+}
+.card-choose-btn:active,
+.restaurant-card-choose-btn:active{
+  transform:none!important;
+  background:rgba(177,130,49,.13)!important;
+}
+.restaurant-card-choice-row{
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  margin-top:10px!important;
+  padding-bottom:2px!important;
+}
+.restaurant-card-choose-btn{
+  flex:0 0 auto!important;
+}
+
+/* Pass Around is identical in color on Food and Restaurant, and intentionally distinct. */
+.pass-around-btn,
+.restaurant-pass-btn{
+  border-color:rgba(111,99,216,.72)!important;
+  color:#e3dfff!important;
+  background:linear-gradient(135deg,rgba(111,99,216,.30),rgba(83,67,181,.24))!important;
+  box-shadow:0 6px 18px rgba(111,99,216,.18)!important;
+}
+.pass-around-btn:hover,
+.restaurant-pass-btn:hover,
+.pass-around-btn:focus-visible,
+.restaurant-pass-btn:focus-visible{
+  border-color:rgba(158,149,255,.92)!important;
+  background:linear-gradient(135deg,rgba(128,116,236,.42),rgba(92,75,201,.34))!important;
+  color:#f4f2ff!important;
 }
 </style>
