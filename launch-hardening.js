@@ -303,6 +303,12 @@
       foodBottom.appendChild(b);
     }
     $('restaurantPassAroundWrap')?.remove();dedupeRestaurantControls();
+    const restaurantPassButton=$('restaurantPassAroundBtn');
+    if(restaurantPassButton){
+      restaurantPassButton.type='button';
+      restaurantPassButton.onclick=()=>window.DinliminateOpenPassAround?.('restaurant');
+      restaurantPassButton.setAttribute('aria-label','Pass Around restaurant choices');
+    }
     document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibraryLaunch();}));$('historyMenuBtn')?.addEventListener('click',()=>setTimeout(renderLibraryLaunch,0));
     // Disable the legacy website-metadata image hydrator so it cannot substitute another restaurant's photo.
     window.restaurantPhotoIsReal=typeof restaurantPhotoIsReal==='function'?restaurantPhotoIsReal:undefined;
