@@ -1,7 +1,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p651-passaround-authoritative-repair';
+  const VERSION='p652-passaround-launch-rebuild';
   const $=id=>document.getElementById(id);
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const foodKey=x=>`food::${String(x?.id||x?.name||'').trim().toLowerCase()}`;
@@ -239,6 +239,61 @@
     applyPassLock();savePassState();renderPassStatus();toast('Person 1 of '+count+': start swiping.');
   }
   function showRestaurantUIForPass(){legacyShowRestaurant?.();document.body.classList.add('restaurant-mode');setupRestaurantTools();renderRestaurantStage();syncRestaurantActionLabels?.();}
+  let passPointer=null;
+  let passClickBlockUntil=0;
+  function passStage(){return pass?.mode==='restaurant' ? $('restaurantStage') : $('stage');}
+  function passActiveCard(){return passStage()?.querySelector('.active')||null;}
+  function passHandleCardPointerDown(e){
+    if(!pass||pass.phase!=='voting'||pass.busy)return;
+    if(e.target?.closest?.('button,a,input,select,textarea,[data-card-action],[data-rest-action]'))return;
+    const card=passActiveCard();
+    if(!card||!card.contains(e.target))return;
+    passPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,card};
+  }
+  function passHandleCardPointerMove(e){
+    if(!passPointer||passPointer.id!==e.pointerId)return;
+    const dx=e.clientX-passPointer.startX,dy=e.clientY-passPointer.startY;
+    if(Math.abs(dx)>3)passPointer.card.style.transform=`translate(${dx}px,${dy*.12}px) rotate(${dx*.045}deg)`;
+    passPointer.card.classList.toggle('show-cut',dx<-55);
+    passPointer.card.classList.toggle('show-hold',dx>55);
+  }
+  function passHandleCardPointerUp(e){
+    if(!passPointer||passPointer.id!==e.pointerId)return;
+    const p=passPointer;passPointer=null;
+    const dx=e.clientX-p.startX;
+    p.card.style.transform='';p.card.classList.remove('show-cut','show-hold');
+    if(Math.abs(dx)>95){passClickBlockUntil=Date.now()+350;passAct(dx<0?'cut':'hold',p.card);}
+  }
+  function installPassInputRouter(){
+    if(document.documentElement.dataset.passRouterInstalled==='1')return;
+    document.documentElement.dataset.passRouterInstalled='1';
+    document.addEventListener('pointerdown',passHandleCardPointerDown,true);
+    document.addEventListener('pointermove',passHandleCardPointerMove,true);
+    document.addEventListener('pointerup',passHandleCardPointerUp,true);
+    document.addEventListener('pointercancel',e=>{
+      if(!passPointer||passPointer.id!==e.pointerId)return;
+      passPointer.card.style.transform='';passPointer.card.classList.remove('show-cut','show-hold');passPointer=null;
+    },true);
+    document.addEventListener('click',e=>{
+      const btn=e.target?.closest?.('#foodPassAroundBtn,#restaurantPassAroundBtn,#cutBtn,#holdBtn,#restaurantCutBtn,#restaurantKeepBtn');
+      const inStage=!!e.target?.closest?.('#stage .active,#restaurantStage .active');
+      if(btn){
+        if(Date.now()<passClickBlockUntil){e.preventDefault();e.stopImmediatePropagation();return;}
+        if(btn.id==='foodPassAroundBtn'||btn.id==='restaurantPassAroundBtn'){
+          e.preventDefault();e.stopImmediatePropagation();
+          if(!pass)openPass(btn.id==='restaurantPassAroundBtn'?'restaurant':'food');
+          return;
+        }
+        if(pass&&pass.phase==='voting'){
+          e.preventDefault();e.stopImmediatePropagation();
+          passAct((btn.id==='cutBtn'||btn.id==='restaurantCutBtn')?'cut':'hold',passActiveCard());
+          return;
+        }
+      }
+      if(pass&&pass.phase==='voting'&&inStage){e.preventDefault();e.stopImmediatePropagation();}
+    },true);
+  }
+
   function passCurrent(){return pass?.phase==='voting'?(passViewItems()[0]||null):null;}
   function passAct(kind,card){
     if(kind!=='cut'&&kind!=='hold')return false;
@@ -246,27 +301,17 @@
     const item=passCurrent();if(!item)return true;
     const key=passKey(item),voter=pass.votes?.[pass.participant-1];
     if(!voter||voter.has(key))return false;
-    // Record the vote before any rendering. One tap/swipe = one vote.
     voter.set(key,kind==='cut');
-    pass.busy=true;
-    savePassState();
-    lockPassControls();
+    pass.busy=true;savePassState();lockPassControls();
     try{
       const remaining=passViewItems();
       if(remaining.length===0){finishPassParticipant();return true;}
       pass.busy=false;
       if(pass.mode==='restaurant')activeRestaurants=[...remaining];else activeItems=[...remaining];
       if(pass.mode==='restaurant')renderRestaurantStage();else renderStage();
-      renderPassStatus();
-      lockPassControls();
-      savePassState();
+      renderPassStatus();lockPassControls();savePassState();
       return true;
-    }catch(e){
-      pass.busy=false;
-      voter.delete(key);
-      savePassState();
-      throw e;
-    }
+    }catch(e){pass.busy=false;voter.delete(key);savePassState();throw e;}
   }
   function finishPassParticipant(){
     if(!pass)return;pass.busy=false;
@@ -307,11 +352,11 @@
   }
   function renderPassStatus(){
     const old=$('passStatus');if(!pass){old?.remove();return;}
-    const host=pass.mode==='restaurant'?$('restaurantStage'):$('stage');if(!host)return;
-    let bar=old;if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';host.parentNode?.insertBefore(bar,host);}
+    let bar=old;
+    if(!bar){bar=document.createElement('div');bar.id='passStatus';bar.className='pass-status';document.body.appendChild(bar);}
     const remaining=pass.phase==='voting'?passViewItems().length:0,done=Math.max(0,pass.pool.length-remaining);
     const label=pass.phase==='voting'?'Person '+pass.participant+' of '+pass.count+' · '+done+' of '+pass.pool.length:pass.phase==='handoff'?'Person '+pass.participant+' finished · '+pass.count+' people':'No unanimous finalists';
-    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End pass</button>';
+    bar.innerHTML='<span><strong>Pass Around</strong><span class="pass-status-detail"> · '+label+'</span></span><button type="button" id="passEndBtn">End Pass</button>';
     $('passEndBtn').onclick=(e)=>{e.preventDefault();e.stopImmediatePropagation();cancelPass();};
   }
 
@@ -365,6 +410,7 @@
 
   function install(){
     safeWrite('dinliminateLaunchVersion',VERSION);
+    installPassInputRouter();
     $('startOverBtn')?.replaceChildren(document.createTextNode('Start fresh'));
     legacyShowGame=window.showGame;legacyResetList=window.resetList;legacyRenderStage=window.renderStage;legacyUndo=window.undoLast;legacyCut=window.cutCurrent;legacyHold=window.holdCurrent;legacyShowRestaurant=window.showRestaurantMode;legacyApplyRestaurant=window.applyRestaurantData;legacyRenderRestaurant=window.renderRestaurantStage;legacyRestaurantCut=window.restaurantCut;legacyRestaurantKeep=window.restaurantKeep;legacyRestaurantUndo=window.restaurantUndo;legacyRenderLibrary=window.renderLibrary;legacyShowWinner=window.showWinner;
     window.showGame=()=>{if(!foodHydrationDone){foodHydrationPromise.then(()=>window.showGame());return;}return foodInProgress&&((activeItems||[]).length+(holdingItems||[]).length)>0?resumeFood():freshFood();};window.resetList=()=>{foodHydrationDone=true;return freshFood();};
