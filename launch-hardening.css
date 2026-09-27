@@ -1110,3 +1110,8 @@ body.game-mode .quick-cut,
 body.game-mode .gesture-btn{
   -webkit-touch-callout:none!important;
 }
+
+
+/* P680 swipe visibility fix — hidden home must not remain in document flow. */
+#homePanel.home.hidden{display:none!important;}
+body.game-mode #homePanel.home{display:none!important;}
