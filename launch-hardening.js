@@ -173,19 +173,58 @@
     if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
     return a;
   }
+  /*
+   * P682 — restaurant Quick Cuts always use the current search universe.
+   * The universe is rebuilt from restaurantItems and bounded to the active
+   * radius, so changing radius cannot leave stale category counts or allow
+   * an old restaurant back into a smaller round.
+   */
+  function currentRestaurantQuickCutUniverse(){
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    const source=(Array.isArray(restaurantItems)&&restaurantItems.length)
+      ? restaurantItems
+      : uniq([...(restaurantBase||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
+    return uniq(source.filter(r=>{
+      const d=Number(r?.distanceMiles);
+      return !Number.isFinite(d) || d<=radius;
+    }),restKey);
+  }
+
+  function syncRestaurantQuickCutScope(){
+    const pool=currentRestaurantQuickCutUniverse();
+    if(pool.length || !Array.isArray(restaurantItems) || restaurantItems.length===0) restaurantBase=[...pool];
+    return restaurantBase;
+  }
+
+  function restaurantQuickCutDisplayPool(){
+    let pool=[...syncRestaurantQuickCutScope()];
+    const q=String(restaurantFilters?.query||'').trim().toLowerCase();
+    if(q){
+      pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
+    }
+    const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
+    if(hours==='closed') pool=pool.filter(r=>restaurantOpenStatus?.(r)===false);
+    else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
+    return pool;
+  }
+
   function renderRestaurantQuickCuts(){
     const host=$('restaurantQuickCuts'),title=$('restaurantQuickCutsTitle');if(!host)return;
     if(restaurantFinalistMode){host.innerHTML='';if(title)title.textContent='FINALISTS';return;}
     if(title)title.textContent='Quick Cuts';
     const list=Array.isArray(RESTAURANT_QUICK_CUTS)?RESTAURANT_QUICK_CUTS:[];
-    host.innerHTML=list.map(([label,k,photoKey])=>{const n=restaurantBase.filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;}).join('');
+    const pool=restaurantQuickCutDisplayPool();
+    host.innerHTML=list.map(([label,k,photoKey])=>{
+      const n=pool.filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;
+      return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
+    }).join('');
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
   }
   function visibleRestaurants(){return restaurantBase.filter(x=>!restaurantManual.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k)));}
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
-    if(!restaurantBase.length)restaurantBase=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
+    syncRestaurantQuickCutScope();
     if(!restaurantBase.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
     restaurantQuickCuts.has(k)?restaurantQuickCuts.delete(k):restaurantQuickCuts.add(k);
     activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
@@ -344,6 +383,7 @@
   function wrapRestaurantRender(){
     return function(){
       legacyRenderRestaurant.apply(this,arguments);
+      syncRestaurantQuickCutScope();
       setupRestaurantTools();renderRestaurantQuickCuts();
       const q=String(restaurantFilters.query||'').trim();
       if(q&&!filterRestaurants().length){
@@ -396,9 +436,9 @@
       if(hasRound&&!searchInFlight){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
       return r;
     };
-    window.applyRestaurantData=function(){const r=legacyApplyRestaurant.apply(this,arguments);restaurantBase=uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);restaurantManual.clear();restaurantRoundInProgress=!!restaurantItems.length;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
+    window.applyRestaurantData=function(){const r=legacyApplyRestaurant.apply(this,arguments);restaurantBase=uniq([...(activeRestaurants||[])],restKey);syncRestaurantQuickCutScope();restaurantManual.clear();restaurantRoundInProgress=!!restaurantItems.length;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.renderRestaurantStage=wrapRestaurantRender();
-    window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;
+    window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;window.DinliminateSyncRestaurantQuickCutScope=syncRestaurantQuickCutScope;
     window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
     window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
