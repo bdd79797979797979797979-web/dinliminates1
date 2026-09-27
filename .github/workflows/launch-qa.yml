@@ -1,7 +1,7 @@
 name: Dinliminate launch QA
 on:
   push:
-    branches: [ main, launch-complete-2026-09-27 ]
+    branches: [ main, launch-complete-2026-09-27, p683-quickcut-targeted-test ]
   workflow_dispatch:
 jobs:
   smoke:
@@ -31,4 +31,9 @@ jobs:
       - name: Run launch smoke suite
         env:
           DINLIMINATE_BASE_URL: http://127.0.0.1:4173
-        run: npx playwright test qa/launch-smoke.spec.mjs --reporter=line
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/p683-quickcut-targeted-test" ]; then
+            npx playwright test qa/launch-smoke.spec.mjs --grep "P683 priority" --reporter=line
+          else
+            npx playwright test qa/launch-smoke.spec.mjs --reporter=line
+          fi
