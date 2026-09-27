@@ -64,11 +64,21 @@ test('food, pass around, click actions, winner and settings controls work', asyn
   await expect(page.locator('#holdBtn')).toBeVisible();
   await expect(page.locator('#foodPassAroundBtn')).toBeVisible();
 
+  await page.evaluate(() => {
+    const card = document.querySelector('#stage .stack-card.active');
+    window.__dbg = { down:0, move:0, up:0, target: card?.className||'', during:[] };
+    if(card){
+      card.addEventListener('pointerdown',()=>window.__dbg.down++);
+      card.addEventListener('pointermove',()=>window.__dbg.move++);
+      card.addEventListener('pointerup',()=>window.__dbg.up++);
+    }
+  });
   const initial = Number(await page.locator('#gameTopCount').textContent());
   await page.locator('#cutBtn').click();
   await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(initial);
   await page.locator('#holdBtn').click();
   await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThanOrEqual(initial);
+  console.log('FOOD_CLICK_FLOW_DEBUG', await page.evaluate(() => window.__dbg));
 
   await page.locator('#foodPassAroundBtn').click();
   await expect(page.locator('#passSetupBackdrop')).toBeVisible();
@@ -140,6 +150,15 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
     await expect(btn).toHaveAttribute('aria-pressed','false');
   }
 
+  await page.evaluate(() => {
+    const card = document.querySelector('#restaurantStage .restaurant-card.active');
+    window.__restdbg = { down:0, move:0, up:0, target: card?.className||'' };
+    if(card){
+      card.addEventListener('pointerdown',()=>window.__restdbg.down++);
+      card.addEventListener('pointermove',()=>window.__restdbg.move++);
+      card.addEventListener('pointerup',()=>window.__restdbg.up++);
+    }
+  });
   const firstCount = Number(await page.locator('#restaurantTopCount').textContent());
   await page.locator('#restaurantCutBtn').click();
   await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThan(firstCount);
