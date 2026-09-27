@@ -632,7 +632,7 @@
     document.addEventListener('click', robustShareClick, true);
     hardenPassEnd();
     fixPointerCapture();
-    registerPwaWorker();
+    // The release migration in index.html owns service-worker cleanup; do not re-register a worker here.
     window.setTimeout(() => { installHoursFilter(); installSettingsExtras(); }, 0);
   }
 
