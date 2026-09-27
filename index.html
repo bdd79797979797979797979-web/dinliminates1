@@ -6139,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p643-passaround-consistency';
+const DINLIMINATE_VERSION = 'p644-single-passaround';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -7040,30 +7040,10 @@ function afterEliminate(action) {
 let passAroundSession = null;
 function passAroundKey(item){ return String(item?.id||item?.name||'').trim().toLowerCase(); }
 function openPassAround(mode){
-  const isRestaurant=mode==='restaurant';
-  const source=isRestaurant?dedupe([...(activeRestaurants||[]),...(holdingRestaurants||[])]):dedupe([...(activeItems||[]),...(holdingItems||[])]);
-  if(source.length<2){ toast('Pass Around needs at least 2 choices.'); return; }
-  const existing=$('passAroundBackdrop');
-  if(existing) existing.remove();
-  const back=document.createElement('div'); back.id='passAroundBackdrop'; back.className='pass-around-backdrop';
-  back.innerHTML=`<div class="pass-around-sheet" role="dialog" aria-modal="true" aria-labelledby="passAroundTitle">\
-    <div class="pass-around-eyebrow">GROUP ROUND</div>\
-    <h3 id="passAroundTitle">Pass Around</h3>\
-    <p>${isRestaurant?'Everyone gets the same restaurant choices.':'Everyone gets the same food choices.'} Each person swipes the full set, then the shared choices come back.</p>\
-    <label class="pass-around-field"><span>People</span><select id="passAroundPeople">${[2,3,4,5,6].map(n=>`<option value="${n}">${n}</option>`).join('')}</select></label>\
-    <div class="pass-around-count">${source.length} choices in this round</div>\
-    <div class="pass-around-actions"><button class="pass-around-cancel" id="passAroundCancel" type="button">Cancel</button><button class="pass-around-start" id="passAroundStart" type="button">Start Pass Around</button></div>\
-  </div>`;
-  document.body.appendChild(back);
-  back.addEventListener('click',e=>{if(e.target===back)back.remove();});
-  $('passAroundCancel')?.addEventListener('click',()=>back.remove());
-  $('passAroundStart')?.addEventListener('click',()=>{
-    const people=Math.min(6,Math.max(2,Number($('passAroundPeople')?.value||2)));
-    back.remove();
-    startPassAroundSession(mode,source,people);
-  });
-  $('passAroundPeople')?.focus();
+  if(typeof window.DinliminateOpenPassAround==='function') return window.DinliminateOpenPassAround(mode);
+  toast('Pass Around is loading. Please try again.');
 }
+
 function startPassAroundSession(mode,pool,people){
   passAroundSession={mode,pool:[...pool],players:people,playerIndex:0,maybeByPlayer:Array.from({length:people},()=>new Set())};
   if(mode==='restaurant'){
@@ -7839,8 +7819,8 @@ bind('homeWinnerBtn','click',()=>openLastWinner());
 bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
 
 bind('searchBtn','click',startSearch);
-bind('foodPassAroundBtn','click',()=>openPassAround('food'));
-bind('restaurantPassAroundBtn','click',()=>openPassAround('restaurant'));
+bind('foodPassAroundBtn','click',()=>window.DinliminateOpenPassAround?.('food'));
+bind('restaurantPassAroundBtn','click',()=>window.DinliminateOpenPassAround?.('restaurant'));
 
 bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');const btn=$('restaurantSearchBtn');if(!box||!btn)return;const open=!box.classList.contains('hidden');box.classList.toggle('hidden',open);btn.setAttribute('aria-expanded',String(!open));if(!open)$('restaurantInlineSearchInput')?.focus();});
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();});
@@ -8340,6 +8320,69 @@ body.game-mode #foodPassAroundBtn:focus-visible{
   body.restaurant-mode #restaurantPassAroundBtn,
   body.game-mode #foodPassAroundBtn{height:30px!important;min-height:30px!important;padding:0 9px!important;font-size:.55rem!important;}
   body.restaurant-mode #restaurantPassAroundBtn{min-width:88px!important;}
+}
+</style>
+<style id="dinliminate-p644-passaround-single-system">
+/* P644 — restore the compact Restaurant Search size and keep Pass Around beside it. */
+body.restaurant-mode .restaurant-utility-row{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  align-items:center!important;
+  gap:5px!important;
+  overflow:visible!important;
+}
+body.restaurant-mode #restaurantSearchBtn{
+  width:100%!important;
+  min-width:0!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 12px!important;
+  border-radius:999px!important;
+  font-size:.54rem!important;
+  font-weight:850!important;
+  letter-spacing:.01em!important;
+  box-shadow:none!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn,
+body.game-mode #foodPassAroundBtn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  height:34px!important;
+  min-height:34px!important;
+  width:auto!important;
+  min-width:0!important;
+  padding:0 12px!important;
+  border:1px solid #8b7bff!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,#7b68ee,#5d4bc4)!important;
+  color:#fff!important;
+  font-size:.54rem!important;
+  font-weight:850!important;
+  letter-spacing:.01em!important;
+  box-shadow:0 5px 13px rgba(91,73,194,.22)!important;
+  opacity:1!important;
+}
+body.restaurant-mode #restaurantPassAroundBtn{width:100%!important;}
+body.game-mode #foodPassAroundBtn{width:auto!important;}
+body.restaurant-mode #restaurantPassAroundBtn:hover,
+body.restaurant-mode #restaurantPassAroundBtn:focus-visible,
+body.game-mode #foodPassAroundBtn:hover,
+body.game-mode #foodPassAroundBtn:focus-visible{
+  border-color:#b0a6ff!important;
+  background:linear-gradient(135deg,#8d7df5,#6856d6)!important;
+  color:#fff!important;
+}
+@media(max-width:390px){
+  body.restaurant-mode #restaurantSearchBtn,
+  body.restaurant-mode #restaurantPassAroundBtn,
+  body.game-mode #foodPassAroundBtn{
+    height:32px!important;
+    min-height:32px!important;
+    padding:0 10px!important;
+    font-size:.52rem!important;
+  }
 }
 </style>
 </html>
