@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const GOOGLE_MAX_RADIUS_MI = 31.0686; // 50,000m Places Nearby Search limit.
 const CACHE_TTL_MS = 120 * 1000;
-const RESULT_LIMIT = 300;
+const RESULT_LIMIT = 1000;
 const POSTPASS_QUERY_LIMIT = 5000;
 const VERSION = 'restaurant-v636-final';
 
@@ -457,17 +457,21 @@ async function doSearch(lat, lon, radius) {
   }
 
   const started = Date.now();
-  const [googleResult, postpassResult] = await Promise.all([
+  // Small-radius searches get a parallel Overpass supplement instead of relying
+  // on the Postpass provider alone. This makes 1–5 mile searches much more
+  // tolerant of sparse/incomplete OSM indexing at the exact center point.
+  const [googleResult, postpassResult, smallRadiusFallback] = await Promise.all([
     googleSearch(lat, lon, radius),
-    postpassSearch(lat, lon, radius)
+    postpassSearch(lat, lon, radius),
+    radius <= 5 ? overpassFallback(lat, lon, radius) : Promise.resolve(null)
   ]);
 
   let googleBundle = googleResult;
   let postpassBundle = postpassResult;
-  let fallbackBundle = null;
-  let fallbackUsed = false;
+  let fallbackBundle = smallRadiusFallback;
+  let fallbackUsed = !!(fallbackBundle?.elements?.length);
 
-  if (!postpassBundle.elements.length) {
+  if (!fallbackBundle && !postpassBundle.elements.length) {
     fallbackBundle = await overpassFallback(lat, lon, Math.min(radius, 50));
     fallbackUsed = fallbackBundle.elements.length > 0;
   }
