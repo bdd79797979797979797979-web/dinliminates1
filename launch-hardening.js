@@ -298,6 +298,7 @@
   function cancelPass(){
     const p=pass;if(!p)return;pass=null;clearPassState();$('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();$('passStatus')?.remove();restorePassSnapshot(p);clearPassLock();toast('Pass Around ended. Your round is restored.');
   }
+  window.DinliminateEndPass=cancelPass;
   function restartPass(){const p=pass;if(!p)return;const mode=p.mode;pass=null;clearPassState();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();openPass(mode);}
   function showPassNoFinalists(){
     $('passNoFinalistsBackdrop')?.remove();if(!pass||pass.phase!=='no_finalists')return;applyPassLock();
@@ -430,4 +431,211 @@
     Promise.all([foodHydrationPromise,restaurantHydrationPromise]).then(()=>{if(document.body.classList.contains('game-mode')||document.body.classList.contains('restaurant-mode'))return;restorePassState();}).catch(()=>{});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+
+
+/* P677 — launch completion hardening. */
+(() => {
+  const VERSION = 'p677-launch-complete';
+  const q = (sel, root=document) => root.querySelector(sel);
+  const text = (v='') => String(v ?? '').trim();
+  const read = (k, fallback='') => { try { return localStorage.getItem(k) ?? fallback; } catch { return fallback; } };
+  const write = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
+
+  function syncHoursFilterButton() {
+    const b = q('#restaurantOpenUnknownBtn');
+    if (!b) return;
+    const closed = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed';
+    b.textContent = closed ? 'Closed' : 'Open / Unknown';
+    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap for open or unknown.' : 'Showing open or unknown restaurants. Tap for closed.');
+    b.setAttribute('aria-pressed', String(closed));
+    b.dataset.hoursFilter = closed ? 'closed' : 'open-unknown';
+  }
+
+  function installHoursFilter() {
+    const b = q('#restaurantOpenUnknownBtn');
+    if (!b || b.dataset.launchBound === '1') return;
+    b.dataset.launchBound = '1';
+    b.addEventListener('click', () => {
+      const next = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'open-unknown' : 'closed';
+      write('dinliminateRestaurantHoursFilter', next);
+      syncHoursFilterButton();
+      try { window.saveRestaurantFilters?.(); } catch {}
+      try { window.renderRestaurantStage?.(); } catch {}
+      const label = next === 'closed' ? 'Closed restaurants only.' : 'Open or unknown-hour restaurants.';
+      try { window.toast?.(label); } catch {}
+    });
+    syncHoursFilterButton();
+  }
+
+  function installSettingsExtras() {
+    const modal = q('#settingsBackdrop .modal');
+    if (!modal || q('#dinliminateLaunchTools', modal)) return;
+    const restore = q('.system-restore-card', modal);
+    const host = document.createElement('div');
+    host.id = 'dinliminateLaunchTools';
+    host.className = 'launch-tools';
+    host.innerHTML = '<div class="launch-tools-head">LAUNCH & PRIVACY</div>' +
+      '<div class="launch-tools-grid">' +
+      '<button type="button" class="settings-tool launch-tool-btn" id="dinliminatePrivacyBtn">Privacy & location</button>' +
+      '<button type="button" class="settings-tool launch-tool-btn" id="dinliminateReportBtn">Report a problem</button>' +
+      '</div>' +
+      '<div class="launch-tools-version">Build ' + VERSION + ' · your choices stay in this browser.</div>';
+    modal.insertBefore(host, restore || null);
+    q('#dinliminatePrivacyBtn', host)?.addEventListener('click', showPrivacy);
+    q('#dinliminateReportBtn', host)?.addEventListener('click', showReport);
+  }
+
+  function showLaunchSheet(title, bodyHtml, actionsHtml='') {
+    q('#dinliminateLaunchSheet')?.remove();
+    const b = document.createElement('div');
+    b.id = 'dinliminateLaunchSheet';
+    b.className = 'launch-sheet-backdrop';
+    b.innerHTML = '<div class="launch-sheet" role="dialog" aria-modal="true" aria-labelledby="launchSheetTitle">' +
+      '<div class="launch-sheet-head"><div><div class="launch-sheet-kicker">DINLIMINATE</div><h3 id="launchSheetTitle">' + title + '</h3></div>' +
+      '<button type="button" class="icon-btn launch-sheet-close" aria-label="Close">×</button></div>' +
+      '<div class="launch-sheet-body">' + bodyHtml + '</div>' +
+      (actionsHtml ? '<div class="launch-sheet-actions">' + actionsHtml + '</div>' : '') +
+      '</div>';
+    document.body.appendChild(b);
+    q('.launch-sheet-close', b)?.addEventListener('click', () => b.remove());
+    b.addEventListener('click', e => { if (e.target === b) b.remove(); });
+    return b;
+  }
+
+  function showPrivacy() {
+    showLaunchSheet('Privacy & location',
+      '<p><strong>Restaurant search:</strong> Dinliminate uses a typed address/area or your device location after you tap Locate to find restaurants. The selected restaurant area can be stored locally so it is available the next time you open the restaurant screen.</p>' +
+      '<p><strong>Search providers:</strong> Restaurant lookups are sent through Dinliminate’s search endpoint, which can use connected map and restaurant data providers to return nearby results. Restaurant provider data may be incomplete or delayed.</p>' +
+      '<p><strong>Personal data:</strong> Your foods, hidden choices, saved picks, history, preferences, and custom food data are stored locally in this browser unless you use your browser’s sharing/export features.</p>' +
+      '<p><strong>Motion tilt:</strong> Gyro motion is only used when you enable Motion tilt. The setting is stored locally.</p>' +
+      '<p class="launch-disclaimer">Dinliminate does not treat an unknown restaurant field as a fact. When hours, photos, menus, or contact details are unavailable, the app shows an unavailable/unknown state.</p>');
+  }
+
+  function diagnostics() {
+    const mode = document.body.classList.contains('restaurant-mode') ? 'restaurant' :
+      document.body.classList.contains('game-mode') ? 'food' : 'home';
+    return [
+      'Dinliminate problem report',
+      'Build: ' + VERSION,
+      'Mode: ' + mode,
+      'Online: ' + String(navigator.onLine),
+      'Viewport: ' + window.innerWidth + 'x' + window.innerHeight,
+      'Platform: ' + (navigator.platform || 'unknown'),
+      'User agent: ' + navigator.userAgent,
+      'Page: ' + location.origin + location.pathname,
+      'Status: ' + text(q('#statusText')?.textContent),
+      'Restaurant status: ' + text(q('#restaurantStatus')?.textContent)
+    ].join('\n');
+  }
+
+  async function copyDiagnostics() {
+    const value = diagnostics();
+    try {
+      await navigator.clipboard?.writeText(value);
+      window.toast?.('Diagnostics copied. Paste them into your report.');
+      return;
+    } catch {}
+    const ta = document.createElement('textarea');
+    ta.value = value; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); window.toast?.('Diagnostics copied.'); } catch {}
+    ta.remove();
+  }
+
+  function emailDraft() {
+    const subject = encodeURIComponent('Dinliminate problem report');
+    const body = encodeURIComponent(diagnostics() + '\n\nWhat happened:\n');
+    window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  }
+
+  function showReport() {
+    const safeDiag = diagnostics().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    showLaunchSheet('Report a problem',
+      '<p>Copy the diagnostic text below, then add what went wrong. No address or GPS coordinates are included in this report.</p>' +
+      '<pre class="launch-diagnostics">' + safeDiag + '</pre>',
+      '<button type="button" class="settings-tool launch-copy-diagnostics">Copy diagnostics</button>' +
+      '<button type="button" class="settings-tool launch-email-draft">Email draft</button>');
+    q('.launch-copy-diagnostics')?.addEventListener('click', copyDiagnostics);
+    q('.launch-email-draft')?.addEventListener('click', emailDraft);
+  }
+
+  function robustShareClick(e) {
+    const btn = e.target?.closest?.('#shareBtn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const name = text(q('#winnerName')?.textContent) || 'my dinner choice';
+    const restaurant = document.body.classList.contains('restaurant-mode') || /restaurant/i.test(text(q('#winnerModeKicker')?.textContent));
+    const message = restaurant ? 'Dinliminate picked ' + name + ' for me. 🍽️' : 'Dinliminate decided: I’m eating ' + name + ' tonight! 🍽️';
+    (async () => {
+      try {
+        if (navigator.share) { await navigator.share({ title:'Dinliminate', text:message }); return; }
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+      }
+      try {
+        await navigator.clipboard?.writeText(message);
+        window.toast?.('Decision copied to clipboard.');
+        return;
+      } catch {}
+      showLaunchSheet('Share this decision', '<p>' + message.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</p>',
+        '<button type="button" class="settings-tool launch-copy-share">Copy decision</button>');
+      q('.launch-copy-share')?.addEventListener('click', async () => {
+        try { await navigator.clipboard?.writeText(message); window.toast?.('Decision copied.'); } catch {}
+      });
+    })();
+  }
+
+  function fixPointerCapture() {
+    if (!window.PointerEvent) return;
+    document.addEventListener('lostpointercapture', e => {
+      const card = e.target?.closest?.('.stack-card,.restaurant-card');
+      if (!card || e.pointerId == null) return;
+      try {
+        card.dispatchEvent(new PointerEvent('pointercancel', {
+          bubbles:true,
+          pointerId:e.pointerId,
+          pointerType:e.pointerType || 'touch',
+          clientX:e.clientX || 0,
+          clientY:e.clientY || 0
+        }));
+      } catch {}
+    }, true);
+  }
+
+  function hardenPassEnd() {
+    document.addEventListener('click', e => {
+      const end = e.target?.closest?.('#passEndBtn,[data-pass-end]');
+      if (!end || !window.DinliminateEndPass) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.DinliminateEndPass();
+    }, true);
+  }
+
+  function registerPwaWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    window.setTimeout(() => {
+      navigator.serviceWorker.register('/dinliminate-sw.js', { updateViaCache:'none' }).catch(() => {});
+    }, 700);
+  }
+
+  function init() {
+    write('dinliminateLaunchVersion', VERSION);
+    document.documentElement.dataset.dinliminateLaunch = VERSION;
+    installHoursFilter();
+    installSettingsExtras();
+    document.addEventListener('click', e => {
+      if (e.target?.closest?.('#settingsBtn')) setTimeout(installSettingsExtras, 0);
+    }, true);
+    document.addEventListener('click', robustShareClick, true);
+    hardenPassEnd();
+    fixPointerCapture();
+    // The release migration in index.html owns service-worker cleanup; do not re-register a worker here.
+    window.setTimeout(() => { installHoursFilter(); installSettingsExtras(); }, 0);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+  else init();
 })();

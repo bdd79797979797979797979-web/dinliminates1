@@ -3,7 +3,7 @@ const GOOGLE_MAX_RADIUS_MI = 31.0686; // 50,000m Places Nearby Search limit.
 const CACHE_TTL_MS = 120 * 1000;
 const RESULT_LIMIT = 1000;
 const POSTPASS_QUERY_LIMIT = 5000;
-const VERSION = 'restaurant-v636-final';
+const VERSION = 'restaurant-v677-launch';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 const POSTPASS_ENDPOINT = 'https://postpass.geofabrik.de/api/0.2/interpreter';
@@ -96,12 +96,6 @@ function isFastFoodText(value) {
 
 function addressFromTags(t = {}) {
   return [t['addr:housenumber'], t['addr:street'], t['addr:city'], t['addr:state'], t['addr:postcode']].filter(Boolean).join(', ');
-}
-
-function slugStable(value) {
-  let h = 2166136261;
-  for (const ch of String(value)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
-  return (h >>> 0).toString(36);
 }
 
 function slugStable(value) {
@@ -386,6 +380,27 @@ async function overpassFallback(lat, lon, radiusMi) {
   return { elements: [], ms: Date.now() - started, endpoint: OVERPASS_FALLBACK_ENDPOINT, error: 'request failed' };
 }
 
+async function overpassFastFoodSupplement(lat, lon, radiusMi) {
+  const started = Date.now();
+  const milesCap = Math.min(50, Math.max(1, Number(radiusMi) || 1));
+  const meters = Math.round(milesCap * 1609.344);
+  const q = '[out:json][timeout:8];nwr[amenity="fast_food"][name](around:' + meters + ',' + lat + ',' + lon + ');out center tags;';
+  for (const method of ['POST','GET']) {
+    try {
+      const data = method === 'POST'
+        ? await fetchJson(OVERPASS_FALLBACK_ENDPOINT, {
+            method:'POST',
+            body:'data=' + encodeURIComponent(q),
+            headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}
+          }, 8000)
+        : await fetchJson(OVERPASS_FALLBACK_ENDPOINT + '?data=' + encodeURIComponent(q), {}, 8000);
+      return { elements:Array.isArray(data?.elements)?data.elements:[], ms:Date.now()-started, endpoint:OVERPASS_FALLBACK_ENDPOINT, method, error:null };
+    } catch (e) {
+      if (method === 'GET') return { elements:[], ms:Date.now()-started, endpoint:OVERPASS_FALLBACK_ENDPOINT, method, error:errorText(e) };
+    }
+  }
+  return {elements:[],ms:Date.now()-started,endpoint:OVERPASS_FALLBACK_ENDPOINT,error:'request failed'};
+}
 function identity(row) {
   const clean = s => String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
   const n = clean(row.name);
@@ -479,8 +494,18 @@ async function doSearch(lat, lon, radius) {
   const googleRows = googleBundle.rows || [];
   const postpassRows = (postpassBundle.elements || []).map(postpassRow).filter(Boolean);
   const fallbackRows = (fallbackBundle?.elements || []).map(osmRow).filter(Boolean);
-  const osmRows = [...postpassRows, ...fallbackRows];
-  const merged = mergeRows([...googleRows, ...osmRows], lat, lon, radius);
+  let osmRows = [...postpassRows, ...fallbackRows];
+  let merged = mergeRows([...googleRows, ...osmRows], lat, lon, radius);
+  let fastFoodSupplementRows = [];
+  let fastFoodSupplementBundle = null;
+  if (!merged.some(row => row.fastFood)) {
+    fastFoodSupplementBundle = await overpassFastFoodSupplement(lat, lon, radius);
+    fastFoodSupplementRows = (fastFoodSupplementBundle.elements || []).map(osmRow).filter(Boolean);
+    if (fastFoodSupplementRows.length) {
+      osmRows = [...osmRows, ...fastFoodSupplementRows];
+      merged = mergeRows([...googleRows, ...osmRows], lat, lon, radius);
+    }
+  }
 
   const data = {
     results: merged.slice(0, RESULT_LIMIT),
@@ -491,13 +516,15 @@ async function doSearch(lat, lon, radius) {
     providersUsed: [
       ...(googleRows.length ? ['Google Places'] : []),
       ...(postpassRows.length ? ['OpenStreetMap (Postpass)'] : []),
-      ...(fallbackRows.length ? ['OpenStreetMap (Overpass fallback)'] : [])
+      ...(fallbackRows.length ? ['OpenStreetMap (Overpass fallback)'] : []),
+      ...(fastFoodSupplementRows.length ? ['OpenStreetMap (Fast Food supplement)'] : [])
     ],
     googleConfigured: !!GOOGLE_KEY,
     providerCounts: {
       google: googleRows.length,
       osmPostpass: postpassRows.length,
       osmOverpassFallback: fallbackRows.length,
+      osmFastFoodSupplement: fastFoodSupplementRows.length,
       osm: osmRows.length
     },
     diagnostics: {
@@ -518,6 +545,9 @@ async function doSearch(lat, lon, radius) {
       overpassFallbackUsed: fallbackUsed,
       overpassFallbackMs: Number(fallbackBundle?.ms || 0),
       overpassFallbackError: fallbackBundle?.error || null,
+      overpassFastFoodSupplementRows: fastFoodSupplementRows.length,
+      overpassFastFoodSupplementMs: Number(fastFoodSupplementBundle?.ms || 0),
+      overpassFastFoodSupplementError: fastFoodSupplementBundle?.error || null,
       overpassFallbackEndpoint: OVERPASS_FALLBACK_ENDPOINT,
       cacheHit: false
     }

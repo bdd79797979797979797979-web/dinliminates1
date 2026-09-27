@@ -5502,7 +5502,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
 })();
 </script>
-<link rel="stylesheet" href="./launch-hardening.css?v=p652-passaround-clean-repair"><script src="./launch-hardening.js?v=p652-passaround-clean-repair" defer></script><style id="dinliminate-p636-final-controls">
+<link rel="stylesheet" href="./launch-hardening.css?v=p677-launch-complete"><script src="./launch-hardening.js?v=p677-launch-complete" defer></script><style id="dinliminate-p636-final-controls">
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
@@ -5636,6 +5636,7 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 
   <div class="restaurant-utility-row" aria-label="Restaurant tools">
     <button class="restaurant-tool-btn restaurant-search-btn" id="restaurantSearchBtn" type="button" aria-expanded="false" aria-controls="restaurantInlineSearch" aria-label="Search restaurants">Restaurant Search</button>
+    <button class="restaurant-tool-btn restaurant-hours-filter-btn" id="restaurantOpenUnknownBtn" type="button" aria-label="Showing open or unknown-hour restaurants">Open / Unknown</button>
     <button class="restaurant-tool-btn restaurant-pass-btn" id="restaurantPassAroundBtn" type="button">Pass Around</button>
   </div>
   <div class="restaurant-inline-search hidden" id="restaurantInlineSearch">
@@ -6139,13 +6140,14 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p652-passaround-clean-repair';
+const DINLIMINATE_VERSION = 'p677-launch-complete';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
 const FOOD_FALLBACK_PHOTO = 'https://images.pexels.com/photos/17477762/pexels-photo-17477762.jpeg?auto=compress&cs=tinysrgb&w=1400';
 const HUNGRY_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#efe7d7"/><ellipse cx="600" cy="470" rx="270" ry="120" fill="#d8d0c0"/><ellipse cx="600" cy="450" rx="220" ry="85" fill="#fbfaf7"/><path d="M700 250c70-42 146-5 150 52 5 73-79 96-130 51" fill="none" stroke="#20362d" stroke-width="18" stroke-linecap="round"/><path d="M520 285h-70m10 0v120m15-120v120m15-120v120m15-120v120" fill="none" stroke="#20362d" stroke-width="12" stroke-linecap="round"/><circle cx="530" cy="390" r="9" fill="#20362d"/><circle cx="670" cy="390" r="9" fill="#20362d"/><path d="M550 450c30 28 70 28 100 0" fill="none" stroke="#20362d" stroke-width="11" stroke-linecap="round"/><text x="600" y="690" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="800" fill="#20362d">THE PLATE IS EMPTY.</text><text x="600" y="742" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#62756b">Dinliminate has been defeated.</text></svg>');
 let restaurantRadiusMiles = Math.min(Math.max(Number(safeRead('dinliminateRestaurantRadius','10') || 10), 1), RESTAURANT_MAX_MILES);
+let restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
 let userCoords = null;
 let userLocationAccuracyMeters = null;
 let userCity = '';
@@ -6427,7 +6429,7 @@ async function restoreDinliminateDefaults(){
   activeItems=[...allItems]; originalCount=Math.max(activeItems.length,1); holdingItems=[]; undoStack=[]; finalistMode=false;
   searchQuery=''; deletedFoodKeys=[]; savedItems=[]; historyItems=[]; lastWinner=null;
   foodPreferences={quick:false,comfort:false}; restaurantItems=[]; activeRestaurants=[]; holdingRestaurants=[]; restaurantUndoStack=[];
-  restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts.clear(); restaurantFinalistMode=false; restaurantQuickCutsExpanded=false; safeWrite('dinliminateRestaurantFilters',JSON.stringify(restaurantFilters));
+  restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts.clear(); restaurantFinalistMode=false; restaurantQuickCutsExpanded=false; restaurantHoursFilter='open-unknown'; safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter})); safeWrite('dinliminateRestaurantHoursFilter','open-unknown');
   restaurantRadiusMiles=10;
   closeSettings(); closeMenu(); closeLibrary(); closeDetails(); closeSearch(); closeConfirm(); closeInfo();
   toast('Dinliminate restored. Reloading…');
@@ -6978,10 +6980,15 @@ function chooseCurrent(){
 }
 function transitionCard(card, direction, done) {
   transitioning = true;
-  card.style.transition = 'transform .23s ease, opacity .22s ease';
-  card.style.transform = `translateX(${direction * 115}%) rotate(${direction * 18}deg)`;
-  card.style.opacity = '0';
-  setTimeout(() => { done(); transitioning = false; }, 225);
+  if(card){
+    card.style.transition='transform .23s ease, opacity .22s ease';
+    card.style.transform='translateX('+(direction*115)+'%) rotate('+(direction*18)+'deg)';
+    card.style.opacity='0';
+  }
+  setTimeout(()=>{
+    try{done?.();}catch(err){console.error('Dinliminate food transition failed',err);toast?.('That move could not be completed. Try again.');}
+    finally{transitioning=false;}
+  },225);
 }
 function eliminateOne(idx) {
   if (idx < 0 || idx >= activeItems.length || activeItems.length === 0 || transitioning) return;
@@ -7361,10 +7368,12 @@ function restaurantSortValue(item){
 }
 function filteredRestaurants(){
   let list=[...activeRestaurants];
-  // Restaurant hours are informational only in P636 final; they never filter the deck.
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
-  if(q)list=list.filter(r=>`${r.name||''} ${r.cuisine||''} ${r.category||''} ${r.address||''} ${(r.tags||[]).join(' ')}`.toLowerCase().includes(q));
-    return list;
+  if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  if(restaurantHoursFilter==='closed') list=list.filter(r=>restaurantOpenStatus(r)===false);
+  else list=list.filter(r=>restaurantOpenStatus(r)!==false);
+  return list;
 }
 function restaurantQuickCutCount(key){ return activeRestaurants.filter(r=>restaurantQuickCutMatches(r,key)).length; }
 function renderRestaurantQuickCuts(){
@@ -7385,7 +7394,11 @@ function renderRestaurantQuickCuts(){
     btn.addEventListener('click',()=>eliminateRestaurantCategory(btn.dataset.rq));
   });
 }
-function saveRestaurantFilters(){safeWrite('dinliminateRestaurantFilters',JSON.stringify(restaurantFilters));}
+function saveRestaurantFilters(){
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter',restaurantHoursFilter) === 'closed' ? 'closed' : 'open-unknown';
+  safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
+  safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
+}
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
   // exactly like Food mode; there is intentionally no restaurant Quick Cuts Clear control.
@@ -7409,8 +7422,11 @@ function eliminateRestaurantCategory(key){
 }
 function transitionRestaurantCard(card,direction,done){
   restaurantTransitioning=true;
-  if(card){card.style.transition='transform .23s ease, opacity .22s ease';card.style.transform=`translateX(${direction*115}%) rotate(${direction*18}deg)`;card.style.opacity='0';}
-  setTimeout(()=>{done();restaurantTransitioning=false;},225);
+  if(card){card.style.transition='transform .23s ease, opacity .22s ease';card.style.transform='translateX('+(direction*115)+'%) rotate('+(direction*18)+'deg)';card.style.opacity='0';}
+  setTimeout(()=>{
+    try{done?.();}catch(err){console.error('Dinliminate restaurant transition failed',err);toast?.('That move could not be completed. Try again.');}
+    finally{restaurantTransitioning=false;}
+  },225);
 }
 function resetRestaurantRound(){
   currentWinnerMode='restaurant';
@@ -7493,7 +7509,8 @@ function renderRestaurantStage(){
   const note=$('restaurantFilterNote');
   const anyFilter=String(restaurantFilters.query||'').trim();
   if(note){
-    note.innerHTML='';
+    const hoursLabel = restaurantHoursFilter==='closed' ? 'Closed only' : 'Open + unknown hours';
+    note.textContent = anyFilter ? hoursLabel + ' · Search: ' + anyFilter : hoursLabel;
   }
   renderRestaurantQuickCuts();
   // Show only the current restaurant selected by the active filters.

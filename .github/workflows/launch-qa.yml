@@ -1,0 +1,32 @@
+name: Dinliminate launch QA
+on:
+  push:
+    branches: [ main, launch-complete-2026-09-27 ]
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Source integrity check
+        run: node qa/source-check.mjs
+      - name: Install Playwright
+        if: github.ref == 'refs/heads/main'
+        run: npm install --no-save --no-package-lock @playwright/test
+      - name: Install Chromium
+        if: github.ref == 'refs/heads/main'
+        run: npx playwright install --with-deps chromium
+      - name: Wait for production build
+        if: github.ref == 'refs/heads/main'
+        env:
+          DINLIMINATE_BASE_URL: https://dinliminates1.vercel.app
+        run: node qa/wait-for-production.mjs
+      - name: Run launch smoke suite
+        if: github.ref == 'refs/heads/main'
+        env:
+          DINLIMINATE_BASE_URL: https://dinliminates1.vercel.app
+        run: npx playwright test qa/launch-smoke.spec.mjs --reporter=line
