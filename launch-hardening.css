@@ -602,3 +602,186 @@ body.restaurant-mode .restaurant-address-suggestion{min-height:42px!important;di
  body.restaurant-mode .restaurant-utility-row{grid-template-columns:1fr 1fr!important;}
  body.restaurant-mode #restaurantPassAroundBtn{grid-column:1/-1;}
 }
+
+
+/* =========================================================
+   HOMEPAGE PASS — 2026-09-27
+   Keep the Dinliminate identity, make the first decision
+   feel calmer, clearer, and more premium on iPhone.
+========================================================= */
+#homePanel.home{
+  position:relative!important;
+  min-height:calc(100svh - max(12px,env(safe-area-inset-top,0px)))!important;
+  height:calc(100svh - max(12px,env(safe-area-inset-top,0px)))!important;
+  overflow:hidden!important;
+  padding:clamp(18px,4.5svh,34px) clamp(14px,4.5vw,24px) max(18px,env(safe-area-inset-bottom))!important;
+  border-radius:0 0 30px 30px!important;
+  background:
+    radial-gradient(circle at 88% 10%,rgba(255,111,97,.12),transparent 28%),
+    radial-gradient(circle at 8% 86%,rgba(103,196,155,.10),transparent 30%),
+    linear-gradient(180deg,#0b211a 0%,#071612 100%)!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+#homePanel.home::before{
+  width:240px!important;height:240px!important;top:-145px!important;right:-120px!important;
+  background:rgba(255,111,97,.10)!important;
+}
+#homePanel.home::after{
+  width:180px!important;height:180px!important;bottom:-125px!important;left:-105px!important;
+  background:rgba(103,196,155,.08)!important;
+}
+
+/* Top chrome is intentionally tiny; the menu is the only utility here. */
+#homePanel .home-topbar{
+  position:absolute!important;top:max(10px,env(safe-area-inset-top,0px))!important;left:14px!important;right:14px!important;
+  min-height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  z-index:10!important;
+}
+#homePanel .home-topbar-brand{
+  font-family:var(--display-face)!important;font-size:.63rem!important;font-weight:500!important;
+  letter-spacing:.18em!important;color:rgba(255,255,255,.48)!important;
+}
+#homePanel .home-topbar-menu{
+  width:36px!important;height:36px!important;border-radius:12px!important;
+  border:1px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.055)!important;
+  color:rgba(255,255,255,.92)!important;font-size:.82rem!important;font-weight:900!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)!important;backdrop-filter:blur(10px)!important;
+}
+
+/* Hero typography: confident, but not oversized. */
+#homePanel .home-eyebrow{
+  margin-top:10px!important;font-size:.53rem!important;line-height:1!important;
+  letter-spacing:.19em!important;color:#ff9a8f!important;font-weight:850!important;
+}
+#homePanel h1{
+  margin:9px auto 0!important;max-width:520px!important;
+  font-size:clamp(2.9rem,12.5vw,4.15rem)!important;
+  line-height:.89!important;letter-spacing:-.065em!important;font-weight:600!important;
+  color:#fff!important;text-wrap:balance!important;
+}
+#homePanel .home-lede{
+  max-width:390px!important;margin:12px auto 0!important;
+  font-size:.78rem!important;line-height:1.45!important;
+  color:rgba(255,255,255,.58)!important;
+}
+
+/* Count becomes a quiet trust cue rather than a headline metric. */
+#homePanel .home-statline{
+  width:max-content!important;max-width:100%!important;align-self:center!important;
+  margin:10px auto 0!important;padding:6px 10px!important;border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:999px!important;background:rgba(255,255,255,.045)!important;
+  color:rgba(255,255,255,.56)!important;font-size:.54rem!important;font-weight:800!important;
+  box-shadow:none!important;backdrop-filter:blur(8px)!important;
+}
+#homePanel .home-statline strong{color:#fff!important;font-variant-numeric:tabular-nums!important;}
+
+/* Two paths, same family; food is the default path, restaurant is clearly distinct. */
+#homePanel .home-modes{
+  width:min(500px,100%)!important;display:grid!important;gap:9px!important;
+  margin:17px auto 0!important;position:relative!important;z-index:4!important;
+}
+#homePanel .mode-card{
+  min-height:102px!important;height:102px!important;border-radius:20px!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  background:#10241d!important;box-shadow:0 18px 34px rgba(0,0,0,.20)!important;
+  isolation:isolate!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+  overflow:hidden!important;-webkit-tap-highlight-color:transparent!important;
+}
+#homePanel .mode-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;z-index:4;
+}
+#homePanel .mode-food::before{background:#ff6f61!important;}
+#homePanel .mode-restaurants::before{background:#67c49b!important;}
+#homePanel .mode-card-photo{
+  filter:saturate(.90) contrast(.98)!important;opacity:.96!important;
+  background-position:center!important;
+}
+#homePanel .mode-card-shade{
+  background:
+    linear-gradient(90deg,rgba(6,18,14,.93),rgba(6,18,14,.56) 62%,rgba(6,18,14,.24)),
+    linear-gradient(0deg,rgba(5,14,11,.28),rgba(5,14,11,.10))!important;
+}
+#homePanel .mode-card-copy{
+  padding:15px 56px 15px 18px!important;justify-content:center!important;
+}
+#homePanel .mode-card-copy strong{
+  font-family:var(--display-face)!important;font-size:1.26rem!important;line-height:.98!important;
+  font-weight:500!important;letter-spacing:-.025em!important;color:#fff!important;
+}
+#homePanel .mode-card-copy small{
+  margin-top:6px!important;font-size:.57rem!important;line-height:1.32!important;
+  color:rgba(255,255,255,.66)!important;
+}
+#homePanel .mode-card-arrow{
+  right:15px!important;width:34px!important;height:34px!important;
+  background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.10)!important;
+  color:#fff!important;font-size:1rem!important;box-shadow:0 8px 18px rgba(0,0,0,.12)!important;
+}
+#homePanel .mode-food .mode-card-arrow{
+  background:rgba(255,111,97,.16)!important;border-color:rgba(255,111,97,.28)!important;
+}
+#homePanel .mode-restaurants .mode-card-arrow{
+  background:rgba(103,196,155,.15)!important;border-color:rgba(103,196,155,.26)!important;
+}
+#homePanel .mode-card:active{
+  transform:scale(.988)!important;
+  box-shadow:0 12px 26px rgba(0,0,0,.22)!important;
+}
+@media(hover:hover){
+  #homePanel .mode-card:hover{
+    transform:translateY(-1px)!important;border-color:rgba(255,255,255,.22)!important;
+    box-shadow:0 21px 40px rgba(0,0,0,.24)!important;
+  }
+}
+
+/* Lower utilities stay deliberately quiet. */
+#homePanel .home-secondary-clean{
+  min-height:18px!important;margin-top:10px!important;gap:6px!important;
+}
+#homePanel .home-phone-help,#homePanel .home-winner-link{
+  min-height:18px!important;padding:5px 7px!important;
+  color:rgba(255,255,255,.40)!important;font-size:.54rem!important;
+  text-decoration:none!important;letter-spacing:.02em!important;
+}
+#homePanel .home-winner-link{color:rgba(103,196,155,.72)!important;}
+#homePanel .home-trust{
+  margin-top:5px!important;color:rgba(255,255,255,.30)!important;
+  font-size:.49rem!important;letter-spacing:.01em!important;
+}
+#homePanel .home-trust{
+  font-size:0!important;
+}
+#homePanel .home-trust::after{
+  content:"Tap a path to start · swiping begins inside";font-size:.49rem!important;
+}
+
+/* Keep the whole home surface comfortably inside short iPhones. */
+@media(max-width:430px){
+  #homePanel.home{
+    padding-top:clamp(18px,3.8svh,27px)!important;
+    padding-bottom:max(16px,env(safe-area-inset-bottom))!important;
+  }
+  #homePanel .home-eyebrow{font-size:.50rem!important;}
+  #homePanel h1{font-size:clamp(2.78rem,12.8vw,3.75rem)!important;}
+  #homePanel .home-lede{font-size:.74rem!important;max-width:350px!important;}
+  #homePanel .home-modes{margin-top:15px!important;gap:8px!important;}
+  #homePanel .mode-card{min-height:94px!important;height:94px!important;border-radius:18px!important;}
+  #homePanel .mode-card-copy{padding:14px 52px 14px 16px!important;}
+  #homePanel .mode-card-copy strong{font-size:1.16rem!important;}
+  #homePanel .mode-card-copy small{font-size:.54rem!important;margin-top:5px!important;}
+}
+@media(max-width:380px){
+  #homePanel .home-eyebrow{display:none!important;}
+  #homePanel h1{font-size:2.72rem!important;margin-top:8px!important;}
+  #homePanel .home-lede{font-size:.70rem!important;margin-top:9px!important;max-width:330px!important;}
+  #homePanel .home-statline{margin-top:7px!important;}
+  #homePanel .home-modes{margin-top:12px!important;}
+  #homePanel .mode-card{min-height:87px!important;height:87px!important;}
+  #homePanel .mode-card-copy strong{font-size:1.10rem!important;}
+  #homePanel .mode-card-copy small{font-size:.50rem!important;}
+  #homePanel .home-secondary-clean{margin-top:7px!important;}
+  #homePanel .home-trust{display:none!important;}
+}
