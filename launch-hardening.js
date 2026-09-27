@@ -219,7 +219,11 @@
         return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
       });
     }else{
-      pool=(activeRestaurants||[]).filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
+      // For inactive Quick Cuts, use the app's authoritative filtered restaurant list
+      // so radius, search, and hours can never drift from the card deck.
+      pool=typeof filteredRestaurants==='function'
+        ? filteredRestaurants()
+        : (activeRestaurants||[]).filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
     }
 
     const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
