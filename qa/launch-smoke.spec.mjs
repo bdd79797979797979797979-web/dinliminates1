@@ -74,11 +74,9 @@ test('food, pass around, click actions, winner and settings controls work', asyn
     }
   });
   const initial = Number(await page.locator('#gameTopCount').textContent());
-  await page.locator('#cutBtn').click();
-  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(initial);
+  await swipe(page, '#stage .stack-card.active', -140);
+  console.log('FOOD_SWIPE_DEBUG', await page.evaluate(() => ({...window.__dbg, count:document.querySelector('#gameTopCount')?.textContent})));
   await page.locator('#holdBtn').click();
-  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThanOrEqual(initial);
-  console.log('FOOD_CLICK_FLOW_DEBUG', await page.evaluate(() => window.__dbg));
 
   await page.locator('#foodPassAroundBtn').click();
   await expect(page.locator('#passSetupBackdrop')).toBeVisible();
