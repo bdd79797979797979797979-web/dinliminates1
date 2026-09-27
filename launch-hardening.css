@@ -521,3 +521,33 @@ body.game-mode .game-bottom .food-secondary-action:active{
     line-height:9px!important;
   }
 }
+
+/* P652 — one universal Pass Around control bar for Food + Restaurant. */
+#passStatus{
+  position:fixed!important;
+  top:calc(env(safe-area-inset-top, 0px) + 8px)!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  z-index:2200!important;
+  width:min(560px,calc(100vw - 24px))!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:7px 10px 7px 12px!important;
+  border:1px solid rgba(103,196,155,.32)!important;
+  border-radius:14px!important;
+  background:rgba(12,31,26,.96)!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.24)!important;
+  backdrop-filter:blur(14px)!important;
+  color:#f3f8f5!important;
+}
+#passStatus strong{color:#fff!important}
+#passStatus button{
+  min-width:72px!important;
+  min-height:30px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:10px!important;
+  background:rgba(239,115,95,.14)!important;
+  color:#ffd8d1!important;
+  font:900 .58rem/1 Inter,system-ui,sans-serif!important;
+  padding:0 10px!important;
+}
