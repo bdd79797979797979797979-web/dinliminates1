@@ -26,3 +26,4 @@ This release is the P634 UI control pass for the Dinliminate food and restaurant
 - Production runtime error scan: no runtime errors in final 10-minute check
 
 Real-device iPhone/Android certification remains a separate physical-device test gate.
+\n\nLaunch QA marker: p677-live-preview-trigger-2026-09-27
