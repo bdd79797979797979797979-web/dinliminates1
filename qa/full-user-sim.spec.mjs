@@ -122,24 +122,16 @@ test('full simulated user journey — home, food, custom food, hidden choices, s
   await page.locator('#backBtn').click();
   await waitUi(page,100);
 
-  // FOOD PASS AROUND — controlled 4-choice round, two people, all keep
-  await page.evaluate(() => {
-    if (Array.isArray(window.activeItems)) {
-      window.activeItems = window.activeItems.slice(0,4);
-      window.holdingItems = [];
-      window.originalCount = window.activeItems.length;
-      window.renderStage?.();
-    }
-  });
+  // FOOD PASS AROUND — real current food deck, two people, all keep
   await page.locator('#foodPassAroundBtn').click();
   await expect(page.locator('#passSetupBackdrop')).toBeVisible();
   await page.locator('[data-pass-n="2"]').click();
   await expect(page.locator('#passStatus')).toContainText('Person 1 of 2');
-  await passAllCurrent(page,'#holdBtn','[data-pass-start]',6);
+  await passAllCurrent(page,'#holdBtn','[data-pass-start]',100);
   await expect(page.locator('#passHandoffBackdrop')).toBeVisible();
   await page.locator('[data-pass-start]').click();
   await expect(page.locator('#passStatus')).toContainText('Person 2 of 2');
-  await passAllCurrent(page,'#holdBtn','#passStatus',6);
+  await passAllCurrent(page,'#holdBtn','#passStatus',100);
   await expect(page.locator('#gamePanel')).toBeVisible();
   await expect(page.locator('#stage .stack-card.active')).toBeVisible();
   await page.locator('#stage .stack-card.active [data-card-action="choose"]').click();
