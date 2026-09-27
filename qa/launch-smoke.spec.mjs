@@ -177,7 +177,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   const fastButton = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
   const countFromButton = async () => {
     const t = await fastButton.locator('.quick-cut-copy em').textContent();
-    const m = String(t || '').match(/(\\d+)\\s*$/);
+    const m = String(t || '').match(/(\d+)\s*$/);
     return m ? Number(m[1]) : -1;
   };
 
