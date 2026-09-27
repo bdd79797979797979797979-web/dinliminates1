@@ -198,6 +198,11 @@
 
   function restaurantQuickCutDisplayPool(){
     let pool=[...syncRestaurantQuickCutScope()];
+    // P683: category counts represent the restaurants still in the current round.
+    // A manual Cut is gone from the current restaurant choices even though it remains
+    // in restaurantItems so Back can restore it without contaminating the scope.
+    const manual=new Set(restaurantManual||new Set());
+    pool=pool.filter(r=>!manual.has(restKey(r)));
     const q=String(restaurantFilters?.query||'').trim().toLowerCase();
     if(q){
       pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
@@ -224,8 +229,8 @@
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
-    syncRestaurantQuickCutScope();
-    if(!restaurantBase.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
+    const scope=restaurantQuickCutDisplayPool();
+    if(!scope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
     restaurantQuickCuts.has(k)?restaurantQuickCuts.delete(k):restaurantQuickCuts.add(k);
     activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
     const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
