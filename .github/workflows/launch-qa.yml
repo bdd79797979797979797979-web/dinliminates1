@@ -1,7 +1,7 @@
 name: Dinliminate launch QA
 on:
   push:
-    branches: [ main, launch-complete-2026-09-27 ]
+    branches: [ main, launch-complete-2026-09-27, qa-current-rest-mobile-2026-09-27 ]
   workflow_dispatch:
 jobs:
   smoke:
