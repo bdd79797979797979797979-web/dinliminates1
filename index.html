@@ -6139,7 +6139,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p639-refined-choose-buttons';
+const DINLIMINATE_VERSION = 'p640-restaurant-card-fit';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8327,5 +8327,124 @@ body.restaurant-mode .restaurant-card-choose-btn{
   border-color:rgba(158,149,255,.92)!important;
   background:linear-gradient(135deg,rgba(128,116,236,.42),rgba(92,75,201,.34))!important;
   color:#f4f2ff!important;
+}
+</style>
+
+<style id="dinliminate-p640-restaurant-card-fit">
+/* P640 — Restaurant cards must fit completely, including card actions, on short phones. */
+body.restaurant-mode .restaurant-stage .restaurant-card-v240{
+  box-sizing:border-box!important;
+  height:100%!important;
+  min-height:0!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-body-v240{
+  box-sizing:border-box!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-v240-title-row{
+  flex:0 0 auto!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-address-v240{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-card-choice-row{
+  flex:0 0 auto!important;
+  margin-top:7px!important;
+  padding-bottom:0!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-card-choose-btn{
+  height:28px!important;
+  min-height:28px!important;
+  min-width:58px!important;
+  padding:0 10px!important;
+  font-size:.49rem!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions{
+  flex:0 0 auto!important;
+  margin-top:auto!important;
+  padding-top:7px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
+  height:36px!important;
+  min-height:36px!important;
+  padding:0 8px!important;
+  font-size:.56rem!important;
+}
+@media(max-width:430px){
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{
+    flex:0 0 52%!important;
+    height:52%!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{
+    flex:1 1 48%!important;
+    height:48%!important;
+    padding:10px 12px 8px!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{
+    font-size:clamp(1.55rem,7.3vw,2.15rem)!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-meta-v240{
+    margin-top:4px!important;
+    font-size:.54rem!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-address-v240{
+    margin-top:4px!important;
+    font-size:.53rem!important;
+    line-height:1.2!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-v240-actions{
+    gap:5px!important;
+    padding-top:6px!important;
+  }
+}
+@media(max-width:390px){
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{
+    flex-basis:49%!important;
+    height:49%!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{
+    flex-basis:51%!important;
+    height:51%!important;
+    padding:8px 10px 7px!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{
+    font-size:1.48rem!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-card-choice-row{
+    margin-top:5px!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-card-choose-btn{
+    height:26px!important;
+    min-height:26px!important;
+    min-width:56px!important;
+  }
+  body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+  body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
+    height:34px!important;
+    min-height:34px!important;
+    font-size:.54rem!important;
+  }
+}
+
+/* Pass Around is the one deliberate color accent, identical in Food + Restaurant. */
+.pass-around-btn,
+.restaurant-pass-btn{
+  border:1px solid rgba(139,123,255,.90)!important;
+  color:#fff!important;
+  background:linear-gradient(135deg,#7b68ee,#5d4bc4)!important;
+  box-shadow:0 7px 18px rgba(91,73,194,.28)!important;
+}
+.pass-around-btn:hover,
+.restaurant-pass-btn:hover,
+.pass-around-btn:focus-visible,
+.restaurant-pass-btn:focus-visible{
+  border-color:#b0a6ff!important;
+  background:linear-gradient(135deg,#8d7df5,#6856d6)!important;
+  color:#fff!important;
 }
 </style>
