@@ -1,0 +1,27 @@
+name: Dinliminate targeted restaurant Quick Cut QA P695
+on:
+  push:
+    branches: [ p695-restaurant-quickcut-state-final ]
+jobs:
+  quickcut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Playwright
+        run: npm install --no-save --no-package-lock @playwright/test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start local QA server
+        run: |
+          node qa/local-smoke-server.mjs > /tmp/dinliminate-qa-server.log 2>&1 &
+          echo $! > /tmp/dinliminate-qa-server.pid
+      - name: Wait for local QA server
+        run: node -e "const u='http://127.0.0.1:4173/'; const end=Date.now()+30000; (async()=>{while(Date.now()<end){try{const r=await fetch(u); const t=await r.text(); if(r.ok&&t.includes('Dinliminate')) process.exit(0)}catch{} await new Promise(s=>setTimeout(s,1000))} process.exit(1)})()"
+      - name: Run targeted Quick Cut lifecycle
+        env:
+          DINLIMINATE_BASE_URL: http://127.0.0.1:4173
+        run: npx playwright test qa/launch-smoke.spec.mjs --grep "P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refresh" --reporter=line
