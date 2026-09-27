@@ -6884,8 +6884,8 @@ function bindSwipe(card) {
     const wasTap = !pointer.moved && Math.abs(dx) < 12;
     pointer = null;
     if (Math.abs(dx) > 95) {
-      if (dx < 0) { card.style.transform=''; cutCurrent(card); }
-      else holdCurrent(card);
+      if (dx < 0) { card.style.transform=''; window.cutCurrent?.(card); }
+      else window.holdCurrent?.(card);
     } else {
       card.style.transform = '';
     }
@@ -7770,7 +7770,7 @@ bind('restaurantBackBtn','click',()=>{setNavActive('navHome');goHome();});
 bind('restaurantMenuBtn','click',openMenu);
 // Restaurant location controls are exclusively owned by the authoritative location controller below.
 
-bind('restaurantCutBtn','click',()=>restaurantCut($('restaurantStage')?.querySelector('.active')));bind('restaurantKeepBtn','click',()=>restaurantKeep($('restaurantStage')?.querySelector('.active')));bind('restaurantChooseBtn','click',chooseRestaurantCurrent);bind('restaurantBackAction','click',restaurantUndo);bind('restaurantHideBtn','click',restaurantHide);
+bind('restaurantCutBtn','click',(e)=>{e?.preventDefault?.();window.restaurantCut?.($('restaurantStage')?.querySelector('.active'));});bind('restaurantKeepBtn','click',(e)=>{e?.preventDefault?.();window.restaurantKeep?.($('restaurantStage')?.querySelector('.active'));});bind('restaurantChooseBtn','click',chooseRestaurantCurrent);bind('restaurantBackAction','click',restaurantUndo);bind('restaurantHideBtn','click',restaurantHide);
 bind('closeLibraryBtn','click',closeLibrary); bind('clearLibraryBtn','click',()=>{ const label=libraryTab==='saved'?'saved choices':'history'; if(!window.confirm(`Clear all ${label}? This cannot be undone.`)) return; if(libraryTab==='saved'){savedItems=[];saveSavedItems();} else {historyItems=[];saveHistoryItems();} renderLibrary(); toast(libraryTab==='saved'?'Saved list cleared.':'History cleared.'); }); bind('libraryBackdrop','click',e=>{if(e.target===$('libraryBackdrop'))closeLibrary();}); document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibrary();}));
 function exportDinliminateData(){
   const payload={version:DINLIMINATE_VERSION,exportedAt:new Date().toISOString(),data:{custom:safeRead('dinliminateCustom','[]'),hidden:safeRead('dinliminateHidden','[]'),saved:safeRead('dinliminateSaved','[]'),history:safeRead('dinliminateHistory','[]'),lastWinner:safeRead('dinliminateLastWinner','null'),preferences:safeRead('dinliminatePreferences','{}'),hideEnabled:safeRead('dinliminateHideEnabled','true'),radius:safeRead('dinliminateRestaurantRadius','10'),motionTilt:safeRead('dinliminateMotionTilt','false'),restaurantArea:safeRead('dinliminateRestaurantArea',''),restaurantFilters:safeRead('dinliminateRestaurantFilters','{}'),deletedFoods:safeRead('dinliminateDeletedFoods','[]'),restaurantReports:safeRead('dinliminateRestaurantReports','[]')}};
