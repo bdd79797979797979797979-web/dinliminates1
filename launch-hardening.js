@@ -171,6 +171,7 @@
     savePassState();b.innerHTML=`<div class="pass-modal" role="dialog" aria-modal="true" aria-labelledby="passSetupTitle"><h3 id="passSetupTitle">Pass Around</h3><p>Each person gets the complete same list and swipes through every choice. Left cuts it; right keeps it. After everyone finishes, only the choices everyone kept become finalists.</p><div class="pass-count-grid">${[2,3,4,5,6].map(n=>`<button type="button" class="pass-count-btn" data-pass-n="${n}">${n} people</button>`).join('')}</div><div class="pass-modal-actions"><button type="button" class="pass-cancel-btn" data-pass-cancel>Cancel</button></div></div>`;
     document.body.appendChild(b);b.querySelector('[data-pass-cancel]').onclick=()=>b.remove();b.querySelectorAll('[data-pass-n]').forEach(btn=>btn.onclick=()=>startPass(mode,Number(btn.dataset.passN),pool));
   }
+  window.DinliminateOpenPassAround=openPass;
   function startPass(mode,count,pool){
     $('passSetupBackdrop')?.remove();
     pass={mode,count,current:1,pool:[...pool],votes:Array.from({length:count},()=>new Map()),snapshot:mode==='restaurant'?{active:[...activeRestaurants],holding:[...holdingRestaurants],finalist:restaurantFinalistMode,exhausted:restaurantEliminationExhausted,quick:[...restaurantQuickCuts],filters:{...restaurantFilters}}:{active:[...activeItems],holding:[...holdingItems],finalist:finalistMode,originalCount,searchQuery,quick:[...foodQuickHidden],manual:[...foodManual]}};
