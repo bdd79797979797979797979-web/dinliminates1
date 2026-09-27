@@ -555,7 +555,7 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
     Object.fromEntries(btns.map(btn => {
       const key = btn.getAttribute('data-launch-rq');
       const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
-      const m = text.match(/(\d+) left/);
+      const m = text.match(/(\d+)\s*(?:left)?$/i);
       return [key, m ? Number(m[1]) : -1];
     }))
   );
@@ -576,7 +576,7 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
     Object.fromEntries(btns.map(btn => {
       const key = btn.getAttribute('data-launch-rq');
       const text = btn.querySelector('.quick-cut-copy em')?.textContent || '';
-      const m = text.match(/(\d+) left/);
+      const m = text.match(/(\d+)\s*(?:left)?$/i);
       return [key, m ? Number(m[1]) : -1];
     }))
   );
