@@ -203,6 +203,13 @@
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
   }
   function visibleRestaurants(){return restaurantCurrentRadiusPool().filter(x=>!restaurantManual.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k)));}
+  window.DinliminateRestaurantLiveQuickCutDiagnostics=()=>({
+    radius:Number(restaurantRadiusMiles),
+    pool:restaurantCurrentRadiusPool().length,
+    active:(activeRestaurants||[]).length,
+    counts:Object.fromEntries((RESTAURANT_QUICK_CUTS||[]).map(([,k])=>[k,restaurantQuickCutCountLive(k)]))
+  });
+
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
