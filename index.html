@@ -8102,6 +8102,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     if(restaurantLocationMode==='area'&&restaurantAreaCoords){
       window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();
       return searchAt({lat:restaurantAreaCoords.lat,lon:restaurantAreaCoords.lon},restaurantAreaCoords.display||userCity||'Selected location');
+    }
     return true;
   }
   function refresh(){
