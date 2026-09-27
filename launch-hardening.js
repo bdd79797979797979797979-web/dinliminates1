@@ -1,3 +1,4 @@
+/* P684 restaurant Quick Cut state-sync hardening */
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
@@ -179,6 +180,7 @@
    * radius, so changing radius cannot leave stale category counts or allow
    * an old restaurant back into a smaller round.
    */
+  let preserveRestaurantQuickCutsOnNextApply=null;
   function currentRestaurantQuickCutUniverse(){
     const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
     const source=(Array.isArray(restaurantItems)&&restaurantItems.length)
@@ -441,11 +443,38 @@
       if(hasRound&&!searchInFlight){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
       return r;
     };
-    window.applyRestaurantData=function(){const r=legacyApplyRestaurant.apply(this,arguments);restaurantBase=uniq([...(activeRestaurants||[])],restKey);syncRestaurantQuickCutScope();restaurantManual.clear();restaurantRoundInProgress=!!restaurantItems.length;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
+    window.DinliminatePreserveRestaurantQuickCutsOnRefresh=()=>{preserveRestaurantQuickCutsOnNextApply=new Set(restaurantQuickCuts||[]);};
+    window.applyRestaurantData=function(){
+      const preserved=preserveRestaurantQuickCutsOnNextApply;
+      preserveRestaurantQuickCutsOnNextApply=null;
+      const r=legacyApplyRestaurant.apply(this,arguments);
+      restaurantBase=uniq([...(restaurantItems||[])],restKey);
+      syncRestaurantQuickCutScope();
+      restaurantManual.clear();
+      restaurantQuickCuts=preserved||new Set();
+      activeRestaurants=visibleRestaurants();
+      holdingRestaurants=[];
+      restaurantRoundInProgress=!!restaurantItems.length;
+      saveRestaurantRoundState();
+      renderRestaurantQuickCuts();
+      renderRestaurantStage();
+      return r;
+    };
     window.renderRestaurantStage=wrapRestaurantRender();
     window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;window.DinliminateSyncRestaurantQuickCutScope=syncRestaurantQuickCutScope;
     window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
-    window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
+    window.restaurantKeep=function(card){
+      if(pass?.mode==='restaurant')return passAct('hold',card);
+      const r=legacyRestaurantKeep.apply(this,arguments);
+      setTimeout(()=>{
+        restaurantRoundInProgress=true;
+        saveRestaurantRoundState();
+        syncRestaurantQuickCutScope();
+        renderRestaurantQuickCuts();
+      },250);
+      return r;
+    };
+    window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
     const foodBottom=$('gamePanel')?.querySelector('.game-bottom');
     const foodPass=$('foodPassAroundBtn');
@@ -507,6 +536,7 @@
       syncHoursFilterButton();
       try { window.saveRestaurantFilters?.(); } catch {}
       try { window.renderRestaurantStage?.(); } catch {}
+      try { window.renderRestaurantQuickCuts?.(); } catch {}
       const label = next === 'closed' ? 'Closed restaurants only.' : 'Open or unknown-hour restaurants.';
       try { window.toast?.(label); } catch {}
     });
