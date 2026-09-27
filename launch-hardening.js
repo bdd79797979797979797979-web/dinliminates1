@@ -199,13 +199,35 @@
     return restaurantBase;
   }
 
-  function restaurantQuickCutDisplayPool(){
-    let pool=[...syncRestaurantQuickCutScope()];
-    // P683: category counts represent the restaurants still in the current round.
-    // A manual Cut is gone from the current restaurant choices even though it remains
-    // in restaurantItems so Back can restore it without contaminating the scope.
+  function restaurantQuickCutDisplayPool(forKey=''){
+    const scope=[...syncRestaurantQuickCutScope()];
     const manual=new Set(restaurantManual||new Set());
-    pool=pool.filter(r=>!manual.has(restKey(r)));
+    const held=new Set((holdingRestaurants||[]).map(restKey));
+    const activeQuick=new Set(restaurantQuickCuts||[]);
+    const currentActive=new Set((activeRestaurants||[]).map(restKey));
+    const key=String(forKey||'').trim();
+
+    // Live actionable universe: active choices for normal counts. When a Quick Cut
+    // is already active, count only its own restorable matches that are not held,
+    // manually cut, or excluded by another active Quick Cut.
+    let pool;
+    if(key && activeQuick.has(key)){
+      pool=scope.filter(r=>{
+        const id=restKey(r);
+        if(currentActive.has(id)||manual.has(id)||held.has(id))return false;
+        if(!restaurantQuickCutMatches(r,key))return false;
+        return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
+      });
+    }else{
+      pool=(activeRestaurants||[]).filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
+    }
+
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    pool=pool.filter(r=>{
+      const d=Number(r?.distanceMiles);
+      return !Number.isFinite(d)||d<=radius;
+    });
+
     const q=String(restaurantFilters?.query||'').trim().toLowerCase();
     if(q){
       pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
@@ -215,7 +237,6 @@
     else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
     return pool;
   }
-
   function renderRestaurantQuickCuts(){
     const host=$('restaurantQuickCuts'),title=$('restaurantQuickCutsTitle');if(!host)return;
     if(restaurantFinalistMode){host.innerHTML='';if(title)title.textContent='FINALISTS';return;}
@@ -223,7 +244,7 @@
     const list=Array.isArray(RESTAURANT_QUICK_CUTS)?RESTAURANT_QUICK_CUTS:[];
     const pool=restaurantQuickCutDisplayPool();
     host.innerHTML=list.map(([label,k,photoKey])=>{
-      const n=pool.filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;
+      const n=restaurantQuickCutDisplayPool(k).filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;
       return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
     }).join('');
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
@@ -232,7 +253,7 @@
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
-    const scope=restaurantQuickCutDisplayPool();
+    const scope=restaurantQuickCutDisplayPool(k);
     if(!scope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
     restaurantQuickCuts.has(k)?restaurantQuickCuts.delete(k):restaurantQuickCuts.add(k);
     activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
