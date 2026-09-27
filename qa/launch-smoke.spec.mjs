@@ -102,6 +102,8 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.context().grantPermissions(['geolocation']);
+  await page.context().setGeolocation({ latitude: 36.16655, longitude: -86.77135 });
   await page.locator('#homeRestaurantQuick').click();
   await expect(page.locator('#restaurantPanel')).toBeVisible();
   await expect(page.locator('#restaurantLocationInput')).toBeVisible();
