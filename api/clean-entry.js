@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p681-launch-version";
+const CLEAN_VERSION = "p682-restaurant-quickcuts-live-sync";
 
 function transform(html) {
   return html
