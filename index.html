@@ -7368,7 +7368,8 @@ function restaurantSortValue(item){
   return Number.isFinite(d)?d:Infinity;
 }
 function filteredRestaurants(){
-  let list=[...activeRestaurants];
+  const radius=Number(restaurantRadiusMiles);
+  let list=(activeRestaurants||[]).filter(r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(radius)||(!Number.isFinite(d)?false:d<=radius+0.000001);});
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
   if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
@@ -8109,7 +8110,14 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     e.preventDefault();e.stopImmediatePropagation();
     if(t.id==='restaurantUseLocationBtn'||t.id==='restaurantEmptyLocation'||t.dataset.restaurantEmptyAction==='location')void locate();else if(t.id==='restaurantRefreshBtn')void refresh();else void find();
   },true);
-  document.addEventListener('change',e=>{if(e.target?.id!=='restaurantRadiusFilter')return;e.preventDefault();e.stopImmediatePropagation();void setRadius(e.target.value,true);},true);
+  const radiusSelect=$('restaurantRadiusFilter');
+  if(radiusSelect && !radiusSelect.dataset.v3Bound){
+    radiusSelect.dataset.v3Bound='1';
+    radiusSelect.addEventListener('change',e=>{
+      e.preventDefault(); e.stopImmediatePropagation();
+      void setRadius(e.currentTarget.value,true);
+    },true);
+  }
   document.addEventListener('click',e=>{if(!e.target?.closest?.('#restaurantRadiusDisplay'))return;const s=$('restaurantRadiusFilter');if(!s)return;e.preventDefault();e.stopImmediatePropagation();try{if(typeof s.showPicker==='function')s.showPicker();else{s.focus();s.click();}}catch{try{s.focus();s.click();}catch{}}},true);
   document.addEventListener('keydown',e=>{if(e.target?.id!=='restaurantLocationInput')return;if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();void find();}if(e.key==='Escape')clearSuggestions();},true);
   const field=input();if(field){field.addEventListener('input',()=>{const q=text(field.value);if(restaurantAreaCoords&&norm(q)!==norm(restaurantAreaCoords.query)){restaurantAreaCoords=null;clearArea();ST.selected=null;}scheduleSuggest();});field.addEventListener('focus',()=>{if(text(field.value).length>=2)void suggest(text(field.value));});field.addEventListener('blur',()=>setTimeout(clearSuggestions,300));}
