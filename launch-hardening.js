@@ -286,8 +286,8 @@
     const finals=p.pool.filter(item=>p.votes.every(v=>v.has(passKey(item))&&v.get(passKey(item))===false));p.finalists=finals;
     if(!finals.length){p.phase='no_finalists';p.busy=false;savePassState();applyPassLock();showPassNoFinalists();renderPassStatus();return;}
     pass=null;clearPassState();clearPassLock();$('passStatus')?.remove();
-    if(p.mode==='restaurant'){activeRestaurants=[...finals];holdingRestaurants=[];restaurantFinalistMode=true;restaurantEliminationExhausted=false;restaurantUndoStack=[];restaurantQuickCuts.clear();restaurantFilters={query:'',sort:p.snapshot.filters?.sort==='closest'?'closest':'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();saveRestaurantRoundState();setStatus(finals.length+' finalists left · choose one','live');}
-    else{activeItems=[...finals];holdingItems=[];finalistMode=true;undoStack=[];originalCount=p.pool.length;searchQuery='';foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();document.body.classList.add('finalist-mode');setStatus(finals.length+' finalists left · choose one','live');}
+    if(p.mode==='restaurant'){activeRestaurants=[...finals];holdingRestaurants=[];restaurantFinalistMode=true;restaurantEliminationExhausted=false;restaurantUndoStack=[];restaurantQuickCuts.clear();restaurantFilters={query:'',sort:p.snapshot.filters?.sort==='closest'?'closest':'shuffle'};restaurantRoundInProgress=true;renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();clearPassLock();saveRestaurantRoundState();setStatus(finals.length+' finalists left · choose one','live');}
+    else{activeItems=[...finals];holdingItems=[];finalistMode=true;undoStack=[];originalCount=p.pool.length;searchQuery='';foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();document.body.classList.add('finalist-mode');clearPassLock();setStatus(finals.length+' finalists left · choose one','live');}
     toast('Everyone finished. Only the choices everyone kept are finalists.');
   }
   function restorePassSnapshot(p){
