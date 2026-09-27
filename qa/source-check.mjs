@@ -32,7 +32,7 @@ for (const rel of files) {
       if (required === 'reportBtn') continue;
       if (!html.includes('id="' + required + '"')) failures.push('missing required id #' + required);
     }
-    if (!html.includes('p682-restaurant-quickcuts-live-sync')) failures.push('P681 release marker missing');
+    if (!html.includes('p683-quickcut-live-counts')) failures.push('P681 release marker missing');
   }
 }
 
