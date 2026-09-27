@@ -181,7 +181,9 @@
    */
   function currentRestaurantQuickCutUniverse(){
     const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
-    const source=(Array.isArray(restaurantItems)&&restaurantItems.length)
+    // restaurantItems is the authoritative result set for the current search.
+    // Treat an empty array as a real empty result set; never resurrect an older pool.
+    const source=Array.isArray(restaurantItems)
       ? restaurantItems
       : uniq([...(restaurantBase||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);
     return uniq(source.filter(r=>{
@@ -205,6 +207,12 @@
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
     if(hours==='closed') pool=pool.filter(r=>restaurantOpenStatus?.(r)===false);
     else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
+    // Counts represent restaurants still available in this round. Ignore manual
+    // cuts and Maybes, but deliberately do NOT apply Quick Cut exclusions so a
+    // hidden category still shows its reversible "show · N" count.
+    const manual=new Set(restaurantManual||[]);
+    const held=new Set((holdingRestaurants||[]).map(restKey));
+    pool=pool.filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
     return pool;
   }
 
@@ -440,7 +448,7 @@
     window.renderRestaurantStage=wrapRestaurantRender();
     window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;window.DinliminateSyncRestaurantQuickCutScope=syncRestaurantQuickCutScope;
     window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};
-    window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
+    window.restaurantKeep=function(card){if(pass?.mode==='restaurant')return passAct('hold',card);const r=legacyRestaurantKeep.apply(this,arguments);setTimeout(()=>{restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();},250);return r;};window.restaurantUndo=function(){const r=legacyRestaurantUndo.apply(this,arguments);recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();return r;};
     window.showWinner=function(){foodInProgress=false;safeWrite(FOOD_ROUND_KEY,'');idbDelete('foodRound');return legacyShowWinner.apply(this,arguments);};window.renderLibrary=renderLibraryLaunch;
     const foodBottom=$('gamePanel')?.querySelector('.game-bottom');
     const foodPass=$('foodPassAroundBtn');
