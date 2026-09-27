@@ -391,7 +391,7 @@
     if(!el)return null;
     const clone=el.cloneNode(true);
     el.replaceWith(clone);
-    clone.addEventListener('click',handler);
+    clone.onclick=handler;
     return clone;
   }
   function install(){
