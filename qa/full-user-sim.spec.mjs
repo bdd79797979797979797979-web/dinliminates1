@@ -62,7 +62,7 @@ test('full simulated user journey — home, food, custom food, hidden choices, s
 
   // HOME / MENU / ABOUT / IPHONE HELP
   await expect(page.locator('#homePanel')).toBeVisible();
-  expect((await page.locator('h1').innerText()).split(/\\s+/).join(' ').trim().toLowerCase()).toBe('what sounds good tonight?');
+  expect((await page.locator('h1').innerText()).split(/\s+/).join(' ').trim().toLowerCase()).toBe('what sounds good tonight?');
   await openHomeMenu(page);
   await expect(page.locator('#aboutMenuBtn')).toBeVisible();
   await page.locator('#aboutMenuBtn').click();
