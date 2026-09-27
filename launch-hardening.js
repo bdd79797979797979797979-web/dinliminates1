@@ -228,7 +228,14 @@
         return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
       });
     }else{
-      pool=(activeRestaurants||[]).filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r)));
+      // Inactive Quick Cuts count the current search universe, not the mutable
+      // active card list. Cut/Maybe/other active Quick Cut state is subtracted
+      // from that live universe below, keeping counts aligned with current scope.
+      pool=scope.filter(r=>{
+        const id=restKey(r);
+        if(manual.has(id)||held.has(id))return false;
+        return ![...activeQuick].some(other=>restQuickMatch(r,other));
+      });
     }
 
     const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
