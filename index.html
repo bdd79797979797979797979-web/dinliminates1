@@ -5506,6 +5506,8 @@ window.__dinliminateReleaseMigration=(async()=>{
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
+  .choose-secondary-action{border:1px solid rgba(255,255,255,.14)!important;background:rgba(255,255,255,.045)!important;color:rgba(255,255,255,.76)!important;opacity:.9!important;min-width:0!important}
+  .restaurant-choose-btn{border-color:rgba(255,255,255,.14)!important;color:rgba(255,255,255,.76)!important;background:rgba(255,255,255,.045)!important}
   .restaurant-utility-row{display:flex;align-items:center;gap:7px;overflow-x:auto;padding:4px 0 5px;scrollbar-width:none}
   .restaurant-utility-row::-webkit-scrollbar{display:none}
   .restaurant-tool-btn{flex:0 0 auto;min-height:34px;border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:0 12px;background:rgba(255,255,255,.055);color:rgba(255,255,255,.72);font-size:.54rem;font-weight:850;white-space:nowrap}
@@ -5602,6 +5604,7 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 <div class="game-bottom">
 <button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random cut one</button>
 <button class="text-btn food-secondary-action add-food-btn" id="addDuringBtn" type="button">Add food</button>
+<button class="text-btn food-secondary-action choose-secondary-action" id="chooseBtn" type="button" aria-label="Choose this food">Choose</button>
 <button aria-label="Pass Around with other people" class="text-btn food-secondary-action pass-around-btn pass-food-btn" id="foodPassAroundBtn" type="button">Pass Around</button>
 </div>
 </section>
@@ -5634,6 +5637,7 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 
   <div class="restaurant-utility-row" aria-label="Restaurant tools">
     <button class="restaurant-tool-btn" id="restaurantSearchBtn" type="button" aria-expanded="false" aria-controls="restaurantInlineSearch">Search</button>
+    <button class="restaurant-tool-btn restaurant-choose-btn" id="restaurantChooseBtn" type="button" aria-label="Choose this restaurant">Choose</button>
     <button class="restaurant-tool-btn restaurant-pass-btn" id="restaurantPassAroundBtn" type="button">Pass Around</button>
   </div>
   <div class="restaurant-inline-search hidden" id="restaurantInlineSearch">
@@ -6137,7 +6141,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p636-clean-final';
+const DINLIMINATE_VERSION = 'p637-recycle-maybe-choose';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -6750,12 +6754,6 @@ function quickCutMatches(item, rule) {
 function renderTags() {
   const host=$('quickCutsBar');
   if(!host)return;
-  if(finalistMode){
-    host.innerHTML='';
-    const title=host.closest('.quick-cuts-panel')?.querySelector('.quick-cuts-title');
-    if(title)title.textContent='FINALISTS';
-    return;
-  }
   const keys = Object.keys(QUICK_CUT_RULES).filter(key=>['burgers','pizza','chicken','mexican','italian','pasta','potato','southern','healthy','soupstew','sandwiches','seafood','steak','bbq','breakfast'].includes(key));
   const counts = Object.fromEntries(keys.map(key => [key, activeItems.filter(item => quickCutMatches(item, QUICK_CUT_RULES[key])).length]));
   const quickCutPhoto = key => {
@@ -6777,12 +6775,12 @@ function renderTags() {
 function renderStage() {
   $('countNumber').textContent = activeItems.length;
   if($('gameTopCount'))$('gameTopCount').textContent=activeItems.length;
-  const progress = finalistMode ? 100 : Math.max(0, Math.min(100, ((originalCount - activeItems.length) / Math.max(originalCount - 1, 1)) * 100));
+  const progress = Math.max(0, Math.min(100, ((originalCount - activeItems.length) / Math.max(originalCount - 1, 1)) * 100));
   $('progressBar').style.width = `${progress}%`;
   renderTags();
   const title=$('quickCutsBar')?.closest('.quick-cuts-panel')?.querySelector('.quick-cuts-title');
-  if(title && !finalistMode) title.textContent='Quick Cuts';
-  document.body.classList.toggle('finalist-mode',finalistMode);
+  if(title) title.textContent='Quick Cuts';
+  document.body.classList.remove('finalist-mode');
   if (!activeItems.length) { showHungryState(); return; }
   const items = searchQuery ? availableItems() : activeItems;
   const cards = items.slice(0, 3);
@@ -6801,16 +6799,16 @@ function renderStage() {
         <div class="photo-fallback" aria-hidden="true">${displayIcon(item)}</div>
         <img src="${escapeHtml(photoFor(item))}" alt="${escapeHtml(item.name)}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${i === 0 ? 'high' : 'low'}" onerror="this.onerror=null;this.src='${FOOD_FALLBACK_PHOTO}'" />
         <div class="photo-shade"></div>
-        <div class="photo-label">${finalistMode?'FINALIST':'DINNER'}</div>
+        <div class="photo-label">DINNER</div>
         <div class="swipe-badge cut">CUT</div>
-        <div class="swipe-badge hold">${finalistMode?'CHOOSE':'MAYBE'}</div>
+        <div class="swipe-badge hold">MAYBE</div>
       </div>
       <div class="card-content">
         <div class="card-kicker">${escapeHtml(item.category || (item.type==='restaurant'?'Restaurant':"Tonight's option"))}</div>
         <div class="card-name">${escapeHtml(item.name)}</div>
         <div class="card-meta">${escapeHtml((item.tags || []).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Just a food')}${item.prep ? ` · ${escapeHtml(item.prep)}` : ''}${item.budget ? ` · ${escapeHtml(item.budget)}` : ''}</div>
         ${item.notes ? `<div class="card-note">${escapeHtml(item.notes)}</div>` : ''}
-        <div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>${finalistMode?'finalists left':'options left'}</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility details" type="button" data-card-action="details">Details</button><button class="choice-utility save" type="button" data-card-action="save" aria-label="${saved?'Remove food from Saved':'Save food'}">${saved?'♥ Saved':'♡ Save'}</button></div></div>
+        <div class="choice-footer"><div class="choice-count" aria-label="Options remaining"><strong>${activeItems.length}</strong><span>options left</span></div><div class="choice-utilities" aria-label="Choice actions"><button class="choice-utility details" type="button" data-card-action="details">Details</button><button class="choice-utility save" type="button" data-card-action="save" aria-label="${saved?'Remove food from Saved':'Save food'}">${saved?'♥ Saved':'♡ Save'}</button></div></div>
       </div>
     </article>`;
   }).join('');
@@ -6830,7 +6828,7 @@ function preloadNextPhotos(){
 }
 
 function pushUndo() {
-  undoStack.push({ activeItems:[...activeItems], holdingItems:[...holdingItems], finalistMode });
+  undoStack.push({ activeItems:[...activeItems], holdingItems:[...holdingItems] });
   if (undoStack.length > 30) undoStack.shift();
   updateBackButton();
 }
@@ -6852,7 +6850,7 @@ function undoLast() {
   const snap = undoStack.pop();
   activeItems = [...snap.activeItems];
   holdingItems = [...snap.holdingItems];
-  finalistMode = !!snap.finalistMode;
+  finalistMode = false;
   syncDecisionActionLabels();
   searchQuery = '';
   renderStage();
@@ -6893,7 +6891,6 @@ function bindSwipe(card) {
       else holdCurrent(card);
     } else {
       card.style.transform = '';
-      if(wasTap && finalistMode) toast('Use Details or swipe to choose.');
     }
   };
   card.addEventListener('pointerup', end);
@@ -6970,17 +6967,20 @@ function holdCurrent(card) {
   if(passAroundSession?.mode==='food') { passAroundVote('maybe',card,false); return; }
   const idx = currentIndex();
   if (idx < 0 || activeItems.length === 0 || transitioning) return;
-  if(finalistMode){
-    pushUndo();
-    showWinnerFromItem(activeItems[idx]);
-    return;
-  }
   pushUndo();
   transitionCard(card, 1, () => {
     const [item] = activeItems.splice(idx,1);
     holdingItems.push(item);
     afterEliminate('hold');
   });
+}
+function chooseCurrent(){
+  if(passAroundSession?.mode==='food'){ toast('Choose is available after Pass Around finishes.'); return; }
+  const idx=currentIndex();
+  if(idx<0 || !activeItems.length || transitioning) return;
+  const item=activeItems[idx];
+  pushUndo();
+  showWinnerFromItem(item);
 }
 function transitionCard(card, direction, done) {
   transitioning = true;
@@ -7022,27 +7022,19 @@ function randomEliminate() {
 }
 function afterEliminate(action) {
   if (searchQuery) searchQuery = '';
-  // Never auto-declare a winner just because one card remains.
-  // Enter a finalist state and require an explicit Choose action.
-  if (!finalistMode && activeItems.length <= 1) {
-    finalistMode = true;
-    activeItems = dedupe([...activeItems, ...holdingItems]);
+  if (activeItems.length === 0 && holdingItems.length > 0) {
+    activeItems = dedupe([...holdingItems]);
     holdingItems = [];
+    finalistMode = false;
     syncDecisionActionLabels();
-    if (!activeItems.length) { showHungryState(); return; }
     renderStage();
-    setStatus(`${activeItems.length} finalist${activeItems.length===1?'':'s'} left · choose one`, 'live');
-    toast(activeItems.length===1 ? 'One finalist left. Tap Choose to finish.' : `Finalists ready. Choose one of ${activeItems.length}. ★`);
+    setStatus('Maybes are back around · cut, maybe again, or choose one.', 'live');
+    toast('Your Maybes are coming back around. ↻');
     return;
   }
   if (activeItems.length === 0) { showHungryState(); return; }
-  if (activeItems.length === 1 && finalistMode) {
-    renderStage();
-    setStatus('1 finalist left · choose it to finish', 'live');
-    return;
-  }
   renderStage();
-  setStatus(finalistMode ? `${activeItems.length} finalists left` : (activeItems.length <= 5 ? 'Narrow it down…' : 'Keep swiping.'), 'live');
+  setStatus(activeItems.length <= 5 ? 'Narrow it down…' : 'Keep swiping.', 'live');
 }
 
 // PASS AROUND — shared elimination round using the same Tinder controls.
@@ -7094,13 +7086,13 @@ function finishPassAroundSession(){
   if(!finalists.length) finalists=s.pool.filter(item=>(counts.get(passAroundKey(item))||0)>0).slice(0,Math.min(3,s.pool.length));
   passAroundSession=null;
   if(s.mode==='restaurant'){
-    activeRestaurants=[...finalists]; holdingRestaurants=[]; restaurantFinalistMode=true; restaurantFilters.query=''; renderRestaurantQuickCuts(); renderRestaurantStage(); syncRestaurantActionLabels();
+    activeRestaurants=[...finalists]; holdingRestaurants=[]; restaurantFinalistMode=false; restaurantEliminationExhausted=false; restaurantFilters.query=''; renderRestaurantQuickCuts(); renderRestaurantStage(); syncRestaurantActionLabels();
   }else{
-    activeItems=[...finalists]; holdingItems=[]; finalistMode=true; searchQuery=''; renderStage(); syncDecisionActionLabels();
+    activeItems=[...finalists]; holdingItems=[]; finalistMode=false; searchQuery=''; renderStage(); syncDecisionActionLabels();
   }
-  const label=finalists.length===1?'1 finalist':`${finalists.length} finalists`;
-  setStatus(`${label} left · choose one`,'live');
-  toast(`Group round complete · ${label}.`);
+  const label=finalists.length===1?'1 choice':`${finalists.length} choices`;
+  setStatus(`${label} left · keep cutting/maybing or choose one`,'live');
+  toast(`Group round complete · ${label} remain.`);
 }
 function advancePassAroundParticipant(){
   const s=passAroundSession; if(!s)return;
@@ -7171,8 +7163,9 @@ function applyFoodPreferences(){
   activeItems=[...base]; originalCount=Math.max(activeItems.length,1); holdingItems=[]; finalistMode=false;
 }
 function syncDecisionActionLabels(){
-  const hold=$('holdBtn'); if(hold){hold.innerHTML=finalistMode?'Choose <span>✓</span>':'Maybe <span>♥</span>';hold.setAttribute('aria-label',finalistMode?'Choose this finalist':'Keep this food as a maybe');}
-  const cut=$('cutBtn'); if(cut){cut.innerHTML='<span>×</span> Cut';}
+  const hold=$('holdBtn'); if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this food as a maybe');hold.disabled=!activeItems.length;}
+  const choose=$('chooseBtn'); if(choose){choose.disabled=!activeItems.length || !!passAroundSession;}
+  const cut=$('cutBtn'); if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!activeItems.length;}
 }
 function showGame() {
   document.body.classList.remove('restaurant-mode'); currentWinnerMode='food'; document.title='Dinliminate — Choose a Food'; applyFoodPreferences();
@@ -7453,9 +7446,6 @@ function restaurantSortValue(item){
   return Number.isFinite(d)?d:Infinity;
 }
 function filteredRestaurants(){
-  // Finalist mode is a protected comeback pool: every restaurant that was
-  // saved as Maybe must return regardless of the initial filters.
-  if(restaurantFinalistMode)return dedupe([...activeRestaurants]);
   let list=[...activeRestaurants];
   // Restaurant hours are informational only in P636 final; they never filter the deck.
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
@@ -7467,7 +7457,6 @@ function renderRestaurantQuickCuts(){
   const host=$('restaurantQuickCuts');
   const title=$('restaurantQuickCutsTitle');
   if(!host)return;
-  if(restaurantFinalistMode){host.innerHTML='';if(title)title.textContent='FINALISTS';return;}
   if(title)title.textContent='Quick Cuts';
   host.innerHTML=RESTAURANT_QUICK_CUTS.map(([label,key])=>{
     const count=restaurantQuickCutCount(key);
@@ -7563,27 +7552,22 @@ function showRestaurantHungryState(reason='exhausted'){
 }
 function afterRestaurantEliminate(action){
   if(restaurantFilters.query)restaurantFilters.query='';
-  // A restaurant deck with zero active choices is always the terminal HUNGRY state.
-  // Check this before finalist logic so the last cut cannot get stranded in an empty stage.
-  if(activeRestaurants.length===0 && holdingRestaurants.length===0){
-    showRestaurantHungryState();
-    return;
-  }
-  if(!restaurantFinalistMode && activeRestaurants.length<=1){
-    restaurantFinalistMode=true;
-    activeRestaurants=dedupe([...activeRestaurants,...holdingRestaurants]);
+  if(activeRestaurants.length===0 && holdingRestaurants.length>0){
+    activeRestaurants=dedupe([...holdingRestaurants]);
     holdingRestaurants=[];
-    syncRestaurantActionLabels();
+    restaurantFinalistMode=false;
+    restaurantEliminationExhausted=false;
     renderRestaurantQuickCuts();
-    if(!activeRestaurants.length){showRestaurantHungryState();return;}
     renderRestaurantStage();
-    setStatus(`${activeRestaurants.length} finalist${activeRestaurants.length===1?'':'s'} left · choose one`,'live');
-    toast(activeRestaurants.length===1?'One finalist left. Choose it to finish.':`Finalists ready. Choose one of ${activeRestaurants.length}. ★`);
+    syncRestaurantActionLabels();
+    setStatus('Maybes are back around · cut, maybe again, or choose one.','live');
+    toast('Your restaurant Maybes are coming back around. ↻');
     return;
   }
   if(activeRestaurants.length===0){showRestaurantHungryState();return;}
+  restaurantFinalistMode=false;
   renderRestaurantStage();
-  setStatus(restaurantFinalistMode?`${activeRestaurants.length} finalist${activeRestaurants.length===1?'':'s'} left`:(activeRestaurants.length<=5?'Narrow it down…':'Keep swiping.'),'live');
+  setStatus(activeRestaurants.length<=5?'Narrow it down…':'Keep swiping.','live');
 }
 function renderRestaurantStage(){
   const rawCount=activeRestaurants.length;
@@ -7615,7 +7599,7 @@ function renderRestaurantStage(){
     syncRestaurantActionLabels();return;
   }
   const open=restaurantOpenStatus(first);const website=safeExternalUrl(first.website);const distance=Number.isFinite(first.distanceMiles)?`${first.distanceMiles.toFixed(1)} mi`:'Distance unavailable';const photoSrc=restaurantPhotoUrl(first);const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';const isSavedNow=isSaved(first);const menuItems=restaurantMenuItems(first);const menuBox=menuItems.length?`<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>${menuItems.map(x=>escapeHtml(x)).join(' · ')}</strong></div>`:'';
-  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div><button class="restaurant-save-btn restaurant-save-v240 ${isSavedNow?'saved':''}" data-rest-action="save" type="button" aria-label="${isSavedNow?'Remove restaurant from Saved':'Save restaurant'}">${isSavedNow?'♥':'♡'}</button></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe${restaurantFinalistMode?' · Choose finishes the round':''}</div></div></article>`;
+  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div><button class="restaurant-save-btn restaurant-save-v240 ${isSavedNow?'saved':''}" data-rest-action="save" type="button" aria-label="${isSavedNow?'Remove restaurant from Saved':'Save restaurant'}">${isSavedNow?'♥':'♡'}</button></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
   const card=$('restaurantStage').querySelector('.active');bindRestaurantSwipe(card);
   card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}if(a==='save'){const now=toggleSaved(first);btn.textContent=now?'♥':'♡';btn.classList.toggle('saved',now);btn.setAttribute('aria-label',now?'Remove restaurant from Saved':'Save restaurant');}}));
   syncRestaurantActionLabels();
@@ -7633,9 +7617,9 @@ function bindRestaurantSwipe(card){
 }
 function syncRestaurantActionLabels(){
   const hold=$('restaurantKeepBtn');
-  const chooseMode=restaurantFinalistMode;
-  if(hold){hold.innerHTML=chooseMode?'Choose <span>✓</span>':'Maybe <span>♥</span>';hold.setAttribute('aria-label',chooseMode?'Choose this restaurant':'Keep this restaurant as a maybe');hold.disabled=!currentRestaurant();}
-  const cut=$('restaurantCutBtn'); if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!currentRestaurant();}
+  if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this restaurant as a maybe');hold.disabled=!currentRestaurant();}
+  const choose=$('restaurantChooseBtn');if(choose)choose.disabled=!currentRestaurant() || !!passAroundSession;
+  const cut=$('restaurantCutBtn');if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!currentRestaurant();}
   const hide=$('restaurantHideBtn');if(hide)hide.disabled=!currentRestaurant();
   const back=$('restaurantBackAction');if(back)back.disabled=restaurantUndoStack.length===0;
 }
@@ -7678,28 +7662,23 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
 function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
   if(passAroundSession?.mode==='restaurant') { passAroundVote('maybe',card,true); return; }
   const item=currentRestaurant(); if(!item||restaurantTransitioning)return;
-  // A right-tap is a direct selection whenever the current filtered deck has
-  // reached a single eligible restaurant, or while the user is choosing among
-  // finalists. Never move the only eligible restaurant into holding and lose it.
-  if(restaurantFinalistMode){
-    restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
-    const winner=item;
-    activeRestaurants=[winner];
-    holdingRestaurants=[];
-    showRestaurantWinner();
-    return;
-  }
   const idx=activeRestaurants.findIndex(r=>String(r.id)===String(item.id)); if(idx<0)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
   restaurantFilters.query='';
   transitionRestaurantCard(card,1,()=>{const [held]=activeRestaurants.splice(idx,1);if(held)holdingRestaurants.push(held);afterRestaurantEliminate('hold');toast('Restaurant kept as a maybe.');});
+}
+function chooseRestaurantCurrent(){
+  if(passAroundSession?.mode==='restaurant'){toast('Choose is available after Pass Around finishes.');return;}
+  const item=currentRestaurant();if(!item||restaurantTransitioning)return;
+  restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:false,exhausted:restaurantEliminationExhausted});
+  showRestaurantWinner();
 }
 function restaurantUndo(){
   if(restaurantTransitioning)return;
   const snap=restaurantUndoStack.pop(); if(!snap)return;
   activeRestaurants=[...(snap.activeRestaurants||[])];
   holdingRestaurants=[...(snap.holdingRestaurants||[])];
-  restaurantFinalistMode=!!snap.finalistMode;
+  restaurantFinalistMode=false;
   restaurantEliminationExhausted=!!snap.exhausted;
   restaurantFilters.query='';
   renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels();
@@ -7874,6 +7853,7 @@ bind('confirmCancelBtn','click',closeConfirm);
 bind('confirmCutBtn','click',confirmHide);
 bind('confirmBackdrop','click',e=>{ if(e.target === $('confirmBackdrop')) closeConfirm(); });
 bind('holdBtn','click',()=>holdCurrent($('stage')?.querySelector('.active')));
+bind('chooseBtn','click',chooseCurrent);
 syncDecisionActionLabels();
 
 bind('modalBackdrop','click',e=>{ if(e.target === $('modalBackdrop')) closeModal(); });
@@ -7881,7 +7861,7 @@ bind('restaurantBackBtn','click',()=>{setNavActive('navHome');goHome();});
 bind('restaurantMenuBtn','click',openMenu);
 // Restaurant location controls are exclusively owned by the authoritative location controller below.
 
-bind('restaurantCutBtn','click',()=>restaurantCut($('restaurantStage')?.querySelector('.active')));bind('restaurantKeepBtn','click',()=>restaurantKeep($('restaurantStage')?.querySelector('.active')));bind('restaurantBackAction','click',restaurantUndo);bind('restaurantHideBtn','click',restaurantHide);
+bind('restaurantCutBtn','click',()=>restaurantCut($('restaurantStage')?.querySelector('.active')));bind('restaurantKeepBtn','click',()=>restaurantKeep($('restaurantStage')?.querySelector('.active')));bind('restaurantChooseBtn','click',chooseRestaurantCurrent);bind('restaurantBackAction','click',restaurantUndo);bind('restaurantHideBtn','click',restaurantHide);
 bind('closeLibraryBtn','click',closeLibrary); bind('clearLibraryBtn','click',()=>{ const label=libraryTab==='saved'?'saved choices':'history'; if(!window.confirm(`Clear all ${label}? This cannot be undone.`)) return; if(libraryTab==='saved'){savedItems=[];saveSavedItems();} else {historyItems=[];saveHistoryItems();} renderLibrary(); toast(libraryTab==='saved'?'Saved list cleared.':'History cleared.'); }); bind('libraryBackdrop','click',e=>{if(e.target===$('libraryBackdrop'))closeLibrary();}); document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibrary();}));
 function exportDinliminateData(){
   const payload={version:DINLIMINATE_VERSION,exportedAt:new Date().toISOString(),data:{custom:safeRead('dinliminateCustom','[]'),hidden:safeRead('dinliminateHidden','[]'),saved:safeRead('dinliminateSaved','[]'),history:safeRead('dinliminateHistory','[]'),lastWinner:safeRead('dinliminateLastWinner','null'),preferences:safeRead('dinliminatePreferences','{}'),hideEnabled:safeRead('dinliminateHideEnabled','true'),radius:safeRead('dinliminateRestaurantRadius','10'),motionTilt:safeRead('dinliminateMotionTilt','false'),restaurantArea:safeRead('dinliminateRestaurantArea',''),restaurantFilters:safeRead('dinliminateRestaurantFilters','{}'),deletedFoods:safeRead('dinliminateDeletedFoods','[]'),restaurantReports:safeRead('dinliminateRestaurantReports','[]')}};
