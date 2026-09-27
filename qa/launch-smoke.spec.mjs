@@ -74,6 +74,10 @@ test('food, pass around, click actions, winner and settings controls work', asyn
     }
   });
   const initial = Number(await page.locator('#gameTopCount').textContent());
+  console.log('LAYOUT_DEBUG', await page.evaluate(() => {
+    const ids=['homePanel','gamePanel','stage'];
+    return {scrollY:window.scrollY,innerH:window.innerHeight,bodyH:document.body.scrollHeight,els:Object.fromEntries(ids.map(id=>{const el=document.querySelector('#'+id),r=el?.getBoundingClientRect();return [id,{display:el&&getComputedStyle(el).display,visibility:el&&getComputedStyle(el).visibility,rect:r&&{x:r.x,y:r.y,w:r.width,h:r.height},hidden:el?.classList.contains('hidden')}]}))};
+  }));
   console.log('FOOD_SURFACE_DEBUG', await page.evaluate(() => {
     const card=document.querySelector('#stage .stack-card.active'), stage=document.querySelector('#stage');
     const r=card?.getBoundingClientRect(), x=r ? r.left+r.width/2 : 0, y=r ? r.top+r.height/2 : 0;
