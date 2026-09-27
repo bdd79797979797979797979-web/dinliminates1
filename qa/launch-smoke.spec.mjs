@@ -272,7 +272,7 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
     renderRestaurantStage();
   });
 
-  const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
+  const fastFood = page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const countText = async () => fastFood.locator('em').textContent();
 
   // At 5 miles, the two open fast-food restaurants are actionable.
