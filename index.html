@@ -7367,7 +7367,11 @@ function restaurantSortValue(item){
   return Number.isFinite(d)?d:Infinity;
 }
 function filteredRestaurants(){
-  let list=[...activeRestaurants];
+  const radius=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(restaurantRadiusMiles)||10));
+  let list=[...activeRestaurants].filter(r=>{
+    const d=Number(r?.distanceMiles);
+    return !Number.isFinite(d)||d<=radius;
+  });
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
   if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
@@ -7606,8 +7610,10 @@ function chooseRestaurantCurrent(){
 function restaurantUndo(){
   if(restaurantTransitioning)return;
   const snap=restaurantUndoStack.pop(); if(!snap)return;
-  activeRestaurants=[...(snap.activeRestaurants||[])];
-  holdingRestaurants=[...(snap.holdingRestaurants||[])];
+  const radius=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(restaurantRadiusMiles)||10));
+  const inRadius=item=>{const d=Number(item?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
+  activeRestaurants=[...(snap.activeRestaurants||[])].filter(inRadius);
+  holdingRestaurants=[...(snap.holdingRestaurants||[])].filter(inRadius);
   restaurantFinalistMode=false;
   restaurantEliminationExhausted=!!snap.exhausted;
   restaurantFilters.query='';
