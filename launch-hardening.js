@@ -201,7 +201,10 @@
   async function restorePassState(){
     let s=null;
     try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{}
-    if(!s)try{const row=await idbGet('passState');s=row?.value||null;}catch{}
+    if(!validatePassState(s)){
+      s=null;
+      try{const row=await idbGet('passState');s=row?.value||null;}catch{}
+    }
     if(!validatePassState(s)){clearPassState();return false;}
     const pool=compactPassList(s.pool);if(pool.length<2){clearPassState();return false;}
     const votes=Array.from({length:s.count},(_,i)=>new Map(Array.isArray(s.votes?.[i])?s.votes[i]:[]));
@@ -262,6 +265,7 @@
   function showRestaurantUIForPass(){legacyShowRestaurant?.();document.body.classList.add('restaurant-mode');setupRestaurantTools();renderRestaurantStage();syncRestaurantActionLabels?.();}
   function passCurrent(){return pass?.phase==='voting'?(passViewItems()[0]||null):null;}
   function passAct(kind,card){
+    if(kind!=='cut'&&kind!=='hold')return false;
     if(!pass||pass.phase!=='voting'||pass.busy)return false;
     const item=passCurrent();if(!item)return true;
     const keyFn=pass.mode==='restaurant'?restKey:foodKey,key=passKey(item);const voter=pass.votes?.[pass.participant-1];if(!voter||voter.has(key))return false;
