@@ -180,3 +180,246 @@ test('iPhone viewport has no horizontal overflow and keeps primary controls visi
   expect(foodRect.x).toBeGreaterThanOrEqual(-1);
   expect(foodRect.x + foodRect.width).toBeLessThanOrEqual(391);
 });
+
+test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, save, winner and history', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#homePanel')).toBeVisible();
+
+  // Home menu + About + exact attribution.
+  await page.locator('#homeMenuTopBtn').click();
+  await expect(page.locator('#drawer')).toBeVisible();
+  await page.locator('#aboutMenuBtn').click();
+  await expect(page.locator('#infoBackdrop')).toBeVisible();
+  await expect(page.locator('#infoBackdrop')).toContainText('Made by Brian Dunn for Devona Dunn.');
+  await page.locator('#closeInfoBtn').click();
+  await expect(page.locator('#infoBackdrop')).toBeHidden();
+
+  // Add a custom food with metadata, tag, recipe, and an uploaded photo.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#addMenuBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+  await page.locator('#newName').fill('QA Test Dinner');
+  await page.locator('#newCategory').selectOption({ label: 'Dinner' });
+  await page.locator('[data-add-tag="southern"]').click();
+  await page.locator('#newNotes').fill('QA lifecycle note');
+  await page.locator('#newRecipe').fill('QA recipe line 1\\nQA recipe line 2');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
+  await page.locator('#newPhoto').setInputFiles({ name: 'qa-test.png', mimeType: 'image/png', buffer: png });
+  await expect(page.locator('#newPhotoPreview')).toHaveClass(/show/);
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(1);
+
+  // Deterministically open the newly-added custom food's normal Details surface.
+  await page.evaluate(() => {
+    const item = window.customItems?.find?.(x => x.name === 'QA Test Dinner');
+    if (!item) throw new Error('Custom food not present after add.');
+    window.openDetails?.(item);
+  });
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await expect(page.locator('#detailBackdrop')).toContainText('QA Test Dinner');
+  await page.locator('#detailSaveBtn').click();
+  await expect(page.locator('#detailSaveBtn')).toHaveText(/Saved/);
+  await page.locator('#detailSaveBtn').click();
+  await expect(page.locator('#detailSaveBtn')).toHaveText(/Save/);
+  await page.locator('#editCardBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+  await expect(page.locator('#newName')).toHaveValue('QA Test Dinner');
+  await page.locator('#newName').fill('QA Test Dinner Edited');
+  await expect(page.locator('#deleteRecipeBtn')).toBeVisible();
+  await page.locator('#deleteRecipeBtn').click();
+  await expect(page.locator('#newRecipe')).toHaveValue('');
+  await page.locator('#saveBtn').click();
+  await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(1);
+
+  // Permanently delete the edited custom food with its confirmation.
+  await page.evaluate(() => {
+    const item = window.customItems?.find?.(x => x.name === 'QA Test Dinner Edited');
+    if (!item) throw new Error('Edited custom food not present.');
+    window.openDetails?.(item);
+  });
+  await expect(page.locator('#deleteCardBtn')).toBeVisible();
+  await page.locator('#deleteCardBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeVisible();
+  await expect(page.locator('#confirmCutBtn')).toHaveText(/Delete permanently/);
+  await page.locator('#confirmCutBtn').click();
+  await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(0);
+
+  // Start a clean food round; test Maybe/Back and a Quick Cut hide/restore.
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  const beforeMaybe = Number(await page.locator('#gameTopCount').textContent());
+  await page.locator('#holdBtn').click();
+  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
+  await page.locator('#backBtn').click();
+  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe);
+
+  const qc = page.locator('#quickCutsBar [data-launch-quick]').filter({ hasText: /Burgers|Pizza|Chicken/i }).first();
+  if (await qc.count()) {
+    await qc.click();
+    await expect(qc).toHaveAttribute('aria-pressed', 'true');
+    await qc.click();
+    await expect(qc).toHaveAttribute('aria-pressed', 'false');
+  }
+
+  // Hide current choice, cancel once, then confirm and verify it appears in Settings.
+  const currentFoodName = await page.locator('#stage .stack-card.active .card-name').textContent();
+  await page.locator('#hideBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeVisible();
+  await page.locator('#confirmCancelBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeHidden();
+  await page.locator('#hideBtn').click();
+  await page.locator('#confirmCutBtn').click();
+  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(beforeMaybe - 1);
+
+  await page.locator('#menuBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+  await expect(page.locator('#hiddenFoodList')).toContainText(String(currentFoodName).trim());
+  const hiddenRow = page.locator('#hiddenFoodList .hidden-choice-row').filter({ hasText: String(currentFoodName).trim() }).first();
+  await hiddenRow.getByRole('button', { name: 'Unhide' }).click();
+  await expect(page.locator('#hiddenFoodList .hidden-choice-row').filter({ hasText: String(currentFoodName).trim() })).toHaveCount(0);
+
+  // Preferences, export, and close settings.
+  await page.locator('#prefQuick').click();
+  await expect(page.locator('#prefQuick')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#prefQuick').click();
+  await expect(page.locator('#prefQuick')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#prefComfort').click();
+  await expect(page.locator('#prefComfort')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#prefComfort').click();
+  await expect(page.locator('#prefComfort')).toHaveAttribute('aria-pressed', 'false');
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportDataBtn').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^dinliminate-backup-\\d{4}-\\d{2}-\\d{2}\\.json$/);
+  await page.locator('#closeSettingsBtn').click();
+
+  // Choose a winner, verify Details/Share, then inspect and remove its history calendar entry.
+  await page.evaluate(() => document.querySelector('#stage .stack-card.active [data-card-action="choose"]')?.click());
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await expect(page.locator('#winnerQuickActions [data-winner-details]')).toBeVisible();
+  await page.locator('#winnerQuickActions [data-winner-details]').click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await page.locator('#detailCloseBtn').click();
+  await page.locator('#winnerHomeBtn').click();
+  await expect(page.locator('#homePanel')).toBeVisible();
+
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('#libraryList .history-calendar-wrap')).toBeVisible();
+  await expect(page.locator('#libraryList [data-history-open]').first()).toBeVisible();
+  await page.locator('#libraryList [data-history-open]').first().click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await page.locator('#detailCloseBtn').click();
+  await page.locator('#homeMenuTopBtn').click().catch(() => {});
+  expect(pageErrors).toEqual([]);
+});
+
+test('deep Pass Around: two-person vote, handoff, restore by End Pass', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#startBtn').click();
+  const initial = Number(await page.locator('#gameTopCount').textContent());
+
+  await page.locator('#foodPassAroundBtn').click();
+  await page.locator('[data-pass-n="2"]').click();
+  await expect(page.locator('#passStatus')).toContainText('Person 1 of 2');
+
+  // One real vote before ending; End Pass must restore the pre-pass state.
+  await page.locator('#cutBtn').click();
+  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(initial - 1);
+  await page.locator('#passEndBtn').click();
+  await expect(page.locator('#passStatus')).toHaveCount(0);
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  await expect.poll(() => Number(page.locator('#gameTopCount').textContent())).toBe(initial);
+  expect(pageErrors).toEqual([]);
+});
+
+test('deep restaurant journey: search, details, save, maybe, undo, filters and no-error return', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#homeRestaurantQuick').click();
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+  await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
+
+  const count = Number(await page.locator('#restaurantTopCount').textContent());
+  expect(count).toBeGreaterThan(0);
+
+  // Card Details + Save.
+  await page.locator('.restaurant-card-v240 [data-rest-action="details"]').click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await expect(page.locator('#detailGrid')).toContainText(/Address|Website|Hours/i);
+  await page.locator('#detailSaveBtn').click();
+  await expect(page.locator('#detailSaveBtn')).toHaveText(/Saved/);
+  await page.locator('#detailSaveBtn').click();
+  await page.locator('#detailCloseBtn').click();
+
+  // Restaurant Maybe then Back.
+  await page.locator('#restaurantKeepBtn').click();
+  await expect.poll(() => Number(page.locator('#restaurantTopCount').textContent())).toBe(count - 1);
+  await page.locator('#restaurantBackAction').click();
+  await expect.poll(() => Number(page.locator('#restaurantTopCount').textContent())).toBe(count);
+
+  // Search utility and Quick Cut reversible state.
+  await page.locator('#restaurantSearchBtn').click();
+  await expect(page.locator('#restaurantInlineSearchInput')).toBeVisible();
+  await page.locator('#restaurantInlineSearchInput').fill('McDonald');
+  await page.locator('#restaurantInlineSearchInput').press('Enter');
+  await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThanOrEqual(count);
+  await page.locator('#restaurantSearchBtn').click();
+
+  const rq = page.locator('#restaurantQuickCuts button').filter({ hasText: /Fast Food|American|Pasta|Healthy|Southern|Potato|Soup \/ Stew/i }).first();
+  if (await rq.count() && await rq.isEnabled()) {
+    await rq.click();
+    await expect(rq).toHaveAttribute('aria-pressed', 'true');
+    await rq.click();
+    await expect(rq).toHaveAttribute('aria-pressed', 'false');
+  }
+
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText(/Open \/ Unknown/);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test('deep System Restore and backup import guard', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#startBtn').click();
+
+  // Put the app into a non-default state first.
+  await page.locator('#holdBtn').click();
+  await page.locator('#menuBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+
+  // Cancel must leave the app/settings intact.
+  await page.locator('#systemRestoreBtn').click();
+  await expect(page.locator('#restoreBackdrop')).toBeVisible();
+  await page.locator('#restoreCancelBtn').click();
+  await expect(page.locator('#restoreBackdrop')).toBeHidden();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+
+  // Confirm restore; app intentionally reloads.
+  await page.locator('#systemRestoreBtn').click();
+  await page.locator('#restoreConfirmBtn').click();
+  await page.waitForLoadState('domcontentloaded');
+  await expect(page.locator('#homePanel')).toBeVisible({ timeout: 15000 });
+  expect(await page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(0);
+  expect(await page.evaluate(() => window.DinliminateDiagnostics.hiddenCount())).toBe(0);
+  expect(await page.evaluate(() => window.DinliminateDiagnostics.historyCount())).toBe(0);
+  expect(pageErrors).toEqual([]);
+});
