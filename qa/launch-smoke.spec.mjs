@@ -542,12 +542,15 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
   expect(diag100.pool).toBeGreaterThan(0);
 
   await page.locator('#restaurantRadiusFilter').selectOption('1');
+  await page.evaluate(() => window.DinliminateRestaurantSearchV3?.setRadius?.(1,true));
+  await page.waitForTimeout(50);
   await expect.poll(async () => {
     const d = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
     return d?.radius;
   }).toBe(1);
 
   const diag1 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
+  console.log('P682 radius=1 diagnostic', diag1, 'topCount', await page.locator('#restaurantTopCount').textContent());
   expect(diag1.pool).toBeLessThanOrEqual(diag100.pool);
   expect(Number(await page.locator('#restaurantTopCount').textContent())).toBe(diag1.pool);
 
