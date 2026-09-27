@@ -296,6 +296,13 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
 
   // Narrowing radius from 5 to 1 immediately drops the 2-mile restaurant.
   await page.locator('#restaurantRadiusFilter').selectOption('1');
+  console.log('radius one probe:', await page.evaluate(() => ({
+    radius: restaurantRadiusMiles,
+    active: (activeRestaurants||[]).map(r => ({name:r.name,d:Number(r.distanceMiles),open:r.openNow})),
+    items: (restaurantItems||[]).map(r => ({name:r.name,d:Number(r.distanceMiles),open:r.openNow})),
+    filtered: (typeof filteredRestaurants==='function' ? filteredRestaurants() : []).map(r => ({name:r.name,d:Number(r.distanceMiles),open:r.openNow})),
+    quickText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || ''
+  })));
   await expect.poll(countText).toContain('1');
 
   // Cutting the only remaining matching restaurant drops the count to zero.
