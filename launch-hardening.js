@@ -48,17 +48,8 @@
     if(mode==='restaurant')return {active:compactPassList(activeRestaurants),holding:compactPassList(holdingRestaurants),finalist:!!restaurantFinalistMode,exhausted:!!restaurantEliminationExhausted,quick:[...restaurantQuickCuts],filters:{query:String(restaurantFilters?.query||''),sort:restaurantFilters?.sort==='closest'?'closest':'shuffle'}};
     return {active:compactPassList(activeItems),holding:compactPassList(holdingItems),finalist:!!finalistMode,originalCount:Number(originalCount)||0,searchQuery:String(searchQuery||''),quick:[...foodQuickHidden],manual:[...foodManual]};
   }
-  function serializePassState(){
-    if(!pass)return null;
-    return {schema:PASS_SCHEMA,savedAt:Date.now(),startedAt:pass.startedAt,mode:pass.mode,count:pass.count,participant:pass.participant,phase:pass.phase,pool:compactPassList(pass.pool),votes:(pass.votes||[]).map(m=>[...m.entries()]),snapshot:pass.snapshot||{},finalists:compactPassList(pass.finalists||[])};
-  }
-  function savePassState(){
-    const payload=serializePassState();
-    try{
-      if(payload){safeWrite(PASS_STATE_KEY,JSON.stringify(payload));idbPut?.('passState',payload);}
-      else{localStorage.removeItem(PASS_STATE_KEY);idbDelete?.('passState');}
-    }catch(e){console.warn('Pass Around state save failed',e);}
-  }
+  function serializePassState(){if(!pass)return null;return {schema:PASS_SCHEMA,savedAt:Date.now(),startedAt:pass.startedAt,mode:pass.mode,count:pass.count,participant:pass.participant,phase:pass.phase,pool:compactPassList(pass.pool),votes:(pass.votes||[]).map(m=>[...m.entries()]),snapshot:pass.snapshot||{},finalists:compactPassList(pass.finalists||[])};}
+  function savePassState(){const payload=serializePassState();try{if(payload)safeWrite(PASS_STATE_KEY,JSON.stringify(payload));else localStorage.removeItem(PASS_STATE_KEY);}catch{} try{if(payload)idbPut?.('passState',payload);else idbDelete?.('passState');}catch{}}
   function clearPassState(){try{localStorage.removeItem(PASS_STATE_KEY);}catch{}try{idbDelete?.('passState');}catch{}}
   function validatePassState(s){
     if(!s||s.schema!==PASS_SCHEMA||!['food','restaurant'].includes(s.mode))return false;
@@ -67,26 +58,19 @@
     if(!Number.isInteger(count)||count<2||count>6||!Number.isInteger(participant)||participant<1||participant>count)return false;
     if(!PASS_PHASES.has(s.phase)||!Array.isArray(s.pool)||s.pool.length<2||s.pool.length>2000)return false;
     if(!Array.isArray(s.votes)||s.votes.length!==count)return false;
-    const keys=new Set(s.pool.map(passKey));if(keys.size!==s.pool.length||[...keys].some(k=>!k||/^(food|restaurant)::$/i.test(k)))return false;
+    const keys=new Set(s.pool.map(passKey));if(keys.size!==s.pool.length||[...keys].some(k=>!k||/^(home|restaurant|food)::$/i.test(k)))return false;
     return true;
   }
   async function restorePassState(){
-    let s=null;
-    try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{}
-    if(!validatePassState(s)){
-      s=null;
-      try{const row=await idbGet('passState');s=row?.value||null;}catch{}
-    }
+    let s=null;try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{}
+    if(!validatePassState(s)){s=null;try{const row=await idbGet('passState');s=row?.value||null;}catch{}}
     if(!validatePassState(s)){clearPassState();return false;}
     const pool=compactPassList(s.pool);if(pool.length<2){clearPassState();return false;}
     const votes=Array.from({length:s.count},(_,i)=>new Map(Array.isArray(s.votes?.[i])?s.votes[i]:[]));
-    const validKeys=new Set(pool.map(passKey));
-    for(const map of votes)for(const [k,v] of map)if(!validKeys.has(k)||typeof v!=='boolean')map.delete(k);
+    const validKeys=new Set(pool.map(passKey));for(const map of votes)for(const [k,v] of map)if(!validKeys.has(k)||typeof v!=='boolean')map.delete(k);
     pass={schema:PASS_SCHEMA,startedAt:Number(s.startedAt)||Number(s.savedAt),mode:s.mode,count:Number(s.count),participant:Number(s.participant),phase:s.phase,pool,votes,snapshot:s.snapshot||{},finalists:compactPassList(s.finalists||[]),busy:false};
     if(pass.phase==='voting')syncPassParticipantView();else if(pass.phase==='handoff')showPassHandoff();else showPassNoFinalists();
-    renderPassStatus();
-    toast(pass.phase==='handoff'?('Pass Around restored · waiting for Person '+(pass.participant+1)+'.'):pass.phase==='no_finalists'?'Pass Around restored · no unanimous finalists.':'Pass Around restored · Person '+pass.participant+' of '+pass.count+'.');
-    return true;
+    renderPassStatus();return true;
   }
   let calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);
   let legacyShowGame,legacyResetList,legacyRenderStage,legacyUndo,legacyCut,legacyHold,legacyShowRestaurant,legacyApplyRestaurant,legacyRenderRestaurant,legacyRestaurantCut,legacyRestaurantKeep,legacyRestaurantUndo,legacyRenderLibrary,legacyShowWinner;
@@ -208,6 +192,33 @@
     const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
   }
 
+  function lockPassControls(){
+    const selectors=pass?.mode==='restaurant'
+      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
+      : ['#backBtn','#hideBtn','#chooseBtn','#randomBtn','#addDuringBtn','#menuBtn','#homeMenuTopBtn','#foodPassAroundBtn','.card-choose-btn','.choice-utilities button'];
+    document.querySelectorAll(selectors.join(',')).forEach(el=>{
+      if(el.id==='passEndBtn'||el.id==='cutBtn'||el.id==='holdBtn'||el.id==='restaurantCutBtn'||el.id==='restaurantKeepBtn')return;
+      if(!el.dataset.passPrevDisabled)el.dataset.passPrevDisabled=el.disabled?'1':'0';
+      el.disabled=true;el.setAttribute('aria-disabled','true');
+    });
+  }
+  function unlockPassControls(){
+    document.querySelectorAll('[data-pass-prev-disabled]').forEach(el=>{el.disabled=el.dataset.passPrevDisabled==='1';delete el.dataset.passPrevDisabled;el.removeAttribute('aria-disabled');});
+  }
+  function applyPassLock(){
+    document.body.classList.remove('pass-setup','pass-voting','pass-handoff','pass-no-finalists');
+    const cls=pass?.phase==='voting'?'pass-voting':pass?.phase==='handoff'?'pass-handoff':'pass-no-finalists';
+    document.body.classList.add('pass-active',cls,'overlay-open');lockPassControls();
+  }
+  function clearPassLock(){unlockPassControls();document.body.classList.remove('pass-active','pass-setup','pass-voting','pass-handoff','pass-no-finalists','overlay-open');}
+  function passViewItems(){if(!pass)return [];const voter=pass.votes?.[pass.participant-1];if(!voter)return [];return pass.pool.filter(item=>!voter.has(passKey(item)));}
+  function syncPassParticipantView(){
+    if(!pass||pass.phase!=='voting')return;
+    applyPassLock();const view=passViewItems();
+    if(pass.mode==='restaurant'){activeRestaurants=[...view];holdingRestaurants=[];restaurantFinalistMode=false;restaurantEliminationExhausted=false;restaurantFilters={...(restaurantFilters||{}),query:'',sort:'shuffle'};showRestaurantUIForPass();renderRestaurantStage();lockPassControls();}
+    else{activeItems=[...view];holdingItems=[];finalistMode=false;searchQuery='';foodInProgress=true;foodShowUI(null);lockPassControls();}
+    renderPassStatus();savePassState();
+  }
   function openPass(mode){
     if(pass){toast('Pass Around is already in progress.');return;}
     let pool=mode==='restaurant'?uniq([...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey):uniq([...(activeItems||[]),...(holdingItems||[])].filter(x=>x&&!isDeletedFood(x)),foodKey);
