@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p684-restaurant-quickcut-state-sync";
+const CLEAN_VERSION = "p687-authoritative-quickcut-refresh";
 
 function transform(html) {
   return html
