@@ -266,13 +266,15 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
     restaurantQuickCuts=new Set();
     restaurantManual=new Set();
     restaurantFilters={query:'',sort:'shuffle'};
+    window.setRestaurantRadiusV3?.(5,false);
     restaurantRadiusMiles=5;
+    activeRestaurants=(restaurantItems||[]).filter(r=>Number(r.distanceMiles)<=5);
     localStorage.setItem('dinliminateRestaurantHoursFilter','open-unknown');
     renderRestaurantQuickCuts();
     renderRestaurantStage();
   });
 
-  const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
+  const fastFood = page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const countText = async () => fastFood.locator('em').textContent();
 
   // At 5 miles, the two open fast-food restaurants are actionable.
@@ -302,6 +304,7 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
 
   // A same-location refresh must preserve an active Quick Cut selection.
   await page.evaluate(() => {
+    window.setRestaurantRadiusV3?.(5,false);
     restaurantRadiusMiles=5;
     restaurantQuickCuts=new Set(['fast_food']);
     restaurantManual=new Set();
