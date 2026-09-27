@@ -521,3 +521,50 @@ body.game-mode .game-bottom .food-secondary-action:active{
     line-height:9px!important;
   }
 }
+
+/* P647 — Pass Around interaction lock and no-finalist state. */
+body.pass-active .pass-modal-backdrop{
+  z-index:1300!important;
+}
+body.pass-voting .gesture-actions .hide-btn,
+body.pass-voting .gesture-actions .back-btn,
+body.pass-voting .gesture-actions #chooseBtn,
+body.pass-voting .restaurant-gesture-actions .hide-btn,
+body.pass-voting .restaurant-gesture-actions .back-btn,
+body.pass-voting .restaurant-gesture-actions #restaurantChooseBtn{
+  opacity:.34!important;
+  pointer-events:none!important;
+}
+body.pass-voting #foodPassAroundBtn,
+body.pass-voting #restaurantPassAroundBtn,
+body.pass-voting #menuBtn,
+body.pass-voting #restaurantMenuBtn{
+  opacity:.34!important;
+  pointer-events:none!important;
+}
+.pass-no-finalist-actions{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:8px!important;
+  width:100%!important;
+}
+.pass-no-finalist-actions .pass-primary-btn,
+.pass-no-finalist-actions .pass-cancel-btn{
+  width:100%!important;
+  min-height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:14px!important;
+}
+.pass-no-finalist-actions .pass-cancel-btn{
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:rgba(255,255,255,.05)!important;
+  color:#eaf3ef!important;
+}
+@media(max-width:390px){
+  .pass-modal-backdrop{padding:12px!important;}
+  .pass-modal{padding:18px!important;border-radius:21px!important;}
+  .pass-count-btn{min-height:46px!important;}
+}
+
