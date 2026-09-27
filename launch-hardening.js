@@ -233,15 +233,29 @@
     if(kind!=='cut'&&kind!=='hold')return false;
     if(!pass||pass.phase!=='voting'||pass.busy)return false;
     const item=passCurrent();if(!item)return true;
-    const keyFn=pass.mode==='restaurant'?restKey:foodKey,key=passKey(item);const voter=pass.votes?.[pass.participant-1];if(!voter||voter.has(key))return false;
-    voter.set(key,kind==='cut');pass.busy=true;savePassState();lockPassControls();
-    const finish=()=>{if(!pass)return;pass.busy=false;const remaining=passViewItems().length;if(remaining===0){finishPassParticipant();return;}if(pass.mode==='restaurant')activeRestaurants=passViewItems();else activeItems=passViewItems();pass.mode==='restaurant'?renderRestaurantStage():renderStage();renderPassStatus();lockPassControls();savePassState();};
+    const key=passKey(item),voter=pass.votes?.[pass.participant-1];
+    if(!voter||voter.has(key))return false;
+    // Record the vote before any rendering. One tap/swipe = one vote.
+    voter.set(key,kind==='cut');
+    pass.busy=true;
+    savePassState();
+    lockPassControls();
     try{
-      if(card&&pass.mode==='food'&&typeof transitionCard==='function')transitionCard(card,kind==='cut'?-1:1,finish);
-      else if(card&&pass.mode==='restaurant'&&typeof transitionRestaurantCard==='function')transitionRestaurantCard(card,kind==='cut'?-1:1,finish);
-      else finish();
-    }catch(e){pass.busy=false;voter.delete(key);savePassState();throw e;}
-    return true;
+      const remaining=passViewItems();
+      if(remaining.length===0){finishPassParticipant();return true;}
+      pass.busy=false;
+      if(pass.mode==='restaurant')activeRestaurants=[...remaining];else activeItems=[...remaining];
+      if(pass.mode==='restaurant')renderRestaurantStage();else renderStage();
+      renderPassStatus();
+      lockPassControls();
+      savePassState();
+      return true;
+    }catch(e){
+      pass.busy=false;
+      voter.delete(key);
+      savePassState();
+      throw e;
+    }
   }
   function finishPassParticipant(){
     if(!pass)return;pass.busy=false;
