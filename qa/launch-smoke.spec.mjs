@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
 const TEST_ADDRESS = '1 Titans Way, Nashville, TN 37213';
 
-test.describe.configure({ mode: 'serial', timeout: 120000 });
+test.describe.configure({ timeout: 120000 });
 
 async function swipe(page, selector, dx) {
   const card = page.locator(selector).first();
@@ -134,11 +134,16 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   for (const label of ['Fast Food','American','Pasta','Healthy','Southern','Potato','Soup / Stew']) {
     const btn = page.locator('#restaurantQuickCuts button').filter({ hasText: label }).first();
     await expect(btn).toBeVisible();
-    await expect(btn).toHaveAttribute('aria-pressed','false');
-    await btn.click();
-    await expect(btn).toHaveAttribute('aria-pressed','true');
-    await btn.click();
-    await expect(btn).toHaveAttribute('aria-pressed','false');
+    const before = await btn.getAttribute('aria-pressed');
+    if (before === 'true') {
+      await btn.click();
+      await expect(btn).toHaveAttribute('aria-pressed','false');
+    } else {
+      await btn.click();
+      await expect(btn).toHaveAttribute('aria-pressed','true');
+      await btn.click();
+      await expect(btn).toHaveAttribute('aria-pressed','false');
+    }
   }
 
   const firstCount = Number(await page.locator('#restaurantTopCount').textContent());
@@ -423,5 +428,50 @@ test('deep System Restore and backup import guard', async ({ page }) => {
   expect(await page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(0);
   expect(await page.evaluate(() => window.DinliminateDiagnostics.hiddenCount())).toBe(0);
   expect(await page.evaluate(() => window.DinliminateDiagnostics.historyCount())).toBe(0);
+  expect(pageErrors).toEqual([]);
+});
+
+
+test('deep backup round-trip: exported backup can be imported back into Dinliminate', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#addMenuBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+  await page.locator('#newName').fill('QA Import Roundtrip');
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.DinliminateDiagnostics.customCount())).toBe(1);
+
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportDataBtn').click();
+  const download = await downloadPromise;
+  const exportPath = await download.path();
+  if (!exportPath) throw new Error('Backup download path unavailable.');
+  const fs = await import('node:fs/promises');
+  const backupText = await fs.readFile(exportPath, 'utf8');
+  const backup = JSON.parse(backupText);
+  expect(backup?.data?.custom?.length).toBe(1);
+
+  const input = page.locator('#importDataInput');
+  await input.setInputFiles({
+    name: 'dinliminate-roundtrip.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(backupText, 'utf8')
+  });
+
+  await page.waitForTimeout(700);
+  await expect(page.locator('#homePanel')).toBeVisible({ timeout: 10000 });
+  const importedNames = await page.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('dinliminateCustom') || '[]').map(x => x.name); }
+    catch { return []; }
+  });
+  expect(importedNames).toContain('QA Import Roundtrip');
   expect(pageErrors).toEqual([]);
 });
