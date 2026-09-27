@@ -53,7 +53,7 @@ test('production HTML and search API are healthy', async ({ request }) => {
   for (const row of data.results.slice(0, 100)) expect(Number(row.distanceMiles)).toBeLessThanOrEqual(5.001);
 });
 
-test('food, pass around, click actions, winner and settings controls work', async ({ page }) => {
+test('food, pass around, swipe, maybe, winner and settings controls work', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
@@ -64,29 +64,12 @@ test('food, pass around, click actions, winner and settings controls work', asyn
   await expect(page.locator('#holdBtn')).toBeVisible();
   await expect(page.locator('#foodPassAroundBtn')).toBeVisible();
 
-  await page.evaluate(() => {
-    const card = document.querySelector('#stage .stack-card.active');
-    window.__dbg = { down:0, move:0, up:0, target: card?.className||'', during:[] };
-    if(card){
-      card.addEventListener('pointerdown',()=>window.__dbg.down++);
-      card.addEventListener('pointermove',()=>window.__dbg.move++);
-      card.addEventListener('pointerup',()=>window.__dbg.up++);
-    }
-  });
   const initial = Number(await page.locator('#gameTopCount').textContent());
-  console.log('LAYOUT_DEBUG', await page.evaluate(() => {
-    const ids=['homePanel','gamePanel','stage'];
-    return {scrollY:window.scrollY,innerH:window.innerHeight,bodyH:document.body.scrollHeight,els:Object.fromEntries(ids.map(id=>{const el=document.querySelector('#'+id),r=el?.getBoundingClientRect();return [id,{display:el&&getComputedStyle(el).display,visibility:el&&getComputedStyle(el).visibility,rect:r&&{x:r.x,y:r.y,w:r.width,h:r.height},hidden:el?.classList.contains('hidden')}]}))};
-  }));
-  console.log('FOOD_SURFACE_DEBUG', await page.evaluate(() => {
-    const card=document.querySelector('#stage .stack-card.active'), stage=document.querySelector('#stage');
-    const r=card?.getBoundingClientRect(), x=r ? r.left+r.width/2 : 0, y=r ? r.top+r.height/2 : 0;
-    const els=document.elementsFromPoint(x,y).slice(0,8).map(e=>({tag:e.tagName,id:e.id,cls:e.className,pe:getComputedStyle(e).pointerEvents,z:getComputedStyle(e).zIndex}));
-    return {cardPE:card&&getComputedStyle(card).pointerEvents,stagePE:stage&&getComputedStyle(stage).pointerEvents,rect:r&&{x:r.x,y:r.y,w:r.width,h:r.height},point:{x,y},els};
-  }));
   await swipe(page, '#stage .stack-card.active', -140);
-  console.log('FOOD_SWIPE_DEBUG', await page.evaluate(() => ({...window.__dbg, count:document.querySelector('#gameTopCount')?.textContent})));
-  await page.locator('#holdBtn').click();
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(initial);
+
+  await swipe(page, '#stage .stack-card.active', 140);
+  await expect.poll(async () => Number(await page.locator('#gameTopCount').textContent())).toBeLessThanOrEqual(initial);
 
   await page.locator('#foodPassAroundBtn').click();
   await expect(page.locator('#passSetupBackdrop')).toBeVisible();
@@ -158,17 +141,8 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
     await expect(btn).toHaveAttribute('aria-pressed','false');
   }
 
-  await page.evaluate(() => {
-    const card = document.querySelector('#restaurantStage .restaurant-card.active');
-    window.__restdbg = { down:0, move:0, up:0, target: card?.className||'' };
-    if(card){
-      card.addEventListener('pointerdown',()=>window.__restdbg.down++);
-      card.addEventListener('pointermove',()=>window.__restdbg.move++);
-      card.addEventListener('pointerup',()=>window.__restdbg.up++);
-    }
-  });
   const firstCount = Number(await page.locator('#restaurantTopCount').textContent());
-  await page.locator('#restaurantCutBtn').click();
+  await swipe(page, '#restaurantStage .restaurant-card.active', -140);
   await expect.poll(async () => Number(await page.locator('#restaurantTopCount').textContent())).toBeLessThan(firstCount);
 
   await page.locator('#restaurantPassAroundBtn').click();
