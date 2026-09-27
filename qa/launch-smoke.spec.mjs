@@ -173,7 +173,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   expect(Number.isFinite(area.lat)).toBeTruthy();
   expect(Number.isFinite(area.lon)).toBeTruthy();
 
-  const apiUrl = radius => BASE + '/api/restaurant-search?mode=search&lat=' + encodeURIComponent(area.lat) + '&lon=' + encodeURIComponent(area.lon) + '&radius=' + radius + '&limit=1000';
+  // The UI count itself is the contract; provider totals can include records the UI intentionally filters.
   const fastButton = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
   const countFromButton = async () => {
     const t = await fastButton.locator('.quick-cut-copy em').textContent();
@@ -187,10 +187,11 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   await page.locator('#restaurantRadiusFilter').selectOption('10');
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('10 mi');
   await expect.poll(countFromButton, { timeout: 20000 }).toBeGreaterThanOrEqual(count5);
+  const count10 = await countFromButton();
 
   await page.locator('#restaurantRadiusFilter').selectOption('5');
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('5 mi');
-  await expect.poll(countFromButton, { timeout: 10000 }).toBeLessThanOrEqual(await countFromButton());
+  await expect.poll(countFromButton, { timeout: 10000 }).toBeLessThanOrEqual(count10);
 
   // A Quick Cut must never reintroduce a restaurant outside the newly selected radius.
   const beforeCut = await countFromButton();
