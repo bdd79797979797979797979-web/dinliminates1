@@ -322,7 +322,14 @@
     else{activeItems=compactPassList(p.snapshot?.active||[]);holdingItems=compactPassList(p.snapshot?.holding||[]);finalistMode=!!p.snapshot?.finalist;originalCount=Number(p.snapshot?.originalCount)||activeItems.length+holdingItems.length||1;searchQuery=String(p.snapshot?.searchQuery||'');foodQuickHidden=new Set(Array.isArray(p.snapshot?.quick)?p.snapshot.quick:[]);foodManual=new Set(Array.isArray(p.snapshot?.manual)?p.snapshot.manual:[]);foodInProgress=true;saveFoodRoundState();renderStage();renderFoodQuickCuts();syncDecisionActionLabels();}
   }
   function cancelPass(){
-    const p=pass;if(!p)return;pass=null;clearPassState();$('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();toast('Pass Around ended. Your round is restored.');
+    const p=pass;if(!p)return;
+    pass=null;
+    clearPassState();
+    $('passSetupBackdrop')?.remove();$('passHandoffBackdrop')?.remove();$('passNoFinalistsBackdrop')?.remove();
+    restorePassSnapshot(p);
+    clearPassLock();
+    renderPassStatus();
+    toast('Pass Around ended. Your round is restored.');
   }
   function restartPass(){const p=pass;if(!p)return;const mode=p.mode;pass=null;clearPassState();$('passNoFinalistsBackdrop')?.remove();restorePassSnapshot(p);clearPassLock();openPass(mode);}
   function showPassNoFinalists(){
