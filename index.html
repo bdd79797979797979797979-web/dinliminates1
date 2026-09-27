@@ -8115,11 +8115,13 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   if(radiusSelect && !radiusSelect.dataset.v3Bound){
     radiusSelect.dataset.v3Bound='1';
     const onRadiusInput=e=>{
-      e.preventDefault(); e.stopImmediatePropagation();
+      e.preventDefault();
       void setRadius(e.currentTarget.value,true);
     };
-    radiusSelect.addEventListener('input',onRadiusInput,true);
-    radiusSelect.addEventListener('change',onRadiusInput,true);
+    // Use the element's native handlers as the authoritative path for both
+    // touch/iPhone pickers and programmatic select changes.
+    radiusSelect.oninput=onRadiusInput;
+    radiusSelect.onchange=onRadiusInput;
   }
   document.addEventListener('click',e=>{if(!e.target?.closest?.('#restaurantRadiusDisplay'))return;const s=$('restaurantRadiusFilter');if(!s)return;e.preventDefault();e.stopImmediatePropagation();try{if(typeof s.showPicker==='function')s.showPicker();else{s.focus();s.click();}}catch{try{s.focus();s.click();}catch{}}},true);
   document.addEventListener('keydown',e=>{if(e.target?.id!=='restaurantLocationInput')return;if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();void find();}if(e.key==='Escape')clearSuggestions();},true);
