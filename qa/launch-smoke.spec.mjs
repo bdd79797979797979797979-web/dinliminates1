@@ -215,8 +215,9 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
 
   // Deterministically open the newly-added custom food's normal Details surface.
   await page.evaluate(() => {
-    const item = window.customItems?.find?.(x => x.name === 'QA Test Dinner');
-    if (!item) throw new Error('Custom food not present after add.');
+    const items = JSON.parse(localStorage.getItem('dinliminateCustom') || '[]');
+    const item = items.find(x => x.name === 'QA Test Dinner');
+    if (!item) throw new Error('Custom food not present in persisted custom deck.');
     window.openDetails?.(item);
   });
   await expect(page.locator('#detailBackdrop')).toBeVisible();
@@ -237,8 +238,9 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
 
   // Permanently delete the edited custom food with its confirmation.
   await page.evaluate(() => {
-    const item = window.customItems?.find?.(x => x.name === 'QA Test Dinner Edited');
-    if (!item) throw new Error('Edited custom food not present.');
+    const items = JSON.parse(localStorage.getItem('dinliminateCustom') || '[]');
+    const item = items.find(x => x.name === 'QA Test Dinner Edited');
+    if (!item) throw new Error('Edited custom food not present in persisted custom deck.');
     window.openDetails?.(item);
   });
   await expect(page.locator('#deleteCardBtn')).toBeVisible();
