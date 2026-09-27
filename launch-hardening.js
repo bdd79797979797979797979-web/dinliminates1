@@ -32,15 +32,62 @@
   let restaurantHydrationDone=false;
   let restaurantHydrationPromise=Promise.resolve(false);
   const PASS_STATE_KEY='dinliminatePassAroundState';
+  const PASS_SCHEMA='p651-passaround-v3';
+  const PASS_MAX_AGE=7*24*60*60*1000;
+  const PASS_PHASES=new Set(['voting','handoff','no_finalists']);
   let pass=null;
-  function serializePassState(){if(!pass)return null;return {mode:pass.mode,count:pass.count,current:pass.current,pool:pass.pool,snapshot:pass.snapshot,votes:(pass.votes||[]).map(m=>[...m.entries()]),activeFood:[...(activeItems||[])],holdingFood:[...(holdingItems||[])],activeRestaurants:[...(activeRestaurants||[])],holdingRestaurants:[...(holdingRestaurants||[]) ]};}
-  function savePassState(){try{if(pass)safeWrite(PASS_STATE_KEY,JSON.stringify(serializePassState()));else localStorage.removeItem(PASS_STATE_KEY);}catch{}}
-  function clearPassState(){try{localStorage.removeItem(PASS_STATE_KEY);}catch{}}
-  function restorePassState(){let s=null;try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{} if(!s||!Array.isArray(s.pool)||s.pool.length<2||!Number.isFinite(Number(s.count))||!Number.isFinite(Number(s.current))||!['food','restaurant'].includes(s.mode))return false;
-    pass={mode:s.mode,count:Number(s.count),current:Number(s.current),pool:s.pool,snapshot:s.snapshot||{},votes:Array.from({length:Number(s.count)},(_,i)=>new Map(Array.isArray(s.votes?.[i])?s.votes[i]:[]))};
-    if(pass.mode==='food'){activeItems=uniq(s.activeFood||s.pool,foodKey);holdingItems=uniq(s.holdingFood||[],foodKey);foodInProgress=true;foodShowUI(null);renderStage();}
-    else{activeRestaurants=uniq(s.activeRestaurants||s.pool,restKey);holdingRestaurants=uniq(s.holdingRestaurants||[],restKey);restaurantRoundInProgress=true;showRestaurantUIForPass();renderRestaurantStage();}
-    renderPassStatus();toast(`Pass Around restored · Person ${pass.current} of ${pass.count}.`);return true;}
+  function passKey(item){return String(item?.type||'home').toLowerCase()+'::'+String(item?.id||item?.name||'').trim().toLowerCase();}
+  function compactPassItem(item){
+    if(!item)return null;
+    const base={id:item.id??null,name:String(item.name||''),type:item.type||'home',tags:Array.isArray(item.tags)?item.tags.slice(0,20):[],category:item.category||'',mealType:item.mealType||'',cuisine:item.cuisine||'',subcategory:item.subcategory||'',notes:item.notes||'',recipe:item.recipe||'',photo:item.photo||'',icon:item.icon||'',prep:item.prep||'',budget:item.budget||'',accent:item.accent||'',createdAt:item.createdAt||null,updatedAt:item.updatedAt||null};
+    if(item.type==='restaurant')Object.assign(base,{address:item.address||'',website:item.website||'',phone:item.phone||'',lat:Number.isFinite(Number(item.lat))?Number(item.lat):null,lon:Number.isFinite(Number(item.lon))?Number(item.lon):null,distanceMiles:Number.isFinite(Number(item.distanceMiles))?Number(item.distanceMiles):null,brand:item.brand||'',operator:item.operator||'',fastFood:item.fastFood===true,amenity:item.amenity||'',openingHours:item.openingHours||'',opening_hours:item.opening_hours||'',hours:item.hours||'',openNow:typeof item.openNow==='boolean'?item.openNow:null,currentlyOpen:typeof item.currentlyOpen==='boolean'?item.currentlyOpen:null,timeZone:item.timeZone||item.timezone||'',photoName:item.photoName||'',photoUrl:item.photoUrl||'',menuItems:Array.isArray(item.menuItems)?item.menuItems.slice(0,6):undefined,menu_items:Array.isArray(item.menu_items)?item.menu_items.slice(0,6):undefined,commonMenuItems:Array.isArray(item.commonMenuItems)?item.commonMenuItems.slice(0,6):undefined,common_menu_items:Array.isArray(item.common_menu_items)?item.common_menu_items.slice(0,6):undefined,searchArea:item.searchArea||''});
+    return base;
+  }
+  function compactPassList(list){return uniq((list||[]).map(compactPassItem).filter(Boolean),passKey);}
+  function passSnapshot(mode){
+    if(mode==='restaurant')return {active:compactPassList(activeRestaurants),holding:compactPassList(holdingRestaurants),finalist:!!restaurantFinalistMode,exhausted:!!restaurantEliminationExhausted,quick:[...restaurantQuickCuts],filters:{query:String(restaurantFilters?.query||''),sort:restaurantFilters?.sort==='closest'?'closest':'shuffle'}};
+    return {active:compactPassList(activeItems),holding:compactPassList(holdingItems),finalist:!!finalistMode,originalCount:Number(originalCount)||0,searchQuery:String(searchQuery||''),quick:[...foodQuickHidden],manual:[...foodManual]};
+  }
+  function serializePassState(){
+    if(!pass)return null;
+    return {schema:PASS_SCHEMA,savedAt:Date.now(),startedAt:pass.startedAt,mode:pass.mode,count:pass.count,participant:pass.participant,phase:pass.phase,pool:compactPassList(pass.pool),votes:(pass.votes||[]).map(m=>[...m.entries()]),snapshot:pass.snapshot||{},finalists:compactPassList(pass.finalists||[])};
+  }
+  function savePassState(){
+    const payload=serializePassState();
+    try{
+      if(payload){safeWrite(PASS_STATE_KEY,JSON.stringify(payload));idbPut?.('passState',payload);}
+      else{localStorage.removeItem(PASS_STATE_KEY);idbDelete?.('passState');}
+    }catch(e){console.warn('Pass Around state save failed',e);}
+  }
+  function clearPassState(){try{localStorage.removeItem(PASS_STATE_KEY);}catch{}try{idbDelete?.('passState');}catch{}}
+  function validatePassState(s){
+    if(!s||s.schema!==PASS_SCHEMA||!['food','restaurant'].includes(s.mode))return false;
+    if(!Number.isFinite(Number(s.savedAt))||Date.now()-Number(s.savedAt)>PASS_MAX_AGE)return false;
+    const count=Number(s.count),participant=Number(s.participant);
+    if(!Number.isInteger(count)||count<2||count>6||!Number.isInteger(participant)||participant<1||participant>count)return false;
+    if(!PASS_PHASES.has(s.phase)||!Array.isArray(s.pool)||s.pool.length<2||s.pool.length>2000)return false;
+    if(!Array.isArray(s.votes)||s.votes.length!==count)return false;
+    const keys=new Set(s.pool.map(passKey));if(keys.size!==s.pool.length||[...keys].some(k=>!k||/^(food|restaurant)::$/i.test(k)))return false;
+    return true;
+  }
+  async function restorePassState(){
+    let s=null;
+    try{const raw=safeRead(PASS_STATE_KEY,'');if(raw)s=JSON.parse(raw);}catch{}
+    if(!validatePassState(s)){
+      s=null;
+      try{const row=await idbGet('passState');s=row?.value||null;}catch{}
+    }
+    if(!validatePassState(s)){clearPassState();return false;}
+    const pool=compactPassList(s.pool);if(pool.length<2){clearPassState();return false;}
+    const votes=Array.from({length:s.count},(_,i)=>new Map(Array.isArray(s.votes?.[i])?s.votes[i]:[]));
+    const validKeys=new Set(pool.map(passKey));
+    for(const map of votes)for(const [k,v] of map)if(!validKeys.has(k)||typeof v!=='boolean')map.delete(k);
+    pass={schema:PASS_SCHEMA,startedAt:Number(s.startedAt)||Number(s.savedAt),mode:s.mode,count:Number(s.count),participant:Number(s.participant),phase:s.phase,pool,votes,snapshot:s.snapshot||{},finalists:compactPassList(s.finalists||[]),busy:false};
+    if(pass.phase==='voting')syncPassParticipantView();else if(pass.phase==='handoff')showPassHandoff();else showPassNoFinalists();
+    renderPassStatus();
+    toast(pass.phase==='handoff'?('Pass Around restored · waiting for Person '+(pass.participant+1)+'.'):pass.phase==='no_finalists'?'Pass Around restored · no unanimous finalists.':'Pass Around restored · Person '+pass.participant+' of '+pass.count+'.');
+    return true;
+  }
   let calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);
   let legacyShowGame,legacyResetList,legacyRenderStage,legacyUndo,legacyCut,legacyHold,legacyShowRestaurant,legacyApplyRestaurant,legacyRenderRestaurant,legacyRestaurantCut,legacyRestaurantKeep,legacyRestaurantUndo,legacyRenderLibrary,legacyShowWinner;
 
