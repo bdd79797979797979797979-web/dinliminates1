@@ -249,7 +249,22 @@
     }).join('');
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
   }
-  function visibleRestaurants(){return restaurantBase.filter(x=>!restaurantManual.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k)));}
+  function restaurantCurrentEligiblePool(){
+    let pool=[...syncRestaurantQuickCutScope()];
+    const manual=new Set(restaurantManual||new Set());
+    const held=new Set((holdingRestaurants||[]).map(restKey));
+    const activeQuick=new Set(restaurantQuickCuts||[]);
+    pool=pool.filter(r=>!manual.has(restKey(r))&&!held.has(restKey(r))&&!([...activeQuick].some(k=>restQuickMatch(r,k))));
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    pool=pool.filter(r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;});
+    const q=String(restaurantFilters?.query||'').trim().toLowerCase();
+    if(q)pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
+    const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
+    if(hours==='closed')pool=pool.filter(r=>restaurantOpenStatus?.(r)===false);
+    else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
+    return pool;
+  }
+  function visibleRestaurants(){return restaurantCurrentEligiblePool();}
   function recomputeRestaurantManual(){const present=new Set([...(activeRestaurants||[]),...(holdingRestaurants||[])].map(restKey));restaurantManual=new Set(restaurantBase.filter(x=>!present.has(restKey(x))&&!Array.from(restaurantQuickCuts||[]).some(k=>restQuickMatch(x,k))).map(restKey));}
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
