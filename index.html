@@ -8075,6 +8075,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     safeWrite('dinliminateRestaurantRadius',String(restaurantRadiusMiles));
     setRadiusUi();
     if(!refresh)return true;
+    if(next===previous)return true;
     // P682 — change the visible restaurant round immediately from the latest loaded
     // result pool, for both narrowing and widening. A later provider refresh can then
     // add newly discovered places, but Quick Cuts and the card never lag behind the
@@ -8113,10 +8114,12 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   const radiusSelect=$('restaurantRadiusFilter');
   if(radiusSelect && !radiusSelect.dataset.v3Bound){
     radiusSelect.dataset.v3Bound='1';
-    radiusSelect.addEventListener('change',e=>{
+    const onRadiusInput=e=>{
       e.preventDefault(); e.stopImmediatePropagation();
       void setRadius(e.currentTarget.value,true);
-    },true);
+    };
+    radiusSelect.addEventListener('input',onRadiusInput,true);
+    radiusSelect.addEventListener('change',onRadiusInput,true);
   }
   document.addEventListener('click',e=>{if(!e.target?.closest?.('#restaurantRadiusDisplay'))return;const s=$('restaurantRadiusFilter');if(!s)return;e.preventDefault();e.stopImmediatePropagation();try{if(typeof s.showPicker==='function')s.showPicker();else{s.focus();s.click();}}catch{try{s.focus();s.click();}catch{}}},true);
   document.addEventListener('keydown',e=>{if(e.target?.id!=='restaurantLocationInput')return;if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();void find();}if(e.key==='Escape')clearSuggestions();},true);
