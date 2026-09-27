@@ -74,6 +74,12 @@ test('food, pass around, click actions, winner and settings controls work', asyn
     }
   });
   const initial = Number(await page.locator('#gameTopCount').textContent());
+  console.log('FOOD_SURFACE_DEBUG', await page.evaluate(() => {
+    const card=document.querySelector('#stage .stack-card.active'), stage=document.querySelector('#stage');
+    const r=card?.getBoundingClientRect(), x=r ? r.left+r.width/2 : 0, y=r ? r.top+r.height/2 : 0;
+    const els=document.elementsFromPoint(x,y).slice(0,8).map(e=>({tag:e.tagName,id:e.id,cls:e.className,pe:getComputedStyle(e).pointerEvents,z:getComputedStyle(e).zIndex}));
+    return {cardPE:card&&getComputedStyle(card).pointerEvents,stagePE:stage&&getComputedStyle(stage).pointerEvents,rect:r&&{x:r.x,y:r.y,w:r.width,h:r.height},point:{x,y},els};
+  }));
   await swipe(page, '#stage .stack-card.active', -140);
   console.log('FOOD_SWIPE_DEBUG', await page.evaluate(() => ({...window.__dbg, count:document.querySelector('#gameTopCount')?.textContent})));
   await page.locator('#holdBtn').click();
