@@ -7050,7 +7050,7 @@ function openPassAround(mode){
   back.innerHTML=`<div class="pass-around-sheet" role="dialog" aria-modal="true" aria-labelledby="passAroundTitle">\
     <div class="pass-around-eyebrow">GROUP ROUND</div>\
     <h3 id="passAroundTitle">Pass Around</h3>\
-    <p>${isRestaurant?'Everyone gets the same restaurant choices.':'Everyone gets the same food choices.'} Each person swipes the full set, then the shared finalists come back.</p>\
+    <p>${isRestaurant?'Everyone gets the same restaurant choices.':'Everyone gets the same food choices.'} Each person swipes the full set, then the shared choices come back.</p>\
     <label class="pass-around-field"><span>People</span><select id="passAroundPeople">${[2,3,4,5,6].map(n=>`<option value="${n}">${n}</option>`).join('')}</select></label>\
     <div class="pass-around-count">${source.length} choices in this round</div>\
     <div class="pass-around-actions"><button class="pass-around-cancel" id="passAroundCancel" type="button">Cancel</button><button class="pass-around-start" id="passAroundStart" type="button">Start Pass Around</button></div>\
@@ -7091,8 +7091,8 @@ function finishPassAroundSession(){
     activeItems=[...finalists]; holdingItems=[]; finalistMode=false; searchQuery=''; renderStage(); syncDecisionActionLabels();
   }
   const label=finalists.length===1?'1 choice':`${finalists.length} choices`;
-  setStatus(`${label} left · keep cutting/maybing or choose one`,'live');
-  toast(`Group round complete · ${label} remain.`);
+  setStatus(`${label} left · keep cutting/maybeing or choose one`,'live');
+  toast(`Group round complete · ${label} remain. Keep cutting, maybeing, or choose.`);
 }
 function advancePassAroundParticipant(){
   const s=passAroundSession; if(!s)return;
