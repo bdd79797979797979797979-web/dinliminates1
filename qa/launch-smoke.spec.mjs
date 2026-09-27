@@ -549,7 +549,7 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
 
   const diag1 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
   expect(diag1.pool).toBeLessThanOrEqual(diag100.pool);
-  expect(diag1.active).toBe(diag1.pool);
+  expect(Number(await page.locator('#restaurantTopCount').textContent())).toBe(diag1.pool);
 
   const buttonCounts = await page.locator('#restaurantQuickCuts [data-launch-rq]').evaluateAll(btns =>
     Object.fromEntries(btns.map(btn => {
@@ -573,7 +573,7 @@ test('targeted restaurant Quick Cuts stay live with radius and fresh search resu
   }, { timeout: 10000 }).toBe(true);
   // Expansion must repaint immediately from cached in-radius results.
   const immediate10 = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
-  expect(immediate10.active).toBe(immediate10.pool);
+  expect(Number(await page.locator('#restaurantTopCount').textContent())).toBe(immediate10.pool);
   await expect.poll(async () => page.locator('#restaurantLoadBtn').isDisabled(), { timeout: 70000 }).toBe(false);
 
   const diagFresh = await page.evaluate(() => window.DinliminateRestaurantLiveQuickCutDiagnostics?.());
