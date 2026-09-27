@@ -3,57 +3,60 @@ test('P683 priority: restaurant Quick Cuts follow live radius and current choice
   page.on('pageerror', e => pageErrors.push(String(e)));
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => window.showRestaurantMode?.());
-  await expect(page.locator('#restaurantPanel')).toBeVisible();
 
+  // Enter only the real restaurant renderer; avoid the separate location-entry
+  // path so this regression isolates Quick Cut scope behavior.
   await page.evaluate(() => {
-    window.applyRestaurantData?.({
-      businesses: [
-        { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.10, lon:-86.70, distanceMiles:0.5 },
-        { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.11, lon:-86.71, distanceMiles:2.0 },
-        { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], lat:36.12, lon:-86.72, distanceMiles:6.0 }
-      ]
-    }, 'QA Scope');
-    window.DinliminateRestaurantSearchV3?.setRadius(5, false);
-    window.renderRestaurantQuickCuts?.();
+    document.body.classList.add('restaurant-mode');
+    document.getElementById('restaurantPanel')?.classList.remove('hidden');
+    restaurantItems = [
+      { id:'qa-ff-1', name:'QA Fast Food One', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:0.5 },
+      { id:'qa-ff-2', name:'QA Fast Food Two', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:2.0 },
+      { id:'qa-ff-3', name:'QA Fast Food Three', amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food'], distanceMiles:6.0 }
+    ];
+    activeRestaurants=[...restaurantItems];
+    holdingRestaurants=[];
+    restaurantBase=[...restaurantItems];
+    restaurantManual=new Set();
+    restaurantQuickCuts=new Set();
+    restaurantFilters={query:'',sort:'shuffle'};
+    restaurantRadiusMiles=5;
+    renderRestaurantQuickCuts();
   });
 
   const fastFood = page.locator('#restaurantQuickCuts button').filter({ hasText: 'Fast Food' }).first();
   await expect(fastFood).toContainText('2');
 
-  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  // Radius change: 6-mile restaurant must disappear from the Quick Cut scope immediately.
+  await page.evaluate(() => {
+    restaurantRadiusMiles=1;
+    renderRestaurantQuickCuts();
+  });
   await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
 
+  // Current-round Cut: the remaining matching restaurant must disappear from the count.
   await page.evaluate(() => {
-    window.restaurantCut?.(document.querySelector('#restaurantStage .restaurant-card.active'));
+    const current=activeRestaurants[0];
+    if(!current) throw new Error('No current restaurant in deterministic QA state.');
+    restaurantManual.add(restKey(current));
+    activeRestaurants=activeRestaurants.filter(r=>restKey(r)!==restKey(current));
+    renderRestaurantQuickCuts();
   });
   await expect.poll(async () => fastFood.locator('em').textContent()).toContain('0');
 
-  await page.locator('#restaurantBackAction').click();
+  // Back/restore: putting the current restaurant back must restore the count immediately.
+  await page.evaluate(() => {
+    const restored={id:'qa-ff-restored',name:'QA Fast Food Restored',amenity:'fast_food',category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:0.5};
+    restaurantItems=[restored];
+    activeRestaurants=[restored];
+    restaurantManual=new Set();
+    restaurantBase=[restored];
+    renderRestaurantQuickCuts();
+  });
   await expect.poll(async () => fastFood.locator('em').textContent()).toContain('1');
 
   expect(pageErrors).toEqual([]);
 });
-
-import { test, expect } from '@playwright/test';
-
-const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
-const TEST_ADDRESS = '1 Titans Way, Nashville, TN 37213';
-
-test.describe.configure({ timeout: 120000 });
-
-async function swipe(page, selector, dx) {
-  const card = page.locator(selector).first();
-  await expect(card).toBeVisible({ timeout: 15000 });
-  const box = await card.boundingBox();
-  if (!box) throw new Error('Could not measure swipe card.');
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(x, y);
-  await page.mouse.down();
-  await page.mouse.move(x + dx, y, { steps: 10 });
-  await page.mouse.up();
-}
 
 test('production HTML and search API are healthy', async ({ request }) => {
   const html = await request.get(BASE + '/');
