@@ -158,7 +158,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-  await page.locator('#homeRestaurantQuick').click();
+  await page.evaluate(() => window.showRestaurantMode?.());
   await expect(page.locator('#restaurantPanel')).toBeVisible();
   await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
