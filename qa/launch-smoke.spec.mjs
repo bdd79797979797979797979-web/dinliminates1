@@ -318,7 +318,7 @@ test('deep whole-app lifecycle: menu, add/edit/delete food, hide, quick cuts, sa
   const downloadPromise = page.waitForEvent('download');
   await page.locator('#exportDataBtn').click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/^dinliminate-backup-\\d{4}-\\d{2}-\\d{2}\\.json$/);
+  expect(download.suggestedFilename()).toMatch(/^dinliminate-backup-\d{4}-\d{2}-\d{2}\.json$/);
   await page.locator('#closeSettingsBtn').click();
 
   // Choose a winner, verify Details/Share, then inspect and remove its history calendar entry.
