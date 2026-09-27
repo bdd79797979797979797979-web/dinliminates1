@@ -7587,8 +7587,10 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
   restaurantFilters.query='';
   transitionRestaurantCard(card,-1,()=>{
     activeRestaurants.splice(idx,1);
-    if(activeRestaurants.length===0 && holdingRestaurants.length===0){ restaurantEliminationExhausted=true; showRestaurantHungryState(); toast('You cut every restaurant.'); return; }
+    window.renderRestaurantQuickCuts?.();
+    if(activeRestaurants.length===0 && holdingRestaurants.length===0){ restaurantEliminationExhausted=true; showRestaurantHungryState(); return; }
     afterRestaurantEliminate('cut');
+    window.renderRestaurantQuickCuts?.();
   });
 }
 function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
@@ -7596,7 +7598,14 @@ function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
   const idx=activeRestaurants.findIndex(r=>String(r.id)===String(item.id)); if(idx<0)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
   restaurantFilters.query='';
-  transitionRestaurantCard(card,1,()=>{const [held]=activeRestaurants.splice(idx,1);if(held)holdingRestaurants.push(held);afterRestaurantEliminate('hold');toast('Restaurant kept as a maybe.');});
+  transitionRestaurantCard(card,1,()=>{
+    const [held]=activeRestaurants.splice(idx,1);
+    if(held)holdingRestaurants.push(held);
+    window.renderRestaurantQuickCuts?.();
+    afterRestaurantEliminate('hold');
+    window.renderRestaurantQuickCuts?.();
+    toast('Restaurant kept as a maybe.');
+  });
 }
 function chooseRestaurantCurrent(){
   const item=currentRestaurant();if(!item||restaurantTransitioning)return;
