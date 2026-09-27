@@ -6899,7 +6899,6 @@ function currentIndex() {
   return items.length ? activeItems.indexOf(items[0]) : -1;
 }
 function cutCurrent(card) {
-  if(passAroundSession?.mode==='food') { passAroundVote('cut',card,false); return; }
   const idx = currentIndex();
   if (idx < 0 || activeItems.length === 0 || transitioning) return;
   pushUndo();
@@ -6961,7 +6960,6 @@ function confirmHide(){
   if(p.action==='delete') performDeleteCustomFood(p.item); else hideItem(p.item);
 }
 function holdCurrent(card) {
-  if(passAroundSession?.mode==='food') { passAroundVote('maybe',card,false); return; }
   const idx = currentIndex();
   if (idx < 0 || activeItems.length === 0 || transitioning) return;
   pushUndo();
@@ -6972,7 +6970,6 @@ function holdCurrent(card) {
   });
 }
 function chooseCurrent(){
-  if(passAroundSession?.mode==='food'){ toast('Choose is available after Pass Around finishes.'); return; }
   const idx=currentIndex();
   if(idx<0 || !activeItems.length || transitioning) return;
   const item=activeItems[idx];
@@ -7565,7 +7562,6 @@ function showRestaurantMode(){
   renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels();
 }
 function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
-  if(passAroundSession?.mode==='restaurant') { passAroundVote('cut',card,true); return; }
   const item=currentRestaurant(); if(!item||restaurantTransitioning)return;
   const idx=activeRestaurants.findIndex(r=>String(r.id)===String(item.id)); if(idx<0)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
@@ -7577,7 +7573,6 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
   });
 }
 function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
-  if(passAroundSession?.mode==='restaurant') { passAroundVote('maybe',card,true); return; }
   const item=currentRestaurant(); if(!item||restaurantTransitioning)return;
   const idx=activeRestaurants.findIndex(r=>String(r.id)===String(item.id)); if(idx<0)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
@@ -7585,7 +7580,6 @@ function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
   transitionRestaurantCard(card,1,()=>{const [held]=activeRestaurants.splice(idx,1);if(held)holdingRestaurants.push(held);afterRestaurantEliminate('hold');toast('Restaurant kept as a maybe.');});
 }
 function chooseRestaurantCurrent(){
-  if(passAroundSession?.mode==='restaurant'){toast('Choose is available after Pass Around finishes.');return;}
   const item=currentRestaurant();if(!item||restaurantTransitioning)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:false,exhausted:restaurantEliminationExhausted});
   showRestaurantWinner();
