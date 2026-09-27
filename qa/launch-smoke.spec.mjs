@@ -23,7 +23,7 @@ test('production HTML and search API are healthy', async ({ request }) => {
   expect(html.ok()).toBeTruthy();
   const body = await html.text();
   expect(body).toContain('Dinliminate');
-  expect(body).toContain('p681-launch-version');
+  expect(body).toContain('p682-restaurant-quickcuts-live-sync');
   expect(body).toContain('restaurantOpenUnknownBtn');
   expect(body).toContain('restaurantPassAroundBtn');
 
