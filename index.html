@@ -7398,6 +7398,7 @@ function saveRestaurantFilters(){
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter',restaurantHoursFilter) === 'closed' ? 'closed' : 'open-unknown';
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
   safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
+  window.renderRestaurantQuickCuts?.();
 }
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
