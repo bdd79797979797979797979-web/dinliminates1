@@ -565,3 +565,40 @@ body.game-mode #addDuringBtn:focus-visible{
   border-color:#83bddf!important;
   color:#245a78!important;
 }
+
+/* P677 launch-complete visual layer. */
+
+body.restaurant-mode .restaurant-utility-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;align-items:center!important;}
+body.restaurant-mode #restaurantSearchBtn,
+body.restaurant-mode #restaurantOpenUnknownBtn,
+body.restaurant-mode #restaurantPassAroundBtn{min-width:0!important;width:100%!important;height:34px!important;min-height:34px!important;border-radius:11px!important;font-size:.55rem!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+body.restaurant-mode #restaurantOpenUnknownBtn{display:inline-flex!important;align-items:center!important;justify-content:center!important;border:1px solid rgba(103,196,155,.22)!important;background:rgba(103,196,155,.08)!important;color:#9fe1c3!important;box-shadow:none!important;}
+body.restaurant-mode #restaurantOpenUnknownBtn[aria-pressed="true"]{background:rgba(214,102,88,.12)!important;border-color:rgba(214,102,88,.25)!important;color:#ffd2ca!important;}
+body.restaurant-mode .restaurant-location-row{z-index:80!important;}
+body.restaurant-mode .restaurant-address-suggestions{z-index:10050!important;max-height:min(240px,36vh)!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;}
+body.restaurant-mode .restaurant-address-suggestion{min-height:42px!important;display:flex!important;align-items:center!important;font-size:.64rem!important;touch-action:manipulation!important;}
+.launch-tools{margin-top:12px;padding-top:12px;border-top:1px solid #e7dfd3;}
+.launch-tools-head{font-size:.48rem;letter-spacing:.13em;color:#8f9992;font-weight:900;margin-bottom:7px;}
+.launch-tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.launch-tool-btn{min-height:38px!important;display:flex!important;align-items:center;justify-content:center;}
+.launch-tools-version{margin-top:7px;font-size:.52rem;line-height:1.35;color:#919a94;}
+.launch-sheet-backdrop{position:fixed;inset:0;z-index:5000;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,10,8,.66);backdrop-filter:blur(10px);padding:12px;}
+.launch-sheet{width:min(620px,100%);max-height:88dvh;overflow:auto;background:#f7f2e9;color:#172a22;border-radius:24px 24px 16px 16px;padding:16px 15px max(16px,env(safe-area-inset-bottom));box-shadow:0 30px 90px rgba(0,0,0,.35);}
+.launch-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.launch-sheet-kicker{font-size:.46rem;letter-spacing:.14em;color:#8b968f;font-weight:900;}
+.launch-sheet h3{margin:5px 0 0;font-family:var(--display-face);font-size:1.6rem;font-weight:500;letter-spacing:-.03em;}
+.launch-sheet-body{margin-top:12px;font-size:.64rem;line-height:1.52;color:#56655e;}
+.launch-sheet-body p{margin:0 0 10px;}
+.launch-disclaimer{color:#78857e;font-size:.57rem;}
+.launch-diagnostics{white-space:pre-wrap;overflow:auto;max-height:34vh;padding:10px;border-radius:11px;background:#ece6dc;color:#415149;font:500 .55rem/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;}
+.launch-sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px;}
+@media(max-width:430px){
+ body.restaurant-mode .restaurant-utility-row{gap:5px!important;}
+ body.restaurant-mode #restaurantSearchBtn,body.restaurant-mode #restaurantOpenUnknownBtn,body.restaurant-mode #restaurantPassAroundBtn{font-size:.50rem!important;padding:0 5px!important;}
+ .launch-tools-grid,.launch-sheet-actions{grid-template-columns:1fr;}
+ .launch-sheet{max-height:90dvh;padding-top:14px;}
+}
+@media(max-width:340px){
+ body.restaurant-mode .restaurant-utility-row{grid-template-columns:1fr 1fr!important;}
+ body.restaurant-mode #restaurantPassAroundBtn{grid-column:1/-1;}
+}
