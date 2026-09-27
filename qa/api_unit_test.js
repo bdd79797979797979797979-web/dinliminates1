@@ -2,6 +2,7 @@ const assert = require('assert');
 const handler = require('../api/restaurant-search.js');
 
 let calls = [];
+let fallbackSupplementMode = false;
 function jsonResponse(obj, status=200){ return new Response(JSON.stringify(obj), {status, headers:{'content-type':'application/json'}}); }
 
 global.fetch = async (url, opts={}) => {
@@ -17,6 +18,10 @@ global.fetch = async (url, opts={}) => {
   if(u.hostname==='geocoding.geo.census.gov') return jsonResponse({result:{addressMatches:[]}});
   if(u.hostname==='photon.komoot.io') return jsonResponse({features:[]});
   if(u.hostname==='nominatim.openstreetmap.org') return jsonResponse([]);
+  if(u.hostname==='maps.mail.ru'){
+    if(!fallbackSupplementMode) throw new Error('Unexpected Overpass fallback call');
+    return jsonResponse({elements:[{type:'node',id:9001,lat:36.4427,lon:-87.1784,tags:{name:'Burger King',amenity:'fast_food',brand:'Burger King'}}]});
+  }
   if(u.hostname==='postpass.geofabrik.de'){
     const body=decodeURIComponent(String(opts.body||''));
     const m=body.match(/options\[geojson\]=false/); assert(m);
