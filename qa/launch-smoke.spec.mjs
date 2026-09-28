@@ -242,7 +242,8 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantLocationInput').fill('QA Test Address Nashville');
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
   await page.locator('.restaurant-address-suggestion').first().click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible();
+  await page.locator('#restaurantLoadBtn').click();
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible({timeout:10000});
 
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
