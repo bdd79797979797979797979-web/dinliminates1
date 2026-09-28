@@ -5537,7 +5537,130 @@ window.__dinliminateReleaseMigration=(async()=>{
 .restaurant-utility-row{display:flex!important;align-items:center!important;gap:7px!important;margin:3px 0 4px!important;padding:0!important;overflow:visible!important}
 .restaurant-utility-row .restaurant-tool-btn{flex:1 1 0!important;min-width:0!important;min-height:34px!important}
 body.restaurant-mode .restaurant-status-line{min-height:16px!important}
-</style></head>
+</style>
+<style id="dinliminate-p705-home-and-swipe-polish">
+/* P705 — make Restaurant swipe visually match Food: keep the next two cards visible. */
+body.restaurant-mode .restaurant-stage{overflow:visible!important;isolation:isolate!important;}
+body.restaurant-mode .restaurant-card{position:absolute!important;grid-area:1/1!important;inset:auto!important;}
+body.restaurant-mode .restaurant-card.back-one{
+  display:block!important;
+  z-index:3!important;
+  opacity:.24!important;
+  transform:translateY(10px) scale(.97) rotate(1.3deg)!important;
+  pointer-events:none!important;
+}
+body.restaurant-mode .restaurant-card.back-two{
+  display:block!important;
+  z-index:2!important;
+  opacity:.11!important;
+  transform:translateY(20px) scale(.945) rotate(-1.6deg)!important;
+  pointer-events:none!important;
+}
+body.restaurant-mode .restaurant-card.active{
+  z-index:10!important;
+  opacity:1!important;
+  transform:none!important;
+}
+/* The swipe should feel identical to Food. */
+body.restaurant-mode .restaurant-card,
+body.restaurant-mode .restaurant-card *{touch-action:none;}
+body.restaurant-mode .restaurant-card.dragging{transition:none!important;}
+
+/* P705 — first page: clean wordmark, no black brand box, simpler menu icon. */
+body:not(.game-mode):not(.restaurant-mode) header .brand{
+  display:none!important;
+}
+.home{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(103,196,155,.10),transparent 28%),
+    radial-gradient(circle at 92% 22%,rgba(255,111,97,.07),transparent 24%),
+    linear-gradient(180deg,#071612 0%,#0a1c16 58%,#071612 100%)!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.home-topbar{
+  min-height:38px!important;
+  margin:0 0 6px!important;
+  padding:0 2px!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.home-topbar-brand{
+  color:rgba(255,255,255,.58)!important;
+  font-size:.64rem!important;
+  font-weight:650!important;
+  letter-spacing:.22em!important;
+}
+.home-topbar-menu{
+  width:40px!important;
+  height:40px!important;
+  min-width:40px!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:13px!important;
+  background:rgba(255,255,255,.055)!important;
+  color:#fff!important;
+  font-size:1.05rem!important;
+  line-height:1!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.14)!important;
+}
+.home-topbar-menu:active{transform:scale(.97);}
+.home-eyebrow{
+  color:#ff998e!important;
+  letter-spacing:.20em!important;
+  margin-top:4px!important;
+}
+.home h1{
+  text-wrap:balance;
+  max-width:620px!important;
+}
+.home-lede{
+  max-width:520px!important;
+  color:rgba(255,255,255,.62)!important;
+}
+.home-statline{
+  margin-top:11px!important;
+  color:rgba(255,255,255,.42)!important;
+  letter-spacing:.02em!important;
+}
+.home-statline strong{
+  color:#fff!important;
+  font-family:var(--display-face)!important;
+  font-weight:500!important;
+}
+.home-modes{
+  margin-top:18px!important;
+}
+.mode-card{
+  border-color:rgba(255,255,255,.12)!important;
+  box-shadow:0 18px 36px rgba(0,0,0,.20)!important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+}
+.mode-card:active{
+  transform:translateY(1px) scale(.995);
+}
+.home-secondary-clean{
+  margin-top:12px!important;
+}
+.home-phone-help{
+  text-decoration:none!important;
+  color:rgba(255,255,255,.40)!important;
+}
+.home-trust{
+  margin-top:7px!important;
+  color:rgba(255,255,255,.28)!important;
+}
+@media(max-width:520px){
+  .home{
+    padding:16px 13px 20px!important;
+    justify-content:flex-start!important;
+  }
+  .home-topbar{margin-bottom:12px!important;}
+  .home h1{margin-top:8px!important;}
+  .home-modes{margin-top:17px!important;gap:9px!important;}
+}
+</style>
+</head>
 <body>
 <div class="app">
 <header>
@@ -5554,7 +5677,7 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 <span id="statusText">Loading your options…</span>
 </div>
 <section class="panel home" id="homePanel">
-<div class="home-topbar" aria-label="Home controls"><div class="home-topbar-brand">DINLIMINATE</div><button aria-label="Open menu" class="home-topbar-menu" id="homeMenuTopBtn" title="Menu" type="button">•••</button></div>
+<div class="home-topbar" aria-label="Home controls"><div class="home-topbar-brand">DINLIMINATE</div><button aria-label="Open menu" class="home-topbar-menu" id="homeMenuTopBtn" title="Menu" type="button">☰</button></div>
 <div class="home-eyebrow">DINNER DECISIONS, SIMPLIFIED</div>
 <h1>What sounds good<br/>tonight?</h1>
 <p class="home-lede">Pick a meal or find a restaurant. Swipe through the options until dinner makes itself obvious.</p>
@@ -7909,13 +8032,7 @@ bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
 bind('searchBtn','click',startSearch);
 
 bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');const btn=$('restaurantSearchBtn');if(!box||!btn)return;const open=!box.classList.contains('hidden');box.classList.toggle('hidden',open);btn.setAttribute('aria-expanded',String(!open));if(!open)$('restaurantInlineSearchInput')?.focus();});
-bind('restaurantOpenUnknownBtn','click',(e)=>{
-  e?.preventDefault?.();
-  if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return;
-  const next=restaurantHoursFilter==='closed'?'open-unknown':'closed';
-  window.setRestaurantHoursFilter?.(next);
-  toast(next==='closed'?'Closed restaurants only.':'Open or unknown-hour restaurants.');
-});
+/* Open/Closed is owned by launch-hardening.js; keep exactly one click handler. */
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
 
 bind('cutBtn','click',(e)=>{e?.preventDefault?.();window.cutCurrent?.($('stage')?.querySelector('.active'));});
