@@ -311,3 +311,22 @@ Updated `CHECKPOINT.md` with the exact CP76 green release-candidate commit, curr
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
 Never force-push this branch. New work should land as another checkpoint commit.
+
+## CP77 — Food feature-complete checkpoint
+Source commits:
+- app.js: 4d8fa05a6bcea1bedee37fdd2163b34b17aeef91
+- index.html: 012c8bc540dc550bbfe349459a34fb36bc94d4ba
+- styles.css: 795f275eb83a2110da1dbb517888c1f8f8eda105
+
+Added:
+- Food All Cut → hungry/no-choice result.
+- Food Pass Around moved beside Add Food in the header.
+- Device/iPhone photo upload for custom foods with client-side image resizing.
+- Edit custom foods.
+- Hide/restore and delete handling for foods, including deleted built-ins with restore.
+- Settings now exposes deleted-food restore.
+- Existing swipe/Quick Cut behavior preserved.
+
+Verification status:
+- Code committed as protected recovery point.
+- Full CI/browser regression is the next gate before continuing the restaurant layer.
