@@ -451,3 +451,28 @@ $('about').onclick=()=>{openDrawer(false);infoSheet('About Dinliminate','<div cl
 const cp18style=document.createElement('style');cp18style.textContent='.home-foot>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.info-copy{font-size:13px;line-height:1.55;color:#ddd}.info-copy p{margin:0 0 11px}.info-copy h4{font-size:25px;letter-spacing:-.04em}.home-foot #iphoneHelp{font-size:10px;color:#666;padding-left:0}';document.head.appendChild(cp18style);
 
 const cp19style=document.createElement('style');cp19style.textContent='.food-row-actions{display:flex;gap:6px;align-items:center}.danger-lite{color:#ff806a!important}';document.head.appendChild(cp19style);
+
+/* CP20: usable History calendar */
+function historyView(){
+  const h=readHistory(),now=new Date();
+  let cursor=new Date(now.getFullYear(),now.getMonth(),1);
+  function render(){
+    const y=cursor.getFullYear(),mo=cursor.getMonth(),last=new Date(y,mo+1,0).getDate(),first=new Date(y,mo,1).getDay();
+    let body='<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext">›</button></div><div class="cal-grid cal-grid-20">';
+    ['S','M','T','W','T','F','S'].forEach(d=>body+='<span class="cal-d">'+d+'</span>');
+    for(let i=0;i<first;i++)body+='<span></span>';
+    for(let day=1;day<=last;day++){
+      const key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),entries=h.filter(x=>x.date===key);
+      body+='<div class="cal-cell">'+(entries.length?'<button class="cal-day has" data-date="'+key+'"><b>'+day+'</b><img src="'+entries[0].image+'" alt=""></button><button class="cal-x" data-del-date="'+key+'" aria-label="Remove history for '+key+'">×</button>':'<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
+    }
+    body+='</div></div><div class="history-list">'+(h.length?h.slice(0,30).map(x=>'<button class="history-row history-open" data-history-id="'+x.id+'"><img src="'+x.image+'" alt=""><span><b>'+x.name+'</b><small>'+x.date+' · '+x.type+'</small></span></button>').join(''):'<p class="status">No history yet.</p>')+'</div>';
+    const m=addOverlay('historyModal','History',body);showOverlay('historyModal');
+    $('calPrev').onclick=()=>{cursor=new Date(y,mo-1,1);m.remove();$('historyModalBg')?.remove();render()};
+    $('calNext').onclick=()=>{cursor=new Date(y,mo+1,1);m.remove();$('historyModalBg')?.remove();render()};
+    m.querySelectorAll('.history-open').forEach(b=>b.onclick=()=>{const e=h.find(x=>String(x.id)===String(b.dataset.historyId));if(e){infoSheet('Decision details','<div class="info-copy"><h4>'+e.name+'</h4><p class="status">'+e.date+' · '+e.type+'</p><img class="history-detail-photo" src="'+e.image+'" alt="'+e.name.replace(/"/g,'&quot;')+'"></div>')}});
+    m.querySelectorAll('.cal-day.has').forEach(b=>b.onclick=()=>{const e=h.find(x=>x.date===b.dataset.date);if(e)alert(e.name+'\\n'+e.date)});
+    m.querySelectorAll('.cal-x').forEach(b=>b.onclick=()=>{const date=b.dataset.delDate;writeHistory(h.filter(x=>x.date!==date));render()});
+  }
+  render();
+}
+const cp20style=document.createElement('style');cp20style.textContent='.cal-nav{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;text-align:center;margin-bottom:8px}.cal-grid-20{gap:5px}.cal-cell{position:relative;min-height:47px}.cal-cell .cal-day{width:100%;height:47px}.cal-x{position:absolute;top:2px;right:2px;width:17px;height:17px;border:0;border-radius:50%;background:#090909dd;color:#fff;font-size:11px;line-height:17px;padding:0;z-index:3}.history-open{width:100%;background:none;color:#eee;border-left:0;border-right:0;border-bottom:0;text-align:left}.history-detail-photo{width:100%;max-height:260px;object-fit:cover;border-radius:14px;margin-top:9px}';document.head.appendChild(cp20style);
