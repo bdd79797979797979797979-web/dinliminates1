@@ -274,6 +274,11 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
+  console.log('P690 hours=closed state', await page.evaluate(() => ({
+    hours: localStorage.getItem('dinliminateRestaurantHoursFilter'),
+    active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,open:r.openNow,cat:r.category})) : [],
+    americanText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="american"] .quick-cut-copy em')?.textContent || null
+  })));
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
