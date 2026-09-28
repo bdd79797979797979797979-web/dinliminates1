@@ -1,4 +1,5 @@
 const MAX_RADIUS_MI = 100;
+const MIN_COVERAGE_RADIUS_MI = 25;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
 const VERSION = 'restaurant-v759-search-quality';
@@ -455,7 +456,7 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
   }catch(e){return {endpoint:'Nominatim POI',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
 }
 
-async function photonProvider(lat,lon,radiusMi){
+async function photonProvider(lat,lon,coverageRadiusMi){
   const started=Date.now(), radius=clampRadius(radiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
   const bbox=[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta].join(',');
   const common={bbox,limit:radius>50?'250':'200',lang:'en',countrycode:'US',dedupe:'1',location_bias_scale:'0.15'};
@@ -487,7 +488,7 @@ async function probePhoton(){
   }catch(e){return {endpoint:'Photon POI',ok:false,rows:0,error:errorText(e),ms:Date.now()-started};}
 }
 
-async function googleSearch(lat, lon, radiusMi) {
+async function googleSearch(lat, lon, coverageRadiusMi) {
   if (!GOOGLE_KEY) return { endpoint: 'Google Places', rows: [], ms: 0, errors: ['not configured'] };
   const started = Date.now();
   const meters = Math.round(Math.min(50, radiusMi) * 1609.344);
@@ -578,7 +579,11 @@ async function nominatimSearchProvider(lat,lon,radiusMi,query){
 }
 async function doSearch(lat, lon, radiusMi, query='') {
   const searchQuery=String(query||'').trim().slice(0,80);
-  const key = lat.toFixed(3) + ':' + lon.toFixed(3) + ':' + radiusMi.toFixed(1) + ':' + searchText(searchQuery);
+  // Search a stable coverage radius so 15/25-mile requests come from the same
+  // provider universe. The requested radius is only applied after the merged
+  // pool is built, which makes radius counts monotonic as the user expands.
+  const coverageRadiusMi = Math.min(MAX_RADIUS_MI, Math.max(radiusMi, MIN_COVERAGE_RADIUS_MI));
+  const key = lat.toFixed(3) + ':' + lon.toFixed(3) + ':' + coverageRadiusMi.toFixed(1) + ':' + searchText(searchQuery);
   const cached = memoryCache.get(key);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return { ...cached.data, diagnostics: { ...(cached.data.diagnostics || {}), cacheHit: true } };
@@ -594,15 +599,15 @@ async function doSearch(lat, lon, radiusMi, query='') {
     const qTerms=searchTerms(searchQuery);
     const needsBroadSemantic=qTerms.some(t=>semanticTerms.has(t));
     const direct=await Promise.all([
-      photonSearchProvider(lat,lon,radiusMi,searchQuery),
-      nominatimSearchProvider(lat,lon,radiusMi,searchQuery),
-      overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,radiusMi,searchQuery),
-      overpassProvider(OVERPASS_ENDPOINTS[1],lat,lon,radiusMi,searchQuery)
+      photonSearchProvider(lat,lon,coverageRadiusMi,searchQuery),
+      nominatimSearchProvider(lat,lon,coverageRadiusMi,searchQuery),
+      overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,coverageRadiusMi,searchQuery),
+      overpassProvider(OVERPASS_ENDPOINTS[1],lat,lon,coverageRadiusMi,searchQuery)
     ]);
     if(needsBroadSemantic){
       const broad=await Promise.all([
-        photonProvider(lat,lon,radiusMi),
-        overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,radiusMi,'')
+        photonProvider(lat,lon,coverageRadiusMi),
+        overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,coverageRadiusMi,'')
       ]);
       direct.push(...broad);
     }
@@ -615,13 +620,16 @@ async function doSearch(lat, lon, radiusMi, query='') {
         if(merged.length)break;
       }
     }
+    const coverageMerged=merged.filter(r=>Number(r.distanceMiles)<=coverageRadiusMi);
+    const requestedMerged=coverageMerged.filter(r=>Number(r.distanceMiles)<=radiusMi);
     const data={
-      results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
-      total:merged.length,fastFoodCount:merged.filter(r=>r.fastFood).length,
+      results:requestedMerged.slice(0,RESULT_LIMIT),restaurants:requestedMerged.slice(0,RESULT_LIMIT),items:requestedMerged.slice(0,RESULT_LIMIT),
+      coverageResults:coverageMerged.slice(0,RESULT_LIMIT),coverageTotal:coverageMerged.length,
+      total:requestedMerged.length,fastFoodCount:requestedMerged.filter(r=>r.fastFood).length,
       providersUsed:[...new Set(direct.filter(x=>(x.rows||[]).length).map(x=>x.endpoint))],
       googleConfigured:!!GOOGLE_KEY,searchQuery,
       providerCounts:Object.fromEntries(direct.map(x=>[x.endpoint,Number(x.rows?.length||0)])),
-      diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,semanticBroadPool:needsBroadSemantic,providers:direct.map(x=>({endpoint:x.endpoint,rows:x.rows?.length||0,ms:x.ms||0,errors:x.errors||[]}))}
+      diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,coverageRadiusMiles:coverageRadiusMi,semanticBroadPool:needsBroadSemantic,providers:direct.map(x=>({endpoint:x.endpoint,rows:x.rows?.length||0,ms:x.ms||0,errors:x.errors||[]}))}
     };
     memoryCache.set(key,{at:Date.now(),data});
     return data;
@@ -629,7 +637,7 @@ async function doSearch(lat, lon, radiusMi, query='') {
 
   const started = Date.now();
   const providerResults = [];
-  providerResults.push(await googleSearch(lat, lon, radiusMi));
+  providerResults.push(await googleSearch(lat, lon, coverageRadiusMi));
   const photon = await photonProvider(lat, lon, radiusMi);
   providerResults.push(photon);
 
@@ -637,13 +645,13 @@ async function doSearch(lat, lon, radiusMi, query='') {
   // Three mirrors for <=25 mi improves local coverage, two for larger tiled searches
   // keep the serverless request bounded.
   const primaryCount=radiusMi<=25?3:2;
-  const settled=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(0,primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,'')));
+  const settled=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(0,primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,coverageRadiusMi,'')));
   let usable=0;
   for(const r of settled){
     if(r.status==='fulfilled'){providerResults.push(r.value);if((r.value.rows||[]).length)usable++;}
   }
   if(!usable){
-    const fallback=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,'')));
+    const fallback=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,coverageRadiusMi,'')));
     for(const r of fallback)if(r.status==='fulfilled')providerResults.push(r.value);
   }
 
@@ -663,7 +671,10 @@ async function doSearch(lat, lon, radiusMi, query='') {
       for(const k of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl'])if(!existing[k]&&row[k])existing[k]=row[k];
     }
   }
-  const merged=[...mergedMap.values()].filter(row=>{const d=Number(row.distanceMiles);return Number.isFinite(d)&&d<=radiusMi;}).sort((a,b)=>a.distanceMiles-b.distanceMiles);
+  const coverageMerged=[...mergedMap.values()]
+    .filter(row=>{const d=Number(row.distanceMiles);return Number.isFinite(d)&&d<=coverageRadiusMi;})
+    .sort((a,b)=>a.distanceMiles-b.distanceMiles);
+  const merged=coverageMerged.filter(row=>Number(row.distanceMiles)<=radiusMi);
   const usableProviders=providerResults.filter(x=>(x.rows||[]).length);
   const attemptedOverpass=providerResults.filter(x=>x.endpoint!=='Google Places'&&x.endpoint!=='Photon POI + Nominatim fallback');
   const allRestaurantProvidersFailed=!usableProviders.length&&attemptedOverpass.length>0&&attemptedOverpass.every(x=>Array.isArray(x.errors)&&x.errors.length);
@@ -673,11 +684,12 @@ async function doSearch(lat, lon, radiusMi, query='') {
   }
   const data={
     results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
+    coverageResults:coverageMerged.slice(0,RESULT_LIMIT),coverageTotal:coverageMerged.length,
     total:merged.length,fastFoodCount:merged.filter(r=>r.fastFood).length,
     providersUsed:providerResults.filter(x=>(x.rows||[]).length).map(x=>x.endpoint),
     googleConfigured:!!GOOGLE_KEY,
     providerCounts:Object.fromEntries(providerStats.map(x=>[x.endpoint,x.rows])),
-    diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:providerStats}
+    diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,coverageRadiusMiles:coverageRadiusMi,providers:providerStats}
   };
   memoryCache.set(key,{at:Date.now(),data});
   return data;
