@@ -301,7 +301,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantRadiusFilter').selectOption('5');
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('5 mi');
   await expect.poll(()=>count(fast)).toBe(2);
-  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(5);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(6);
 
   await page.evaluate(()=>{
     activeRestaurants.sort((a,b)=>(Number(a.distanceMiles)||999)-(Number(b.distanceMiles)||999));
@@ -319,6 +319,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
   await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)===false))).toBe(true);
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toHaveText('Waffle House');
   console.log('P690 hours=closed state', await page.evaluate(() => ({
     hours: localStorage.getItem('dinliminateRestaurantHoursFilter'),
     active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,open:r.openNow,cat:r.category})) : [],
@@ -328,6 +329,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
   await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)!==false))).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Southern Kitchen' && restaurantOpenStatus(r)===null))).toBe(true);
   await expect.poll(()=>count(american)).toBe(1);
 
   await fast.click();
@@ -480,7 +482,10 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
   await expect(page.locator('#homeMenuTopBtn')).toHaveAttribute('aria-label','Open menu');
   await expect(page.locator('#homeMenuTopBtn svg')).toHaveCount(1);
   await expect(page.locator('#homeMenuTopBtn')).toBeVisible();
+  await expect(page.locator('#homePanel .home-topbar-menu:visible')).toHaveCount(1);
+  await expect(page.locator('#homePanel .home-topbar-menu svg:visible')).toHaveCount(1);
   await expect(page.locator('.home-topbar-brand')).toContainText('Dinliminate');
+  await expect(page.locator('body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn')).toHaveCount(0);
   const homeChrome=await page.evaluate(()=>{
     const brand=document.querySelector('.home-topbar-brand');
     const menu=document.querySelector('#homeMenuTopBtn');
@@ -488,13 +493,19 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
       brandBg:brand?getComputedStyle(brand).backgroundColor:'',
       brandBorder:brand?getComputedStyle(brand).borderTopWidth:'',
       menuText:menu?String(menu.textContent||''):'',
-      literalHamburger:document.body.textContent.includes('☰')
+      literalHamburger:document.body.textContent.includes('☰'),
+      wordmarkFontPx:parseFloat(getComputedStyle(brand).fontSize),
+      visibleHomeMenus:Array.from(document.querySelectorAll('#homePanel .home-topbar-menu')).filter(el=>getComputedStyle(el).display!=='none').length,
+      visibleHamburgerSvgs:Array.from(document.querySelectorAll('#homePanel .home-topbar-menu svg')).filter(el=>getComputedStyle(el).display!=='none').length
     };
   });
   expect(homeChrome.brandBg).toBe('rgba(0, 0, 0, 0)');
   expect(homeChrome.brandBorder).toBe('0px');
   expect(homeChrome.menuText).not.toContain('☰');
   expect(homeChrome.literalHamburger).toBeFalsy();
+  expect(homeChrome.wordmarkFontPx).toBeGreaterThanOrEqual(20);
+  expect(homeChrome.visibleHomeMenus).toBe(1);
+  expect(homeChrome.visibleHamburgerSvgs).toBe(1);
 
   await page.locator('#startBtn').click();
   await expect(page.locator('#gamePanel')).toBeVisible();
@@ -506,6 +517,15 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
     await quick.click();
     await expect(quick).toHaveAttribute('aria-pressed',before||'false');
   }
+
+  const foodDetailStart=Date.now();
+  await page.locator('#stage .stack-card.active [data-card-action="details"]').click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  const foodDetailOpenMs=Date.now()-foodDetailStart;
+  console.log('food detail open ms',foodDetailOpenMs);
+  expect(foodDetailOpenMs).toBeLessThan(500);
+  await page.locator('#detailCloseBtn').click();
+  await expect(page.locator('#detailBackdrop')).toHaveClass(/hidden/);
 
   await page.evaluate(() => {
     activeItems=[];
