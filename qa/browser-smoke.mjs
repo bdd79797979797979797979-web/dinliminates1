@@ -145,9 +145,10 @@ await click('#restDetails'); await settle(); assert.equal(await visible('details
 
 const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await click('#menu'); await settle(); await click('#settings'); await settle();
-assert.equal(await page.locator('#settingsModal').innerText().then(t=>t.includes('Hidden Restaurants')),true);
-const restore=page.locator('[data-setting-rest]').first(); assert.equal(await restore.count(),1);
-await restore.click(); await settle();
+assert.equal(await visible('settingsModal'),true,'Settings modal should open');
+const settingsText=await page.locator('#settingsModal').innerText(); assert.match(settingsText,/Hidden Restaurants/i,'Settings should show Hidden Restaurants');
+const restore=page.locator('#settingsModal [data-setting-rest]').first(); assert.equal(await restore.count(),1,'Settings should expose a restaurant Restore control');
+await restore.click(); await settle(); s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length,0,'Restaurant Restore should remove the hidden registry entry');
 
 await click('#food [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
