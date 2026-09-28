@@ -29,7 +29,7 @@ global.fetch = async (url) => {
     if (q === 'fast food') return response({features:[]});
   }
   if (u.hostname === 'nominatim.openstreetmap.org') return response([
-    {osm_type:'node',osm_id:1,lat:'36.4427',lon:'-87.1784',name:"McDonald's",type:'fast_food',class:'amenity',display_name:"McDonald's, Clarksville, Tennessee"}
+    {osm_type:'node',osm_id:1,lat:'36.4427',lon:'-87.1784',name:"McDonald's",type:'fast_food',class:'amenity',display_name:"McDonald's, Clarksville, Tennessee",extratags:{opening_hours:'Mo-Su 06:00-23:00',website:'https://www.mcdonalds.com',phone:'+1 555 0100'}}
   ]);
   throw new Error('Unexpected URL '+url);
 };
@@ -53,6 +53,10 @@ function res(){
   assert(r.body.results.some(x=>x.name==="McDonald's"));
   assert(r.body.results.some(x=>x.name==='Waffle House'));
   assert.equal(r.body.fastFoodCount,1);
+  const mc = r.body.results.find(x=>x.name==="McDonald's");
+  assert(mc);
+  assert.equal(mc.opening_hours,'Mo-Su 06:00-23:00');
+  assert.equal(mc.website,'https://www.mcdonalds.com');
   assert(r.body.results.every(x=>Number(x.distanceMiles)<=100));
   assert(r.body.results.every(x=>/^osm-(node|way|relation)-\d+$/.test(x.id) || /^photon-|^nominatim-/.test(x.id)));
   assert(r.body.providersUsed.includes('Photon POI'));
