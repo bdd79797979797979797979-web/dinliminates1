@@ -2,7 +2,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION = 'p726-launch-candidate';
+  const VERSION = 'p728-qa-hardened';
   const $=id=>document.getElementById(id);
   const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -21,7 +21,7 @@
     let state=null;
     try{const raw=safeRead(FOOD_ROUND_KEY,'');if(raw)state=JSON.parse(raw);}catch{}
     if(!state){const row=await idbGet('foodRound');state=row?.value||null;if(state)safeWrite(FOOD_ROUND_KEY,JSON.stringify(state));}
-    if(!state || !['p633','p634','p636-launch','p636-final','p636-clean-final','p719-launch-candidate','p726-launch-candidate'].includes(state.version) || !Number.isFinite(state.savedAt) || Date.now()-state.savedAt>FOOD_ROUND_MAX_AGE || !Array.isArray(state.base) || state.base.length<2)return false;
+    if(!state || !['p633','p634','p636-launch','p636-final','p636-clean-final','p719-launch-candidate','p726-launch-candidate','p728-qa-hardened'].includes(state.version) || !Number.isFinite(state.savedAt) || Date.now()-state.savedAt>FOOD_ROUND_MAX_AGE || !Array.isArray(state.base) || state.base.length<2)return false;
     foodBase=uniq(state.base,foodKey);activeItems=uniq(state.active||[],foodKey);holdingItems=uniq(state.holding||[],foodKey);foodManual=new Set(Array.isArray(state.manual)?state.manual:[]);foodQuickHidden=new Set(Array.isArray(state.quick)?state.quick:[]);foodInProgress=true;finalistMode=!!state.finalist;originalCount=Number(state.originalCount)||foodBase.length;searchQuery=String(state.searchQuery||'');
     return true;
   }
