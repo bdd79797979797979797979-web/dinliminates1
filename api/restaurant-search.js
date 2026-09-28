@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v757-search-quality';
+const VERSION = 'restaurant-v759-search-quality';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -156,6 +156,11 @@ function osmRow(el) {
   if (website && !/^https?:\/\//i.test(website)) website = 'https://' + website;
 
   const cuisine = String(t.cuisine || '').trim();
+  const dish = String(t.dish || t['dish:name'] || '').trim();
+  const food = String(t.food || t['food:type'] || '').trim();
+  const menuItems = [t['menu:items'],t.menu_items,t['menu:item'],dish,food]
+    .flatMap(v=>String(v||'').split(/\n|\r|\||;|•/))
+    .map(x=>x.trim()).filter(Boolean).slice(0,12);
 
   return {
     id: el.osm_id ? 'osm-' + (el.osm_type || el.type || 'feature') + '-' + el.osm_id : 'osm-place-' + slugStable(name + '|' + lat.toFixed(6) + '|' + lon.toFixed(6)),
@@ -165,6 +170,8 @@ function osmRow(el) {
     fastFood: fast,
     category: fast ? 'Fast Food' : (cuisine || 'Restaurant'),
     cuisine,
+    dish,
+    food,
     tags: fast ? ['restaurant', 'fast_food', 'fast food'] : ['restaurant'],
     brand: String(t.brand || '').trim(),
     operator: String(t.operator || '').trim(),
@@ -177,7 +184,7 @@ function osmRow(el) {
     photo: String(t.image || t.image_url || '').trim(),
     rating: num(t.stars, 0),
     priceLevel: String(t.price || '').trim(),
-    menuItems: String(t['menu:items'] || t.menu_items || t['menu:item'] || '').split(/\n|\r|\||;|•/).map(x => x.trim()).filter(Boolean).slice(0, 10),
+    menuItems,
     menuUrl: String(t.menu || t['contact:menu'] || '').trim(),
     timeZone: String(t['timezone'] || '').trim(),
     source: 'OpenStreetMap'
@@ -218,7 +225,7 @@ function searchText(value){
 function searchTerms(query){ return searchText(query).split(' ').filter(Boolean); }
 function restaurantSearchSemanticText(row){
   const base=[
-    row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+    row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,row?.dish,row?.food,
     ...(Array.isArray(row?.tags)?row.tags:[row?.tags]),
     ...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])
   ].filter(Boolean).join(' ');
@@ -226,9 +233,12 @@ function restaurantSearchSemanticText(row){
   const name=searchText(row?.name);
   const brand=searchText(row?.brand);
   const operator=searchText(row?.operator);
+  const cuisine=searchText(row?.cuisine);
+  const menu=searchText([row?.dish,row?.food,...(row?.menuItems||[])].join(' '));
   const semantic=[];
-  const add=(key,re)=>{if(re.test(text+' '+name+' '+brand+' '+operator))semantic.push(key);};
-  add('burger',/\b(?:burger|hamburger|mcdonalds?|wendys?|wendy|burger king|five guys|whataburger|culvers?|sonic|steak n shake|shake shack|hardees?|carls jr|checkers|rallys|white castle|jack in the box|freddys?)\b/i);
+  const add=(key,re)=>{if(re.test(text+' '+name+' '+brand+' '+operator+' '+cuisine+' '+menu))semantic.push(key);};
+  // Match the food itself rather than requiring the restaurant name to contain it.
+  add('burger',/\b(?:burger|burgers|hamburger|hamburgers|cheeseburger|cheeseburgers|mcdonalds?|wendys?|wendy|burger king|five guys|whataburger|culvers?|sonic|steak n shake|shake shack|hardees?|carls jr|checkers|rallys|white castle|jack in the box|freddys?)\b/i);
   add('chicken',/\b(?:chicken|kfc|chick fil a|popeyes|zaxbys?|bojangles|raising canes?|churchs? chicken|slim chickens?|wingstop|buffalo wild wings?)\b/i);
   add('pizza',/\b(?:pizza|pizzeria|dominos?|pizza hut|papa johns?|little caesars|pap(a|pa) murphys?|marcos? pizza)\b/i);
   add('breakfast',/\b(?:breakfast|brunch|waffle house|dennys?|ihop|cracker barrel)\b/i);
@@ -239,7 +249,7 @@ function restaurantSearchSemanticText(row){
   add('mexican',/\b(?:mexican|tex mex|taco|burrito|enchilada|quesadilla|taco bell|chipotle)\b/i);
   add('italian',/\b(?:italian|pasta|trattoria|osteria)\b/i);
   add('healthy',/\b(?:healthy|salad|vegetarian|vegan|juice|smoothie)\b/i);
-  add('soupstew',/\b(?:soup|stew|chili)\b/i);
+  add('soupstew',/\b(?:soup|stew|chili|chowder)\b/i);
   return semantic.join(' ');
 }
 function searchQueryAlternates(query){
@@ -274,13 +284,29 @@ function overpassQuery(lat, lon, radiusMi, query=''){
   const meters=Math.round(Math.min(50,Math.max(1,radiusMi))*1609.344);
   const base='[out:json][timeout:12];';
   if(!String(query||'').trim()) return base+'nwr[amenity~"^(restaurant|fast_food)$"][name](around:'+meters+','+lat+','+lon+');out center tags;';
-  const rx=overpassRegex(query).replace(/"/g,'\\"');
-  return base+'('+
-    'nwr[amenity~"^(restaurant|fast_food)$"][name~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
-    'nwr[amenity~"^(restaurant|fast_food)$"][brand~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
-    'nwr[amenity~"^(restaurant|fast_food)$"][operator~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
-    'nwr[amenity~"^(restaurant|fast_food)$"][cuisine~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
-    ');out center tags;';
+  const q=searchText(query);
+  const descriptor={
+    burger:['burger','hamburger','cheeseburger','american'],
+    chicken:['chicken'],
+    pizza:['pizza','pizzeria'],
+    breakfast:['breakfast','brunch'],
+    sandwich:['sandwich','sub','deli'],
+    seafood:['seafood','fish','shrimp'],
+    mexican:['mexican','taco','burrito','tex mex'],
+    southern:['southern','soul food'],
+    healthy:['healthy','salad','vegetarian','vegan'],
+    soupstew:['soup','stew','chili','chowder'],
+    bbq:['bbq','barbecue','smokehouse'],
+    pasta:['pasta','italian'],
+    italian:['italian','pasta']
+  }[q]||[];
+  const rx=overpassRegex(query).replace(/"/g,'\"');
+  const drx=descriptor.map(overpassRegex).join('|').replace(/"/g,'\"');
+  const fields=[
+    '[name~"'+rx+'",i]','[brand~"'+rx+'",i]','[operator~"'+rx+'",i]','[cuisine~"'+rx+'",i]',
+    '[dish~"'+(drx||rx)+'",i]','[food~"'+(drx||rx)+'",i]','[menu:items~"'+(drx||rx)+'",i]','[menu:item~"'+(drx||rx)+'",i]'
+  ];
+  return base+'('+fields.map(f=>'nwr[amenity~"^(restaurant|fast_food)$"]'+f+'(around:'+meters+','+lat+','+lon+');').join('')+');out center tags;';
 }
 function tileCenters(lat, lon, radiusMi) {
   // Keep provider work bounded. A local search uses one query. A 25–50 mile
@@ -354,9 +380,8 @@ async function overpassProvider(endpoint, lat, lon, radiusMi, searchQuery='') {
       elements.push(...result.elements);
       if (result.error) errors.push(result.error);
     }
-    // For 25–50 mile searches, one successful batch is enough because the
-    // circles overlap. Larger searches continue through all seven tiles.
-    if (radiusMi <= 50 && normalizeRows(elements, lat, lon, radiusMi).length > 0) break;
+    // Consume every planned tile. A fast mirror may return a partial slice,
+    // so no populated batch is treated as complete coverage.
   }
 
   return {
@@ -421,7 +446,10 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
       const menuUrl=String(extra.menu||extra['contact:menu']||'').trim();
       const brand=String(extra.brand||'').trim();
       const operator=String(extra.operator||'').trim();
-      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(type==='cafe'?'Cafe':'Restaurant'),cuisine,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone,website,opening_hours:openingHours,lat:la,lon:lo,photo,rating:0,priceLevel:'',menuItems:[],menuUrl,timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
+      const dish=String(extra.dish||extra['dish:name']||'').trim();
+      const food=String(extra.food||extra['food:type']||'').trim();
+      const menuItems=[extra['menu:items'],extra.menu_items,extra['menu:item'],dish,food].flatMap(v=>String(v||'').split(/\n|\r|\||;|•/)).map(x=>x.trim()).filter(Boolean).slice(0,12);
+      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(type==='cafe'?'Cafe':'Restaurant'),cuisine,dish,food,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone,website,opening_hours:openingHours,lat:la,lon:lo,photo,rating:0,priceLevel:'',menuItems,menuUrl,timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
     }
     return {endpoint:'Nominatim POI',rows:dedupeRestaurantRows(rows.filter(x=>x.distanceMiles<=radius)),ms:Date.now()-started,errors:[]};
   }catch(e){return {endpoint:'Nominatim POI',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
