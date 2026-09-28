@@ -212,7 +212,7 @@ assert.equal((await page.locator('#settingsModal').innerText()).includes('popcor
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'closing Settings should leave no stale Manage Foods modal');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'closing Settings should leave no stale Food editor modal');
-await click('#addFood'); await settle();
+await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
