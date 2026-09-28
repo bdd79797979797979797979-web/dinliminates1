@@ -259,6 +259,10 @@ Browser QA now inspects modal backdrops and the element under the Hide button be
 Commit: `04abe7303fd901901ffe464e70b5530df8a52a1d`
 Browser QA now verifies the Settings modal structure and confirms Restaurant Restore clears the hidden registry.
 
+## CP66 — Settings modal diagnostic
+Commit: `18ffbf0259e595ee0c3d7253cc55164809d47547`
+Browser QA now logs whether the Settings modal is created, whether the drawer closes, its computed visibility, and its DOM rectangle.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
