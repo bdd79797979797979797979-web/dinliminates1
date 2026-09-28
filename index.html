@@ -6353,6 +6353,7 @@ const FOOD_FALLBACK_PHOTO = 'https://images.pexels.com/photos/17477762/pexels-ph
 const HUNGRY_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#efe7d7"/><ellipse cx="600" cy="470" rx="270" ry="120" fill="#d8d0c0"/><ellipse cx="600" cy="450" rx="220" ry="85" fill="#fbfaf7"/><path d="M700 250c70-42 146-5 150 52 5 73-79 96-130 51" fill="none" stroke="#20362d" stroke-width="18" stroke-linecap="round"/><path d="M520 285h-70m10 0v120m15-120v120m15-120v120m15-120v120" fill="none" stroke="#20362d" stroke-width="12" stroke-linecap="round"/><circle cx="530" cy="390" r="9" fill="#20362d"/><circle cx="670" cy="390" r="9" fill="#20362d"/><path d="M550 450c30 28 70 28 100 0" fill="none" stroke="#20362d" stroke-width="11" stroke-linecap="round"/><text x="600" y="690" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="800" fill="#20362d">THE PLATE IS EMPTY.</text><text x="600" y="742" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#62756b">Dinliminate has been defeated.</text></svg>');
 let restaurantRadiusMiles = Math.min(Math.max(Number(safeRead('dinliminateRestaurantRadius','10') || 10), 1), RESTAURANT_MAX_MILES);
 let restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
+let restaurantHoursDeferred=[];
 let userCoords = null;
 let userLocationAccuracyMeters = null;
 let userCity = '';
@@ -7700,17 +7701,50 @@ function syncRestaurantHoursControl(){
 }
 function setRestaurantHoursFilter(value){
   const next=String(value)==='closed'?'closed':'open-unknown';
+  const previous=restaurantHoursFilter;
   restaurantHoursFilter=next;
   safeWrite('dinliminateRestaurantHoursFilter',next);
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
   syncRestaurantHoursControl();
 
-  // The live-pool rebuild belongs to launch-hardening.js, where the private
-  // manual/Quick Cut state is available. Keep this legacy entry point as the
-  // public compatibility bridge.
+  // Hours is a reversible filter, not a destructive elimination. Park the
+  // currently eligible open/unknown cards while Closed is active, then bring
+  // them back when the user returns to Open / Unknown. Items already removed
+  // by Quick Cuts, manual cuts, or Maybe never enter the parked set.
   try{
-    if(window.DinliminateApplyRestaurantHoursFilterToLivePool?.(next)) return next;
-  }catch(e){ console.warn('Restaurant hours bridge failed',e); }
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    const keyOf=r=>String(r?.id||r?.name||'').trim().toLowerCase();
+    const withinRadius=r=>{
+      const d=Number(r?.distanceMiles);
+      return !Number.isFinite(d)||d<=radius;
+    };
+    const heldKeys=new Set((holdingRestaurants||[]).map(keyOf));
+    const activeQuick=[...(restaurantQuickCuts||new Set())];
+
+    if(next==='closed'){
+      if(previous!=='closed'){
+        restaurantHoursDeferred=[...(activeRestaurants||[])].filter(r=>{
+          const k=keyOf(r);
+          return k&&!heldKeys.has(k)&&withinRadius(r)&&restaurantOpenStatus(r)!==false;
+        });
+      }
+      activeRestaurants=[...(activeRestaurants||[])].filter(r=>withinRadius(r)&&restaurantOpenStatus(r)===false);
+    }else{
+      const merged=dedupe([...(activeRestaurants||[]),...(restaurantHoursDeferred||[])]);
+      activeRestaurants=merged.filter(r=>{
+        const k=keyOf(r);
+        if(!k||heldKeys.has(k)||!withinRadius(r))return false;
+        if(activeQuick.some(q=>restaurantQuickCutMatches(r,q)))return false;
+        return restaurantOpenStatus(r)!==false;
+      });
+      restaurantHoursDeferred=[];
+    }
+    restaurantUndoStack=[];
+    restaurantFinalistMode=false;
+    restaurantEliminationExhausted=false;
+  }catch(e){
+    console.warn('Restaurant hours reversible pool sync skipped',e);
+  }
 
   try{renderRestaurantStage();}catch{}
   try{window.renderRestaurantQuickCuts?.();}catch{}
@@ -7718,6 +7752,7 @@ function setRestaurantHoursFilter(value){
   try{window.saveRestaurantRoundState?.();}catch{}
   return next;
 }
+window.DinliminateResetRestaurantHoursDeferred=()=>{restaurantHoursDeferred=[];};
 window.syncRestaurantHoursControl=syncRestaurantHoursControl;
 window.setRestaurantHoursFilter=setRestaurantHoursFilter;
 function clearRestaurantQuickCuts(){
