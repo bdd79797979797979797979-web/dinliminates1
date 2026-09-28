@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v739-search-quality';
+const VERSION = 'restaurant-v742-search-quality';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -64,6 +64,10 @@ function rateLimit(req, mode) {
 function publicCache(res, seconds = 90) {
   res.setHeader('Cache-Control', 'public, s-maxage=' + seconds + ', stale-while-revalidate=600, stale-if-error=21600');
   res.setHeader('Vercel-CDN-Cache-Control', 'public, max-age=' + seconds + ', stale-while-revalidate=600, stale-if-error=21600');
+}
+
+function norm(v) {
+  return String(v ?? '').trim().toLowerCase().replace(/\s+/g, ' ').replace(/[,;]+/g, ',').replace(/\s*,\s*/g, ',');
 }
 
 function num(v, fallback = NaN) {
