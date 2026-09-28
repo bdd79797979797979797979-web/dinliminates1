@@ -36,8 +36,8 @@ jobs:
       - name: Smoke production entry
         run: |
           set -euo pipefail
-          curl -fsSL --max-time 20 https://dinliminates1.vercel.app/ | grep -q "Dinliminate"
+          curl --compressed -fsSL --max-time 20 https://dinliminates1.vercel.app/ | grep -q "Dinliminate"
       - name: Smoke production search API
         run: |
           set -euo pipefail
-          curl -fsSL --max-time 30 "https://dinliminates1.vercel.app/api/restaurant-search?mode=health" | grep -q '"ok":true'
+          curl --compressed -fsSL --max-time 30 "https://dinliminates1.vercel.app/api/restaurant-search?mode=health" | grep -q '"ok":true'
