@@ -150,19 +150,72 @@ test('Menu navigation exposes Saved and keeps Winner out', async ({ page }) => {
 
   await page.locator('#savedMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
-  await expect(page.locator('[data-library-tab="saved"]')).toHaveClass(/active/);
-  await expect(page.locator('#libraryTitle')).toHaveText('Your picks');
+  await expect(page.locator('#libraryTitle')).toHaveText('Saved');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
+  await expect(page.locator('[data-library-tab]')).toHaveCount(0);
 
   await page.locator('#closeLibraryBtn').click();
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#historyMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
-  await expect(page.locator('[data-library-tab="history"]')).toHaveClass(/active/);
+  await expect(page.locator('#libraryTitle')).toHaveText('History');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
+  await expect(page.locator('[data-library-tab]')).toHaveCount(0);
 
   await page.locator('#closeLibraryBtn').click();
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#aboutMenuBtn').click();
   await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn.');
+
+  expect(errors).toEqual([]);
+});
+
+
+test('Food and restaurant Details open immediately', async ({ page }) => {
+  test.setTimeout(30000);
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.setViewportSize({width:390,height:844});
+
+  await page.locator('#startBtn').click();
+  await page.evaluate(() => {
+    activeItems=[homeMeals[0]];
+    holdingItems=[]; undoStack=[]; finalistMode=false; searchQuery=''; originalCount=1;
+    renderStage(); syncDecisionActionLabels();
+  });
+  const foodStart = await page.evaluate(() => performance.now());
+  await page.locator('[data-card-action="details"]:visible').click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  const foodElapsed = await page.evaluate(t => performance.now()-t, foodStart);
+  expect(foodElapsed).toBeLessThan(750);
+  await page.locator('#detailCloseBtn').click();
+
+  const restaurant = {
+    id:'details-speed-1', name:'Details Speed Test Restaurant', type:'restaurant',
+    category:'American', cuisine:'american', amenity:'restaurant',
+    tags:['restaurant','american'], address:'1 Main St, Nashville, TN 37213',
+    openNow:true, distanceMiles:1.2, lat:36.16, lon:-86.77
+  };
+  await page.evaluate((r) => {
+    restaurantItems=[r]; restaurantBase=[r]; activeRestaurants=[r];
+    holdingRestaurants=[]; restaurantManual=new Set(); restaurantQuickCuts=new Set();
+    restaurantFilters={query:'',sort:'shuffle'}; restaurantRadiusMiles=10;
+    restaurantHoursFilter='open-unknown'; restaurantEliminationExhausted=false; restaurantRoundInProgress=false;
+    document.body.classList.remove('game-mode','finalist-mode');
+    document.body.classList.add('restaurant-mode');
+    document.querySelector('#homePanel')?.classList.add('hidden');
+    document.querySelector('#gamePanel')?.classList.add('hidden');
+    document.querySelector('#winnerPanel')?.classList.add('hidden');
+    document.querySelector('#restaurantPanel')?.classList.remove('hidden');
+    renderRestaurantStage(); renderRestaurantQuickCuts(); syncRestaurantActionLabels();
+  }, restaurant);
+  const restStart = await page.evaluate(() => performance.now());
+  await page.locator('.restaurant-detail-btn-v240:visible').click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  const restElapsed = await page.evaluate(t => performance.now()-t, restStart);
+  expect(restElapsed).toBeLessThan(750);
 
   expect(errors).toEqual([]);
 });
