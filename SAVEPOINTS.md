@@ -299,6 +299,10 @@ Food now has the same pointer-swipe behavior as Restaurant: left swipe = Cut, ri
 Commit: `769cad0ea91de1b75bffca54593bdf0bdc4c03d`
 Kept the Restaurant swipe implementation unchanged and made its browser assertion deterministic by dispatching the actual pointerdown/pointerup events directly on the live Restaurant card. This avoids coordinate flakiness on a dynamically rebuilt card while still exercising the production swipe handler.
 
+## CP76 — swipe parity fully green
+Commit: `937feefc03f520775db48c7114e8bef3957c34ba`
+The release candidate passed the full QA gate after adding Food swipe support and deterministic Restaurant pointer-event coverage. Live provider smoke returned 50 restaurants including 44 fast-food results; browser smoke and static QA also passed.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
