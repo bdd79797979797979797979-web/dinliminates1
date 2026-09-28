@@ -214,7 +214,22 @@ function overpassQuery(lat, lon, radiusMi) {
 }
 
 function tileCenters(lat, lon, radiusMi) {
-  if (radiusMi <= 50) return [{ lat, lon, radiusMi }];
+  // Keep smaller provider queries for 25–50 miles. Four overlapping 35-mile
+  // circles cover a 50-mile search without forcing one oversized query.
+  if (radiusMi <= 25) return [{ lat, lon, radiusMi }];
+  if (radiusMi <= 50) {
+    const tileRadius = 35;
+    const step = 25;
+    const latStep = step / 69;
+    const lonStep = step / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
+    const out = [];
+    for (const dy of [-1, 1]) {
+      for (const dx of [-1, 1]) {
+        out.push({ lat: lat + dy * latStep, lon: lon + dx * lonStep, radiusMi: tileRadius });
+      }
+    }
+    return out;
+  }
   const tileRadius = 50;
   const latStep = tileRadius / 69;
   const lonStep = tileRadius / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
@@ -512,9 +527,13 @@ async function suggest(query, limit = 7) {
   }
 
   rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+  const topScore = Number(rows[0]?.score || 0);
+  const filteredRows = topScore >= 100
+    ? rows.filter(row => Number(row.score || 0) >= 20)
+    : rows;
   const seen = new Set();
   const out = [];
-  for (const row of rows) {
+  for (const row of filteredRows) {
     const k = String(row.display || '').toLowerCase().replace(/\s+/g, ' ').trim();
     if (!k || seen.has(k)) continue;
     seen.add(k);
