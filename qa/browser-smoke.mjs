@@ -123,6 +123,12 @@ await click('#randomOne'); await settle();
 s=await qa(); assert.equal(s.foodActions.length>=1,true,'Random Cut One should use the same action history');
 await click('#foodBack'); await settle();
 
+await click('#allCut'); await settle();
+assert.equal(await visible('winner'),true,'All Cut should end in the winner/hungry window');
+s=await qa(); assert.match(s.winner?.name||'','Nothing left','All Cut should end in hungry mode');
+await click('#restart'); await settle();
+await click('#foodStart'); await settle();
+
 await click('#foodPassAround'); await settle();
 assert.equal(await visible('passSetup'),true,'Pass Around setup should open');
 await click('[data-pass-count="3"]'); await settle();
@@ -187,11 +193,30 @@ await restore.click(); await settle(); s=await qa(); assert.equal(Object.keys(s.
 await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
-await page.locator('#newFoodName').fill('QA Special');
-await page.locator('#newFoodPhoto').fill('https://example.com/qa.jpg');
-await page.locator('#newFoodRecipe').fill('Test recipe');
-await click('#foodAddForm button.cut'); await settle();
-s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image==='https://example.com/qa.jpg'),true,'custom Food photo/recipe should persist');
+assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
+await page.locator('#editFoodName').fill('QA Special');
+await page.locator('#editFoodRecipe').fill('Test recipe');
+await page.locator('#editFoodFile').setInputFiles({
+  name:'qa.jpg',mimeType:'image/jpeg',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64')
+});
+await page.locator('#editFoodPhoto').inputValue().then(v=>assert.ok(v.startsWith('data:image/'),'device photo should be converted to a stored image'));
+await click('#foodEditorForm button.cut'); await settle();
+s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
+
+await click('#addFood'); await settle();
+await click('[data-food-edit="qa-special"]'); await settle();
+await page.locator('#editFoodRecipe').fill('Edited recipe');
+await click('#foodEditorForm button.cut'); await settle();
+s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Edited recipe'),true,'custom Food edit should persist');
+
+const deleteDialog=page.waitForEvent('dialog'); const deleteClick=click('[data-food-delete="qa-special"]'); const deleteDlg=await deleteDialog; assert.equal(deleteDlg.type(),'confirm','custom delete should confirm'); await deleteDlg.accept(); await deleteClick; await settle();
+s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
+
+const builtInDialog=page.waitForEvent('dialog'); const builtInClick=click('[data-food-delete="popcorn"]'); const builtInDlg=await builtInDialog; assert.equal(builtInDlg.type(),'confirm'); await builtInDlg.accept(); await builtInClick; await settle();
+s=await qa(); assert.equal(s.foodPool.includes('popcorn'),false,'built-in delete should remove the food from choices');
+assert.equal((await page.locator('[data-food-quick]').count())>0,true,'Quick Cuts should remain intact after food deletion');
+await click('[data-food-restore-deleted="popcorn"]'); await settle();
+s=await qa(); assert.equal(s.foodPool.includes('popcorn'),true,'deleted built-in restore should work');
 
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal(await visible('winner'),true,'Food elimination should produce winner');
