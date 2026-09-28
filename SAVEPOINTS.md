@@ -180,6 +180,10 @@ Static QA now matches the clean API's actual JavaScript mode comparisons.
 Commits: `a09781f`, `8488ea1`
 Winner window is explicitly black and browser QA asserts the black presentation.
 
+## CP45 — live provider smoke test
+Commits: `aac5c60`, `17f6886`
+CI now runs the real clean restaurant handler against live geocoding and restaurant providers before browser smoke.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
