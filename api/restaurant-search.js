@@ -644,15 +644,21 @@ async function reverse(lat, lon) {
 async function probeEndpoint(endpoint) {
   const started = Date.now();
   const q = '[out:json][timeout:5];nwr[amenity~"^(restaurant|fast_food)$"][name](around:800,36.5277608,-87.3588703);out center tags 1;';
+  const encoded = encodeURIComponent(q);
   try {
-    const data = await fetchJson(endpoint, {
-      method: 'POST',
-      body: 'data=' + encodeURIComponent(q),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-    }, 7_000);
-    return { endpoint, ok: true, rows: Array.isArray(data?.elements) ? data.elements.length : 0, ms: Date.now() - started };
-  } catch (e) {
-    return { endpoint, ok: false, rows: 0, error: errorText(e), ms: Date.now() - started };
+    const data = await fetchJson(endpoint + '?data=' + encoded, {}, 6_000);
+    return { endpoint, ok: true, method: 'GET', rows: Array.isArray(data?.elements) ? data.elements.length : 0, ms: Date.now() - started };
+  } catch (getErr) {
+    try {
+      const data = await fetchJson(endpoint, {
+        method: 'POST',
+        body: 'data=' + encoded,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
+      }, 6_000);
+      return { endpoint, ok: true, method: 'POST', rows: Array.isArray(data?.elements) ? data.elements.length : 0, ms: Date.now() - started };
+    } catch (postErr) {
+      return { endpoint, ok: false, rows: 0, error: errorText(postErr || getErr), ms: Date.now() - started };
+    }
   }
 }
 
@@ -723,7 +729,7 @@ async function handler(req, res) {
 
     return res.status(400).json({ ok: false, code: 'UNKNOWN_MODE', message: 'Unknown restaurant search mode.' });
   } catch (err) {
-    console.error('restaurant-search-v700', err);
+    console.error('restaurant-search-v702', err);
     return res.status(502).json({
       ok: false,
       version: VERSION,
