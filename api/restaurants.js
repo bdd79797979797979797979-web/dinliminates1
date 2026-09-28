@@ -12,6 +12,29 @@ function rate(req,mode){const key=mode+':'+String(req?.headers?.['x-forwarded-fo
 function osmRow(el,origin){const t=el?.tags||{},lat=n(el?.lat??el?.center?.lat),lon=n(el?.lon??el?.center?.lon),name=String(t.name||'').trim();if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;const amen=String(t.amenity||'restaurant').toLowerCase(),fast=amen==='fast_food'||FAST.test(name+' '+String(t.brand||'')+' '+String(t.operator||''));let website=String(t.website||t['contact:website']||'').trim();if(website&&!/^https?:\/\//i.test(website))website='https://'+website;const key=norm(name)+'|'+lat.toFixed(4)+'|'+lon.toFixed(4);return{id:el?.osm_id?'osm-'+el.osm_id:'osm-'+key.replace(/ /g,'-'),name,category:fast?'Fast Food':(String(t.cuisine||'').trim()||'Restaurant'),fastFood:fast,cuisine:String(t.cuisine||''),address:[t['addr:housenumber'],t['addr:street'],t['addr:city'],t['addr:state'],t['addr:postcode']].filter(Boolean).join(', '),phone:String(t.phone||t['contact:phone']||''),website,opening_hours:String(t.opening_hours||''),lat,lon,distance:miles(origin.lat,origin.lon,lat,lon),photo:String(t.image||t.image_url||''),menuItems:[t.dish,t['dish:name'],t['menu:items'],t.menu_items].flatMap(v=>String(v||'').split(/[|;•,]/)).map(x=>x.trim()).filter(Boolean).slice(0,10),brand:String(t.brand||''),source:'OpenStreetMap'} }
 function query(lat,lon,radius){const m=Math.round(Math.min(50,radius)*1609.344);return '[out:json][timeout:14];nwr[amenity~"^(restaurant|fast_food)$"][name](around:'+m+','+lat+','+lon+');out center tags;'}
 function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const out=[{lat,lon,radius:50}],ring=Math.min(70,r-35),a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<6;i++){const ang=i*Math.PI/3;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
+
+function photonRow(feature,origin){
+ const p=feature?.properties||{},c=feature?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]),name=String(p.name||p.label||'').split(',')[0].trim();
+ if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+ const osmValue=String(p.osm_value||'').toLowerCase(),amenity=String(p.type||p.osm_key||'').toLowerCase(),fast=osmValue==='fast_food'||amenity==='fast_food'||FAST.test(name+' '+String(p.brand||'')+' '+String(p.operator||'')+' '+String(p.cuisine||''));
+ const website=String(p.website||p.url||'').trim(),dist=miles(origin.lat,origin.lon,lat,lon);
+ return {id:p.osm_id?'photon-'+p.osm_id:'photon-'+norm(name)+'-'+lat.toFixed(5)+'-'+lon.toFixed(5),name,category:fast?'Fast Food':(String(p.cuisine||'').trim()||'Restaurant'),fastFood:fast,cuisine:String(p.cuisine||''),address:[p.street,p.housenumber,p.city||p.town||p.village,p.state,p.postcode].filter(Boolean).join(', '),phone:String(p.phone||''),website:/^https?:\\/\\//i.test(website)?website:(website?'https://'+website:''),opening_hours:String(p.opening_hours||''),lat,lon,distance:dist,photo:String(p.image||p.image_url||''),menuItems:[],brand:String(p.brand||''),source:'Photon POI'};
+}
+async function photonPlaces(lat,lon,radius){
+ const r=Math.min(50,Math.max(1,radius)),latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180))),bbox=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
+ const qs=[
+  new URLSearchParams({q:'restaurant',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'}),
+  new URLSearchParams({q:'fast food',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'})
+ ];
+ const results=await Promise.allSettled(qs.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},6000)));
+ const rows=[],errors=[];
+ for(const result of results){
+   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));continue}
+   for(const feature of result.value?.features||[]){const row=photonRow(feature,{lat,lon});if(row&&row.distance<=radius)rows.push(row)}
+ }
+ return {rows,errors};
+}
+
 async function overpass(lat,lon,radius){const els=[],errs=[];for(const ep of OVERPASS){const cs=centers(lat,lon,radius);for(let i=0;i<cs.length;i+=3){const got=await Promise.allSettled(cs.slice(i,i+3).map(c=>json(ep+'?data='+encodeURIComponent(query(c.lat,c.lon,c.radius)),{},7000)));for(const g of got){if(g.status==='fulfilled')els.push(...(g.value?.elements||[]));else errs.push(String(g.reason?.message||g.reason))}}if(els.length)break}const rows=[];for(const el of els){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r)}return{rows,errors:errs}}
 function dedupe(rows){const map=new Map();for(const r of rows){const key=norm(r.name)+'|'+norm(r.address||'')+'|'+r.lat.toFixed(4)+'|'+r.lon.toFixed(4);if(!map.has(key))map.set(key,r);else{const x=map.get(key);x.fastFood=x.fastFood||r.fastFood;for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand'])if(!x[f]&&r[f])x[f]=r[f]}}return[...map.values()].sort((a,b)=>a.distance-b.distance)}
 function image(r){if(r.photo&&/^https?:\/\//i.test(r.photo))return r.photo;const q=norm(r.name);if(/mcdonald/.test(q))return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85';if(/burger king/.test(q))return 'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=1200&q=85';if(/wendy/.test(q))return 'https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1200&q=85';if(/waffle house|ihop|denny/.test(q))return 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85';if(/pizza|pizzeria/.test(q))return 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85';if(/mexican|taco|burrito/.test(q))return 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85';return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
