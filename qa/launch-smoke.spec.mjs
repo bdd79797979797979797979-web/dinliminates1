@@ -1182,9 +1182,16 @@ test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ pa
   // RESTAURANT: one choice -> Cut -> Hungry.
   await page.evaluate(()=>{
     const base=[{id:'vu-r3',name:'Virtual Restaurant Three',type:'restaurant',amenity:'restaurant',category:'American',cuisine:'american',tags:['restaurant','american'],openNow:true,distanceMiles:1,lat:36.16,lon:-86.77}];
-    restaurantItems=base; restaurantBase=[...base]; activeRestaurants=[...base]; holdingRestaurants=[]; restaurantQuickCuts=new Set(); restaurantManual=new Set(); restaurantFilters={query:'',sort:'shuffle'}; restaurantRadiusMiles=10; restaurantHoursFilter='open-unknown'; restaurantEliminationExhausted=false;
+    restaurantItems=base; restaurantBase=[...base]; activeRestaurants=[...base]; holdingRestaurants=[]; restaurantQuickCuts=new Set(); restaurantManual=new Set(); restaurantFilters={query:'',sort:'shuffle'}; restaurantRadiusMiles=10; restaurantHoursFilter='open-unknown'; restaurantEliminationExhausted=false; restaurantRoundInProgress=false;
+    document.body.classList.remove('game-mode','finalist-mode');
+    document.body.classList.add('restaurant-mode');
+    document.querySelector('#winnerPanel')?.classList.add('hidden');
+    document.querySelector('#homePanel')?.classList.add('hidden');
+    document.querySelector('#gamePanel')?.classList.add('hidden');
+    document.querySelector('#restaurantPanel')?.classList.remove('hidden');
     renderRestaurantStage(); renderRestaurantQuickCuts(); syncRestaurantActionLabels();
   });
+  await expect(page.locator('#restaurantKeepBtn')).toBeVisible();
   await expect(page.locator('#restaurantKeepBtn')).toHaveText('Choose');
   await page.locator('#restaurantCutBtn').click();
   await expect(page.locator('#restaurantHungryResetBtn')).toBeVisible();
