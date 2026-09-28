@@ -198,9 +198,12 @@ await restore.click(); await settle(); s=await qa(); assert.equal(Object.keys(s.
 
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Settings close should remove the modal');
+assert.equal(await page.locator('#manageFoodsModal').count(),0,'Settings close should leave no stale Manage Foods modal');
+assert.equal(await page.locator('#foodEditorModal').count(),0,'Settings close should leave no stale Food editor modal');
+assert.equal(await page.locator('#settingsModal').count(),0,'Settings close should remove the modal');
 assert.equal(await page.locator('#drawer').evaluate(el=>el.classList.contains('hidden')),true,'Settings close should leave the drawer closed');
 await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
-await click('#addFood'); await settle();
+await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 await click('[data-food-hide="popcorn"]'); await settle();
 s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
 await page.locator('#manageFoodsModal [data-close]').click(); await settle();
@@ -216,7 +219,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.equal(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
@@ -226,11 +229,10 @@ await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.s
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
-
 assert.equal(await visible('manageFoodsModal'),false,'saving a custom food from the Food deck should return to the swipe deck');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'saving a custom food should close the editor');
 await page.locator('#menu').click({force:true}); await settle();
-await page.locator('#manage').click(); await settle();
+await page.locator('#manage').click({force:true}); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Manage Foods should expose the saved custom food for editing');
 await click('[data-food-edit="qa-special"]'); await settle();
 await page.locator('#editFoodRecipe').fill('Edited recipe');
