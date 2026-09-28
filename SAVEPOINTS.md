@@ -267,6 +267,10 @@ Browser QA now logs whether the Settings modal is created, whether the drawer cl
 Commit: `3a998d088f53082a6b50e3d8ba8726406b1e2b40`
 Restored the browser smoke test after an accidental empty-file write, then fixed the post-Settings-Restore navigation to close the Settings modal and use the visible Restaurant Home control. The app itself was not changed by this checkpoint.
 
+## CP68 — live fast-food provider fallback
+Commit: `c52e1c5429589f2fc457ec2ea18b57763ca4b249`
+Restaurant search now falls back to a fast-food-only Overpass query when Photon returns restaurants but no fast-food POIs, preventing the combined result pool from silently omitting chains such as McDonald’s. Health version bumped to `clean-r7`.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
