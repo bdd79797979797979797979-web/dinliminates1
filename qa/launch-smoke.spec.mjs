@@ -1272,40 +1272,6 @@ test('P743 one-choice finishing rules are identical for food and restaurants', a
   await expect(page.locator('.hungry-state')).toBeVisible();
   await expect(page.locator('#gameTopCount')).toHaveText('0');
   await expect(page.locator('#holdBtn')).toBeDisabled();
-
-  // Restaurant one-choice touch behavior is covered by the focused P744 hit-test immediately below.
-});
-  await expect(page.locator('#restaurantPanel')).toBeVisible();
-  await page.evaluate(() => {
-    const rows=[
-      {id:'end-one',name:'End One Restaurant',type:'restaurant',category:'American',amenity:'restaurant',openNow:true,distanceMiles:1,lat:36.1,lon:-86.1,address:'1 Main St, Nashville, TN'},
-      {id:'end-two',name:'End Two Restaurant',type:'restaurant',category:'Italian',amenity:'restaurant',openNow:true,distanceMiles:2,lat:36.2,lon:-86.2,address:'2 Main St, Nashville, TN'}
-    ];
-    restaurantItems=rows; restaurantBase=[...rows]; activeRestaurants=[rows[0]]; holdingRestaurants=[];
-    restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts=new Set(); restaurantManual=new Set();
-    restaurantEliminationExhausted=false; restaurantFinalistMode=false; restaurantRoundInProgress=true;
-    restaurantHoursFilter='all'; safeWrite('dinliminateRestaurantHoursFilter','all');
-    renderRestaurantStage(); syncRestaurantActionLabels();
-  });
-  await expect(page.locator('#restaurantTopCount')).toHaveText('1');
-  const keep = page.locator('#restaurantKeepBtn');
-  await expect(keep).toHaveText('Choose');
-  await keep.click();
-  await expect(page.locator('#winnerPanel')).toBeVisible();
-  await expect(page.locator('#winnerName')).toHaveText('End One Restaurant');
-
-  await page.evaluate(() => {
-    window.showRestaurantMode?.();
-  });
-  await expect(page.locator('#restaurantPanel')).toBeVisible();
-  await page.evaluate(() => {
-    const one=restaurantItems[0];
-    activeRestaurants=[one]; holdingRestaurants=[]; restaurantEliminationExhausted=false; restaurantFilters={query:'',sort:'shuffle'};
-    renderRestaurantStage(); syncRestaurantActionLabels();
-  });
-  await page.locator('#restaurantCutBtn').click();
-  await expect(page.locator('.restaurant-hungry-state')).toBeVisible();
-  await expect(page.locator('#restaurantTopCount')).toHaveText('0');
 });
 
 
