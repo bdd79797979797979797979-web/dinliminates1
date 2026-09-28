@@ -23,7 +23,8 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::VERCEL_TOKEN is not configured; Vercel deploy will be skipped."
+            echo "::error::VERCEL_TOKEN is not configured; refusing to report a false deployment success."
+          exit 1
           fi
       - name: Deploy existing Vercel project
         id: deploy
