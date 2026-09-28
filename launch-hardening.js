@@ -118,7 +118,11 @@
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
     addFoodBase(); if(!foodBase.some(x=>foodQuickMatch(x,k))){toast('No matching choices in this round.');return;}
     foodQuickHidden.has(k)?foodQuickHidden.delete(k):foodQuickHidden.add(k);
-    activeItems=foodVisible(); holdingItems=[]; searchQuery=''; saveFoodRoundState(); renderStage(); renderFoodQuickCuts(); setStatus(`${activeItems.length} options left`,'live');
+    const held=[...(holdingItems||[])];
+    activeItems=foodVisible();
+    holdingItems=held;
+    if(!activeItems.length&&holdingItems.length){activeItems=[...holdingItems];holdingItems=[];}
+    searchQuery=''; saveFoodRoundState(); renderStage(); renderFoodQuickCuts(); setStatus(`${activeItems.length} options left`,'live');
     toast(`${QUICK_CUT_RULES[k].label} ${foodQuickHidden.has(k)?'hidden':'brought back'}.`);
   }
 
@@ -309,7 +313,11 @@
     }else{
       restaurantQuickCuts.delete(k);
     }
-    activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
+    const held=[...(holdingRestaurants||[])];
+    activeRestaurants=visibleRestaurants();
+    holdingRestaurants=held;
+    if(!activeRestaurants.length&&holdingRestaurants.length){activeRestaurants=[...holdingRestaurants];holdingRestaurants=[];}
+    restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
     const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
   }
 
