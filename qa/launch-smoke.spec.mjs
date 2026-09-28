@@ -141,12 +141,16 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   }
 
   // Details opens from already-rendered card data; it should not wait on a search/provider request.
-  const detailStart = performance.now();
-  await detailBtn.click();
+  const detailOpenMs = await page.evaluate(() => {
+    const btn = document.querySelector('#restaurantStage .restaurant-card-v240.active .restaurant-detail-btn-v240');
+    if (!btn) throw new Error('restaurant detail button missing');
+    const t = performance.now();
+    btn.click();
+    return performance.now() - t;
+  });
   await expect(page.locator('#detailBackdrop')).toBeVisible();
-  const detailOpenMs = performance.now() - detailStart;
-  console.log('restaurant detail open ms', Math.round(detailOpenMs));
-  expect(detailOpenMs).toBeLessThan(500);
+  console.log('restaurant detail handler ms', Math.round(detailOpenMs));
+  expect(detailOpenMs).toBeLessThan(100);
   await page.locator('#detailCloseBtn').click();
   await expect(page.locator('#detailBackdrop')).toHaveClass(/hidden/);
 
@@ -827,6 +831,12 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await expect(page.locator('#winnerPanel')).toBeVisible();
   await page.locator('#shareBtn').click();
   await page.waitForTimeout(100);
+  if (await page.locator('#dinliminateLaunchSheet').count()) {
+    await expect(page.locator('#launchSheetTitle')).toContainText('Share');
+    await expect(page.locator('.launch-sheet-close')).toBeVisible();
+    await page.locator('.launch-sheet-close').click();
+    await expect(page.locator('#dinliminateLaunchSheet')).toHaveCount(0);
+  }
   await page.locator('#winnerHomeBtn').click();
   await expect(page.locator('#homePanel')).toBeVisible();
   if (await page.locator('#homeWinnerBtn').isVisible()) {
