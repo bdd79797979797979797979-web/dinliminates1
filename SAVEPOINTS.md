@@ -196,6 +196,18 @@ Static QA now enforces the browser data-global contract.
 Commit: `eeafe2ccecaf6be9e65153b6dd931119cb18ebd8`
 Chromium smoke now checks for horizontal overflow and captures Food card/control geometry at 393×852.
 
+## CP50 — remove Food startup timing dependency
+Commit: `273805f2ee3f6088c938be862a64cf178a4601dc`
+Food reads the default catalog when building a round instead of capturing it once at script startup.
+
+## CP51 — Food catalog runtime diagnostic
+Commits: `516fafcc`, `ba879e9`
+QA state now exposes catalog count and the browser suite verifies the Food catalog is loaded before the round begins.
+
+## CP52 — browser error capture
+Commit: `bc79aa9268d1f09d854808799cc079e6573064c5`
+Chromium QA now fails on uncaught page errors or console errors.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
