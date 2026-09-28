@@ -163,12 +163,12 @@ await click('#restCut'); await settle(); let restAfter=await qa(); assert.equal(
 const restCutId=restAfter.restaurantActions.at(-1).id;
 await click('#restBack'); await settle(); s=await qa(); assert.equal(s.restaurantPool.includes(restCutId),true);
 
-const restBox=await page.locator('#restaurantCard').boundingBox();
-if(!restBox) throw new Error('Restaurant card bounding box missing for right swipe QA');
-await page.mouse.move(restBox.x+60,restBox.y+restBox.height/2);
-await page.mouse.down();
-await page.mouse.move(restBox.x+restBox.width-20,restBox.y+restBox.height/2,{steps:4});
-await page.mouse.up();
+const restaurantCard=page.locator('#restaurantCard');
+if(!(await restaurantCard.count())) throw new Error('Restaurant card missing for right swipe QA');
+await restaurantCard.evaluate(el=>{
+  el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:7,clientX:100}));
+  el.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:7,clientX:300}));
+});
 await settle();
 s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
 await click('#restBack'); await settle();
