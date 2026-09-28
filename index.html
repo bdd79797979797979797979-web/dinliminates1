@@ -5958,6 +5958,33 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 #detailBackdrop .detail-sheet{animation:none!important;transform:none!important;opacity:1!important;will-change:auto!important;}
 #detailBackdrop{backdrop-filter:none!important;}
 #detailBackdrop .detail-hero img{display:block!important;content-visibility:auto;contain:paint;}
+
+/* Winner coding: warm/coral for food, sage/green for restaurants. */
+#winnerPanel.winner-theme-food{
+  background:radial-gradient(circle at 50% 0%,rgba(239,115,95,.20),transparent 35%),linear-gradient(180deg,#221815 0%,#2b1916 100%)!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-mark{color:#ff9b88!important;}
+#winnerPanel.winner-theme-food .winner-v240-kicker{color:rgba(255,196,185,.68)!important;}
+#winnerPanel.winner-theme-food .winner-v240-eyebrow{color:rgba(255,196,185,.64)!important;}
+#winnerPanel.winner-theme-food .winner-v240-path strong{color:#ffad9d!important;}
+#winnerPanel.winner-theme-food .winner-v240-action.primary,
+#winnerPanel.winner-theme-food .winner-v240-share{background:#ef735f!important;border-color:#ef735f!important;color:#fff!important;}
+#winnerPanel.winner-theme-food .winner-v240-action:not(.primary),
+#winnerPanel.winner-theme-food .winner-v240-again{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.16)!important;color:#fff!important;}
+
+#winnerPanel.winner-theme-restaurant{
+  background:radial-gradient(circle at 50% 0%,rgba(103,196,155,.20),transparent 35%),linear-gradient(180deg,#061b14 0%,#09271d 100%)!important;
+}
+#winnerPanel.winner-theme-restaurant .winner-v240-mark{color:#e4c36d!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-kicker{color:rgba(178,225,207,.72)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-eyebrow{color:rgba(178,225,207,.68)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-path strong{color:#8fe1bc!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-action.primary,
+#winnerPanel.winner-theme-restaurant .winner-v240-share{background:#67c49b!important;border-color:#67c49b!important;color:#082018!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-action:not(.primary),
+#winnerPanel.winner-theme-restaurant .winner-v240-again{background:rgba(103,196,155,.09)!important;border-color:rgba(103,196,155,.28)!important;color:#f4fffa!important;}
+#winnerPanel.winner-v240 .winner-v240-hero{background:#e9e2d7!important;}
+#winnerPanel.winner-v240 .winner-v240-hero.no-photo .winner-v240-hero-fallback{display:grid!important;}
 </style>
 <style id="dinliminate-p757-winner-themes">
 /* P757 — distinct winner accents without adding another heavy box. */
