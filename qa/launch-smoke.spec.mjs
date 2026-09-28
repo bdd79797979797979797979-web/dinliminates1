@@ -893,7 +893,9 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
 
   // Select a restaurant with a known website before exercising the Website action.
-  await page.locator('#restaurantSearchBtn').click();
+  const restaurantInline = page.locator('#restaurantInlineSearch');
+  if (await restaurantInline.isHidden()) await page.locator('#restaurantSearchBtn').click();
+  await expect(restaurantInline).toBeVisible();
   await page.locator('#restaurantInlineSearchInput').fill('McDonald');
   await expect(page.locator('#restaurantStage .restaurant-card-v240.active .restaurant-name-v240')).toHaveText("McDonald's");
 
@@ -951,6 +953,7 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
   const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
   await page.locator('#newPhoto').setInputFiles({name:'tiny.png',mimeType:'image/png',buffer:tinyPng});
   await expect(page.locator('#newPhotoPreview')).toHaveClass(/show/);
+  await expect(page.locator('#removePhotoBtn')).toBeVisible();
   await page.locator('#removePhotoBtn').click();
   await expect(page.locator('#newPhotoPreview')).not.toHaveClass(/show/);
   await page.locator('#newPhoto').setInputFiles({name:'tiny.png',mimeType:'image/png',buffer:tinyPng});
