@@ -8300,10 +8300,8 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       showError(msg);
       return false;
     }finally{
-      if(seq===ST.seq){
-        ST.searching=false;
-        busy('loc',false);
-      }
+      ST.searching=false;
+      busy('loc',false);
     }
   }
 
@@ -8362,7 +8360,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
 
   function enterMode(){
     if(!document.body.classList.contains('restaurant-mode')){
+      window.__dinliminateRestaurantControllerOpening=true;
       try{window.showRestaurantMode?.();}catch{}
+      window.__dinliminateRestaurantControllerOpening=false;
     }
   }
 
