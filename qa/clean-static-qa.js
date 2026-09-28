@@ -11,7 +11,7 @@ for(const s of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
-assert(app.includes('data-food-edit') && app.includes('data-food-delete'),'food edit/delete support is required');
+assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
