@@ -628,7 +628,7 @@
     };
     window.renderRestaurantStage=wrapRestaurantRender();
     window.filteredRestaurants=filterRestaurants;window.renderRestaurantQuickCuts=renderRestaurantQuickCuts;window.eliminateRestaurantCategory=toggleRestaurantQuick;window.DinliminateSyncRestaurantQuickCutScope=syncRestaurantQuickCutScope;
-    window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();refreshRestaurantQuickCutsNow();},250);return r;};
+    window.restaurantCut=function(card){if(pass?.mode==='restaurant')return passAct('cut',card);const it=filterRestaurants()[0];if(it)restaurantManual.add(restKey(it));const r=legacyRestaurantCut.apply(this,arguments);setTimeout(()=>{if(restaurantEliminationExhausted&&(!activeRestaurants||activeRestaurants.length===0)&&(!holdingRestaurants||holdingRestaurants.length===0)){restaurantRoundInProgress=false;clearRestaurantRoundState();refreshRestaurantQuickCutsNow();return;}recomputeRestaurantManual();restaurantRoundInProgress=true;saveRestaurantRoundState();refreshRestaurantQuickCutsNow();},250);return r;};
     window.restaurantKeep=function(card){
       if(pass?.mode==='restaurant')return passAct('hold',card);
       const r=legacyRestaurantKeep.apply(this,arguments);
