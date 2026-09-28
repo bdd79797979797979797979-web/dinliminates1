@@ -1274,7 +1274,7 @@ test('P743 one-choice finishing rules are identical for food and restaurants', a
   await expect(page.locator('#holdBtn')).toBeDisabled();
 
   // RESTAURANT: deterministic fixture, 1 left -> Maybe/Choose and Cut/Hungry.
-  await page.locator('#homeRestaurantQuick').click();
+  await page.evaluate(() => { window.showRestaurantMode?.(); });
   await expect(page.locator('#restaurantPanel')).toBeVisible();
   await page.evaluate(() => {
     const rows=[
