@@ -74,7 +74,7 @@ with sync_playwright() as pw:
     except Exception as e: add('18 Typed-address Find loads restaurants',False,str(e))
     else: add('18 Typed-address Find loads restaurants',page.locator('.restaurant-card-v240.active').count()==1)
     stage=page.locator('#restaurantStage').inner_text()
-    pool_text=page.evaluate("' '.join([...(window.restaurantItems||[]), ...(window.activeRestaurants||[])].map(r=>String(r?.name||'')))")
+    pool_text=page.evaluate("([...(window.restaurantItems||[]), ...(window.activeRestaurants||[])].map(r=>String(r?.name||''))).join(' ')")
     add('19 Fast food included',any(name in (stage+' '+pool_text) for name in ["McDonald's","Wendy's","Burger King"]))
     add('20 100-mile radius option',page.locator('#restaurantRadiusFilter option[value="100"]').count()==1)
     add('21 Open Now filter absent',page.locator('#restaurantOpenNowBtn').count()==0)
