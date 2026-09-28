@@ -24,7 +24,7 @@ jobs:
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
             echo "::error::VERCEL_TOKEN is not configured; refusing to report a false deployment success."
-          exit 1
+            exit 1
           fi
       - name: Deploy existing Vercel project
         id: deploy
@@ -37,11 +37,3 @@ jobs:
       - name: Verify release marker
         if: steps.deploy.outcome == 'success'
         run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();const release=r.headers.get('x-dinliminate-release');if(!r.ok||release!=='p744-final-launch'||!t.includes('p744-final-launch')){console.error('P744 production release marker is not live on production');process.exit(1)}console.log('Dinliminate P744 is live on production')}).catch(e=>{console.error(e);process.exit(1)})"
-      - name: Report deployment verification
-        if: steps.token.outputs.configured != 'true' || steps.deploy.outcome != 'success'
-        run: |
-          if [ "${{ steps.token.outputs.configured }}" != "true" ]; then
-            echo "::notice::Vercel deployment skipped because VERCEL_TOKEN is not configured."
-          else
-            echo "::warning::Vercel deployment did not complete. Check Vercel build/deployment status."
-          fi
