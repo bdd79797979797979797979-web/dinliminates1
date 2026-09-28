@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v704-launch-fix';
+const VERSION = 'restaurant-v705-launch-fix';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -220,7 +220,7 @@ function tileCenters(lat, lon, radiusMi) {
   // at 50 miles and results are distance-filtered back to the requested radius.
   if (radiusMi <= 25) return [{ lat, lon, radiusMi }];
   if (radiusMi <= 50) {
-    const tileRadius = 35;
+    const tileRadius = 40;
     const step = 25;
     const latStep = step / 69;
     const lonStep = step / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
@@ -357,7 +357,8 @@ async function doSearch(lat, lon, radiusMi) {
   const started = Date.now();
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
   if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
-    const firstBatch = OVERPASS_ENDPOINTS.slice(0, Math.min(3, OVERPASS_ENDPOINTS.length));
+    const providerFanOut = radiusMi > 50 ? 2 : 3;
+    const firstBatch = OVERPASS_ENDPOINTS.slice(0, Math.min(providerFanOut, OVERPASS_ENDPOINTS.length));
     const settled = await Promise.all(firstBatch.map(endpoint => overpassProvider(endpoint, lat, lon, radiusMi)));
     providerResults.push(...settled);
     if (!settled.some(result => result.rows?.length)) {
