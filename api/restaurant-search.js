@@ -357,16 +357,41 @@ async function doSearch(lat, lon, radiusMi) {
   const started = Date.now();
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
   if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
+    async function firstUsableProvider(endpoints) {
+      const states = new Array(endpoints.length);
+      const attempts = endpoints.map((endpoint, index) =>
+        overpassProvider(endpoint, lat, lon, radiusMi).then(result => {
+          states[index] = result;
+          if (result.rows?.length) return result;
+          throw Object.assign(new Error('No usable restaurant rows.'), { result });
+        }).catch(err => {
+          if (!states[index]) states[index] = err?.result || {
+            endpoint,
+            rows: [],
+            errors: [errorText(err)]
+          };
+          throw err;
+        })
+      );
+      try {
+        const winner = await Promise.any(attempts);
+        await Promise.allSettled(attempts);
+        return { winner, results: states.filter(Boolean) };
+      } catch {
+        await Promise.allSettled(attempts);
+        return { winner: null, results: states.filter(Boolean) };
+      }
+    }
+
+    // Race a small primary set so a healthy mirror returns immediately.
+    // We still keep the remaining provider results for diagnostics/fallback.
     const providerFanOut = radiusMi > 50 ? 2 : 3;
     const firstBatch = OVERPASS_ENDPOINTS.slice(0, Math.min(providerFanOut, OVERPASS_ENDPOINTS.length));
-    const settled = await Promise.all(firstBatch.map(endpoint => overpassProvider(endpoint, lat, lon, radiusMi)));
-    providerResults.push(...settled);
-    if (!settled.some(result => result.rows?.length)) {
-      for (const endpoint of OVERPASS_ENDPOINTS.slice(3)) {
-        const result = await overpassProvider(endpoint, lat, lon, radiusMi);
-        providerResults.push(result);
-        if (result.rows?.length) break;
-      }
+    const first = await firstUsableProvider(firstBatch);
+    providerResults.push(...first.results);
+    if (!first.winner) {
+      const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(providerFanOut));
+      providerResults.push(...fallback.results);
     }
   }
 
