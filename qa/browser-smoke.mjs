@@ -116,7 +116,7 @@ await click('#passBack'); await settle();
 pass=await qa(); assert.equal(pass.pass.poolIds.includes(firstPassId),true,'Pass Around Back should restore exact cut');
 await click('#passEnd'); await settle();
 
-await click('[data-home]'); await settle();
+await click('#food [data-home]'); await settle();
 await click('#restStart'); await settle();
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
@@ -150,7 +150,7 @@ assert.equal(await page.locator('#settingsModal').innerText().then(t=>t.includes
 const restore=page.locator('[data-setting-rest]').first(); assert.equal(await restore.count(),1);
 await restore.click(); await settle();
 
-await click('[data-home]'); await settle(); await click('#foodStart'); await settle();
+await click('#food [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
 await page.locator('#newFoodName').fill('QA Special');
 await page.locator('#newFoodPhoto').fill('https://example.com/qa.jpg');
