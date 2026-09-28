@@ -7956,10 +7956,19 @@ function setRestaurantHoursFilter(value){
   safeWrite('dinliminateRestaurantHoursFilter',next);
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
   syncRestaurantHoursControl();
-  try{renderRestaurantStage();}catch{}
-  try{window.renderRestaurantQuickCuts?.();}catch{}
-  try{syncRestaurantActionLabels?.();}catch{}
-  try{window.saveRestaurantRoundState?.();}catch{}
+  // The live hardening layer owns the current restaurant deck. Let it rebuild
+  // the deck from the full radius-bounded universe so "All" really restores
+  // open + closed + unknown-hour restaurants without losing Quick Cuts/Maybe.
+  let liveApplied=false;
+  try{
+    liveApplied=window.DinliminateApplyRestaurantHoursFilterToLivePool?.(next)===true;
+  }catch{}
+  if(!liveApplied){
+    try{renderRestaurantStage();}catch{}
+    try{window.renderRestaurantQuickCuts?.();}catch{}
+    try{syncRestaurantActionLabels?.();}catch{}
+    try{window.saveRestaurantRoundState?.();}catch{}
+  }
   return next;
 }
 function clearRestaurantQuickCuts(){
