@@ -826,7 +826,9 @@ function hourStatus(row){
       S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
     });
     modal.querySelectorAll('[data-food-restore-deleted]').forEach(btn=>btn.onclick=()=>{
-      S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+      S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove();
+      if(S.screen==='food'){ foodQuick(); drawFood(); }
+      else manageFoodsView();
     });
     modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
       S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
