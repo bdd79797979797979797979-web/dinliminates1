@@ -826,6 +826,8 @@ function hourStatus(row){
   }
 
   function settingsView() {
+    // Never stack Settings on top of a Manage/Edit Food modal.
+    ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(id=>$(id)?.remove());
     const hiddenFoods=allFoods().filter(x=>S.hidden.has(x.id));
     const deletedFoods=allFoods().filter(x=>S.deleted.has(x.id));
     const hiddenRestaurants=Object.values(S.hiddenRestaurants);
