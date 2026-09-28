@@ -44,7 +44,7 @@ async function photonPlaces(lat,lon,radius){
 async function overpass(lat,lon,radius,types='restaurant|fast_food'){const els=[],errs=[];for(const ep of OVERPASS){const cs=centers(lat,lon,radius);for(let i=0;i<cs.length;i+=3){const got=await Promise.allSettled(cs.slice(i,i+3).map(c=>json(ep+'?data='+encodeURIComponent(query(c.lat,c.lon,c.radius,types)),{},7000)));for(const g of got){if(g.status==='fulfilled')els.push(...(g.value?.elements||[]));else errs.push(String(g.reason?.message||g.reason))}}if(els.length)break}const rows=[];for(const el of els){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r)}return{rows,errors:errs}}
 function dedupe(rows){const map=new Map();for(const r of rows){const addr=norm(r.address||''),geo=Math.round(r.lat*1000)+'|'+Math.round(r.lon*1000),key=addr?(norm(r.name)+'|'+addr):(norm(r.name)+'|'+geo);if(!map.has(key))map.set(key,r);else{const x=map.get(key);x.fastFood=x.fastFood||r.fastFood;for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand'])if(!x[f]&&r[f])x[f]=r[f]}}return[...map.values()].sort((a,b)=>a.distance-b.distance)}
 function image(r){
-  if(r.photo&&/^https?:\\/\\//i.test(r.photo))return r.photo;
+  if(r.photo&&/^https?:\/\//i.test(r.photo))return r.photo;
   const q=norm((r.name||'')+' '+(r.brand||'')+' '+(r.operator||''));
   const map=[
     [/mcdonald/, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'],
