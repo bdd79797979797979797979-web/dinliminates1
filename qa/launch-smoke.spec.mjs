@@ -622,6 +622,7 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
 
   const restaurantFixture = [
     { id:'vu-mcd', name:"McDonald's", type:'restaurant', fastFood:true, amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food','burger'], cuisine:'', address:'1 Titans Way, Nashville, TN 37213', website:'https://www.mcdonalds.com', opening_hours:'Mo-Su 06:00-23:00', openNow:true, distanceMiles:.4, lat:36.1665, lon:-86.7713, menuItems:['Burgers','Fries'] },
+    { id:'vu-wendy', name:"Wendy's", type:'restaurant', fastFood:true, amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food','burger'], brand:"Wendy's", address:'1630 Hankook Road, Nashville, TN 37213', openNow:true, distanceMiles:3.0, lat:36.16665, lon:-86.77145 },
     { id:'vu-bk', name:'Burger King', type:'restaurant', fastFood:true, amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food','burger'], address:'2 Titans Way, Nashville, TN 37213', openNow:true, distanceMiles:1.5, lat:36.1666, lon:-86.7714 },
     { id:'vu-wh', name:'Waffle House', type:'restaurant', fastFood:false, amenity:'restaurant', category:'American', cuisine:'american', tags:['restaurant','american','breakfast'], address:'3 Titans Way, Nashville, TN 37213', openNow:false, distanceMiles:2.2, lat:36.1667, lon:-86.7715 },
     { id:'vu-south', name:'Southern Kitchen', type:'restaurant', fastFood:false, amenity:'restaurant', category:'Southern', cuisine:'southern', tags:['restaurant','southern'], address:'4 Titans Way, Nashville, TN 37213', distanceMiles:2.8, lat:36.1668, lon:-86.7716 },
@@ -892,6 +893,13 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await expect(rSearchBtn).toHaveAttribute('aria-expanded','true');
   await page.locator('#restaurantInlineSearchInput').fill("McDonald");
   await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText("McDonald's");
+  await page.locator('#restaurantInlineSearchInput').fill("Wendy's");
+  await expect.poll(async()=>page.locator('#restaurantStage .restaurant-card-v240').count()).toBe(1);
+  await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText("Wendy's");
+  await page.locator('#restaurantInlineSearchInput').fill("burger");
+  await expect.poll(async()=>page.locator('#restaurantStage .restaurant-card-v240').count()).toBe(3);
+  const burgerNames = await page.locator('#restaurantStage .restaurant-name-v240').allTextContents();
+  expect(burgerNames.every(n => /burger|mcdonald|wendy/i.test(n))).toBeTruthy();
   await page.locator('#restaurantInlineSearchInput').fill('');
 
   const rHours = page.locator('#restaurantOpenUnknownBtn');
