@@ -1115,3 +1115,7 @@ body.game-mode .gesture-btn{
 /* P680 swipe visibility fix — hidden home must not remain in document flow. */
 #homePanel.home.hidden{display:none!important;}
 body.game-mode #homePanel.home{display:none!important;}
+
+
+/* P728 — keep decorative home art from expanding the iPhone body scroll width. */
+#homePanel.home{overflow:hidden!important;}
