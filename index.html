@@ -9029,6 +9029,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
   }
 
+  const localRestKey=r=>`restaurant::${String(r?.id||r?.name||'').trim().toLowerCase()}`;
   function mergeRows(rows){
     const map=new Map();
     for(const r of Array.isArray(rows)?rows:[]){
@@ -9065,8 +9066,8 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     if(!previous)return true;
 
     const universe=mergeRows([...previous.base,...(restaurantItems||[])]);
-    const byKey=new Map(universe.map(r=>[restKey(r),r]));
-    const heldKeys=new Set(previous.holding.map(restKey));
+    const byKey=new Map(universe.map(r=>[localRestKey(r),r]));
+    const heldKeys=new Set(previous.holding.map(localRestKey));
     const radius=clamp(restaurantRadiusMiles);
     const within=r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
 
@@ -9074,7 +9075,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     restaurantBase=[...universe];
     holdingRestaurants=previous.holding.map(r=>byKey.get(restKey(r))||r);
     activeRestaurants=universe.filter(r=>{
-      const id=restKey(r);
+      const id=localRestKey(r);
       if(!within(r)||heldKeys.has(id)||previous.manual.has(id))return false;
       return ![...previous.quick].some(k=>restQuickMatch(r,k));
     });
