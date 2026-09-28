@@ -1,16 +1,16 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v702-launch-fix';
+const VERSION = 'restaurant-v704-launch-fix';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
 const OVERPASS_ENDPOINTS = [
   'https://z.overpass-api.de/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
   'https://lz4.overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-  'https://overpass-api.de/api/interpreter'
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
 ];
 
 const FAST_FOOD_BRANDS = /\b(?:mcdonald(?:'|’)?s|mcdonalds|taco bell|wendy(?:'|’)?s|burger king|kfc|chick[- ]?fil[- ]?a|popeyes|subway|sonic(?: drive[- ]?in)?|arby(?:'|’)?s|whataburger|five guys|culver(?:'|’)?s|raising cane(?:'|’)?s|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee(?:'|’)?s|del taco|checkers|rally(?:'|’)?s|zaxby(?:'|’)?s|church(?:'|’)?s chicken|captain d(?:'|’)?s|long john silver(?:'|’)?s|jimmy john(?:'|’)?s|jersey mike(?:'|’)?s|firehouse subs|little caesars|domino(?:'|’)?s|papa john(?:'|’)?s|pizza hut|marco(?:'|’)?s pizza|krystal|steak ?n shake|white castle|freddy(?:'|’)?s|in[- ]?n[- ]?out|carl(?:'|’)?s jr|el pollo loco|panda express|jack'?s)\b/i;
@@ -214,8 +214,10 @@ function overpassQuery(lat, lon, radiusMi) {
 }
 
 function tileCenters(lat, lon, radiusMi) {
-  // Keep smaller provider queries for 25–50 miles. Four overlapping 35-mile
-  // circles cover a 50-mile search without forcing one oversized query.
+  // Keep provider work bounded. A local search uses one query. A 25–50 mile
+  // search uses four overlapping 35-mile circles. Larger searches use a
+  // seven-circle hex-style fan around the origin; each provider query is capped
+  // at 50 miles and results are distance-filtered back to the requested radius.
   if (radiusMi <= 25) return [{ lat, lon, radiusMi }];
   if (radiusMi <= 50) {
     const tileRadius = 35;
@@ -231,30 +233,32 @@ function tileCenters(lat, lon, radiusMi) {
     return out;
   }
   const tileRadius = 50;
-  const latStep = tileRadius / 69;
-  const lonStep = tileRadius / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
-  const out = [];
-  for (const dy of [-1, 0, 1]) {
-    for (const dx of [-1, 0, 1]) {
-      out.push({ lat: lat + dy * latStep, lon: lon + dx * lonStep, radiusMi: tileRadius });
-    }
+  const ring = Math.max(1, radiusMi - tileRadius);
+  const latStep = ring / 69;
+  const lonStep = ring / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
+  const out = [{ lat, lon, radiusMi: tileRadius }];
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 * i) / 6;
+    out.push({
+      lat: lat + Math.sin(angle) * latStep,
+      lon: lon + Math.cos(angle) * lonStep,
+      radiusMi: tileRadius
+    });
   }
   return out;
 }
-
 async function overpassProvider(endpoint, lat, lon, radiusMi) {
   const started = Date.now();
   const centers = tileCenters(lat, lon, radiusMi);
   const elements = [];
   const errors = [];
+  const timeout = radiusMi > 50 ? 5_500 : radiusMi > 25 ? 4_800 : 4_200;
 
   async function queryCenter(c) {
     const query = overpassQuery(c.lat, c.lon, c.radiusMi);
     const encoded = encodeURIComponent(query);
     try {
-      // GET is compact and avoids a POST-specific 406 failure mode seen on
-      // some public mirrors. Fall back to POST if the mirror rejects GET.
-      const data = await fetchJson(endpoint + '?data=' + encoded, {}, radiusMi > 50 ? 9_000 : 6_500);
+      const data = await fetchJson(endpoint + '?data=' + encoded, {}, timeout);
       return { elements: Array.isArray(data?.elements) ? data.elements : [], error: null };
     } catch (getErr) {
       try {
@@ -262,7 +266,7 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
           method: 'POST',
           body: 'data=' + encoded,
           headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-        }, radiusMi > 50 ? 9_000 : 6_500);
+        }, timeout);
         return { elements: Array.isArray(data?.elements) ? data.elements : [], error: null };
       } catch (postErr) {
         return { elements: [], error: errorText(postErr || getErr) };
@@ -270,15 +274,18 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
     }
   }
 
-  for (let i = 0; i < centers.length; i += 3) {
-    const batch = centers.slice(i, i + 3);
+  // Four-way concurrency is fast enough for launch without spawning an
+  // unbounded fan-out against public Overpass mirrors.
+  const concurrency = radiusMi > 50 ? 4 : Math.min(4, centers.length);
+  for (let i = 0; i < centers.length; i += concurrency) {
+    const batch = centers.slice(i, i + concurrency);
     const settled = await Promise.all(batch.map(queryCenter));
     for (const result of settled) {
       elements.push(...result.elements);
       if (result.error) errors.push(result.error);
     }
-    // A single successful local-area provider is enough to give the app a
-    // useful deck. Large-radius searches still continue through all tiles.
+    // For 25–50 mile searches, one successful batch is enough because the
+    // circles overlap. Larger searches continue through all seven tiles.
     if (radiusMi <= 50 && normalizeRows(elements, lat, lon, radiusMi).length > 0) break;
   }
 
@@ -291,7 +298,6 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
     errors
   };
 }
-
 async function googleSearch(lat, lon, radiusMi) {
   if (!GOOGLE_KEY) return { endpoint: 'Google Places', rows: [], ms: 0, errors: ['not configured'] };
   const started = Date.now();
@@ -350,17 +356,16 @@ async function doSearch(lat, lon, radiusMi) {
 
   const started = Date.now();
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
-  if (GOOGLE_KEY && providerResults[0].rows?.length) {
-    // A configured Google result set is already authoritative enough for the
-    // app; avoid paying the public Overpass latency unless needed.
-  } else {
-    // Try public Overpass mirrors in priority order. Stop as soon as one
-    // provider returns usable restaurants, instead of waiting on a dead mirror
-    // and then merging duplicate data from every public endpoint.
-    for (const endpoint of OVERPASS_ENDPOINTS) {
-      const result = await overpassProvider(endpoint, lat, lon, radiusMi);
-      providerResults.push(result);
-      if (result.rows?.length) break;
+  if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
+    const firstBatch = OVERPASS_ENDPOINTS.slice(0, Math.min(3, OVERPASS_ENDPOINTS.length));
+    const settled = await Promise.all(firstBatch.map(endpoint => overpassProvider(endpoint, lat, lon, radiusMi)));
+    providerResults.push(...settled);
+    if (!settled.some(result => result.rows?.length)) {
+      for (const endpoint of OVERPASS_ENDPOINTS.slice(3)) {
+        const result = await overpassProvider(endpoint, lat, lon, radiusMi);
+        providerResults.push(result);
+        if (result.rows?.length) break;
+      }
     }
   }
 
