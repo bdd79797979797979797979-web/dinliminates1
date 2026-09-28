@@ -16,5 +16,7 @@ function call(query){
  const search=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'10'});
  if(search.statusCode!==200||!search.body?.ok)throw new Error('restaurant search failed: '+JSON.stringify(search.body));
  if(!Array.isArray(search.body.results))throw new Error('restaurant results missing');
+ const tight=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'1'}); if(tight.statusCode!==200||!tight.body?.ok||tight.body.radiusMiles!==1)throw new Error('1-mile radius failed: '+JSON.stringify(tight.body));
+ const wide=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'100'}); if(wide.statusCode!==200||!wide.body?.ok||wide.body.radiusMiles!==100)throw new Error('100-mile radius failed: '+JSON.stringify(wide.body));
  console.log(JSON.stringify({health:health.body,suggestions:suggestion.body.results.length,resolved:resolved.body.display,restaurantCount:search.body.total,fastFoodCount:search.body.fastFoodCount,providers:search.body.providers}));
 })().catch(err=>{console.error(err);process.exit(1)});
