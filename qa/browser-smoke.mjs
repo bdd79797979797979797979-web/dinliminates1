@@ -121,7 +121,7 @@ await click('#restStart'); await settle();
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
 await click('#suggestionsBox button:first-child'); await settle();
-assert.equal(page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040');
+assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
 
