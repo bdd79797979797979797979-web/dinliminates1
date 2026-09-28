@@ -40,7 +40,7 @@ function res(){
 
 (async()=>{
   let r=res(); await handler({method:'GET',query:{mode:'health'},headers:{}},r);
-  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v715-photon-nominatim-fallback');
+  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v716-launch-candidate');
 
   r=res(); await handler({method:'GET',query:{mode:'suggest',q:'801 Iron Workers Rd, Clarksville, TN'},headers:{}},r);
   assert.equal(r.statusCode,200); assert(r.body.results.length>=1);
