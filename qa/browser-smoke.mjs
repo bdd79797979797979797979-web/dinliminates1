@@ -23,6 +23,9 @@ const context = await browser.newContext({viewport:{width:393,height:852},device
 const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
+const pageErrors=[]; const consoleErrors=[];
+page.on('pageerror', err => pageErrors.push(String(err)));
+page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
 page.on('dialog', async dialog => { await dialog.accept(); });
 await page.route('**/*', async route => {
   const u = route.request().url();
@@ -161,5 +164,7 @@ await click('#restart'); await settle();
 await click('#menu'); await settle(); await click('#about'); await settle(); assert.equal(await visible('aboutModal'),true,'About should open'); await page.locator('[data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open');
 
+assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
+assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
