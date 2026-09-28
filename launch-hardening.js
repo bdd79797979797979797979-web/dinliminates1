@@ -2,7 +2,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p652-passaround-clean-repair';
+  const VERSION='p692-quickcut-live-unified';
   const $=id=>document.getElementById(id);
   const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -103,8 +103,14 @@
     if(finalistMode){host.innerHTML='';return;}
     const keys=['burgers','pizza','chicken','mexican','italian','pasta','potato','southern','healthy','soupstew','sandwiches','seafood','steak','bbq','breakfast','american'];
     host.innerHTML=keys.filter(k=>QUICK_CUT_RULES?.[k]).map(k=>{
-      const r=QUICK_CUT_RULES[k],n=foodBase.filter(x=>foodQuickMatch(x,k)).length,h=foodQuickHidden.has(k);
-      return `<button type="button" class="quick-cut${h?' is-quick-hidden':''}" data-launch-quick="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(r.label):'Hide '+html(r.label)}"><span class="quick-cut-copy"><strong>${html(r.label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
+      const r=QUICK_CUT_RULES[k],h=foodQuickHidden.has(k);
+      // Inactive cuts use the live deck. Active cuts count choices this cut can restore.
+      // An active cut stays clickable even when another active cut overlaps it.
+      const n=h
+        ? foodBase.filter(x=>foodQuickMatch(x,k)&&!foodManual.has(foodKey(x))&&!([...foodQuickHidden].some(other=>other!==k&&foodQuickMatch(x,other)))).length
+        : (activeItems||[]).filter(x=>foodQuickMatch(x,k)).length;
+      const disabled=(!n&&!h)||!!pass;
+      return `<button type="button" class="quick-cut${h?' is-quick-hidden':''}" data-launch-quick="${html(k)}" ${disabled?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(r.label):'Hide '+html(r.label)}"><span class="quick-cut-copy"><strong>${html(r.label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
     }).join('');
     host.querySelectorAll('[data-launch-quick]').forEach(b=>{const photoKey=QUICK_CUT_RULES[b.dataset.launchQuick]?.photo;const photo=photoKey&&PHOTO_LIBRARY?.[photoKey];if(photo)b.style.setProperty('--quick-photo',`url("${photo.replace(/"/g,'&quot;')}")`);b.onclick=()=>toggleFoodQuick(b.dataset.launchQuick);});
   }
@@ -260,8 +266,13 @@
     const list=Array.isArray(RESTAURANT_QUICK_CUTS)?RESTAURANT_QUICK_CUTS:[];
     const pool=restaurantQuickCutDisplayPool();
     host.innerHTML=list.map(([label,k,photoKey])=>{
-      const n=restaurantQuickCutDisplayPool(k).filter(x=>restQuickMatch(x,k)).length,h=restaurantQuickCuts.has(k),photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;
-      return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${(!n||pass)?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
+      const h=restaurantQuickCuts.has(k);
+      // Inactive cuts count actual live cards; active cuts count what this cut can restore.
+      // Keep active cuts enabled even when overlapping cuts reduce their restore count to zero.
+      const n=restaurantQuickCutDisplayPool(k).filter(x=>restQuickMatch(x,k)).length;
+      const disabled=(!n&&!h)||!!pass;
+      const photo=PHOTO_LIBRARY?.[photoKey]||RESTAURANT_FALLBACK_PHOTO;
+      return `<button type="button" class="quick-cut restaurant-quick-cut${h?' is-quick-hidden':''}" data-launch-rq="${html(k)}" ${disabled?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(label):'Hide '+html(label)}" style="--quick-photo:url('${html(photo)}')"><span class="quick-cut-copy"><strong>${html(label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
     }).join('');
     host.querySelectorAll('[data-launch-rq]').forEach(b=>b.onclick=()=>toggleRestaurantQuick(b.dataset.launchRq));
   }
@@ -480,6 +491,27 @@
     toast('Back to start.');
   }
   window.DinliminateBackToStart=backToStartFresh;
+
+  window.DinliminateQuickCutQA={
+    version:VERSION,
+    food:(sample=[])=>{
+      const items=Array.isArray(sample)?sample:[];
+      return Object.fromEntries(Object.keys(QUICK_CUT_RULES||{}).map(k=>[k,items.filter(x=>foodQuickMatch(x,k)).length]));
+    },
+    restaurant:(sample=[])=>{
+      const items=Array.isArray(sample)?sample:[];
+      return Object.fromEntries((RESTAURANT_QUICK_CUTS||[]).map(([label,k])=>[k,items.filter(x=>restQuickMatch(x,k)).length]));
+    },
+    liveState:()=>({
+      foodActive:(activeItems||[]).length,
+      foodBase:(foodBase||[]).length,
+      foodQuickHidden:[...(foodQuickHidden||[])],
+      restaurantActive:(activeRestaurants||[]).length,
+      restaurantBase:(restaurantBase||[]).length,
+      restaurantQuickHidden:[...(restaurantQuickCuts||[])],
+      restaurantHours:read('dinliminateRestaurantHoursFilter','open-unknown')
+    })
+  };
 
   function install(){
     safeWrite('dinliminateLaunchVersion',VERSION);
