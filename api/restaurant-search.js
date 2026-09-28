@@ -466,13 +466,13 @@ async function doSearch(lat, lon, radiusMi) {
     }
 
     if (radiusMi <= 25) {
-      // Race all mirrors in parallel so a dead mirror cannot block every
-      // subsequent mirror for several seconds in sequence.
+      // Race all mirrors in parallel so a dead public endpoint cannot consume
+      // the serverless budget one mirror at a time.
       const first = await firstUsableProvider(OVERPASS_ENDPOINTS);
       providerResults.push(...first.results);
     } else {
-      // Each provider already fans out across the selected radius tiles. Race
-      // two primary mirrors first, then try the secondary mirrors only if both fail.
+      // Each provider already fans out across the selected tiles. Race two
+      // primary mirrors, then try secondary mirrors only if both fail.
       const primary = OVERPASS_ENDPOINTS.slice(0, 2);
       const first = await firstUsableProvider(primary);
       providerResults.push(...first.results);
@@ -480,6 +480,7 @@ async function doSearch(lat, lon, radiusMi) {
         const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(2));
         providerResults.push(...fallback.results);
       }
+    }
   }
   const providerStats = providerResults.map(x => ({
     endpoint: x.endpoint,
