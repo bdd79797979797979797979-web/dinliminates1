@@ -167,6 +167,12 @@ async function cleanLocate(){
 }
 $('find').onclick=cleanSearch;$('locate').onclick=cleanLocate;window.drawRestaurants=cleanDrawRestaurants;window.searchRestaurants=cleanSearch;renderRestaurantQuickCuts();
 
+
+/* CP2 cleanup: one Quick Cut renderer + phone-sized suggestions */
+const style=document.createElement('style');style.textContent='#suggestionsBox{display:none;position:absolute;left:14px;right:14px;margin-top:3px;background:#181818;border:1px solid #303030;border-radius:13px;overflow:hidden;z-index:8}#suggestionsBox button{background:#181818;color:#eee;border:0;border-bottom:1px solid #292929;text-align:left;padding:12px;font-size:12px;line-height:1.25}#suggestionsBox button:last-child{border-bottom:0}.panel{position:relative}';document.head.appendChild(style);
+drawQuick=function(){ $('foodQuick').innerHTML=cats.map(c=>'<button class="chip '+(S.cutCats.has(c)?'cut':'')+'" data-c="'+c+'">'+c+'</button>').join('');document.querySelectorAll('#foodQuick .chip').forEach(b=>b.onclick=()=>{const c=b.dataset.c;S.cutCats.has(c)?S.cutCats.delete(c):S.cutCats.add(c);build();S.index=0;drawFood();drawQuick();persist()});renderRestaurantQuickCuts() };
+drawQuick();
+
 </script>
 </main>
 </body>
