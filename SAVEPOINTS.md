@@ -84,6 +84,14 @@ Hidden foods remain visible in Manage Foods for Restore; custom foods can be hid
 Commit: `e07798f90daf3c18ba7b829508eb60568be3bbc5`
 History supports month navigation, date details, individual decision details, and small date-level X removal.
 
+## CP21 — persistent restaurant hide registry
+Commit: `9242864efa6873c833fc8769d5b1b6034a382a2c`
+Hidden restaurants are retained in a registry and can be restored even after later searches.
+
+## CP22 — compact Restaurant tools
+Commits: `4402dd9`, `a5f502f`, `60ec794`
+Restaurant Search, Open/Unknown Hours, and Pass Around sit together; restaurant text filtering uses the current result pool.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
