@@ -305,6 +305,15 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantBackAction').click();
   await expect.poll(()=>count(fast)).toBe(2);
 
+  const fastAllCount = await count(fast);
+  expect(fastAllCount).toBe(3);
+  const allBeforeQuick = Number(await page.locator('#restaurantTopCount').textContent());
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed','true');
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(allBeforeQuick-fastAllCount);
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed','false');
+
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('All');
@@ -644,11 +653,12 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
     }
     if (mode === 'search') {
       const radius = Number(u.searchParams.get('radius') || 25);
-      const rows = restaurantFixture.filter(r => r.distanceMiles <= radius);
+      const query = String(u.searchParams.get('q') || '').trim().toLowerCase().replace(/[\u2019']/g,'');
+      const rows = restaurantFixture.filter(r => r.distanceMiles <= radius && (!query || [r.name,r.brand,r.operator,r.category,r.cuisine,...(r.tags||[]),...(r.menuItems||[])].join(' ').toLowerCase().replace(/[\u2019']/g,'').includes(query)));
       return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({
         ok:true, version:'virtual-user', radiusMiles:radius,
         results:rows, restaurants:rows, businesses:rows, items:rows,
-        total:rows.length, fastFoodCount:rows.filter(r=>r.fastFood).length,
+        total:rows.length, fastFoodCount:rows.filter(r=>r.fastFood).length, searchQuery:query,
         providersUsed:['Virtual User Fixture'], diagnostics:{elapsedMs:3,cacheHit:false}
       })});
     }
@@ -744,6 +754,16 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await saveFood.click();
   await expect(saveFood).toHaveText(/Saved|Save/);
   await page.locator('#detailCloseBtn').click();
+
+  // One-choice terminal behavior: Maybe must become Choose; it must never recycle the sole card.
+  await page.evaluate(() => { activeItems=[activeItems[0]]; holdingItems=[]; undoStack=[]; searchQuery=''; renderStage(); syncDecisionActionLabels(); });
+  await expect(page.locator('#holdBtn')).toHaveText('Choose');
+  await page.locator('#holdBtn').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#winnerHomeBtn').click();
+  await expect(page.locator('#homePanel')).toBeVisible();
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
 
   const foodCountBeforeCut = Number(await page.locator('#gameTopCount').textContent());
   await page.locator('#cutBtn').click();
