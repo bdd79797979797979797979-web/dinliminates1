@@ -7,7 +7,7 @@ const DINLIMINATE_FOODS=[
 ['pork-chops','Pork Chops','pork','Pork','https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=1200&q=85'],
 ['spaghetti','Spaghetti','pasta','Pasta','https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=1200&q=85'],
 ['tenders','Chicken Tenders & Fries','chicken','American','https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=1200&q=85'],
-['potato-soup','Potato Soup','soup','Soup','https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=1200&q=85'],
+['potato-soup','Potato Soup','potato','Soup','https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=1200&q=85'],
 ['cabbage','Cabbage & Sausage','sausage','Southern','https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=1200&q=85'],
 ['steak-potato','Steak & Potato','steak','American','https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85'],
 ['chicken-dumplings','Chicken & Dumplings','chicken','Southern','https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=1200&q=85'],
