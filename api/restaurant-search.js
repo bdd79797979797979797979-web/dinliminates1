@@ -556,30 +556,36 @@ async function doSearch(lat, lon, radiusMi, query='') {
     return { ...cached.data, diagnostics: { ...(cached.data.diagnostics || {}), cacheHit: true } };
   }
 
+  // P757 search contract: merge provider coverage instead of returning the first
+  // provider that happens to answer. Radius filtering is always performed after
+  // the merged pool is built. Generic semantic terms also query a broad nearby
+  // pool so a query such as 'burger' is not limited to a chain whose name matches.
   if(searchQuery){
     const started=Date.now();
-    const [photonQ,nominatimQ]=await Promise.all([
+    const semanticTerms=new Set(['burger','chicken','pizza','breakfast','sandwich','sub','seafood','mexican','southern','healthy','salad','soup','stew','bbq','barbecue','pasta','italian','american','fast food']);
+    const qTerms=searchTerms(searchQuery);
+    const needsBroadSemantic=qTerms.some(t=>semanticTerms.has(t));
+    const direct=await Promise.all([
       photonSearchProvider(lat,lon,radiusMi,searchQuery),
-      nominatimSearchProvider(lat,lon,radiusMi,searchQuery)
+      nominatimSearchProvider(lat,lon,radiusMi,searchQuery),
+      overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,radiusMi,searchQuery),
+      overpassProvider(OVERPASS_ENDPOINTS[1],lat,lon,radiusMi,searchQuery)
     ]);
-    const direct=[photonQ,nominatimQ];
+    if(needsBroadSemantic){
+      const broad=await Promise.all([
+        photonProvider(lat,lon,radiusMi),
+        overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,radiusMi,'')
+      ]);
+      direct.push(...broad);
+    }
     let merged=dedupeRestaurantRows(direct.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
     if(!merged.length){
-      const alternates=searchQueryAlternates(searchQuery);
-      for(const alternate of alternates){
-        const [ph,nm]=await Promise.all([
-          photonSearchProvider(lat,lon,radiusMi,alternate),
-          nominatimSearchProvider(lat,lon,radiusMi,alternate)
-        ]);
-        direct.push(ph,nm);
-        merged=dedupeRestaurantRows([ph,nm].flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
+      for(const alternate of searchQueryAlternates(searchQuery)){
+        const pair=await Promise.all([photonSearchProvider(lat,lon,radiusMi,alternate),nominatimSearchProvider(lat,lon,radiusMi,alternate)]);
+        direct.push(...pair);
+        merged=dedupeRestaurantRows(pair.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
         if(merged.length)break;
       }
-    }
-    if(!merged.length){
-      const states=await Promise.all(OVERPASS_ENDPOINTS.slice(0,2).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,searchQuery)));
-      direct.push(...states);
-      merged=dedupeRestaurantRows(states.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
     }
     const data={
       results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
@@ -587,125 +593,67 @@ async function doSearch(lat, lon, radiusMi, query='') {
       providersUsed:[...new Set(direct.filter(x=>(x.rows||[]).length).map(x=>x.endpoint))],
       googleConfigured:!!GOOGLE_KEY,searchQuery,
       providerCounts:Object.fromEntries(direct.map(x=>[x.endpoint,Number(x.rows?.length||0)])),
-      diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:direct.map(x=>({endpoint:x.endpoint,rows:x.rows?.length||0,ms:x.ms||0,errors:x.errors||[]}))}
+      diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,semanticBroadPool:needsBroadSemantic,providers:direct.map(x=>({endpoint:x.endpoint,rows:x.rows?.length||0,ms:x.ms||0,errors:x.errors||[]}))}
     };
     memoryCache.set(key,{at:Date.now(),data});
     return data;
   }
+
   const started = Date.now();
-  const providerResults = [await googleSearch(lat, lon, radiusMi)];
-  if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
-    const photon = await photonProvider(lat, lon, radiusMi);
-    providerResults.push(photon);
-    if (photon.rows?.length) {
-      const data = { results: photon.rows.slice(0, RESULT_LIMIT), restaurants: photon.rows.slice(0, RESULT_LIMIT), items: photon.rows.slice(0, RESULT_LIMIT), total: photon.rows.length, fastFoodCount: photon.rows.filter(r=>r.fastFood).length, providersUsed:[...new Set(photon.rows.map(r=>r.source).filter(Boolean))], googleConfigured:!!GOOGLE_KEY, providerCounts:Object.fromEntries(Object.entries(photon.rows.reduce((m,r)=>(m[r.source]=(m[r.source]||0)+1,m),{}))), diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:[{endpoint:'Photon POI + Nominatim fallback',rows:photon.rows.length,ms:photon.ms,errors:photon.errors||[]}]}};
-      memoryCache.set(key,{at:Date.now(),data});
-      return data;
-    }
-    async function firstUsableProvider(endpoints) {
-      const states = new Array(endpoints.length);
-      const attempts = endpoints.map((endpoint,index) =>
-        overpassProvider(endpoint, lat, lon, radiusMi).then(result => {
-          states[index] = result;
-          if (result.rows?.length) return result;
-          throw Object.assign(new Error('No usable restaurant rows.'), { result });
-        }).catch(err => {
-          if (!states[index]) states[index] = err?.result || { endpoint, rows: [], errors: [errorText(err)] };
-          throw err;
-        })
-      );
-      let winner = null;
-      try { winner = await Promise.any(attempts); } catch {}
-      return { winner, results: states.filter(Boolean) };
-    }
+  const providerResults = [];
+  providerResults.push(await googleSearch(lat, lon, radiusMi));
+  const photon = await photonProvider(lat, lon, radiusMi);
+  providerResults.push(photon);
 
-    if (radiusMi <= 25) {
-      // Race all mirrors in parallel so a dead public endpoint cannot consume
-      // the serverless budget one mirror at a time.
-      const first = await firstUsableProvider(OVERPASS_ENDPOINTS);
-      providerResults.push(...first.results);
-    } else {
-      // Each provider already fans out across the selected tiles. Race two
-      // primary mirrors, then try secondary mirrors only if both fail.
-      const primary = OVERPASS_ENDPOINTS.slice(0, 2);
-      const first = await firstUsableProvider(primary);
-      providerResults.push(...first.results);
-      if (!first.winner) {
-        const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(2));
-        providerResults.push(...fallback.results);
-      }
-    }
+  // Merge completed primary Overpass mirrors; never take the first responder.
+  // Three mirrors for <=25 mi improves local coverage, two for larger tiled searches
+  // keep the serverless request bounded.
+  const primaryCount=radiusMi<=25?3:2;
+  const settled=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(0,primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,'')));
+  let usable=0;
+  for(const r of settled){
+    if(r.status==='fulfilled'){providerResults.push(r.value);if((r.value.rows||[]).length)usable++;}
   }
-  const providerStats = providerResults.map(x => ({
-    endpoint: x.endpoint,
-    rows: Number(x.rows?.length || 0),
-    ms: Number(x.ms || 0),
-    errors: Array.isArray(x.errors) ? x.errors.slice(0, 3) : []
-  }));
+  if(!usable){
+    const fallback=await Promise.allSettled(OVERPASS_ENDPOINTS.slice(primaryCount).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,'')));
+    for(const r of fallback)if(r.status==='fulfilled')providerResults.push(r.value);
+  }
 
+  const providerStats = providerResults.map(x => ({endpoint:x.endpoint,rows:Number(x.rows?.length||0),ms:Number(x.ms||0),errors:Array.isArray(x.errors)?x.errors.slice(0,3):[]}));
   const allRows = providerResults.flatMap(x => x.rows || []);
   const mergedMap = new Map();
   for (const row of allRows) {
     const nameKey=String(row.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const addressKey=String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const keyRow=addressKey
-      ? nameKey+'|'+addressKey
-      : nameKey+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4);
+    const keyRow=addressKey ? nameKey+'|'+addressKey : nameKey+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4);
     if (!mergedMap.has(keyRow)) mergedMap.set(keyRow, row);
     else {
-      const existing = mergedMap.get(keyRow);
-      existing.fastFood = existing.fastFood || row.fastFood;
-      existing.tags = [...new Set([...(existing.tags || []), ...(row.tags || [])])];
-      if ((existing.source || '').startsWith('OpenStreetMap') && row.source === 'Google Places') Object.assign(existing, { ...existing, ...row });
-      for (const k of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl']) {
-        if (!existing[k] && row[k]) existing[k] = row[k];
-      }
+      const existing=mergedMap.get(keyRow);
+      existing.fastFood=existing.fastFood||row.fastFood;
+      existing.tags=[...new Set([...(existing.tags||[]),...(row.tags||[])])];
+      if((existing.source||'').startsWith('OpenStreetMap')&&row.source==='Google Places')Object.assign(existing,{...existing,...row});
+      for(const k of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl'])if(!existing[k]&&row[k])existing[k]=row[k];
     }
   }
-
-  let merged = [...mergedMap.values()]
-    .filter(row => {
-      const d = Number(row.distanceMiles);
-      return Number.isFinite(d) && d <= radiusMi;
-    })
-    .sort((a, b) => a.distanceMiles - b.distanceMiles);
-
-  const usableProviders = providerResults.filter(x => (x.rows || []).length);
-  const attemptedOverpass = providerResults.filter(x => x.endpoint !== 'Google Places');
-  const allRestaurantProvidersFailed = !usableProviders.length && attemptedOverpass.length > 0 &&
-    attemptedOverpass.every(x => Array.isArray(x.errors) && x.errors.length);
-
-  if (allRestaurantProvidersFailed) {
-    const providerSummary = attemptedOverpass
-      .map(x => x.endpoint.replace(/^https?:\/\//,'') + ': ' + ((x.errors || [])[0] || 'failed'))
-      .join(' · ');
-    const err = Object.assign(new Error('Restaurant data providers are unavailable. Please try again.'), {
-      code: 'PROVIDERS_UNAVAILABLE',
-      providerSummary
-    });
-    throw err;
+  const merged=[...mergedMap.values()].filter(row=>{const d=Number(row.distanceMiles);return Number.isFinite(d)&&d<=radiusMi;}).sort((a,b)=>a.distanceMiles-b.distanceMiles);
+  const usableProviders=providerResults.filter(x=>(x.rows||[]).length);
+  const attemptedOverpass=providerResults.filter(x=>x.endpoint!=='Google Places'&&x.endpoint!=='Photon POI + Nominatim fallback');
+  const allRestaurantProvidersFailed=!usableProviders.length&&attemptedOverpass.length>0&&attemptedOverpass.every(x=>Array.isArray(x.errors)&&x.errors.length);
+  if(allRestaurantProvidersFailed){
+    const providerSummary=attemptedOverpass.map(x=>x.endpoint.replace(/^https?:\\/\\//,'')+': '+((x.errors||[])[0]||'failed')).join(' · ');
+    throw Object.assign(new Error('Restaurant data providers are unavailable. Please try again.'),{code:'PROVIDERS_UNAVAILABLE',providerSummary});
   }
-
-  const data = {
-    results: merged.slice(0, RESULT_LIMIT),
-    restaurants: merged.slice(0, RESULT_LIMIT),
-    items: merged.slice(0, RESULT_LIMIT),
-    total: merged.length,
-    fastFoodCount: merged.filter(r => r.fastFood).length,
-    providersUsed: providerResults.filter(x => (x.rows || []).length).map(x => x.endpoint),
-    googleConfigured: !!GOOGLE_KEY,
-    providerCounts: Object.fromEntries(providerStats.map(x => [x.endpoint, x.rows])),
-    diagnostics: {
-      elapsedMs: Date.now() - started,
-      cacheHit: false,
-      providers: providerStats
-    }
+  const data={
+    results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
+    total:merged.length,fastFoodCount:merged.filter(r=>r.fastFood).length,
+    providersUsed:providerResults.filter(x=>(x.rows||[]).length).map(x=>x.endpoint),
+    googleConfigured:!!GOOGLE_KEY,
+    providerCounts:Object.fromEntries(providerStats.map(x=>[x.endpoint,x.rows])),
+    diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:providerStats}
   };
-
-  memoryCache.set(key, { at: Date.now(), data });
+  memoryCache.set(key,{at:Date.now(),data});
   return data;
 }
-
 function addressText(f, fallback = '') {
   const p = f?.properties || {};
   const c = f?.geometry?.coordinates || [];
