@@ -228,10 +228,10 @@
         return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
       });
     }else{
-      // Inactive Quick Cuts count the current search universe, not the mutable
-      // active card list. Cut/Maybe/other active Quick Cut state is subtracted
-      // from that live universe below, keeping counts aligned with current scope.
-      pool=scope.filter(r=>{
+      // Inactive Quick Cuts represent the choices the user can act on right now.
+      // Use the live active deck directly so Cut/Maybe, radius, search, and
+      // other active Quick Cuts cannot leave a stale category count behind.
+      pool=[...(activeRestaurants||[])].filter(r=>{
         const id=restKey(r);
         if(manual.has(id)||held.has(id))return false;
         return ![...activeQuick].some(other=>restQuickMatch(r,other));
