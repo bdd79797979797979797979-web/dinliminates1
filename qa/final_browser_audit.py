@@ -15,7 +15,7 @@ h=h.replace('<link href="./dinliminate-icon.svg" rel="icon" type="image/svg+xml"
 h=h.replace('</head>', '<style>'+css+'</style></head>', 1)
 h=h.replace('</body>', '<script>'+js+'</script></body>', 1)
 h=h.replace("const http=()=>location.protocol==='https:'||location.protocol==='http:';", "const http=()=>true;")
-h=h.replace("const apiBase=()=>location.hostname.endsWith('.floot.app')?'/_api/restaurant-search':'/api/restaurant-search'; const api=(params)=>{if(!http())throw Object.assign(new Error('Restaurant search needs the deployed HTTPS app.'),{code:'NO_HTTP'});return new URL(apiBase()+'?'+new URLSearchParams(params),location.origin).toString();};", "const apiBase=()=> 'http://mock.local/api/restaurant-search'; const api=(params)=>apiBase()+'?'+new URLSearchParams(params);")
+h=re.sub(r"  function api\(params\)\{[\\s\\S]*?\n  \}\n\n  async function request", "  function api(params){ return 'http://mock.local/api/restaurant-search?'+new URLSearchParams(params); }\n\n  async function request", h, count=1)
 
 checks=[]; errors=[]; console_events=[]
 def add(n,ok,d=''): checks.append({'name':n,'ok':bool(ok),'detail':d})
