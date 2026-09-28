@@ -5882,6 +5882,58 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{
 /* P729 — confirmations must sit above any detail/modal sheet that opened them. */
 .confirm-backdrop{z-index:700!important;}
 </style>
+
+<style id="dinliminate-p730-home-identity">
+/* P730 — refined home identity: no box behind the wordmark, stronger editorial scale. */
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar{min-height:46px;margin:0 1px 12px;align-items:center;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{
+  display:inline-flex!important;align-items:baseline!important;gap:0!important;
+  width:auto!important;height:auto!important;padding:0!important;margin:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:rgba(255,255,255,.92)!important;
+  font-family:var(--display-face)!important;font-size:1.62rem!important;
+  line-height:1!important;font-weight:520!important;letter-spacing:-.045em!important;
+  text-transform:none!important;text-shadow:0 2px 18px rgba(0,0,0,.18)!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{
+  position:relative!important;display:inline-block!important;margin-right:.01em!important;
+  color:#8fe0ba!important;font-size:1.96rem!important;font-weight:700!important;
+  letter-spacing:-.065em!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d::after{
+  content:''!important;position:absolute!important;width:5px!important;height:5px!important;
+  border-radius:50%!important;right:-3px!important;bottom:-1px!important;background:#ff897d!important;
+  box-shadow:0 0 10px rgba(255,137,125,.25)!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-menu{
+  display:grid!important;width:42px!important;height:42px!important;min-width:42px!important;
+  border-radius:14px!important;background:rgba(255,255,255,.045)!important;
+  border:1px solid rgba(255,255,255,.13)!important;box-shadow:0 9px 22px rgba(0,0,0,.15)!important;
+}
+/* Absolutely no second hamburger/menu control on the home surface. */
+body:not(.game-mode):not(.restaurant-mode) #homePanel .menu-btn,
+body:not(.game-mode):not(.restaurant-mode) #homePanel #menuBtn,
+body:not(.game-mode):not(.restaurant-mode) #homePanel #restaurantMenuBtn{display:none!important;}
+body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:none!important;}
+@media(max-width:430px){
+  body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{font-size:1.48rem!important;}
+  body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{font-size:1.80rem!important;}
+}
+/* One remaining choice: make the affirmative action visually read as a decision. */
+.gesture-btn.is-final-choice{background:#fff!important;color:#17372c!important;border-color:#8fc7ae!important;box-shadow:0 8px 20px rgba(66,133,103,.18)!important;}
+</style>
+
+<style id="dinliminate-p730-phone-help">
+.phone-help-intro{display:grid;gap:3px;padding:14px;border:1px solid #dfe5df;border-radius:17px;background:#f4f8f4;color:#294237;}
+.phone-help-intro strong{margin:0!important;color:#17372c!important;font-size:.78rem!important;}
+.phone-help-intro span,.phone-help-step span,.phone-help-note span{font-size:.68rem;color:#64746d;line-height:1.45;}
+.phone-help-steps{display:grid;gap:8px;margin-top:11px;}
+.phone-help-step{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;align-items:start;padding:11px 12px;border:1px solid #e2ddd4;border-radius:15px;background:#fbf8f1;}
+.phone-help-step>b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#17372c;color:#fff;font-size:.68rem;}
+.phone-help-step strong{margin:0!important;color:#17372c!important;font-size:.72rem!important;}
+.phone-help-note{display:grid;gap:3px;margin-top:9px;padding:12px 13px;border-radius:15px;background:#fff3ed;border:1px solid #efd0c8;}
+.phone-help-note strong{margin:0!important;color:#a2473d!important;font-size:.68rem!important;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -7360,6 +7412,8 @@ function confirmHide(){
 function holdCurrent(card) {
   const idx = currentIndex();
   if (idx < 0 || activeItems.length === 0 || transitioning) return;
+  // With one choice left, Maybe becomes Choose and must finish the decision.
+  if(activeItems.length===1){ chooseCurrent(); return; }
   pushUndo();
   transitionCard(card, 1, () => {
     const [item] = activeItems.splice(idx,1);
@@ -7489,8 +7543,16 @@ function applyFoodPreferences(){
   activeItems=[...base]; originalCount=Math.max(activeItems.length,1); holdingItems=[]; finalistMode=false;
 }
 function syncDecisionActionLabels(){
-  const hold=$('holdBtn'); if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this food as a maybe');hold.disabled=!activeItems.length;}
-  const cut=$('cutBtn'); if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!activeItems.length;}
+  const one=activeItems.length===1;
+  const hold=$('holdBtn');
+  if(hold){
+    hold.innerHTML=one?'Choose':'Maybe <span>♥</span>';
+    hold.setAttribute('aria-label',one?'Choose this food':'Keep this food as a maybe');
+    hold.disabled=!activeItems.length;
+    hold.classList.toggle('is-final-choice',one);
+  }
+  const cut=$('cutBtn');
+  if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!activeItems.length;}
 }
 function showGame() {
   document.body.classList.remove('restaurant-mode'); currentWinnerMode='food'; document.title='Dinliminate — Choose a Food'; applyFoodPreferences();
@@ -8144,8 +8206,14 @@ function bindRestaurantSwipe(card){
   card.addEventListener('pointercancel',end);
 }
 function syncRestaurantActionLabels(){
+  const one=Array.isArray(activeRestaurants)&&activeRestaurants.length===1;
   const hold=$('restaurantKeepBtn');
-  if(hold){hold.innerHTML='Maybe <span>♥</span>';hold.setAttribute('aria-label','Keep this restaurant as a maybe');hold.disabled=!currentRestaurant();}
+  if(hold){
+    hold.innerHTML=one?'Choose':'Maybe <span>♥</span>';
+    hold.setAttribute('aria-label',one?'Choose this restaurant':'Keep this restaurant as a maybe');
+    hold.disabled=!currentRestaurant();
+    hold.classList.toggle('is-final-choice',one);
+  }
   const cut=$('restaurantCutBtn');if(cut){cut.innerHTML='<span>×</span> Cut';cut.disabled=!currentRestaurant();}
   const hide=$('restaurantHideBtn');if(hide)hide.disabled=!currentRestaurant();
   const back=$('restaurantBackAction');if(back)back.disabled=restaurantUndoStack.length===0;
@@ -8190,6 +8258,8 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
 }
 function restaurantKeep(card=$('restaurantStage')?.querySelector('.active')){
   const item=currentRestaurant(); if(!item||restaurantTransitioning)return;
+  // With one restaurant left, Maybe becomes Choose and must finish the decision.
+  if(activeRestaurants.length===1){ chooseRestaurantCurrent(); return; }
   const idx=activeRestaurants.findIndex(r=>String(r.id)===String(item.id)); if(idx<0)return;
   restaurantUndoStack.push({activeRestaurants:[...activeRestaurants],holdingRestaurants:[...holdingRestaurants],finalistMode:restaurantFinalistMode,exhausted:restaurantEliminationExhausted});
   restaurantFilters.query='';
@@ -8261,7 +8331,18 @@ function initNetworkStatus(){
   if(!navigator.onLine)update();
 }
 
-function openPhoneHelp(){ openInfo('How to add to iPhone',`<p>Use Safari, then tap <strong>Share</strong> → <strong>Add to Home Screen</strong> → <strong>Add</strong>.</p><p>Open Dinliminate from the Home Screen for the full-screen app experience.</p>`,'DINLIMINATE · IPHONE'); }
+function openPhoneHelp(){
+  openInfo('How to add Dinliminate to iPhone',`
+    <div class="phone-help-intro"><strong>Put Dinliminate on your Home Screen</strong><span>It opens like an app, with your dinner deck ready to go.</span></div>
+    <div class="phone-help-steps">
+      <div class="phone-help-step"><b>1</b><div><strong>Open Safari</strong><span>Use Safari on your iPhone and open Dinliminate.</span></div></div>
+      <div class="phone-help-step"><b>2</b><div><strong>Tap Share</strong><span>Tap the Share button in Safari.</span></div></div>
+      <div class="phone-help-step"><b>3</b><div><strong>Choose Add to Home Screen</strong><span>Scroll the share menu if you do not see it immediately.</span></div></div>
+      <div class="phone-help-step"><b>4</b><div><strong>Tap Add</strong><span>Dinliminate will appear on your Home Screen. Open it from there for the app-style experience.</span></div></div>
+    </div>
+    <div class="phone-help-note"><strong>Tip</strong><span>Safari may show the Share button at the bottom of the screen.</span></div>
+  `,'DINLIMINATE · IPHONE');
+}
 function openLibrary(tab='saved'){closeMenu();libraryTab=tab;renderLibrary();$('libraryBackdrop').classList.remove('hidden');focusOverlay('libraryBackdrop');}
 function closeLibrary(){if(!$('libraryBackdrop')?.classList.contains('hidden'))restoreFocus();$('libraryBackdrop').classList.add('hidden');}
 function renderLibrary(){document.querySelectorAll('[data-library-tab]').forEach(b=>b.classList.toggle('active',b.dataset.libraryTab===libraryTab));const list=libraryTab==='saved'?savedItems:historyItems;const clear=$('clearLibraryBtn');if(clear){clear.classList.toggle('show',list.length>0);clear.textContent=libraryTab==='history'?'Reset history':'Clear saved';}$('libraryList').innerHTML=list.length?list.map((item,idx)=>`<div class="library-item"><div class="library-thumb"><img src="${escapeHtml(item.photo||photoFor(item))}" alt="" onerror="this.style.display='none'"></div><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.mode==='restaurant'||item.type==='restaurant'?'Restaurant':'Food')}${item.date?` · ${new Date(item.date).toLocaleDateString()}`:''}</small></div><div class="library-actions">${libraryTab==='saved'?`<button class="library-action" data-lib-detail="${idx}" type="button">Details</button><button class="library-action" data-lib-remove="${idx}" type="button">Remove</button>`:`<button class="library-action" data-history-detail="${idx}" type="button">Details</button>`}</div></div>`).join(''):'<div class="library-empty">Nothing here yet.<br/>Save a food or restaurant to build your list.</div>';document.querySelectorAll('[data-lib-remove]').forEach(b=>b.onclick=()=>{savedItems.splice(Number(b.dataset.libRemove),1);saveSavedItems();renderLibrary();});document.querySelectorAll('[data-lib-detail]').forEach(b=>b.onclick=()=>{const item=savedItems[Number(b.dataset.libDetail)];closeLibrary();openDetails(item);});document.querySelectorAll('[data-history-detail]').forEach(b=>b.onclick=()=>{const item=historyItems[Number(b.dataset.historyDetail)];closeLibrary();openDetails(item);});}
