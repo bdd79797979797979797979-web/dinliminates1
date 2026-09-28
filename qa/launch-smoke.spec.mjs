@@ -920,3 +920,126 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
 
   expect(errors).toEqual([]);
 });
+
+
+test('P729 edge-control regression covers settings, photo editor, library reset and backup import', async ({ page }) => {
+  test.setTimeout(60000);
+  page.setDefaultTimeout(5000);
+  const pageErrors = [];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  page.on('console', msg => { if (msg.type() === 'error') pageErrors.push('console: ' + msg.text()); });
+
+  await page.goto(BASE, {waitUntil:'domcontentloaded'});
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+
+  // Hide toggle is a real persistent setting and must round-trip.
+  const hideToggle = page.locator('#hideToggle');
+  const hideBefore = await hideToggle.getAttribute('aria-pressed');
+  await hideToggle.click();
+  await expect(hideToggle).toHaveAttribute('aria-pressed', hideBefore === 'true' ? 'false' : 'true');
+  await hideToggle.click();
+  await expect(hideToggle).toHaveAttribute('aria-pressed', hideBefore || 'false');
+  await page.locator('#closeSettingsBtn').click();
+
+  // Add/edit flow including photo upload/remove and recipe deletion.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#addMenuBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+
+  const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
+  await page.locator('#newPhoto').setInputFiles({name:'tiny.png',mimeType:'image/png',buffer:tinyPng});
+  await expect(page.locator('#newPhotoPreview')).toHaveClass(/show/);
+  await page.locator('#removePhotoBtn').click();
+  await expect(page.locator('#newPhotoPreview')).not.toHaveClass(/show/);
+  await page.locator('#newPhoto').setInputFiles({name:'tiny.png',mimeType:'image/png',buffer:tinyPng});
+  await expect(page.locator('#newPhotoPreview')).toHaveClass(/show/);
+
+  await page.locator('#newName').fill('Virtual Edge Dinner');
+  await page.locator('#newRecipe').fill('Edge test recipe.');
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toHaveClass(/hidden/);
+  await expect.poll(() => page.evaluate(() => customItems.some(x => x.name === 'Virtual Edge Dinner'))).toBe(true);
+
+  await page.evaluate(() => {
+    const item = customItems.find(x => x.name === 'Virtual Edge Dinner');
+    activeItems = item ? [item, ...activeItems.filter(x => x.id !== item.id)] : activeItems;
+    renderStage();
+  });
+  await page.locator('#stage .stack-card.active [data-card-action="details"]').click();
+  await expect(page.locator('#editCardBtn')).toBeVisible();
+  await page.locator('#editCardBtn').click();
+  await expect(page.locator('#deleteRecipeBtn')).toBeVisible();
+  await page.locator('#deleteRecipeBtn').click();
+  await expect(page.locator('#deleteRecipeBtn')).toHaveClass(/hidden/);
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toHaveClass(/hidden/);
+
+  await page.locator('#stage .stack-card.active [data-card-action="details"]').click();
+  await expect(page.locator('#detailGrid .recipe-box')).toHaveCount(0);
+  await page.locator('#detailCloseBtn').click();
+
+  // Winner Start Fresh resets to a new food round.
+  await page.evaluate(() => {
+    activeItems = activeItems.slice(0, Math.max(2, Math.min(3, activeItems.length)));
+    holdingItems = [];
+    finalistMode = false;
+    renderStage();
+  });
+  await page.locator('#stage .stack-card.active [data-card-action="choose"]').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#startOverBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  await expect(page.locator('#stage .stack-card.active')).toBeVisible();
+
+  // Make a history entry, then exercise Library reset.
+  await page.locator('#stage .stack-card.active [data-card-action="choose"]').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#winnerHomeBtn').click();
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await page.locator('[data-library-tab="history"]').click();
+  await expect(page.locator('#libraryList')).toContainText(/Virtual Edge Dinner|No history yet|No decisions yet/i);
+  const clearHistory = page.locator('#clearLibraryBtn');
+  if (await clearHistory.isVisible()) {
+    page.once('dialog', d => d.accept());
+    await clearHistory.click();
+    await expect(page.locator('#libraryList')).toContainText(/No history|No decisions/i);
+  }
+  await page.locator('#closeLibraryBtn').click();
+
+  // Backup export + import must reload cleanly.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#settingsBtn').click();
+  const importPayload = {
+    version: 'p729',
+    exportedAt: new Date().toISOString(),
+    data: {
+      custom: [],
+      hidden: [],
+      saved: [],
+      history: [],
+      lastWinner: 'null',
+      preferences: {quick:false,comfort:false},
+      hideEnabled: 'true',
+      radius: '10',
+      motionTilt: 'false',
+      restaurantArea: '',
+      restaurantFilters: '{}',
+      deletedFoods: [],
+      restaurantReports: []
+    }
+  };
+  await page.locator('#importDataInput').setInputFiles({
+    name:'dinliminate-test-backup.json',
+    mimeType:'application/json',
+    buffer:Buffer.from(JSON.stringify(importPayload))
+  });
+  await page.waitForTimeout(1200);
+  await expect(page.locator('#homePanel')).toBeVisible();
+  await expect(page.locator('#settingsBackdrop')).toHaveClass(/hidden/);
+
+  expect(pageErrors).toEqual([]);
+});
