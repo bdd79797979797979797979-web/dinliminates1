@@ -5725,7 +5725,7 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
 <button aria-label="Keep this choice as a maybe" class="gesture-btn hold-btn" id="holdBtn" type="button">Maybe <span>♥</span></button>
 </div>
 <div class="game-bottom">
-<button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random cut one</button>
+<button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random Cut One</button>
 <button class="text-btn food-secondary-action add-food-btn" id="addDuringBtn" type="button">Add food</button>
 <button aria-label="Pass Around with other people" class="text-btn food-secondary-action pass-around-btn pass-food-btn" id="foodPassAroundBtn" type="button">Pass Around</button>
 </div>
@@ -5894,7 +5894,7 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
 <div class="detail-grid" id="detailGrid"></div>
 <div class="detail-fact" id="detailFact"></div>
 <div class="detail-actions" id="detailActions"></div>
-<div class="photo-credit">Images are shown for illustration..</div>
+<div class="photo-credit">Images are shown for illustration.</div>
 </div>
 </div>
 </div>
@@ -5976,6 +5976,8 @@ const homeMeals = [
   { name: "Spaghetti", tags: ["pasta", "italian", "quick", "home"], type: "home" },
   { name: "Grilled Chicken + Rice", tags: ["chicken", "healthy", "rice", "home"], type: "home" },
   { name: "Tacos", tags: ["mexican", "quick", "home"], type: "home" },
+  { name: "Popcorn", tags: ["snack", "quick", "home"], type: "home" },
+  { name: "Fruit Bowl", tags: ["healthy", "snack", "quick", "home"], type: "home" },
   { name: "Stir Fry", tags: ["asian", "chicken", "quick", "rice", "vegetable", "home"], type: "home" },
   { name: "Homemade Pizza", tags: ["pizza", "italian", "quick", "home"], type: "home" },
   { name: "Burgers", tags: ["burger", "quick", "home"], type: "home" },
@@ -6039,7 +6041,7 @@ const homeMeals = [
 const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  tacos: 'https://images.pexels.com/photos/15434316/pexels-photo-15434316.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  tacos: 'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=1400',
   stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6276,7 +6278,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p713-food-quickcuts-scroll';
+const DINLIMINATE_VERSION = 'p714-resilient-restaurant-search';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8020,7 +8022,7 @@ bind('closeSettingsBtn','click',closeSettings);
 bind('settingsBackdrop','click',e=>{ if(e.target === $('settingsBackdrop')) closeSettings(); });
 bind('detailCloseBtn','click',(e)=>{ e?.stopPropagation?.(); closeDetails(); });
 bind('detailBackdrop','click',e=>{ if(e.target === $('detailBackdrop')) closeDetails(); });
-bind('closeDrawerBtn','click',closeMenu);bind('aboutMenuBtn','click',()=>{closeMenu();openInfo('About Dinliminate',`<p><strong>Dinliminate</strong> turns dinner indecision into a simple elimination game.</p><p>Built around food cards, restaurant cards, Quick Cuts, personal foods, saved choices, and decision history.</p><p><strong>Made by Brian Dunn for Devona Dunn.</strong></p><p>Release ${DINLIMINATE_VERSION} · September 26, 2026.</p>`,'DINLIMINATE');});
+bind('closeDrawerBtn','click',closeMenu);bind('aboutMenuBtn','click',()=>{closeMenu();openInfo('About Dinliminate',`<p><strong>Dinliminate</strong> turns dinner indecision into a simple elimination game.</p><p>Built around food cards, restaurant cards, Quick Cuts, personal foods, saved choices, and decision history.</p><p><strong>Made by Brian Dunn for Devona Dunn.</strong></p><p>Build ${DINLIMINATE_VERSION}.</p>`,'DINLIMINATE');});
 bind('scrim','click',closeMenu);
 bind('addMenuBtn','click',openModal);
 document.addEventListener('click',(e)=>{const t=e.target?.closest?.('#homeMenuBtn');if(!t)return;e.preventDefault();e.stopImmediatePropagation();closeMenu();if(typeof window.DinliminateBackToStart==='function')window.DinliminateBackToStart();else goHome();},true);
