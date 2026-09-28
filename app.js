@@ -768,7 +768,7 @@ function hourStatus(row){
     // can never leave a live backdrop sitting over the Food swipe deck.
     const managerWasOpen = !!$('manageFoodsModal');
     if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-    const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack'];
+    const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack','Potato'];
     const body='<form class="add" id="foodEditorForm">'+
       '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
       '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
