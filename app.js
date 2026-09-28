@@ -831,7 +831,7 @@ function hourStatus(row){
     const hiddenRestaurants=Object.values(S.hiddenRestaurants);
     const body='<div class="settings-stack">'+
       '<h4>Hidden Choices</h4><div>'+
-      (hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden foods.</p>')+
+      (hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><span class="food-row-actions"><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button><button class="restore danger-lite" data-setting-food-delete="'+esc(x.id)+'">Delete</button></span></div>').join(''):'<p class="status">No hidden foods.</p>')+
       '</div><h4>Deleted Foods</h4><div>'+
       (deletedFoods.length?deletedFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No deleted foods.</p>')+
       '</div><h4>Hidden Restaurants</h4><div>'+
@@ -840,6 +840,13 @@ function hourStatus(row){
     const modal=openModal('settingsModal','Settings',body);
     modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{
       S.hidden.delete(btn.dataset.settingFood); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
+    });
+    modal.querySelectorAll('[data-setting-food-delete]').forEach(btn=>btn.onclick=()=>{
+      const id=btn.dataset.settingFoodDelete, row=allFoods().find(x=>x.id===id);
+      if(!row)return;
+      if(!confirm('Remove '+row.name+' from the food choices?'))return;
+      if(S.custom.some(x=>x.id===id))S.custom=S.custom.filter(x=>x.id!==id); else S.deleted.add(id);
+      S.hidden.delete(id); S.maybe.delete(id); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
     modal.querySelectorAll('[data-setting-deleted]').forEach(btn=>btn.onclick=()=>{
       S.deleted.delete(btn.dataset.settingDeleted); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
