@@ -266,7 +266,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
 test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back and hours', async ({ page }) => {
   const pageErrors=[]; page.on('pageerror',e=>pageErrors.push(String(e)));
   const fixture=[
-    {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true},
+    {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',cuisine:'American',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true,address:'1201 Broadway, Nashville, TN 37203',menuItems:['Burgers','Fries'],website:'https://www.mcdonalds.com'},
     {id:'qa-bk',name:'Burger King',type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:2,openNow:true},
     {id:'qa-wh',name:'Waffle House',type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:3,openNow:false},
     {id:'qa-ab',name:"Applebee's",type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:4,openNow:true},
@@ -287,6 +287,32 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+  const activeCard=page.locator('.restaurant-card-v240.active');
+  for (const selector of [
+    '.restaurant-name-v240',
+    '.restaurant-meta-v240',
+    '.restaurant-address-v240',
+    '.restaurant-menu-card',
+    '.restaurant-card-choose-btn',
+    '.restaurant-detail-btn-v240',
+    '.restaurant-order-btn-v240'
+  ]) {
+    await expect(activeCard.locator(selector)).toBeVisible();
+  }
+  const fullCardBox=await activeCard.boundingBox();
+  for (const selector of [
+    '.restaurant-address-v240',
+    '.restaurant-menu-card',
+    '.restaurant-card-choice-row',
+    '.restaurant-v240-actions'
+  ]) {
+    const box=await activeCard.locator(selector).boundingBox();
+    expect(box).toBeTruthy();
+    expect(box.x).toBeGreaterThanOrEqual(fullCardBox.x-1);
+    expect(box.x+box.width).toBeLessThanOrEqual(fullCardBox.x+fullCardBox.width+1);
+    expect(box.y).toBeGreaterThanOrEqual(fullCardBox.y-1);
+    expect(box.y+box.height).toBeLessThanOrEqual(fullCardBox.y+fullCardBox.height+1);
+  }
 
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
