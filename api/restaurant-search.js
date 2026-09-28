@@ -1,14 +1,16 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v700-location-search';
+const VERSION = 'restaurant-v702-launch-fix';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
 const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
+  'https://z.overpass-api.de/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass-api.de/api/interpreter'
 ];
 
 const FAST_FOOD_BRANDS = /\b(?:mcdonald(?:'|’)?s|mcdonalds|taco bell|wendy(?:'|’)?s|burger king|kfc|chick[- ]?fil[- ]?a|popeyes|subway|sonic(?: drive[- ]?in)?|arby(?:'|’)?s|whataburger|five guys|culver(?:'|’)?s|raising cane(?:'|’)?s|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee(?:'|’)?s|del taco|checkers|rally(?:'|’)?s|zaxby(?:'|’)?s|church(?:'|’)?s chicken|captain d(?:'|’)?s|long john silver(?:'|’)?s|jimmy john(?:'|’)?s|jersey mike(?:'|’)?s|firehouse subs|little caesars|domino(?:'|’)?s|papa john(?:'|’)?s|pizza hut|marco(?:'|’)?s pizza|krystal|steak ?n shake|white castle|freddy(?:'|’)?s|in[- ]?n[- ]?out|carl(?:'|’)?s jr|el pollo loco|panda express|jack'?s)\b/i;
@@ -90,6 +92,7 @@ async function fetchJson(url, options = {}, timeout = 10_000) {
       redirect: 'follow',
       headers: {
         Accept: 'application/json, application/geo+json, text/plain',
+        'User-Agent': 'Dinliminate/1.0 (restaurant search; contact via app)' ,
         ...(options.headers || {})
       }
     });
@@ -230,28 +233,38 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
   const elements = [];
   const errors = [];
 
-  // Query a provider's tiles with bounded concurrency. We only use the first
-  // response batch that produces usable restaurant rows, then merge additional
-  // tiles from the same provider.
-  for (let i = 0; i < centers.length; i += 3) {
-    const batch = centers.slice(i, i + 3);
-    const settled = await Promise.all(batch.map(async c => {
+  async function queryCenter(c) {
+    const query = overpassQuery(c.lat, c.lon, c.radiusMi);
+    const encoded = encodeURIComponent(query);
+    try {
+      // GET is compact and avoids a POST-specific 406 failure mode seen on
+      // some public mirrors. Fall back to POST if the mirror rejects GET.
+      const data = await fetchJson(endpoint + '?data=' + encoded, {}, radiusMi > 50 ? 9_000 : 6_500);
+      return { elements: Array.isArray(data?.elements) ? data.elements : [], error: null };
+    } catch (getErr) {
       try {
         const data = await fetchJson(endpoint, {
           method: 'POST',
-          body: 'data=' + encodeURIComponent(overpassQuery(c.lat, c.lon, c.radiusMi)),
+          body: 'data=' + encoded,
           headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-        }, radiusMi > 50 ? 11_000 : 8_500);
+        }, radiusMi > 50 ? 9_000 : 6_500);
         return { elements: Array.isArray(data?.elements) ? data.elements : [], error: null };
-      } catch (e) {
-        return { elements: [], error: errorText(e) };
+      } catch (postErr) {
+        return { elements: [], error: errorText(postErr || getErr) };
       }
-    }));
+    }
+  }
+
+  for (let i = 0; i < centers.length; i += 3) {
+    const batch = centers.slice(i, i + 3);
+    const settled = await Promise.all(batch.map(queryCenter));
     for (const result of settled) {
       elements.push(...result.elements);
       if (result.error) errors.push(result.error);
     }
-    if (radiusMi <= 50 && normalizeRows(elements, lat, lon, radiusMi).length >= 160) break;
+    // A single successful local-area provider is enough to give the app a
+    // useful deck. Large-radius searches still continue through all tiles.
+    if (radiusMi <= 50 && normalizeRows(elements, lat, lon, radiusMi).length > 0) break;
   }
 
   return {
@@ -321,10 +334,20 @@ async function doSearch(lat, lon, radiusMi) {
   }
 
   const started = Date.now();
-  const providerResults = await Promise.all([
-    googleSearch(lat, lon, radiusMi),
-    ...OVERPASS_ENDPOINTS.map(endpoint => overpassProvider(endpoint, lat, lon, radiusMi))
-  ]);
+  const providerResults = [await googleSearch(lat, lon, radiusMi)];
+  if (GOOGLE_KEY && providerResults[0].rows?.length) {
+    // A configured Google result set is already authoritative enough for the
+    // app; avoid paying the public Overpass latency unless needed.
+  } else {
+    // Try public Overpass mirrors in priority order. Stop as soon as one
+    // provider returns usable restaurants, instead of waiting on a dead mirror
+    // and then merging duplicate data from every public endpoint.
+    for (const endpoint of OVERPASS_ENDPOINTS) {
+      const result = await overpassProvider(endpoint, lat, lon, radiusMi);
+      providerResults.push(result);
+      if (result.rows?.length) break;
+    }
+  }
 
   const providerStats = providerResults.map(x => ({
     endpoint: x.endpoint,
@@ -359,6 +382,22 @@ async function doSearch(lat, lon, radiusMi) {
       return Number.isFinite(d) && d <= radiusMi;
     })
     .sort((a, b) => a.distanceMiles - b.distanceMiles);
+
+  const usableProviders = providerResults.filter(x => (x.rows || []).length);
+  const attemptedOverpass = providerResults.filter(x => x.endpoint !== 'Google Places');
+  const allRestaurantProvidersFailed = !usableProviders.length && attemptedOverpass.length > 0 &&
+    attemptedOverpass.every(x => Array.isArray(x.errors) && x.errors.length);
+
+  if (allRestaurantProvidersFailed) {
+    const providerSummary = attemptedOverpass
+      .map(x => x.endpoint.replace(/^https?:\/\//,'') + ': ' + ((x.errors || [])[0] || 'failed'))
+      .join(' · ');
+    const err = Object.assign(new Error('Restaurant data providers are unavailable. Please try again.'), {
+      code: 'PROVIDERS_UNAVAILABLE',
+      providerSummary
+    });
+    throw err;
+  }
 
   const data = {
     results: merged.slice(0, RESULT_LIMIT),
