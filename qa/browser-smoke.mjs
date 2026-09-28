@@ -197,6 +197,7 @@ await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
 await click('[data-food-hide="popcorn"]'); await settle();
+s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
 await page.locator('#manageFoodsModal [data-close]').click(); await settle();
 await page.locator('#menu').click(); await settle(); await page.locator('#settings').click(); await settle();
 assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),true,'Settings should list hidden built-in food');
