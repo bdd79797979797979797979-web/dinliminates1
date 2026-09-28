@@ -1409,20 +1409,20 @@ test('restaurant radius pool cannot shrink and generic burger search stays seman
   await expect(page.locator('#restaurantTopCount')).toHaveText('3');
 
   await page.locator('#restaurantRadiusFilter').selectOption('25');
-  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(4);
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(4);
 
   await page.locator('#restaurantRadiusFilter').selectOption('50');
-  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(5);
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(5);
 
   await page.locator('#restaurantRadiusFilter').selectOption('75');
-  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(6);
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(6);
 
   await page.locator('#restaurantRadiusFilter').selectOption('100');
-  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(8);
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(8);
 
   await page.locator('#restaurantSearchBtn').click();
   await page.locator('#restaurantInlineSearchInput').fill('burger');
-  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(3);
+  await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(3);
 
   expect(errors).toEqual([]);
 });
