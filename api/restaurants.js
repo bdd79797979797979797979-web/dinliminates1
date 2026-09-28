@@ -1,7 +1,7 @@
 const MAX_RADIUS=100;
 const DEFAULT_RADIUS=10;
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
-const FAST=/\b(?:mcdonalds?|taco bell|wendys?|burger king|kfc|chick[- ]?fil[- ]?a|popeyes|subway|sonic|arby'?s|whataburger|five guys|culvers?|raising canes?|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardees?|del taco|checkers|rallys|zaxbys?|churchs? chicken|captain ds|long john silvers|jimmy johns?|jersey mikes?|firehouse subs?|little caesars|dominos?|papa johns?|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddys?|in[- ]?n[- ]?out|carl'?s jr|panda express|jacks)\b/i;
+const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks)\b/i;
 const cache=new Map(),buckets=new Map();
 function n(v,d=NaN){const x=Number(v);return Number.isFinite(x)?x:d}
 function clamp(v){return Math.min(MAX_RADIUS,Math.max(1,n(v,DEFAULT_RADIUS)))}
@@ -29,15 +29,14 @@ function photonRow(feature,origin){
 }
 async function photonPlaces(lat,lon,radius){
  const r=Math.min(MAX_RADIUS,Math.max(1,radius)),latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180))),bbox=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
- const qs=[
-  new URLSearchParams({q:'restaurant',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'}),
-  new URLSearchParams({q:'fast food',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'})
- ];
- const results=await Promise.allSettled(qs.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},6000)));
+ const base=[new URLSearchParams({q:'restaurant',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'}),new URLSearchParams({q:'fast food',bbox,limit:radius>25?'250':'120',lang:'en',countrycode:'US',dedupe:'1'})];
  const rows=[],errors=[];
- for(const result of results){
-   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));continue}
-   for(const feature of result.value?.features||[]){const pv=feature?.properties||{},ov=String(pv.osm_value||'').toLowerCase(),ok=String(pv.osm_key||'').toLowerCase();if(ok==='amenity'&&ov!=='restaurant'&&ov!=='fast_food'&&!FAST.test(String(pv.name||pv.brand||'')))continue;const row=photonRow(feature,{lat,lon});if(row&&row.distance<=radius)rows.push(row)}
+ const consume=(result)=>{if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));return}for(const feature of result.value?.features||[]){const pv=feature?.properties||{},ov=String(pv.osm_value||'').toLowerCase(),ok=String(pv.osm_key||'').toLowerCase();if(ok==='amenity'&&ov!=='restaurant'&&ov!=='fast_food'&&!FAST.test(String(pv.name||pv.brand||pv.operator||'')))continue;const row=photonRow(feature,{lat,lon});if(row&&row.distance<=radius)rows.push(row)}};
+ for(const result of await Promise.allSettled(base.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},6000))))consume(result);
+ if(!rows.some(x=>x.fastFood)){
+   const brands=['McDonalds','Taco Bell','Wendy','Burger King','KFC','Chick-fil-A','Popeyes','Subway'];
+   const brandQs=brands.map(q=>new URLSearchParams({q,bbox,limit:'20',lang:'en',countrycode:'US',dedupe:'1'}));
+   for(const result of await Promise.allSettled(brandQs.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},5000))))consume(result);
  }
  return {rows,errors};
 }
