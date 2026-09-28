@@ -851,6 +851,8 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await page.locator('#closeLibraryBtn').click();
 
   // WINNER: choose, share, back to start, and reopen last winner from Home.
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
   await page.evaluate(() => {
     activeItems = activeItems.slice(0, Math.max(2, Math.min(4, activeItems.length)));
     holdingItems = [];
