@@ -7342,6 +7342,7 @@ function performDeleteCustomFood(target){
   allItems=dedupe([...homeMeals,...customItems]);
   activeItems=activeItems.filter(i=>foodDeleteKey(i)!==key);
   editingCustomId=null;
+  closeDetails();
   closeModal();
   updateHomeCount();
   renderHiddenFoodList();
