@@ -45,6 +45,7 @@
     location:null,
     saved:false,
     winnerItem:null,
+    winnerType:'food',
     pass:null,
     passDraftCount:2,
     passDraftNames:[]
@@ -87,6 +88,7 @@
       S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
       S.custom = Array.isArray(d.custom) ? d.custom : [];
       S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
+      S.winnerType = d.winnerType || 'food';
       return true;
     } catch { return false; }
   }
@@ -515,8 +517,8 @@
 
   function winner(item) {
     S.winnerItem = item;
-    const isRestaurant = S.screen === 'restaurant';
-    recordHistory(item, isRestaurant ? 'restaurant' : 'food');
+    S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
+    recordHistory(item, S.winnerType);
     show('winner');
     $('winName').textContent = item.name;
     $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
@@ -553,7 +555,7 @@
       '<div class="winner-actions" style="margin-top:12px"><button class="small" id="detailDone">Close</button>'+
       (item.website ? '<button class="cut" id="detailWeb">Website</button>' : '')+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
-    $('detailDone').onclick = () => modal.remove() && $('detailsModalBg')?.remove();
+    $('detailDone').onclick = () => { modal.remove(); $('detailsModalBg')?.remove(); };
     if ($('detailWeb')) $('detailWeb').onclick = () => window.open(item.website, '_blank', 'noopener');
   }
 
@@ -561,7 +563,7 @@
     const history = readHistory();
     history.unshift({
       id:String(Date.now())+'-'+Math.random().toString(36).slice(2),
-      date:new Date().toISOString().slice(0,10),
+      date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
       type,name:item.name,image:item.image||item.photo||HUNGRY_IMAGE,
       category:item.category||restaurantCategory(item),address:item.address||'',website:item.website||''
     });
@@ -681,7 +683,7 @@
   }
 
   function startOver() {
-    S.pass = null; S.winnerItem = null; S.foodActions=[]; S.restaurantActions=[];
+    S.pass = null; S.winnerItem = null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
     S.maybe.clear(); S.cutCats.clear(); S.cutPrimary.clear(); S.restaurantCuts.clear();
     S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
     try { localStorage.removeItem(KEY); } catch {}
@@ -820,7 +822,7 @@
   bindRestaurantTools();
   renderHours();
 
-  $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.screen === 'restaurant' ? 'restaurant' : 'food');
+  $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
   $('share').onclick = shareWinner;
   $('restart').onclick = startOver;
 
