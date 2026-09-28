@@ -779,7 +779,7 @@ function hourStatus(row){
   function passVote(keep) {
     const p = S.pass, item = currentPassItem();
     if (!p || !item) return;
-    p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex});
+    p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,choiceId:item.id,keep});
     if (!keep) {
       p.poolIds = p.poolIds.filter(id => id !== item.id);
       if (p.poolIds.length === 1) return finishPass();
@@ -796,8 +796,7 @@ function hourStatus(row){
     const p = S.pass;
     if (!p?.history?.length) return;
     const last = p.history.pop();
-    const candidateId = p.poolIds[last.choiceIndex];
-    if (!p.poolIds.includes(candidateId)) p.poolIds.splice(last.choiceIndex,0,candidateId);
+    if (!last.keep && last.choiceId && !p.poolIds.includes(last.choiceId)) p.poolIds.splice(Math.min(last.choiceIndex,p.poolIds.length),0,last.choiceId);
     p.choiceIndex=last.choiceIndex;
     p.voterIndex=last.voterIndex;
     drawPass();
