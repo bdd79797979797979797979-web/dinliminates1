@@ -232,6 +232,10 @@ Fixed the missing comma between Fruit Bowl and Burger & Fries; sandbox execution
 Commit: `8915dc6307f344aec9a452895dfda6dd1738e23f`
 Chromium QA now scopes the Food-to-Home navigation control instead of using an ambiguous duplicate selector.
 
+## CP59 — browser async assertion fix
+Commit: `b1ad42c3d76a869eda25816bac62871a8f48e7b1`
+Fixed the browser QA address assertion to await Playwright inputValue().
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
