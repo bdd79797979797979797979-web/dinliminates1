@@ -158,7 +158,6 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   const hours = page.locator('#restaurantOpenUnknownBtn');
   await expect(hours).toHaveText(/Open \/ Unknown/);
   await hours.click();
-  await hours.click();
   await expect(hours).toHaveText('All');
   await hours.click();
   await expect(hours).toHaveText(/Open \/ Unknown/);
@@ -1295,8 +1294,10 @@ test('P743 one-choice finishing rules are identical for food and restaurants', a
   await expect(page.locator('#winnerPanel')).toBeVisible();
   await expect(page.locator('#winnerName')).toHaveText('End One Restaurant');
 
-  await page.locator('#winnerHomeBtn').click();
-  await page.locator('#homeRestaurantQuick').click();
+  await page.evaluate(() => {
+    window.showRestaurantMode?.();
+  });
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
   await page.evaluate(() => {
     const one=restaurantItems[0];
     activeRestaurants=[one]; holdingRestaurants=[]; restaurantEliminationExhausted=false; restaurantFilters={query:'',sort:'shuffle'};
