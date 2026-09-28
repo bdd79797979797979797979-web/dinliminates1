@@ -236,6 +236,10 @@ Chromium QA now scopes the Food-to-Home navigation control instead of using an a
 Commit: `b1ad42c3d76a869eda25816bac62871a8f48e7b1`
 Fixed the browser QA address assertion to await Playwright inputValue().
 
+## CP60 — Central-time browser QA
+Commit: `767287a0e5e682b3c6d9393f53445a10e291ffdc`
+Chromium QA now uses `America/Chicago` so restaurant opening-hour tests match the intended user timezone.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
