@@ -226,7 +226,7 @@ assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:i
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
 
-await click('#addFood'); await settle();
+assert.equal(await visible('manageFoodsModal'),true,'saving a custom food should return to the Manage Foods list');
 await click('[data-food-edit="qa-special"]'); await settle();
 await page.locator('#editFoodRecipe').fill('Edited recipe');
 await click('#foodEditorForm button.cut'); await settle();
