@@ -6060,7 +6060,7 @@ const homeMeals = [
   { name: "Chili", tags: ["beef", "beans", "soup", "comfort", "home"], type: "home" },
   { name: "Chili Cheese Baked Potato", tags: ["beef", "beans", "comfort", "quick", "potato", "home"], type: "home" },
   { name: "Loaded Baked Potato", tags: ["vegetable", "comfort", "quick", "potato", "home"], type: "home" },
-  { name: "Mashed Potatoes & Gravy", tags: ["country", "comfort", "potato", "home"], type: "home" },
+  { name: "Mashed Potatoes", tags: ["country", "comfort", "potato", "home"], type: "home" },
   { name: "Biscuits & Gravy", tags: ["country", "breakfast", "comfort", "home"], type: "home" },
   { name: "Buttermilk & Cornbread", tags: ["southern", "country", "quick", "breakfast", "home"], type: "home" },
   { name: "Sausage & Peppers", tags: ["pork", "italian", "quick", "home"], type: "home" },
@@ -6082,8 +6082,10 @@ const homeMeals = [
   { name: "Parfait", tags: ["breakfast", "snack", "sweet", "quick", "home"], type: "home" },
   { name: "Smoothie", tags: ["breakfast", "drink", "healthy", "quick", "home"], type: "home" },
   { name: "Gyro", tags: ["mediterranean", "sandwich", "quick", "home"], type: "home" },
-  { name: "Cheerios Cereal", tags: ["breakfast", "quick", "home"], type: "home" },
+  { name: "Cereal", tags: ["breakfast", "quick", "home"], type: "home" },
   { name: "Stouffer’s Frozen Dinner", tags: ["quick", "comfort", "home"], type: "home" },
+  { name: "Baked Chicken Thighs", tags: ["chicken", "country", "comfort", "home"], type: "home" },
+  { name: "Pork Tenderloin", tags: ["pork", "comfort", "home"], type: "home" },
   { name: "Fish Sticks", tags: ["seafood", "fried", "quick", "home"], type: "home" }
 ];
 
@@ -6091,9 +6093,10 @@ const homeMeals = [
 const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  tacos: 'https://images.pexels.com/photos/7388095/pexels-photo-7388095.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  tacos: 'https://images.pexels.com/photos/14179985/pexels-photo-14179985.jpeg?auto=compress&cs=tinysrgb&w=1400',
   stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  popcorn: 'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
   eggs: 'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   soupSandwich: 'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6117,7 +6120,7 @@ const PHOTO_LIBRARY = {
   sloppyJoeFries: 'https://cdn.shopify.com/s/files/1/0984/6720/files/DSC_0239_32f6f925-62ba-481d-ab20-8b7903ba0659.jpg?v=1592862244',
   cabbageSausage: 'https://savouryflavor.com/assets/images/1764611130433-fm0ektkv.webp',
   steakPotato: 'https://resizer.otstatic.com/v3/photos/43647085-2',
-  potatoSoup: 'https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg',
+  potatoSoup: 'https://images.pexels.com/photos/29653177/pexels-photo-29653177.jpeg?auto=compress&cs=tinysrgb&w=1400',
   beefStew: 'https://images.pexels.com/photos/10692537/pexels-photo-10692537.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenNoodleSoup: 'https://images.pexels.com/photos/34326231/pexels-photo-34326231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenWings: 'https://images.pexels.com/photos/8862753/pexels-photo-8862753.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6140,7 +6143,7 @@ const PHOTO_LIBRARY = {
   chili: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/homemade_chili_con_carne.jpg',
   chiliPotato: 'https://butterhearth.com/assets/images/1763506457858-ku289il9.webp',
   loadedPotato: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/loaded_baked_potato.jpg',
-  mashedGravy: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/one_plate_coocked__potato_and_gravy.jpg',
+  mashedPotatoes: 'https://images.pexels.com/photos/5440960/pexels-photo-5440960.jpeg?auto=compress&cs=tinysrgb&w=1400',
   biscuitsGravy: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/sausage_gravy.jpg',
   sausagePeppers: 'https://www.pastapiracy.com/assets/images/simmering_sausage_peppers.png',
   chickenWaffles: 'https://images.pexels.com/photos/31706937/pexels-photo-31706937.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6153,6 +6156,9 @@ const PHOTO_LIBRARY = {
   hamSandwichChips: 'https://images.pexels.com/photos/37228374/pexels-photo-37228374.jpeg?auto=compress&cs=tinysrgb&w=1400',
   parfait: 'https://images.pexels.com/photos/20691481/pexels-photo-20691481.jpeg?auto=compress&cs=tinysrgb&w=1400',
   smoothie: 'https://images.pexels.com/photos/13116680/pexels-photo-13116680.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  fruitBowl: 'https://images.pexels.com/photos/6633395/pexels-photo-6633395.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  bakedChickenThighs: 'https://images.pexels.com/photos/4589138/pexels-photo-4589138.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  porkTenderloin: 'https://images.pexels.com/photos/341044/pexels-photo-341044.jpeg?auto=compress&cs=tinysrgb&w=1400',
 };
 
 const FOOD_RECIPES = {
@@ -6171,7 +6177,7 @@ const FOOD_RECIPES = {
   "grilled cheese":"Butter bread, add cheese and cook in a skillet over medium-low heat until golden and melted.",
   "burrito bowl":"Layer cooked rice, beans, seasoned protein, salsa and vegetables. Finish with cheese, avocado or sour cream.",
   "southern vegetable plate":"Cook corn, green beans, cabbage or other vegetables until tender. Add potatoes or another starch and season with butter, salt and pepper.",
-  "meatloaf & mashed potatoes":"Mix ground beef, egg, breadcrumbs and onion. Shape and bake until cooked through; serve with mashed potatoes and gravy.",
+  "meatloaf & mashed potatoes":"Mix ground beef, egg, breadcrumbs and onion. Shape and bake until cooked through; serve with mashed potatoes.",
   "beef stroganoff":"Brown beef and onions. Add mushrooms and broth, then finish with sour cream; serve over egg noodles.",
   "grilled salmon":"Season salmon with salt, pepper and lemon. Pan-sear or grill until flaky and serve with vegetables or rice.",
   "lasagna":"Layer noodles, meat sauce, ricotta and mozzarella in a baking dish. Cover and bake until hot and bubbling.",
@@ -6216,6 +6222,12 @@ const FOOD_RECIPES = {
   "bowl of cereal":"Pour cereal into a bowl and add cold milk. Add fruit if desired.",
   "frozen dinner":"Follow the package directions for the frozen entrée. Remove film or vent the tray as directed, microwave until heated through, then let stand briefly before eating.",
   "fish sticks":"Bake or air-fry frozen fish sticks until crisp and hot. Serve with tartar sauce and a side.",
+  "mashed potatoes":"Peel and boil potatoes until fork-tender. Drain, mash with butter and warm milk, then season with salt and pepper.",
+  "cereal":"Pour cereal into a bowl and add cold milk. Add fruit if desired.",
+  "popcorn":"Pop kernels in a pot or air popper. Toss the warm popcorn with a little butter and salt.",
+  "fruit bowl":"Cut and combine a variety of fresh fruit, then chill until ready to serve.",
+  "baked chicken thighs":"Season bone-in chicken thighs and bake skin-side up until crisp and cooked through. Rest briefly before serving.",
+  "pork tenderloin":"Season pork tenderloin and roast until browned and cooked through. Rest before slicing and serving.",
 };
 
 const FOOD_DETAILS = {
@@ -6262,6 +6274,12 @@ const FOOD_DETAILS = {
   "ham sandwich + chips": { ingredients:["Bread", "Ham", "Lettuce", "Tomato", "Condiment", "Potato chips"], nutrition:{calories:"450–750 kcal", protein:"20–35 g", carbs:"45–70 g", fat:"18–32 g", sodium:"900–1,600 mg", note:"Deli ham and chips can make sodium the biggest variable in the meal."}, fact:"Ham sandwiches are a classic deli-style lunch, commonly paired with potato chips for texture and crunch." },
   "parfait": { ingredients:["Yogurt", "Fruit", "Granola", "Honey or syrup"], nutrition:{calories:"250–500 kcal", protein:"10–20 g", carbs:"30–65 g", fat:"6–18 g", sodium:"100–350 mg", note:"Portion size, yogurt type and granola amount can change the range significantly."}, fact:"A parfait is often layered in a clear glass so the yogurt, fruit and crunchy toppings are visible." },
   "smoothie": { ingredients:["Fruit", "Milk or yogurt", "Ice", "Optional sweetener"], nutrition:{calories:"180–450 kcal", protein:"4–20 g", carbs:"25–65 g", fat:"2–15 g", sodium:"50–250 mg", note:"Fruit, juice, yogurt, nut butter and added sweeteners can move the nutrition substantially."}, fact:"Smoothies blend whole or cut fruit with a liquid base into a drinkable meal or snack." },
+  "mashed potatoes": { ingredients:["Potatoes","Butter","Milk","Salt","Pepper"], nutrition:{calories:"180–320 kcal", protein:"4–7 g", carbs:"30–50 g", fat:"5–14 g", sodium:"150–500 mg", note:"Portion size, butter and milk change the range."}, fact:"Mashed potatoes are made by cooking potatoes until tender and mashing them with butter and a liquid." },
+  "cereal": { ingredients:["Cereal","Milk"], nutrition:{calories:"180–350 kcal", protein:"5–12 g", carbs:"25–55 g", fat:"2–10 g", sodium:"100–500 mg", note:"The cereal type and milk choice are the main variables."}, fact:"Cereal is a broad category of grain-based foods commonly served with milk as a quick breakfast." },
+  "popcorn": { ingredients:["Popcorn kernels","Butter or oil","Salt"], nutrition:{calories:"100–450 kcal", protein:"3–8 g", carbs:"15–50 g", fat:"1–22 g", sodium:"0–500 mg", note:"Plain air-popped popcorn is much lighter than popcorn with butter or toppings."}, fact:"Popcorn pops when moisture inside the kernel turns to steam and ruptures the hull." },
+  "fruit bowl": { ingredients:["Fresh fruit"], nutrition:{calories:"120–350 kcal", protein:"1–5 g", carbs:"30–80 g", fat:"0–4 g", sodium:"0–30 mg", note:"The mix and portion determine the nutrition."}, fact:"A fruit bowl is a mix of fresh fruit and is easy to customize with seasonal produce." },
+  "baked chicken thighs": { ingredients:["Chicken thighs","Oil","Salt","Pepper","Seasonings"], nutrition:{calories:"300–550 kcal", protein:"30–45 g", carbs:"0–10 g", fat:"18–35 g", sodium:"300–800 mg", note:"Skin-on thighs and added oil raise calories and fat."}, fact:"Chicken thighs are dark meat and stay juicy when roasted until the skin is crisp and the center is cooked through." },
+  "pork tenderloin": { ingredients:["Pork tenderloin","Oil","Salt","Pepper","Herbs"], nutrition:{calories:"250–450 kcal", protein:"35–50 g", carbs:"0–8 g", fat:"8–20 g", sodium:"300–800 mg", note:"Added oil and sauces can materially change the total."}, fact:"Pork tenderloin is a lean, naturally tender cut from the pork loin." },
 };
 
 // P636 final: preserve detail/recipe lookup for renamed built-in foods while retaining legacy saved data.
@@ -6328,7 +6346,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p719-launch-candidate';
+const DINLIMINATE_VERSION = 'p726-food-photo-deck-and-zero-count';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -6801,11 +6819,13 @@ function photoFor(item) {
     'chili': PHOTO_LIBRARY.chili,
     'chili cheese baked potato': PHOTO_LIBRARY.chiliPotato,
     'loaded baked potato': PHOTO_LIBRARY.loadedPotato,
-    'mashed potatoes & gravy': PHOTO_LIBRARY.mashedGravy,
+    'mashed potatoes': PHOTO_LIBRARY.mashedPotatoes,
+    'mashed potatoes & gravy': PHOTO_LIBRARY.mashedPotatoes,
     'biscuits & gravy': PHOTO_LIBRARY.biscuitsGravy,
     'sausage & peppers': PHOTO_LIBRARY.sausagePeppers,
     'bacon & eggs': PHOTO_LIBRARY.baconEggs,
     'gyro': PHOTO_LIBRARY.gyro,
+    'cereal': PHOTO_LIBRARY.cereal,
     'cheerios cereal': PHOTO_LIBRARY.cereal,
     'bowl of cereal': PHOTO_LIBRARY.cereal,
     'stouffer’s frozen dinner': PHOTO_LIBRARY.frozenDinner,
@@ -6821,6 +6841,10 @@ function photoFor(item) {
     'steak & potato': PHOTO_LIBRARY.steakPotato,
     'potato soup': PHOTO_LIBRARY.potatoSoup,
     'beef stew': PHOTO_LIBRARY.beefStew,
+    'popcorn': PHOTO_LIBRARY.popcorn,
+    'fruit bowl': PHOTO_LIBRARY.fruitBowl,
+    'baked chicken thighs': PHOTO_LIBRARY.bakedChickenThighs,
+    'pork tenderloin': PHOTO_LIBRARY.porkTenderloin,
     'chicken noodle soup': PHOTO_LIBRARY.chickenNoodleSoup,
     'chicken wings': PHOTO_LIBRARY.chickenWings,
     'buttermilk & cornbread': PHOTO_LIBRARY.buttermilkCornbread,
@@ -7245,6 +7269,7 @@ function showHungryState(){
   $('homePanel').classList.add('hidden');
   $('gamePanel').classList.remove('hidden');
   $('countNumber').textContent='0';
+  if($('gameTopCount')) $('gameTopCount').textContent='0';
   $('progressBar').style.width='100%';
   $('quickCutsBar').innerHTML='';
   $('stage').innerHTML=`<div class="hungry-state" role="status" aria-live="polite">
