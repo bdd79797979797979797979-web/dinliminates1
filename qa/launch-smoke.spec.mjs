@@ -253,8 +253,22 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours 
   await expect.poll(()=>count(fast)).toBe(1);
   await page.locator('#restaurantRadiusFilter').selectOption('5');
   await expect.poll(()=>count(fast)).toBe(2);
-  await page.evaluate(()=>{restaurantFilters.sort='closest';renderRestaurantStage();}); await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("McDonald's"); await page.locator('#restaurantKeepBtn').click(); await expect.poll(()=>count(fast)).toBe(1);
-  await expect.poll(()=>count(american)).toBe(1); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed'); await expect.poll(()=>count(american)).toBe(1); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown'); await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill("Applebee's");
+  await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("Applebee's");
+  await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantKeepBtn').click();
+  await expect.poll(()=>count(american)).toBe(0);
+  await page.locator('#restaurantBackAction').click();
+  await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantSearchBtn').click();
+  await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
+  await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
+  await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantSearchBtn').click(); await page.locator('#restaurantInlineSearchInput').fill('Burger King'); await expect.poll(()=>count(fast)).toBe(1); expect(pageErrors).toEqual([]);
 });
 test('iPhone viewport has no horizontal overflow and keeps primary controls visible', async ({ page }) => {
