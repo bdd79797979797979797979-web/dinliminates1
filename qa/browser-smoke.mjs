@@ -163,6 +163,17 @@ await click('#restCut'); await settle(); let restAfter=await qa(); assert.equal(
 const restCutId=restAfter.restaurantActions.at(-1).id;
 await click('#restBack'); await settle(); s=await qa(); assert.equal(s.restaurantPool.includes(restCutId),true);
 
+const restBox=await page.locator('#restaurantCard').boundingBox();
+if(!restBox) throw new Error('Restaurant card bounding box missing for right swipe QA');
+await page.mouse.move(restBox.x+60,restBox.y+restBox.height/2);
+await page.mouse.down();
+await page.mouse.move(restBox.x+restBox.width-20,restBox.y+restBox.height/2,{steps:4});
+await page.mouse.up();
+await settle();
+s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
+await click('#restBack'); await settle();
+s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should undo Maybe swipe');
+
 await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); await page.locator('#detailDone').click(); await settle();
 
 const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
