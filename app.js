@@ -435,11 +435,12 @@ function hourStatus(row){
     ).join('');
     box.style.display = rows?.length ? 'grid' : 'none';
     box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
-      btn.onclick = () => {
+      btn.onclick = async () => {
         const row = rows[i];
         setLocation(row.lat, row.lon, row.display);
         clearSuggestions();
-        $('status').textContent = 'Location selected.';
+        $('status').textContent = 'Location selected. Searching restaurants…';
+        await searchRestaurants();
       };
     });
   }
