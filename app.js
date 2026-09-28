@@ -109,7 +109,13 @@
     window.scrollTo?.(0,0);
   }
 
+  function closeOverlays() {
+    ['drawer','drawerBg','modal','modalBg','manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg','passSetup','passSetupBg','passModal','passModalBg'].forEach(id => $(id)?.remove());
+    clearSuggestions();
+  }
+
   function home() {
+    closeOverlays();
     S.screen = 'home';
     show('home');
     updateContinue();
