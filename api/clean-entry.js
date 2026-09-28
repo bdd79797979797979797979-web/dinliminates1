@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p714-resilient-restaurant-search";
+const CLEAN_VERSION = "p715-photon-nominatim-fallback";
 
 function transform(html) {
   return html
