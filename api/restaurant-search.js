@@ -960,7 +960,8 @@ async function handler(req, res) {
         return res.status(400).json({ ok: false, code: 'BAD_COORDINATES', message: 'Search coordinates are invalid.' });
       }
 
-      const data = await doSearch(lat, lon, radius);
+      const searchQuery = String(req.query.q || '').trim().slice(0, 80);
+      const data = await doSearch(lat, lon, radius, searchQuery);
       publicCache(res, 60);
       return res.status(200).json({
         ok: true,
