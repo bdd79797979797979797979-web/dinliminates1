@@ -295,6 +295,10 @@ Added a live Photon fallback that searches major named chains when the generic r
 Commits: `471072a6460d99840f0582fde26c3122a2340838`, `17e9c4be780279ca9b4def6fe1580b662ff4e2a7`, `0dfe37747e487dce23d53aae16fe8667d42cffa4`
 Food now has the same pointer-swipe behavior as Restaurant: left swipe = Cut, right swipe = Maybe. Browser QA covers Food left/right swipe and Restaurant right-swipe Maybe + Back restoration.
 
+## CP75 — deterministic Restaurant swipe QA
+Commit: `769cad0ea91de1b75bffca54593bdf0bdc4c03d`
+Kept the Restaurant swipe implementation unchanged and made its browser assertion deterministic by dispatching the actual pointerdown/pointerup events directly on the live Restaurant card. This avoids coordinate flakiness on a dynamically rebuilt card while still exercising the production swipe handler.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
