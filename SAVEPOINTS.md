@@ -385,3 +385,18 @@ Feature completion:
 ## CP81 — pre-hardening recovery point
 Branch head before the next feature-hardening pass: `4827c8c08979574afc6d13f009f454f523617b33`.
 CP80 contains the requested feature set through premium Tinder-style swipe behavior. Any subsequent edits should be reversible to this point.
+
+## CP88 — Feature-complete hardening recovery point
+Source head: `00c376a41365456ee3fb33640fe6eacaac01e3ba`
+Includes:
+- CP80 feature-complete Food/Restaurant feature set.
+- CP83 modal cleanup hardening.
+- CP84 address suggestion auto-search + regression coverage.
+- CP85 deterministic device-photo upload QA.
+- CP86 shared Settings/food-overlay cleanup.
+- CP87 deterministic Settings drawer browser navigation QA.
+Current verification:
+- Static QA and live restaurant-provider smoke have passed on the current release sequence.
+- Netlify deploy-preview-22 status is green.
+- Latest Chromium release QA is queued/running against the synchronized PR revision; do not mark this checkpoint release-green until that browser gate completes.
+- Vercel preview builds are currently blocked by the account build-rate-limit status.
