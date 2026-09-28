@@ -9116,12 +9116,12 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
           return (!Number.isFinite(d)||d<=requestedRadius) && restaurantSearchMatches(r,searchQuery);
         });
         rows=mergeRows([...requestedIncoming,...local]);
+        const coverageRadius=Number(d?.diagnostics?.coverageRadiusMiles)||Number(d?.coverageRadiusMiles)||requestedRadius;
         ST.universeRows=mergeRows([...ST.universeRows,...coverageIncoming]).filter(r=>{
-          const d=Number(r?.distanceMiles);
-          const coverage=Number(d?.coverageRadiusMiles ?? NaN);
-          return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,Number(d?.coverageRadiusMiles)||requestedRadius);
+          const dist=Number(r?.distanceMiles);
+          return Number.isFinite(dist)&&dist<=Math.max(ST.universeRadius,coverageRadius);
         });
-        ST.universeRadius=Math.max(ST.universeRadius,Number(d?.diagnostics?.coverageRadiusMiles)||requestedRadius);
+        ST.universeRadius=Math.max(ST.universeRadius,coverageRadius);
       }
       if(!searchQuery){
         const incomingKey=key;
