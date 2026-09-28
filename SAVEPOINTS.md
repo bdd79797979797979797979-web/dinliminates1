@@ -212,6 +212,10 @@ Chromium QA now fails on uncaught page errors or console errors.
 Commit: `942649220d327b07e70496f71bb5025cbb926262`
 Restaurant text search now includes the app-derived category, so searches such as Pasta match Italian restaurants classified as Pasta.
 
+## CP54 — deterministic data script loading
+Commit: `f1602b7188657c85d4463f60d8075363e7dd7c25`
+Removed `defer` from the small Food-data and app scripts at the bottom of the page so the catalog is guaranteed to exist before app initialization.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
