@@ -8726,6 +8726,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   }
 
   function clearSuggestions(){
+    clearTimeout(ST.autoTimer);
+    ST.autoTimer=null;
+    ST.autoSeq++;
     const b=box();
     if(b){b.classList.add('hidden');b.innerHTML='';}
     const el=input();
