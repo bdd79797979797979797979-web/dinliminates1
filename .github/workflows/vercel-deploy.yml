@@ -28,7 +28,6 @@ jobs:
       - name: Deploy existing Vercel project
         id: deploy
         if: steps.token.outputs.configured == 'true'
-        continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TELEMETRY_DISABLED: "1"
@@ -36,7 +35,7 @@ jobs:
         run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN" --scope="bdd79797979797979797979-7642"
       - name: Verify release marker
         if: steps.deploy.outcome == 'success'
-        run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();if(!r.ok||!t.includes('p733-launch-lock')){console.error('current launch marker not live on production');process.exit(1)}console.log('Dinliminate P719 is live on production')}).catch(e=>{console.error(e);process.exit(1)})"
+        run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();const release=r.headers.get('x-dinliminate-release');if(!r.ok||release!=='p729-final-launch'||!t.includes('p729-final-launch')){console.error('P729 production release marker is not live on production');process.exit(1)}console.log('Dinliminate P729 is live on production')}).catch(e=>{console.error(e);process.exit(1)})"
       - name: Report skipped or rate-limited deployment
         if: steps.token.outputs.configured != 'true' || steps.deploy.outcome != 'success'
         run: |
