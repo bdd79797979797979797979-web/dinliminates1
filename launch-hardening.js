@@ -610,39 +610,31 @@
 
 /* P677 — launch completion hardening. */
 (() => {
-  const VERSION = 'p706-launch-complete';
+  const VERSION = 'p705-launch-complete';
   const q = (sel, root=document) => root.querySelector(sel);
   const text = (v='') => String(v ?? '').trim();
   const read = (k, fallback='') => { try { return localStorage.getItem(k) ?? fallback; } catch { return fallback; } };
   const write = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
 
   function syncHoursFilterButton() {
+    try { window.syncRestaurantHoursControl?.(); } catch {}
     const b = q('#restaurantOpenUnknownBtn');
     if (!b) return;
     const closed = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed';
     b.textContent = closed ? 'Closed' : 'Open / Unknown';
-    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap for open or unknown.' : 'Showing open or unknown restaurants. Tap for closed.');
+    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap for open or unknown.' : 'Showing open or unknown-hour restaurants. Tap for closed.');
     b.setAttribute('aria-pressed', String(closed));
     b.dataset.hoursFilter = closed ? 'closed' : 'open-unknown';
   }
 
   function installHoursFilter() {
     const b = q('#restaurantOpenUnknownBtn');
-    if (!b || b.dataset.launchBound === '1') return;
-    b.dataset.launchBound = '1';
-    b.addEventListener('click', () => {
-      const next = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'open-unknown' : 'closed';
-      write('dinliminateRestaurantHoursFilter', next);
-      syncHoursFilterButton();
-      try { window.saveRestaurantFilters?.(); } catch {}
-      try { window.renderRestaurantStage?.(); } catch {}
-      try { window.renderRestaurantQuickCuts?.(); } catch {}
-      const label = next === 'closed' ? 'Closed restaurants only.' : 'Open or unknown-hour restaurants.';
-      try { window.toast?.(label); } catch {}
-    });
+    if (!b || b.dataset.launchHoursSync === '1') return;
+    b.dataset.launchHoursSync = '1';
+    // The authoritative click handler lives in index.html. This layer only
+    // keeps the button synchronized after legacy/hardening rerenders.
     syncHoursFilterButton();
   }
-
   function installSettingsExtras() {
     const modal = q('#settingsBackdrop .modal');
     if (!modal || q('#dinliminateLaunchTools', modal)) return;
