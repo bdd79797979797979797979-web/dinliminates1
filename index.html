@@ -405,6 +405,17 @@ window.drawRestaurants=cleanDrawRestaurants;
 const oldPersist=persist;
 persist=function(){if(Array.isArray(S.restaurantPool))S.restaurantPool=S.restaurantPool.map(r=>r&&r.id?{...r,_hidden:S.hidden.has('restaurant:'+r.id)||!!r._hidden}:r);oldPersist()};
 
+
+/* CP12: deterministic overlay lifecycle */
+addOverlay=function(id,title,body){
+  $(id)?.remove();$(id+'Bg')?.remove();
+  const bg=document.createElement('div');bg.id=id+'Bg';bg.className='modal-bg hidden';document.body.appendChild(bg);
+  const m=document.createElement('section');m.id=id;m.className='modal hidden';m.innerHTML='<div class="modal-head"><h3>'+title+'</h3><button class="menu" data-close="'+id+'">×</button></div><div id="'+id+'Body">'+body+'</div>';document.body.appendChild(m);
+  bg.onclick=()=>{m.classList.add('hidden');bg.classList.add('hidden')};m.querySelector('[data-close]').onclick=()=>{m.classList.add('hidden');bg.classList.add('hidden')};
+  return m;
+};
+const cp12=document.createElement('style');cp12.textContent='button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #ff7a1a;outline-offset:2px}.modal{scrollbar-width:thin}';document.head.appendChild(cp12);
+
 </script>
 </main>
 </body>
