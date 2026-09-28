@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v716-launch-candidate';
+const VERSION = 'restaurant-v719-launch-candidate';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -874,7 +874,7 @@ async function handler(req, res) {
 
     return res.status(400).json({ ok: false, code: 'UNKNOWN_MODE', message: 'Unknown restaurant search mode.' });
   } catch (err) {
-    console.error('restaurant-search-v714', err);
+    console.error('restaurant-search-v719', err);
     return res.status(502).json({
       ok: false,
       version: VERSION,
