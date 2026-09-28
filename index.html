@@ -7000,42 +7000,46 @@ function undoLast() {
 
 function bindSwipe(card) {
   if (!card) return;
+  card.style.removeProperty('transform');
+  card.style.removeProperty('opacity');
   card.addEventListener('pointerdown', e => {
     if (transitioning) return;
     if (e.target.closest('button, a, [data-card-action]')) return;
+    e.preventDefault();
     card.setPointerCapture?.(e.pointerId);
     pointer = { id:e.pointerId, startX:e.clientX, startY:e.clientY, card, moved:false };
     card.classList.add('dragging');
   });
   card.addEventListener('pointermove', e => {
     if (!pointer || pointer.id !== e.pointerId) return;
+    e.preventDefault();
     const dx = e.clientX - pointer.startX;
     const dy = e.clientY - pointer.startY;
-    if (Math.abs(dx) < 4) return;
-    if(Math.abs(dx)>12) pointer.moved=true;
-    const rotate = dx * 0.055;
-    card.style.transform = `translate(${dx}px, ${dy * 0.14}px) rotate(${rotate}deg)`;
+    if (Math.abs(dx) < 3) return;
+    if (Math.abs(dx) > 10) pointer.moved = true;
+    const rotate = Math.max(-14, Math.min(14, dx * 0.065));
+    card.style.setProperty('transform', `translate3d(${dx}px,${dy * 0.12}px,0) rotate(${rotate}deg)`, 'important');
     card.classList.toggle('show-cut', dx < -55);
     card.classList.toggle('show-hold', dx > 55);
   });
   const end = e => {
     if (!pointer || pointer.id !== e.pointerId) return;
+    e.preventDefault();
     const dx = e.clientX - pointer.startX;
-    card.classList.remove('dragging');
-    card.classList.remove('show-cut','show-hold');
-    const wasTap = !pointer.moved && Math.abs(dx) < 12;
+    const moved = pointer.moved;
     pointer = null;
-    if (Math.abs(dx) > 95) {
-      if (dx < 0) { card.style.transform=''; window.cutCurrent?.(card); }
+    card.classList.remove('show-cut','show-hold');
+    card.classList.remove('dragging');
+    if (Math.abs(dx) > 95 && moved) {
+      if (dx < 0) window.cutCurrent?.(card);
       else window.holdCurrent?.(card);
-    } else {
-      card.style.transform = '';
+      return;
     }
+    card.style.removeProperty('transform');
   };
   card.addEventListener('pointerup', end);
   card.addEventListener('pointercancel', end);
 }
-
 function currentIndex() {
   const items = searchQuery ? availableItems() : activeItems;
   return items.length ? activeItems.indexOf(items[0]) : -1;
@@ -7121,14 +7125,14 @@ function chooseCurrent(){
 function transitionCard(card, direction, done) {
   transitioning = true;
   if(card){
-    card.style.transition='transform .23s ease, opacity .22s ease';
-    card.style.transform='translateX('+(direction*115)+'%) rotate('+(direction*18)+'deg)';
-    card.style.opacity='0';
+    card.style.setProperty('transition','transform .24s cubic-bezier(.2,.8,.2,1), opacity .20s ease','important');
+    card.style.setProperty('transform','translate3d('+(direction*125)+'%,0,0) rotate('+(direction*18)+'deg)','important');
+    card.style.setProperty('opacity','0','important');
   }
   setTimeout(()=>{
     try{done?.();}catch(err){console.error('Dinliminate food transition failed',err);toast?.('That move could not be completed. Try again.');}
     finally{transitioning=false;}
-  },225);
+  },240);
 }
 function eliminateOne(idx) {
   if (idx < 0 || idx >= activeItems.length || activeItems.length === 0 || transitioning) return;
@@ -7653,11 +7657,15 @@ function eliminateRestaurantCategory(key){
 }
 function transitionRestaurantCard(card,direction,done){
   restaurantTransitioning=true;
-  if(card){card.style.transition='transform .23s ease, opacity .22s ease';card.style.transform='translateX('+(direction*115)+'%) rotate('+(direction*18)+'deg)';card.style.opacity='0';}
+  if(card){
+    card.style.setProperty('transition','transform .24s cubic-bezier(.2,.8,.2,1), opacity .20s ease','important');
+    card.style.setProperty('transform','translate3d('+(direction*125)+'%,0,0) rotate('+(direction*18)+'deg)','important');
+    card.style.setProperty('opacity','0','important');
+  }
   setTimeout(()=>{
     try{done?.();}catch(err){console.error('Dinliminate restaurant transition failed',err);toast?.('That move could not be completed. Try again.');}
     finally{restaurantTransitioning=false;}
-  },225);
+  },240);
 }
 function resetRestaurantRound(){
   currentWinnerMode='restaurant';
@@ -7794,37 +7802,43 @@ function renderRestaurantStage(){
 function currentRestaurant(){return filteredRestaurants()[0]||null;}
 function bindRestaurantSwipe(card){
   if(!card)return;
+  card.style.removeProperty('transform');
+  card.style.removeProperty('opacity');
   card.addEventListener('pointerdown',e=>{
     if(restaurantTransitioning)return;
     if(!currentRestaurant())return;
     if(e.target.closest('button,a,[data-rest-action]'))return;
+    e.preventDefault();
     card.setPointerCapture?.(e.pointerId);
     restaurantPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,card,moved:false};
     card.classList.add('dragging');
   });
   card.addEventListener('pointermove',e=>{
     if(!restaurantPointer||restaurantPointer.id!==e.pointerId)return;
+    e.preventDefault();
     const dx=e.clientX-restaurantPointer.startX;
     const dy=e.clientY-restaurantPointer.startY;
-    if(Math.abs(dx)<4)return;
-    if(Math.abs(dx)>12)restaurantPointer.moved=true;
-    const rotate=dx*.055;
-    card.style.transform=`translate(${dx}px,${dy*.14}px) rotate(${rotate}deg)`;
+    if(Math.abs(dx)<3)return;
+    if(Math.abs(dx)>10)restaurantPointer.moved=true;
+    const rotate=Math.max(-14,Math.min(14,dx*.065));
+    card.style.setProperty('transform',`translate3d(${dx}px,${dy*.12}px,0) rotate(${rotate}deg)`,'important');
     card.classList.toggle('show-cut',dx<-55);
     card.classList.toggle('show-hold',dx>55);
   });
   const end=e=>{
     if(!restaurantPointer||restaurantPointer.id!==e.pointerId)return;
+    e.preventDefault();
     const dx=e.clientX-restaurantPointer.startX;
+    const moved=restaurantPointer.moved;
     restaurantPointer=null;
-    card.classList.remove('dragging','show-cut','show-hold');
-    if(Math.abs(dx)>95){
-      card.style.transform='';
+    card.classList.remove('show-cut','show-hold');
+    card.classList.remove('dragging');
+    if(Math.abs(dx)>95&&moved){
       if(dx<0)window.restaurantCut?.(card);
       else window.restaurantKeep?.(card);
-    }else{
-      card.style.transform='';
+      return;
     }
+    card.style.removeProperty('transform');
   };
   card.addEventListener('pointerup',end);
   card.addEventListener('pointercancel',end);
@@ -8824,7 +8838,6 @@ body.restaurant-mode .restaurant-card.back-two{
 }
 body.restaurant-mode .restaurant-card.active{
   display:block!important;position:absolute!important;z-index:10!important;opacity:1!important;
-  transform:none!important;
 }
 body.restaurant-mode .restaurant-card.dragging{transition:none!important;}
 body:not(.game-mode):not(.restaurant-mode) header .brand{display:none!important;}
@@ -9135,7 +9148,7 @@ body.restaurant-mode .restaurant-card-v240{
   will-change:transform,opacity;
   pointer-events:none;
 }
-body.restaurant-mode .restaurant-card-v240.active{z-index:3!important;transform:none!important;opacity:1!important;pointer-events:auto!important;}
+body.restaurant-mode .restaurant-card-v240.active{z-index:3!important;opacity:1!important;pointer-events:auto!important;}
 body.restaurant-mode .restaurant-card-v240.back-one{z-index:2!important;transform:translateY(12px) scale(.972)!important;opacity:.68!important;}
 body.restaurant-mode .restaurant-card-v240.back-two{z-index:1!important;transform:translateY(24px) scale(.945)!important;opacity:.42!important;}
 body.restaurant-mode .restaurant-card-v240.dragging{transition:none!important;}
@@ -9363,4 +9376,4 @@ body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
 }
 </style>
 
-<!-- P721 taco photo refresh -->
+<!-- P723 Tinder swipe parity: Food + Restaurant gestures now use important live transforms and throw transitions. -->
