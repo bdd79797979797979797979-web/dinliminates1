@@ -32,7 +32,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TELEMETRY_DISABLED: "1"
           CI: "1"
-        run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN" --scope="bdd79797979797979797979-7642"
+        run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
       - name: Verify release marker
         if: steps.deploy.outcome == 'success'
         run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();const release=r.headers.get('x-dinliminate-release');if(!r.ok||release!=='p729-final-launch'||!t.includes('p729-final-launch')){console.error('P729 production release marker is not live on production');process.exit(1)}console.log('Dinliminate P729 is live on production')}).catch(e=>{console.error(e);process.exit(1)})"
