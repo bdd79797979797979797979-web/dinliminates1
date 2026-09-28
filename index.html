@@ -7469,28 +7469,28 @@ function restaurantQuickCutMatches(item,key){
   const source=[item?.cuisine,item?.category,item?.subcategory,item?.name,item?.brand,item?.operator,...(Array.isArray(item?.tags)?item.tags:[]),...menu].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,"'");
   const terms={
     fast_food:[/\bfast[ -]?food\b/,/\bfast_food\b/,/\bmcdonald'?s\b/,/\btaco bell\b/,/\bwendy'?s\b/,/\bburger king\b/,/\bkfc\b/,/\bchick[- ]?fil[- ]?a\b/,/\bpopeyes\b/,/\bsubway\b/,/\bsonic\b/,/\barby'?s\b/,/\bwhataburger\b/,/\bfive guys\b/,/\bculver'?s\b/,/\braising cane'?s\b/,/\bwingstop\b/,/\bbojangles\b/,/\bcook out\b/,/\bdairy queen\b/,/\bjack in the box\b/,/\bhardee'?s\b/,/\bcarl'?s jr\b/,/\bdel taco\b/,/\bjimmy john'?s\b/,/\bjersey mike'?s\b/,/\bfirehouse subs?\b/,/\bpanda express\b/,/\bchipotle\b/,/\bshake shack\b/,/\bdomino'?s\b/,/\blittle caesars\b/,/\bpa(pa)? john'?s\b/,/\blong john silver'?s\b/,/\bcheckers\b/,/\brally'?s\b/,/\bin[- ]n[- ]out\b/,/\bzaxby'?s\b/,/\bwhite castle\b/],
-    burger:[/\bburger(?:s)?\b/],
-    pizza:[/\bpizza\b/,/\bpizzeria\b/],
+    burger:[/\bburger(?:s)?\b/,/\bmcdonald'?s\b/,/\bwendy'?s\b/,/\bburger king\b/,/\bfive guys\b/,/\bwhataburger\b/,/\bculver'?s\b/,/\bsonic\b/,/\bsteak[ '\u2019-]?n[ '\u2019-]?shake\b/,/\bshake shack\b/,/\bcook out\b/,/\bhardee'?s\b/,/\bcarl'?s jr\b/,/\bcheckers\b/,/\brally'?s\b/,/\bwhite castle\b/,/\bjack in the box\b/,/\bdairy queen\b/,
+    pizza:[/\bpizza\b/,/\bpizzeria\b/,/\bdomino'?s\b/,/\bpizza hut\b/,/\bpapa john'?s\b/,/\blittle caesars\b/,/\bpap(a)? murphy'?s\b/,
     mexican:[/\bmexican\b/,/\btex[- ]mex\b/,/\btacos?\b/,/\bburritos?\b/,/\benchiladas?\b/,/\bquesadillas?\b/],
     italian:[/\bitalian\b/,/\bpasta\b/,/\btrattoria\b/,/\bosteria\b/],
     chinese:[/\bchinese\b/,/\bdim\s+sum\b/,/\bsichuan\b/,/\bhunan\b/,/\bcantonese\b/],
     asian:[/\basian\b/,/\bsushi\b/,/\bramen\b/,/\bpho\b/,/\bthai\b/,/\bteriyaki\b/,/\bkorean\b/],
     bbq:[/\bbbq\b/,/\bbarbecue\b/,/\bsmokehouse\b/,/\bbar[- ]b[- ]q\b/],
-    chicken:[/\bchicken\b/],
+    chicken:[/\bchicken\b/,/\bkfc\b/,/\bchick[- ]?fil[- ]?a\b/,/\bpopeyes\b/,/\bzaxby'?s\b/,/\bbojangles\b/,/\braising cane'?s\b/,/\bchurch'?s chicken\b/,/\bslim chickens\b/,
     seafood:[/\bseafood\b/,/\bfish\b/,/\bshrimp\b/,/\bcrab\b/,/\boysters?\b/,/\blobster\b/],
-    sandwich:[/\bsandwich(?:es)?\b/,/\bdeli\b/,/\bsubs?\b/,/\bhoagies?\b/,/\bpanini\b/,/\bcheesesteak\b/],
+    sandwich:[/\bsandwich(?:es)?\b/,/\bdeli\b/,/\bsubs?\b/,/\bhoagies?\b/,/\bpanini\b/,/\bcheesesteak\b/,/\bsubway\b/,/\bfirehouse subs?\b/,/\bjimmy john'?s\b/,/\bjersey mike'?s\b/,/\barby'?s\b/,
     mediterranean:[/\bmediterranean\b/,/\bgreek\b/,/\blebanese\b/,/\bgyro\b/,/\bfalafel\b/,/\bhummus\b/,/\bkebab\b/,/\bshawarma\b/],
     southern:[/\bsouthern\b/,/\bsoul\s+food\b/,/\bcountry\s+cooking\b/],
-    american:[/\bamerican\b/,/\bdiner\b/,/\bwaffle house\b/,/\bapplebee'?s\b/,/\bcracker barrel\b/,/\bdenny'?s\b/,/\bchili'?s\b/,/\btgi friday'?s\b/],
+    american:[/\bamerican\b/,/\bdiner\b/,/\bwaffle house\b/,/\bapplebee'?s\b/,/\bcracker barrel\b/,/\bdenny'?s\b/,/\bchili'?s\b/,/\btgi friday'?s\b/,/\bihop\b/,/\bperkins\b/,/\bsteak[ '\u2019-]?n[ '\u2019-]?shake\b/,
     pasta:[/\bpasta\b/,/\bitalian\b/,/\bnoodle\b/],
     potato:[/\bpotato(?:es)?\b/,/\btater tots?\b/,/\bfries?\b/],
     healthy:[/\bhealthy\b/,/\bsalad\b/,/\bvegetarian\b/,/\bvegan\b/,/\bgluten[- ]?free\b/,/\bbowl\b/],
     soupstew:[/\bsoups?\b/,/\bstews?\b/,/\bchili\b/,/\bchowder\b/],
-    breakfast:[/\bbreakfast\b/,/\bbrunch\b/],
-    steak:[/\bsteak\b/,/\bsteakhouse\b/],
-    wings:[/\bwings?\b/],
-    coffee:[/\bcoffee\b/,/\bcaf(?:e|é)\b/],
-    dessert:[/\bdesserts?\b/,/\bbakery\b/,/\bice\s+cream\b/]
+    breakfast:[/\bbreakfast\b/,/\bbrunch\b/,/\bwaffle house\b/,/\bihop\b/,/\bdenny'?s\b/,/\bcracker barrel\b/,/\bfirst watch\b/,
+    steak:[/\bsteak(?:house)?\b/,/\blonghorn steakhouse\b/,/\boutback steakhouse\b/,/\btexas roadhouse\b/,/\bruth'?s chris\b/,/\blonghorn\b/],
+    wings:[/\bwings?\b/,/\bwingstop\b/,/\bbuffalo wild wings\b/,
+    coffee:[/\bcoffee\b/,/\bcaf(?:e|é)\b/,/\bstarbucks\b/,/\bdunkin(?:'|’)?\b/,/\bdutch bros\b/,/\bpeet'?s\b/,
+    dessert:[/\bdesserts?\b/,/\bbakery\b/,/\bice\s+cream\b/,/\bdairy queen\b/,/\bbaskin[- ]robbins\b/,/\bcold stone\b/
   };
   return (terms[key]||[new RegExp(`\\b${String(key).replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')}\\b`,'i')]).some(re=>re.test(source));
 }
