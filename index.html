@@ -5710,6 +5710,145 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
   .home-modes{margin-top:17px!important;gap:9px!important;}
 }
 </style>
+
+<style id="dinliminate-p727-final-launch-polish">
+/* P727 — final launch polish: one home menu glyph, larger blended wordmark,
+   faster Details, and a restaurant card that keeps its useful data visible. */
+body:not(.game-mode):not(.restaurant-mode) .home-topbar{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand{
+  background:transparent!important;
+  border:0!important;
+  padding:0!important;
+  margin:0!important;
+  font-size:1.52rem!important;
+  line-height:1!important;
+  color:#fff!important;
+  text-shadow:0 2px 18px rgba(0,0,0,.18)!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand-d{
+  font-size:1.78rem!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu{
+  font-size:0!important;
+  line-height:0!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu > span,
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu > span::before,
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu > span::after{
+  display:none!important;
+  content:none!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu > svg{
+  display:block!important;
+  width:19px!important;
+  height:19px!important;
+  color:rgba(255,255,255,.90)!important;
+}
+.detail-sheet{
+  animation:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240{
+  overflow:hidden!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-photo-v240{
+  flex:0 0 41%!important;
+  height:41%!important;
+  min-height:0!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-body-v240{
+  flex:1 1 59%!important;
+  height:59%!important;
+  min-height:0!important;
+  overflow:visible!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:10px 13px 9px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-name-v240{
+  font-size:clamp(1.55rem,7.4vw,2.20rem)!important;
+  line-height:.94!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-meta-v240{
+  font-size:.56rem!important;
+  line-height:1.2!important;
+  margin-top:5px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-address-v240{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  font-size:.56rem!important;
+  line-height:1.22!important;
+  margin-top:5px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-menu-card{
+  flex:0 0 auto!important;
+  max-height:36px!important;
+  overflow:hidden!important;
+  margin-top:4px!important;
+  padding:5px 7px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-menu-card strong{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  font-size:.53rem!important;
+  line-height:1.15!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-card-choice-row{
+  flex:0 0 auto!important;
+  min-height:25px!important;
+  margin-top:3px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-card-choose-btn{
+  height:25px!important;
+  min-height:25px!important;
+  font-size:.49rem!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions{
+  flex:0 0 auto!important;
+  margin-top:4px!important;
+  gap:5px!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
+  height:32px!important;
+  min-height:32px!important;
+  font-size:.53rem!important;
+}
+body.restaurant-mode .restaurant-stage .restaurant-v240-hint{
+  flex:0 0 auto!important;
+  min-height:9px!important;
+  margin-top:2px!important;
+  font-size:.42rem!important;
+}
+@media(max-width:520px){
+  body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand{font-size:1.38rem!important;}
+  body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand-d{font-size:1.62rem!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex-basis:39%!important;height:39%!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:61%!important;height:61%!important;padding:9px 11px 8px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:1.53rem!important;}
+}
+@media(max-width:390px){
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex-basis:38%!important;height:38%!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:62%!important;height:62%!important;padding:8px 10px 7px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:1.45rem!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-meta-v240{font-size:.50rem!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-address-v240{font-size:.50rem!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-menu-card{max-height:34px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+  body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{height:30px!important;min-height:30px!important;font-size:.50rem!important;}
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -5727,7 +5866,7 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
 <span id="statusText">Loading your options…</span>
 </div>
 <section class="panel home" id="homePanel">
-<div class="home-topbar" aria-label="Home controls"><div class="home-topbar-brand" aria-label="Dinliminate"><span class="home-topbar-brand-d">D</span><span>inliminate</span></div><button aria-label="Open menu" class="home-topbar-menu" id="homeMenuTopBtn" title="Menu" type="button"><span aria-hidden="true"></span></button></div>
+<div class="home-topbar" aria-label="Home controls"><div class="home-topbar-brand" aria-label="Dinliminate"><span class="home-topbar-brand-d">D</span><span>inliminate</span></div><button aria-label="Open menu" class="home-topbar-menu" id="homeMenuTopBtn" title="Menu" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 7.5h16M4 12h16M4 16.5h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
 <div class="home-eyebrow">DINNER DECISIONS, SIMPLIFIED</div>
 <h1>What sounds good<br/>tonight?</h1>
 <p class="home-lede">Pick a meal or find a restaurant. Swipe through the options until dinner makes itself obvious.</p>
@@ -6093,10 +6232,10 @@ const homeMeals = [
 const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  tacos: 'https://images.pexels.com/photos/7388095/pexels-photo-7388095.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  tacos: 'https://images.pexels.com/photos/14179985/pexels-photo-14179985.jpeg?auto=compress&cs=tinysrgb&w=1400',
   stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  popcorn: 'https://images.pexels.com/photos/11137525/pexels-photo-11137525.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  popcorn: 'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
   eggs: 'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   soupSandwich: 'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6120,7 +6259,7 @@ const PHOTO_LIBRARY = {
   sloppyJoeFries: 'https://cdn.shopify.com/s/files/1/0984/6720/files/DSC_0239_32f6f925-62ba-481d-ab20-8b7903ba0659.jpg?v=1592862244',
   cabbageSausage: 'https://savouryflavor.com/assets/images/1764611130433-fm0ektkv.webp',
   steakPotato: 'https://resizer.otstatic.com/v3/photos/43647085-2',
-  potatoSoup: 'https://images.pexels.com/photos/5794/pexels-photo-5794.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  potatoSoup: 'https://images.pexels.com/photos/29653177/pexels-photo-29653177.jpeg?auto=compress&cs=tinysrgb&w=1400',
   beefStew: 'https://images.pexels.com/photos/10692537/pexels-photo-10692537.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenNoodleSoup: 'https://images.pexels.com/photos/34326231/pexels-photo-34326231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenWings: 'https://images.pexels.com/photos/8862753/pexels-photo-8862753.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6143,7 +6282,7 @@ const PHOTO_LIBRARY = {
   chili: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/homemade_chili_con_carne.jpg',
   chiliPotato: 'https://butterhearth.com/assets/images/1763506457858-ku289il9.webp',
   loadedPotato: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/loaded_baked_potato.jpg',
-  mashedPotatoes: 'https://images.pexels.com/photos/5440960/pexels-photo-5440960.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  mashedPotatoes: 'https://images.pexels.com/photos/30635680/pexels-photo-30635680.jpeg?auto=compress&cs=tinysrgb&w=1400',
   biscuitsGravy: 'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/sausage_gravy.jpg',
   sausagePeppers: 'https://www.pastapiracy.com/assets/images/simmering_sausage_peppers.png',
   chickenWaffles: 'https://images.pexels.com/photos/31706937/pexels-photo-31706937.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6156,8 +6295,8 @@ const PHOTO_LIBRARY = {
   hamSandwichChips: 'https://images.pexels.com/photos/37228374/pexels-photo-37228374.jpeg?auto=compress&cs=tinysrgb&w=1400',
   parfait: 'https://images.pexels.com/photos/20691481/pexels-photo-20691481.jpeg?auto=compress&cs=tinysrgb&w=1400',
   smoothie: 'https://images.pexels.com/photos/13116680/pexels-photo-13116680.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  fruitBowl: 'https://images.pexels.com/photos/20518265/pexels-photo-20518265.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  bakedChickenThighs: 'https://images.pexels.com/photos/4589138/pexels-photo-4589138.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  fruitBowl: 'https://images.pexels.com/photos/6633395/pexels-photo-6633395.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  bakedChickenThighs: 'https://images.pexels.com/photos/8392454/pexels-photo-8392454.jpeg?auto=compress&cs=tinysrgb&w=1400',
   porkTenderloin: 'https://images.pexels.com/photos/341044/pexels-photo-341044.jpeg?auto=compress&cs=tinysrgb&w=1400',
 };
 
@@ -7122,6 +7261,12 @@ function cutCurrent(card) {
   if (idx < 0 || activeItems.length === 0 || transitioning) return;
   pushUndo();
   const item = activeItems[idx];
+  // Show the true terminal count immediately while the final card flies away.
+  if (activeItems.length === 1 && holdingItems.length === 0) {
+    if($('countNumber'))$('countNumber').textContent='0';
+    if($('gameTopCount'))$('gameTopCount').textContent='0';
+    card?.querySelectorAll?.('.choice-count strong').forEach(el=>el.textContent='0');
+  }
   transitionCard(card, -1, () => {
     const removeIdx = activeItems.indexOf(item);
     if(removeIdx >= 0) activeItems.splice(removeIdx, 1);
