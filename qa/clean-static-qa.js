@@ -7,5 +7,6 @@ for(const s of ['fast_food','restaurant','mode=search','mode=suggest','mode=reso
 for(const s of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup'])assert(foods.includes(s),'missing food data: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
+assert(app.includes('newFoodRecipe') && app.includes('newFoodPhoto'),'custom food recipe/photo support is required');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
