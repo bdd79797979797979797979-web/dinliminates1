@@ -173,6 +173,47 @@ const style=document.createElement('style');style.textContent='#suggestionsBox{d
 drawQuick=function(){ $('foodQuick').innerHTML=cats.map(c=>'<button class="chip '+(S.cutCats.has(c)?'cut':'')+'" data-c="'+c+'">'+c+'</button>').join('');document.querySelectorAll('#foodQuick .chip').forEach(b=>b.onclick=()=>{const c=b.dataset.c;S.cutCats.has(c)?S.cutCats.delete(c):S.cutCats.add(c);build();S.index=0;drawFood();drawQuick();persist()});renderRestaurantQuickCuts() };
 drawQuick();
 
+
+/* CP3: visual Quick Cuts + richer restaurant card */
+const FOOD_CAT_IMG={
+  Southern:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=500&q=80',
+  Pasta:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=500&q=80',
+  Asian:'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80',
+  Mexican:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=500&q=80',
+  Pork:'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=500&q=80',
+  Soup:'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=500&q=80',
+  Healthy:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=500&q=80',
+  Breakfast:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80',
+  American:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80',
+  Greek:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=500&q=80',
+  Snack:'https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=500&q=80'
+};
+const quickButton=(label,cut,data,prefix,bg)=>'<button class="chip photo-chip '+(cut?'cut':'')+'" data-'+prefix+'="'+label.replace(/"/g,'&quot;')+'" style="background-image:linear-gradient(#0005,#0008),url("'+bg+'")"><span>'+label+'</span></button>';
+function renderRestaurantQuickCuts(){
+  $('restQuick').innerHTML=REST_CATS.map(c=>quickButton(c,S.restaurantCuts.has(c),null,'rq',FOOD_CAT_IMG[c]||FOOD_CAT_IMG.American)).join('');
+  document.querySelectorAll('#restQuick .chip').forEach(b=>b.onclick=()=>{const c=b.dataset.rq;S.restaurantCuts.has(c)?S.restaurantCuts.delete(c):S.restaurantCuts.add(c);renderRestaurantQuickCuts();cleanDrawRestaurants();persist()});
+}
+drawQuick=function(){
+  $('foodQuick').innerHTML=cats.map(c=>quickButton(c,S.cutCats.has(c),null,'c',FOOD_CAT_IMG[c]||FOOD_CAT_IMG.American)).join('');
+  document.querySelectorAll('#foodQuick .chip').forEach(b=>b.onclick=()=>{const c=b.dataset.c;S.cutCats.has(c)?S.cutCats.delete(c):S.cutCats.add(c);build();S.index=0;drawQuick();drawFood();persist()});
+  renderRestaurantQuickCuts();
+};
+const cp3Style=document.createElement('style');cp3Style.textContent='.photo-chip{width:76px;height:54px;min-width:76px;padding:0 7px;border-radius:14px;background-size:cover;background-position:center;display:grid;place-items:end center;overflow:hidden}.photo-chip span{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.photo-chip.cut{filter:grayscale(.8);opacity:.62}.rest-card-extra{padding:0 15px 15px}.rest-meta{font-size:11px;color:#8c8c8c;line-height:1.45;margin-top:8px}.status-badge{display:inline-flex;padding:5px 8px;border-radius:999px;background:#222;color:#bbb;font-size:10px}.card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.card-actions button{min-height:44px}.mini-back{margin-top:8px;font-size:11px;color:#777;text-align:center}.result-count{margin-top:8px}';document.head.appendChild(cp3Style);
+function enrichRestaurantStage(){
+  const p=restaurantFiltered();if(!p.length)return;
+  const r=p[Math.min(S.restaurantIndex||0,p.length-1)];const card=$('restaurantCard');if(!card)return;
+  const article=card.parentElement;
+  const extra=document.createElement('div');extra.className='rest-card-extra';
+  const hours=String(r.opening_hours||'').trim();extra.innerHTML='<div class="rest-meta">'+(r.address?'<div>'+r.address+'</div>':'')+(r.cuisine?'<div>'+r.cuisine+'</div>':'')+'<div style="margin-top:7px"><span class="status-badge">'+(hours?'Hours listed':'Open/Unknown Hours')+'</span></div></div><div class="card-actions"><button class="small" id="restDetails2">Details</button><button class="small" id="restWebsite2">Website</button></div>';
+  article.appendChild(extra);
+  if($('restDetails2'))$('restDetails2').onclick=()=>alert([r.name,r.address||'',r.cuisine||restCategory(r),r.phone||'',hours?'Hours: '+hours:''].filter(Boolean).join('\\n'));
+  if($('restWebsite2'))$('restWebsite2').onclick=()=>{if(r.website)window.open(r.website,'_blank','noopener');else alert('No website is listed for this restaurant.')};
+}
+const oldCleanDraw=cleanDrawRestaurants;
+cleanDrawRestaurants=function(){oldCleanDraw();enrichRestaurantStage()};
+window.drawRestaurants=cleanDrawRestaurants;
+drawQuick();
+
 </script>
 </main>
 </body>
