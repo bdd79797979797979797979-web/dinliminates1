@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v733-hours-metadata';
+const VERSION = 'restaurant-v739-search-quality';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -354,7 +354,7 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
       const menuUrl=String(extra.menu||extra['contact:menu']||'').trim();
       const brand=String(extra.brand||'').trim();
       const operator=String(extra.operator||'').trim();
-      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(cuisine||type==='cafe'?'Cafe':'Restaurant'),cuisine,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone,website,opening_hours:openingHours,lat:la,lon:lo,photo,rating:0,priceLevel:'',menuItems:[],menuUrl,timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
+      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(type==='cafe'?'Cafe':'Restaurant'),cuisine,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone,website,opening_hours:openingHours,lat:la,lon:lo,photo,rating:0,priceLevel:'',menuItems:[],menuUrl,timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
     }
     return {endpoint:'Nominatim POI',rows:dedupeRestaurantRows(rows.filter(x=>x.distanceMiles<=radius)),ms:Date.now()-started,errors:[]};
   }catch(e){return {endpoint:'Nominatim POI',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
@@ -656,11 +656,19 @@ async function suggest(query, limit = 7) {
 
   rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
   const topScore = Number(rows[0]?.score || 0);
-  // When one result is clearly stronger, suppress low-confidence provider
-  // noise rather than showing distant/unrelated places in the type-ahead list.
-  const filteredRows = topScore >= 100
-    ? rows.filter(row => Number(row.score || 0) >= Math.max(20, topScore * 0.40))
-    : rows;
+  // Do not surface provider placeholders that simply echo a very short query
+  // (for example "Cla") with an unrelated geocoded point. Real place/address
+  // candidates are retained, while exact query echoes are dropped.
+  const cleanedRows = rows.filter(row => {
+    const display = norm(row.display || '');
+    if(q.length < 4 && display === norm(q)) return false;
+    if(String(row.precision||'') === 'match' && display === norm(q)) return false;
+    return true;
+  });
+  const cleanedTopScore = Number(cleanedRows[0]?.score || topScore || 0);
+  const filteredRows = cleanedTopScore >= 100
+    ? cleanedRows.filter(row => Number(row.score || 0) >= Math.max(20, cleanedTopScore * 0.40))
+    : cleanedRows;
   const seen = new Set();
   const out = [];
   for (const row of filteredRows) {
