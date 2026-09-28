@@ -204,10 +204,9 @@ function normalizeRows(elements, originLat, originLon, radiusMi) {
 
 function overpassQuery(lat, lon, radiusMi) {
   const meters = Math.round(Math.min(50, Math.max(1, radiusMi)) * 1609.344);
-  return '[out:json][timeout:12];(' +
+  return '[out:json][timeout:12];' +
     'nwr[amenity~"^(restaurant|fast_food)$"][name](around:' + meters + ',' + lat + ',' + lon + ');' +
-    'nwr[shop=bakery][name](around:' + Math.min(meters, 20 * 1609.344) + ',' + lat + ',' + lon + ');' +
-    ');out center tags;';
+    'out center tags;';
 }
 
 function tileCenters(lat, lon, radiusMi) {
