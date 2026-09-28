@@ -5971,6 +5971,14 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 #winnerPanel.winner-theme-restaurant .winner-v240-hero{box-shadow:0 24px 70px rgba(255,111,97,.16)!important;}
 #winnerPanel .winner-v240-hero{transition:none!important;}
 </style>
+<style id="dinliminate-p758-winner-photo-safety">
+/* P758 — Winner opens immediately; photos are progressive and broken URLs never flash. */
+#winnerPanel .winner-v240-hero{position:relative;isolation:isolate;}
+#winnerPanel .winner-v240-hero.no-photo{background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.08),transparent 38%),linear-gradient(145deg,#213d33,#0c2119)!important;}
+#winnerPanel .winner-v240-hero.no-photo .winner-v240-hero-fallback{display:flex!important;align-items:center;justify-content:center;}
+#winnerPanel .winner-v240-hero-fallback{z-index:1;}
+#winnerPanel .winner-v240-hero img{z-index:2;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -7634,12 +7642,28 @@ function showWinner(isReopen=false) {
   hero.classList.toggle('restaurant-winner',isRestaurant);
   img.alt=isRestaurant?`${winner.name} restaurant`:`${winner.name} winning food`;
   img.decoding='async'; img.setAttribute('fetchpriority','high');
-  img.onerror=()=>{img.onerror=null;img.style.display='none';hero.classList.add('no-photo');fallback.textContent=displayIcon(winner);};
-  const winnerPhotoSrc=photoFor(winner);
-  hero.classList.remove('no-photo');
-  img.style.display='block'; img.src=winnerPhotoSrc;
-  img.style.objectPosition=photoPosition(winner);
+  // Start with the fallback visible so the Winner screen never waits on an
+  // external image and never flashes a broken-image icon.
+  const photoToken=String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
+  hero.dataset.photoToken=photoToken;
+  img.onload=null; img.onerror=null; img.removeAttribute('src'); img.style.display='none';
+  hero.classList.add('no-photo');
   fallback.textContent=displayIcon(winner);
+  fallback.setAttribute('aria-label',isRestaurant?'Restaurant photo unavailable':'Food photo unavailable');
+  const winnerPhotoSrc=photoFor(winner);
+  if(winnerPhotoSrc){
+    const probe=new Image();
+    probe.decoding='async';
+    probe.onload=()=>{
+      if(hero.dataset.photoToken!==photoToken)return;
+      img.src=winnerPhotoSrc;
+      img.style.objectPosition=photoPosition(winner);
+      img.style.display='block';
+      hero.classList.remove('no-photo');
+    };
+    probe.onerror=()=>{ if(hero.dataset.photoToken===photoToken){ img.removeAttribute('src'); img.style.display='none'; hero.classList.add('no-photo'); } };
+    probe.src=winnerPhotoSrc;
+  }
   $('winnerModeKicker').textContent=isRestaurant?'RESTAURANT DECIDED':'DINNER DECIDED';
   $('winnerKickerLabel').textContent=isRestaurant?"TONIGHT'S RESTAURANT":"TONIGHT'S WINNER";
   $('winnerName').textContent=winner.name;
