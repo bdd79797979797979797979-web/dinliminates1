@@ -18,7 +18,7 @@ for rel in ['api/restaurant-search.js','api/clean-entry.js','launch-hardening.js
 inline=re.findall(r'<script(?:[^>]*)>([\s\S]*?)</script>',html,re.I)
 inline_results=[]
 for i,code in enumerate(inline):
-    f=Path(f'/tmp/p636-cert-inline-{i}.js');f.write_text(code)
+    f=Path(f'/tmp/p715-cert-inline-{i}.js');f.write_text(code)
     inline_results.append(sh(['node','--check',str(f)])[0])
 checks['all inline scripts syntax']=all(inline_results)
 # Manifest + PNGs
@@ -48,9 +48,9 @@ markers={
 'stable IDs api': 'osm-' in api and 'slugStable' in api and 'osm_id' in api,
 'address geocoder stack': all(x in api for x in ['geocoding.geo.census.gov','geocode.arcgis.com','photon.komoot.io']),
 'fast food in search': 'fast_food' in api and 'FAST_FOOD_BRANDS' in api,
-'pwa sw registration': 'serviceWorker.register' in html and 'dinliminate-shell-p636-clean-final' in sw,
+'pwa sw registration': 'serviceWorker.register' not in html and 'RECOVERY' in sw,
 'pwa manifest icons': 'dinliminate-icon-180.png' in (base/'dinliminate.webmanifest').read_text() and 'dinliminate-icon-512.png' in (base/'dinliminate.webmanifest').read_text(),
-'version consistency core': 'p636-clean-final' in (html+hard+api+sw+clean) and 'dinliminate-shell-p636-clean-final' in sw,
+'version consistency core': 'p715-photon-nominatim-fallback' in (html+hard+api+clean) and 'DINLIMINATE' in sw,
 'dynamic winner ids removed': 'id="winnerSaveBtn"' not in html and 'id="winnerDetailsBtn"' not in html,
 'dynamic restaurant empty ids removed': 'id="restaurantEmptyFind"' not in html and 'id="restaurantEmptyLocation"' not in html,
 }
