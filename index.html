@@ -8260,7 +8260,6 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
       // Final restaurant is gone: end the round and lock the Hungry state.
       restaurantEliminationExhausted=true;
       restaurantRoundInProgress=false;
-      clearRestaurantRoundState?.();
       showRestaurantHungryState();
       return;
     }
