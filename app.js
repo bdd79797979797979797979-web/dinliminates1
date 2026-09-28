@@ -441,3 +441,11 @@ updateContinue=function(){
 const previousRestEnter=$('restStart').onclick;
 $('restStart').onclick=()=>{S.screen='restaurant';S.restaurantActions=[];S.lastRestaurantWinner=null;S.saved=true;show('restaurant');drawQuick();renderRestaurantQuickCuts();injectHoursControl();updateContinue();persist()};
 const originalWinnerForSave=S.winnerItem;
+
+
+function infoSheet(title,body){
+ const m=addOverlay('infoModal',title,body);showOverlay('infoModal');return m;
+}
+$('iphoneHelp').onclick=()=>infoSheet('How to add to iPhone','<div class="info-copy"><p>Open Dinliminate in Safari on your iPhone.</p><p>Tap the Share button, then choose <b>Add to Home Screen</b>.</p><p>Tap <b>Add</b>. Dinliminate will appear on your Home Screen like an app.</p></div>');
+$('about').onclick=()=>{openDrawer(false);infoSheet('About Dinliminate','<div class="info-copy"><h4 style="margin:0 0 8px">Dinliminate</h4><p>A simple way to cut dinner choices until one survives.</p><p class="status">Made by Brian Dunn for Devona Dunn.</p><p class="status">Clean rebuild edition.</p></div>')};
+const cp18style=document.createElement('style');cp18style.textContent='.home-foot>div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.info-copy{font-size:13px;line-height:1.55;color:#ddd}.info-copy p{margin:0 0 11px}.info-copy h4{font-size:25px;letter-spacing:-.04em}.home-foot #iphoneHelp{font-size:10px;color:#666;padding-left:0}';document.head.appendChild(cp18style);
