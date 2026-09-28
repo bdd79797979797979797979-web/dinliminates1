@@ -3,7 +3,7 @@ const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','ut
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);
 for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne','Continue saved round'])assert(html.includes(s),'missing HTML contract: '+s);
 for(const s of ['restaurantFiltered','cleanSearch','cleanLocate','restaurantBackUndo','applyFoodCut','applyFoodMaybe','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant','mode=search','mode=suggest','mode=resolve','mode=reverse','clean-r4'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant','mode=search','mode=suggest','mode=resolve','mode=reverse','clean-r6'])assert(api.includes(s),'missing API contract: '+s);
 for(const s of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup'])assert(foods.includes(s),'missing food data: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
