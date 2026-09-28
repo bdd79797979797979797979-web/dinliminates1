@@ -275,6 +275,10 @@ Restaurant search now falls back to a fast-food-only Overpass query when Photon 
 Commit: `b46740beaff282b81882a7eb1f1878a759ca4dac`
 Successful custom Food creation now closes the Manage Foods modal instead of immediately reopening its backdrop over the active Food round. The active Food screen refreshes after the add.
 
+## CP70 — QA checkout pin + API version alignment
+Commits: `487dca7bf06f2ed38941b294d307347077063211`, `2c4494f6933b2d63214916291ac6d098eac2d092`
+GitHub Actions now checks out `${{ github.sha }}` explicitly so each run tests the exact triggering commit. The Restaurant API search response version now also reports `clean-r7`, matching health and the fast-food fallback release.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
