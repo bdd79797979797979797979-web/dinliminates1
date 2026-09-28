@@ -7704,6 +7704,31 @@ function setRestaurantHoursFilter(value){
   safeWrite('dinliminateRestaurantHoursFilter',next);
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
   syncRestaurantHoursControl();
+
+  // Rebuild the live deck from the current search universe. Hours filtering
+  // must change the actual active restaurant pool, not just the renderer.
+  // Keep radius, manual cuts, active Quick Cuts, and Maybes intact so toggling
+  // back restores restaurants without resurrecting prior choices.
+  try{
+    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+    const holdKeys=new Set((holdingRestaurants||[]).map(r=>String(r?.id||r?.name||'').trim().toLowerCase()));
+    const manualKeys=new Set([...(restaurantManual||new Set())].map(String));
+    const quick=[...(restaurantQuickCuts||new Set())];
+    const keyOf=r=>String(r?.id||r?.name||'').trim().toLowerCase();
+    const source=Array.isArray(restaurantItems)&&restaurantItems.length?[...restaurantItems]:[...activeRestaurants||[]];
+    activeRestaurants=source.filter(r=>{
+      const k=keyOf(r);
+      const d=Number(r?.distanceMiles);
+      if(!k||holdKeys.has(k)||manualKeys.has(k))return false;
+      if(Number.isFinite(d)&&d>radius)return false;
+      if(quick.some(q=>restaurantQuickCutMatches(r,q)))return false;
+      return next==='closed' ? restaurantOpenStatus(r)===false : restaurantOpenStatus(r)!==false;
+    });
+    restaurantUndoStack=[];
+    restaurantFinalistMode=false;
+    restaurantEliminationExhausted=false;
+  }catch(e){ console.warn('Restaurant hours pool rebuild skipped',e); }
+
   try{renderRestaurantStage();}catch{}
   try{window.renderRestaurantQuickCuts?.();}catch{}
   try{syncRestaurantActionLabels?.();}catch{}
