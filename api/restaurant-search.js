@@ -501,13 +501,38 @@ async function nominatimSearchProvider(lat,lon,radiusMi,query){
     return {endpoint:'Nominatim text search',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors:[]};
   }catch(e){return {endpoint:'Nominatim text search',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
 }
-async function doSearch(lat, lon, radiusMi) {
-  const key = lat.toFixed(3) + ':' + lon.toFixed(3) + ':' + radiusMi.toFixed(1);
+async function doSearch(lat, lon, radiusMi, query='') {
+  const searchQuery=String(query||'').trim().slice(0,80);
+  const key = lat.toFixed(3) + ':' + lon.toFixed(3) + ':' + radiusMi.toFixed(1) + ':' + searchText(searchQuery);
   const cached = memoryCache.get(key);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return { ...cached.data, diagnostics: { ...(cached.data.diagnostics || {}), cacheHit: true } };
   }
 
+  if(searchQuery){
+    const started=Date.now();
+    const [photonQ,nominatimQ]=await Promise.all([
+      photonSearchProvider(lat,lon,radiusMi,searchQuery),
+      nominatimSearchProvider(lat,lon,radiusMi,searchQuery)
+    ]);
+    const direct=[photonQ,nominatimQ];
+    let merged=dedupeRestaurantRows(direct.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
+    if(!merged.length){
+      const states=await Promise.all(OVERPASS_ENDPOINTS.slice(0,2).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,searchQuery)));
+      direct.push(...states);
+      merged=dedupeRestaurantRows(states.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
+    }
+    const data={
+      results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
+      total:merged.length,fastFoodCount:merged.filter(r=>r.fastFood).length,
+      providersUsed:[...new Set(direct.filter(x=>(x.rows||[]).length).map(x=>x.endpoint))],
+      googleConfigured:!!GOOGLE_KEY,searchQuery,
+      providerCounts:Object.fromEntries(direct.map(x=>[x.endpoint,Number(x.rows?.length||0)])),
+      diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:direct.map(x=>({endpoint:x.endpoint,rows:x.rows?.length||0,ms:x.ms||0,errors:x.errors||[]}))}
+    };
+    memoryCache.set(key,{at:Date.now(),data});
+    return data;
+  }
   const started = Date.now();
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
   if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
