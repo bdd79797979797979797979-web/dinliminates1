@@ -20,6 +20,22 @@ One shared Quick Cut renderer and phone-sized autocomplete styling.
 Commit: `6f587b3cce01a3bdd73f42c2ead01ff789b027a4`
 Photo-based Quick Cuts, richer restaurant cards, details/website actions, and consistent restaurant presentation.
 
+## CP5 — unified decision history
+Commit: `49a3ddde1effffc71a316389bc810e61c6116d04`
+Food and Restaurant Cut/Maybe/Back share reversible action history; restaurant winner flow added.
+
+## CP6 — restaurant hours + Details
+Commit: `8640b6828cad3526e5a8962dedada01c55e5b14c`
+Open/Unknown versus explicit Closed filter and a real restaurant Details sheet.
+
+## CP7 — winner detail cleanup
+Commit: `7bdf52b22cbfe552bf67f13be69df5cdad758873`
+Winner Details uses the selected result; restaurant card rendering is normalized.
+
+## CP8 — deployable clean branch
+Root promotion commits: `86e4592`, `74375cc`, `f8b1a46`, `7cfac19`; docs/consolidation follow.
+The clean app, API, manifest and icon are at repository root on this branch.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
