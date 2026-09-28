@@ -228,6 +228,10 @@ Browser QA now records the Food-data response status, request failures, runtime 
 Commit: `ab9fbd19ac700591abc5f9392978229b1c466af7`
 Fixed the missing comma between Fruit Bowl and Burger & Fries; sandbox execution now constructs exactly 31 Food objects.
 
+## CP58 — browser Home selector fix
+Commit: `8915dc6307f344aec9a452895dfda6dd1738e23f`
+Chromium QA now scopes the Food-to-Home navigation control instead of using an ambiguous duplicate selector.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
