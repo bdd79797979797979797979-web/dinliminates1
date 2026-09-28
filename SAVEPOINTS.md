@@ -330,3 +330,19 @@ Added:
 Verification status:
 - Code committed as protected recovery point.
 - Full CI/browser regression is the next gate before continuing the restaurant layer.
+
+## CP78 — Restaurant data/detail checkpoint
+Source commits:
+- api/restaurants.js: df318c455053a9f722eea0b253c27ca861c7aed7
+- index.html: 2dc1fcf46dbfbbf1911e82afe748fc1508c8f219
+- app.js: 6c976374b43ccaa0d08369debf919f2406b581ed
+- QA alignment: 783c4588be95b0ea8864de33a156a9a7792c43ca, a882be5aab24f8c06bdff81ac91d53ed2cdfa47e
+
+Added:
+- Chain-specific restaurant image fallbacks with non-overlapping mappings.
+- Provider-supplied common menu/dish metadata retained and surfaced on restaurant cards/Details.
+- "My Location" compact label.
+- Static/browser QA coverage for restaurant menu data.
+
+Recovery:
+Restore branch to the commit immediately before CP78 if this checkpoint introduces a regression.
