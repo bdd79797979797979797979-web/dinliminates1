@@ -313,14 +313,28 @@
     }else{
       restaurantQuickCuts.delete(k);
     }
-    const held=[...(holdingRestaurants||[])];
-    activeRestaurants=visibleRestaurants();
-    holdingRestaurants=held;
-    if(!activeRestaurants.length&&holdingRestaurants.length){activeRestaurants=[...holdingRestaurants];holdingRestaurants=[];}
-    restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
-    const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
-  }
 
+    // Quick Cuts change category membership, not the open/closed filter.
+    // Never rebuild the active deck from visibleRestaurants(), because that
+    // would permanently drop restaurants hidden by the current hours filter.
+    const held=new Set((holdingRestaurants||[]).map(restKey));
+    const manual=new Set(restaurantManual||new Set());
+    const activeQuick=new Set(restaurantQuickCuts||[]);
+    const universe=[...syncRestaurantQuickCutScope()];
+    activeRestaurants=universe.filter(r=>{
+      const id=restKey(r);
+      if(manual.has(id)||held.has(id))return false;
+      return ![...activeQuick].some(other=>restQuickMatch(r,other));
+    });
+    restaurantFilters.query='';
+    restaurantRoundInProgress=!!activeRestaurants.length||!!holdingRestaurants.length;
+    saveRestaurantRoundState();
+    renderRestaurantQuickCuts();
+    renderRestaurantStage();
+    syncRestaurantTools();
+    const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;
+    toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
+  }
   function lockPassControls(){
     const selectors=pass?.mode==='restaurant'
       ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','#restaurantOpenUnknownBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
