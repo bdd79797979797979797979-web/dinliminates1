@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p687-authoritative-quickcut-refresh";
+const CLEAN_VERSION = "p688-qc-radius-live-sync";
 
 function transform(html) {
   return html

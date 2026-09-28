@@ -238,7 +238,6 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours 
     radius: typeof restaurantRadiusMiles!=='undefined' ? restaurantRadiusMiles : null,
     items: Array.isArray(restaurantItems) ? restaurantItems.map(r=>({name:r.name,fastFood:r.fastFood,amenity:r.amenity,d:r.distanceMiles,open:r.openNow})) : [],
     active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,fastFood:r.fastFood})) : [],
-    base: Array.isArray(restaurantBase) ? restaurantBase.map(r=>({name:r.name,d:r.distanceMiles,fastFood:r.fastFood})) : [],
     quick: [...(restaurantQuickCuts||[])],
     hours: localStorage.getItem('dinliminateRestaurantHoursFilter') || 'open-unknown',
     fastButton: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || null
