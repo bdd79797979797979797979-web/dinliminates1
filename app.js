@@ -220,12 +220,32 @@
   function bindFoodSwipe() {
     const card = $('foodCard');
     if (!card) return;
-    let downX = 0;
-    card.onpointerdown = e => { downX = e.clientX; try { card.setPointerCapture(e.pointerId); } catch {} };
-    card.onpointerup = e => {
-      const dx = e.clientX - downX;
-      if (Math.abs(dx) > 90) dx < 0 ? $('foodCut').click() : $('foodMaybe').click();
+    let downX = 0, active = false;
+    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';};
+    card.onpointerdown = e => {
+      downX = e.clientX; active = true;
+      try { card.setPointerCapture(e.pointerId); } catch {}
     };
+    card.onpointermove = e => {
+      if(!active) return;
+      const dx=e.clientX-downX;
+      if(Math.abs(dx)>8){
+        card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+        card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+        card.dataset.swipe=dx<0?'cut':'maybe';
+      }
+    };
+    card.onpointerup = e => {
+      if(!active)return;
+      active=false;
+      const dx=e.clientX-downX;
+      if(Math.abs(dx)>90) {
+        card.style.transition='transform .16s ease,opacity .16s ease';
+        card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+        setTimeout(()=>{reset();dx<0 ? $('foodCut').click() : $('foodMaybe').click();},110);
+      } else { reset(); }
+    };
+    card.onpointercancel=()=>{active=false;reset();};
   }
 
   function foodHide() {
@@ -549,12 +569,32 @@ function hourStatus(row){
   function bindRestaurantSwipe() {
     const card = $('restaurantCard');
     if (!card) return;
-    let downX = 0;
-    card.onpointerdown = e => { downX = e.clientX; try { card.setPointerCapture(e.pointerId); } catch {} };
-    card.onpointerup = e => {
-      const dx = e.clientX - downX;
-      if (Math.abs(dx) > 90) dx < 0 ? $('restCut').click() : $('restMaybe').click();
+    let downX = 0, active = false;
+    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';};
+    card.onpointerdown = e => {
+      downX = e.clientX; active = true;
+      try { card.setPointerCapture(e.pointerId); } catch {}
     };
+    card.onpointermove = e => {
+      if(!active) return;
+      const dx=e.clientX-downX;
+      if(Math.abs(dx)>8){
+        card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+        card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+        card.dataset.swipe=dx<0?'cut':'maybe';
+      }
+    };
+    card.onpointerup = e => {
+      if(!active)return;
+      active=false;
+      const dx=e.clientX-downX;
+      if(Math.abs(dx)>90) {
+        card.style.transition='transform .16s ease,opacity .16s ease';
+        card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+        setTimeout(()=>{reset();dx<0 ? $('restCut').click() : $('restMaybe').click();},110);
+      } else { reset(); }
+    };
+    card.onpointercancel=()=>{active=false;reset();};
   }
 
   function renderHours() {
