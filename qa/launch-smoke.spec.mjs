@@ -324,6 +324,15 @@ test('iPhone viewport has no horizontal overflow and keeps primary controls visi
     return {tag:el.tagName,id:el.id,cls:String(el.className||'').slice(0,90),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),display:cs.display,position:cs.position,transform:cs.transform};
   }).filter(x => x.width>391 || x.right>391 || x.left<0).sort((a,b)=>b.width-a.width).slice(0,30));
   console.log('iPhone overflow probe', JSON.stringify(overflowProbe));
+  const scrollProbe = await page.evaluate(() => Array.from(document.querySelectorAll('*')).map(el => ({
+    tag:el.tagName,id:el.id,cls:String(el.className||'').slice(0,90),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,overflowX:getComputedStyle(el).overflowX,whiteSpace:getComputedStyle(el).whiteSpace
+  })).filter(x => x.scrollWidth > x.clientWidth + 1).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,40));
+  const pseudoProbe = await page.evaluate(() => {
+    const targets=[document.body,document.documentElement,document.querySelector('#homePanel'),document.querySelector('.home-photo-rail')].filter(Boolean);
+    return targets.flatMap(el => ['::before','::after'].map(p => { const cs=getComputedStyle(el,p); return {target:el.tagName+'#'+(el.id||''),pseudo:p,display:cs.display,position:cs.position,width:cs.width,left:cs.left,right:cs.right,transform:cs.transform,content:cs.content,overflowX:cs.overflowX}; }));
+  });
+  console.log('iPhone scroll probe', JSON.stringify(scrollProbe));
+  console.log('iPhone pseudo probe', JSON.stringify(pseudoProbe));
   console.log('iPhone viewport metrics', JSON.stringify(metrics));
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
   expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
