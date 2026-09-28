@@ -255,6 +255,10 @@ Current recovery point after CP62. Browser QA is in progress; no production merg
 Commit: `329a38fc76a16f7e6bd90964900c1d28f25490a6`
 Browser QA now inspects modal backdrops and the element under the Hide button before tapping it.
 
+## CP65 — Settings restore QA
+Commit: `04abe7303fd901901ffe464e70b5530df8a52a1d`
+Browser QA now verifies the Settings modal structure and confirms Restaurant Restore clears the hidden registry.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
