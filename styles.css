@@ -10,7 +10,6 @@
 .restaurant-tools .restaurant-tool{width:100%}@media(max-width:390px){.restaurant-tools{gap:5px}.restaurant-tool{height:34px;font-size:10px;padding:0 6px}}
 #winner{background:#090909!important;color:#fff}
 
-<style>
 .food-head-tools{display:flex;justify-content:flex-end;align-items:center;gap:6px}
 .pass-head{height:42px;border-radius:13px;padding:0 12px;background:#6b5bd3;color:#fff;border:1px solid #8b7bff;font-size:11px;font-weight:800}
 .round-tools{display:flex;justify-content:center;gap:12px;padding-top:3px}
@@ -21,11 +20,8 @@
 .food-row>span:first-child{min-width:0}.food-row b{display:block;font-size:12px}.row-state{display:block;color:#666;font-size:10px;margin-top:2px}
 .food-row-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:390px){.pass-head{padding:0 10px;font-size:10px}.heading{grid-template-columns:64px 1fr auto}.food-head-tools{gap:4px}.round-tools{gap:8px}}
-</style>
-<style>
 .card{will-change:transform,opacity;transition:box-shadow .18s ease,transform .12s ease;box-shadow:0 18px 55px #0008}
 .card[data-swipe="cut"]::after,.card[data-swipe="maybe"]::after{position:absolute;top:18px;padding:7px 10px;border:2px solid currentColor;border-radius:11px;font-size:12px;letter-spacing:.12em;font-weight:900;z-index:4;background:#090909cc;text-transform:uppercase}
 .card[data-swipe="cut"]::after{content:"CUT";left:18px;color:#ff7a1a;transform:rotate(-10deg)}
 .card[data-swipe="maybe"]::after{content:"MAYBE";right:18px;color:#f2ebe3;transform:rotate(10deg)}
 .card:active{cursor:grabbing}
-</style>
