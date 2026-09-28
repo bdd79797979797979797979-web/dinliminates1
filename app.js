@@ -110,7 +110,9 @@
   }
 
   function closeOverlays() {
-    ['drawer','drawerBg','modal','modalBg','manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg','passSetup','passSetupBg','passModal','passModalBg'].forEach(id => $(id)?.remove());
+    // Drawer and the legacy base modal are permanent DOM elements; hide them instead of deleting them.
+    ['drawer','drawerBg','modal','modalBg'].forEach(id => $(id)?.classList.add('hidden'));
+    ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg','passSetup','passSetupBg','passModal','passModalBg'].forEach(id => $(id)?.remove());
     clearSuggestions();
   }
 
