@@ -128,6 +128,14 @@ Added missing decision choices, including Burger & Fries, Goulash, Southern Vege
 Commit: `2b1af9f99502eca7b23992f74e95ecee08527343`
 Pass Around Back now restores the exact choice that was cut.
 
+## CP32 — custom Food recipe/photo support
+Commit: `b9811eb405292570416de492f75fb9df1edb62dc`
+Add Food accepts optional photo and recipe/notes fields; Details displays saved recipe content.
+
+## CP33 — QA protection for custom Food support
+Commit: `d730ef7b70870003f8b5e3079673e94b38b907ae`
+Static QA now enforces the custom recipe/photo contracts.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
