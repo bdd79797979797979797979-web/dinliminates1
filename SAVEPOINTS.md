@@ -172,6 +172,10 @@ Restored the full clean application after a bad matcher patch truncated `app.js`
 Commit: `464451389ed053d5c9d064737e25c74216e988cc`
 Static QA now checks the actual single-source app function names rather than retired prototype names.
 
+## CP43 — correct API-mode QA contracts
+Commit: `cc08322098de5cbec321a33199e06d4d602f9da4`
+Static QA now matches the clean API's actual JavaScript mode comparisons.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
