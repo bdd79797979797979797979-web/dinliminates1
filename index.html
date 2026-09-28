@@ -9055,7 +9055,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     const previous=preserveRound?{
       active:[...(activeRestaurants||[])],
       holding:[...(holdingRestaurants||[])],
-      base:[...(restaurantBase||[])],
+      base:[...(ST.universeRows?.length?ST.universeRows:(restaurantItems||[]))],
       manual:new Set(restaurantManual||[]),
       quick:new Set(restaurantQuickCuts||[]),
       finalist:!!restaurantFinalistMode,
@@ -9071,8 +9071,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     const radius=clamp(restaurantRadiusMiles);
     const within=r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
 
+    ST.universeRows=[...universe];
+    ST.universeRadius=Math.max(ST.universeRadius,radius);
     restaurantItems=universe;
-    restaurantBase=[...universe];
     holdingRestaurants=previous.holding.map(r=>byKey.get(restKey(r))||r);
     activeRestaurants=universe.filter(r=>{
       const id=localRestKey(r);
