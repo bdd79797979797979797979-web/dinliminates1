@@ -7885,7 +7885,7 @@ function showWinner(isReopen=false) {
   // external image and never flashes a broken-image icon.
   const photoToken=String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
   hero.dataset.photoToken=photoToken;
-  img.onload=null; img.onerror=null; img.removeAttribute('src'); img.style.display='none';
+  img.onload=null; img.onerror=null; img.removeAttribute('src'); img.style.display='none'; img.style.visibility='hidden';
   hero.classList.add('no-photo');
   fallback.textContent=displayIcon(winner);
   fallback.setAttribute('aria-label',isRestaurant?'Restaurant photo unavailable':'Food photo unavailable');
