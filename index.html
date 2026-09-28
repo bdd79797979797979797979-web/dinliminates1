@@ -375,6 +375,36 @@ cleanDrawRestaurants=function(){latestDraw();const extras=document.querySelector
 window.drawRestaurants=cleanDrawRestaurants;
 const cp7=document.createElement('style');cp7.textContent='.rest-card-extra .rest-card-extra{display:none}';document.head.appendChild(cp7);
 
+
+/* CP11: persistent restaurant Hide + Settings restore + remove redundant count */
+const previousSearch2=cleanSearch;
+cleanSearch=async function(){
+  S.lastRestaurantWinner=null;
+  await previousSearch2();
+  S.restaurantPool=(S.restaurantPool||[]).map(r=>({...r,_hidden:S.hidden.has('restaurant:'+r.id)}));
+  cleanDrawRestaurants();
+  injectHoursControl();renderHoursControl();persist();
+};
+const previousSettings=settingsView;
+settingsView=function(){
+  const all=[...F,...S.custom],hiddenFoods=all.filter(x=>S.hidden.has(x.id)),hiddenRestaurants=(S.restaurantPool||[]).filter(x=>S.hidden.has('restaurant:'+x.id));
+  const body='<div class="settings-stack"><h4>Hidden Choices</h4><div id="hiddenRows">'+(hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+x.name+'</span><button class="restore" data-restore="'+x.id+'">Restore</button></div>').join(''):'<p class="status">No hidden foods.</p>')+'</div><h4>Hidden Restaurants</h4><div id="hiddenRestaurantRows">'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+x.name+'</span><button class="restore" data-rrest="'+x.id+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants in this saved search.</p>')+'</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the clean default food list and clears saved round changes.</p></div>';
+  const m=addOverlay('settingsModal','Settings',body);showOverlay('settingsModal');
+  m.querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>{S.hidden.delete(b.dataset.restore);persist();settingsView()});
+  m.querySelectorAll('[data-rrest]').forEach(b=>b.onclick=()=>{const key='restaurant:'+b.dataset.rrest;S.hidden.delete(key);const r=(S.restaurantPool||[]).find(x=>x.id===b.dataset.rrest);if(r)r._hidden=false;persist();settingsView()});
+  m.querySelector('#systemRestore').onclick=()=>{if(confirm('Restore the default Dinliminate setup and clear this saved round?')){S.hidden.clear();S.custom=[];S.cutCats.clear();S.cutPrimary.clear();S.maybe.clear();S.pool=[];S.restaurantPool=[];S.restaurantCuts.clear();S.restaurantActions=[];S.index=0;S.restaurantIndex=0;localStorage.removeItem(KEY);persist();settingsView();home()}};
+};
+const cleanSearchOrig=searchRestaurants;
+const latestCoreDraw=cleanDrawRestaurants;
+cleanDrawRestaurants=function(){
+  latestCoreDraw();
+  const extras=document.querySelectorAll('#restaurantCard .rest-card-extra');extras.forEach((el,i)=>{if(i>0)el.remove()});
+  document.querySelectorAll('#restaurantCard + .result-count').forEach(el=>el.remove());
+};
+window.drawRestaurants=cleanDrawRestaurants;
+const oldPersist=persist;
+persist=function(){if(Array.isArray(S.restaurantPool))S.restaurantPool=S.restaurantPool.map(r=>r&&r.id?{...r,_hidden:S.hidden.has('restaurant:'+r.id)||!!r._hidden}:r);oldPersist()};
+
 </script>
 </main>
 </body>
