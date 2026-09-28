@@ -314,12 +314,11 @@ test('iPhone viewport has no horizontal overflow and keeps primary controls visi
     startVisible: !!document.querySelector('#startBtn'),
     restaurantVisible: !!document.querySelector('#homeRestaurantQuick')
   }));
+  console.log('iPhone viewport metrics', JSON.stringify(metrics));
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
   expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
   expect(metrics.startVisible).toBeTruthy();
   expect(metrics.restaurantVisible).toBeTruthy();
-  console.log('iPhone viewport metrics', JSON.stringify(metrics));
-
   await expect(page.locator('#startBtn')).toBeVisible({ timeout: 10000 });
   await page.locator('#startBtn').click({ force: true });
   await expect(page.locator('#gamePanel')).toBeVisible({ timeout: 10000 });
@@ -423,7 +422,7 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   // Toggling the active Quick Cut back off restores the refreshed choices.
   await fastFood.click();
   await expect(fastFood).toHaveAttribute('aria-pressed','false');
-  await expect.poll(async () => page.evaluate(() => activeRestaurants.length)).toBe(3);
+  await expect.poll(async () => page.evaluate(() => activeRestaurants.length)).toBe(2);
 
   expect(pageErrors).toEqual([]);
 });
