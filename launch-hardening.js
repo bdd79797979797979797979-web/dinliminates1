@@ -178,6 +178,48 @@
     s?.classList.toggle('active',!!restaurantFilters.query);s?.setAttribute('aria-expanded',String(b.classList.contains('search-open')));
     const l=$('restaurantLocationLabel'); if(l){const loc=restaurantLocationMode==='device'&&userCoords?'Using your device location':(userCity?`Near ${userCity}`:'Pick an area');const filt=[restaurantFilters.sort==='closest'?'nearest first':''].filter(Boolean);l.textContent=`${loc}${filt.length?' · '+filt.join(' · '):''} · cut until one is left`;}
   }
+  function applyRestaurantHoursFilterToLivePool(nextValue){
+    const next=nextValue==='closed'?'closed':'open-unknown';
+    try{
+      restaurantHoursFilter=next;
+      safeWrite('dinliminateRestaurantHoursFilter',next);
+      safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
+      syncRestaurantHoursControl?.();
+
+      // Rebuild from the current radius-bounded search universe. This layer has
+      // access to Quick Cut/manual/Maybe state, so the hours toggle cannot
+      // accidentally resurrect a prior elimination.
+      syncRestaurantQuickCutScope?.();
+      const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+      const held=new Set((holdingRestaurants||[]).map(restKey));
+      const manual=new Set(restaurantManual||[]);
+      const quick=new Set(restaurantQuickCuts||[]);
+      const source=Array.isArray(restaurantBase)&&restaurantBase.length
+        ? [...restaurantBase]
+        : [...(restaurantItems||[])];
+      activeRestaurants=source.filter(r=>{
+        const id=restKey(r);
+        if(!id||held.has(id)||manual.has(id))return false;
+        const d=Number(r?.distanceMiles);
+        if(Number.isFinite(d)&&d>radius)return false;
+        if([...quick].some(k=>restQuickMatch(r,k)))return false;
+        return next==='closed' ? restaurantOpenStatus(r)===false : restaurantOpenStatus(r)!==false;
+      });
+      restaurantUndoStack=[];
+      restaurantFinalistMode=false;
+      restaurantEliminationExhausted=false;
+      try{renderRestaurantStage();}catch{}
+      try{renderRestaurantQuickCuts();}catch{}
+      try{syncRestaurantActionLabels?.();}catch{}
+      try{saveRestaurantRoundState();}catch{}
+      return true;
+    }catch(e){
+      console.warn('Restaurant hours live-pool sync failed',e);
+      return false;
+    }
+  }
+  window.DinliminateApplyRestaurantHoursFilterToLivePool=applyRestaurantHoursFilterToLivePool;
+
   function filterRestaurants(){
     let a=[...(activeRestaurants||[])];
     const q=String(restaurantFilters.query||'').trim().toLowerCase();
