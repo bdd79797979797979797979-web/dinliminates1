@@ -63,8 +63,11 @@ async function settle(){await page.waitForTimeout(80);}
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
 await assert.equal(await page.locator('#home h1').innerText(),'what sounds good tonight?');
+const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
+assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
 
 await click('#foodStart'); await settle();
+const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,31,'expected clean food catalog');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
