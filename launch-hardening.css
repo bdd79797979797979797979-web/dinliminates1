@@ -1119,3 +1119,7 @@ body.game-mode #homePanel.home{display:none!important;}
 
 /* P728 — keep decorative home art from expanding the iPhone body scroll width. */
 #homePanel.home{overflow:hidden!important;}
+
+
+/* P728 radius/search race hardening — keep off-canvas descendants clipped at the app boundary. */
+#homePanel.home{contain:paint;}
