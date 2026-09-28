@@ -5952,6 +5952,37 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 .detail-backdrop{backdrop-filter:blur(5px)!important;}
 </style>
 
+<style id="dinliminate-p756-winner-theme-speed">
+/* P756 — Winner screens are visibly mode-coded and image-safe. */
+#winnerPanel.winner-theme-food{
+  --winner-accent:#ff6f61!important;
+  --winner-accent-soft:rgba(255,111,97,.12)!important;
+}
+#winnerPanel.winner-theme-restaurant{
+  --winner-accent:#67c49b!important;
+  --winner-accent-soft:rgba(103,196,155,.12)!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-shell,
+#winnerPanel.winner-theme-restaurant .winner-v240-shell{
+  border-top:4px solid var(--winner-accent)!important;
+  background:
+    radial-gradient(circle at 88% 4%,var(--winner-accent-soft),transparent 25%),
+    linear-gradient(180deg,rgba(255,255,255,.985),rgba(250,248,243,.98))!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-kicker,
+#winnerPanel.winner-theme-food .winner-v240-eyebrow{color:#ff8d80!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-kicker,
+#winnerPanel.winner-theme-restaurant .winner-v240-eyebrow{color:#67c49b!important;}
+#winnerPanel.winner-theme-food .winner-v240-hero{border-color:rgba(255,111,97,.28)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-hero{border-color:rgba(103,196,155,.30)!important;}
+#winnerPanel.winner-theme-food .winner-details-action,
+#winnerPanel.winner-theme-food .winner-v240-share{background:#ff6f61!important;border-color:#ff6f61!important;color:#fff!important;}
+#winnerPanel.winner-theme-restaurant .winner-details-action,
+#winnerPanel.winner-theme-restaurant .winner-v240-share{background:#67c49b!important;border-color:#67c49b!important;color:#082b1e!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-action.primary{background:#67c49b!important;border-color:#67c49b!important;color:#082b1e!important;}
+#winnerPanel.winner-theme-food .winner-v240-mark{color:#ffb0a7!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-mark{color:#9be6c5!important;}
+</style>
 <style id="dinliminate-p744-detail-speed">
 /* P744/P756 — details are content-first and should open immediately on phone.
    No sheet animation or backdrop blur; the photo loads independently of the panel. */
@@ -7746,31 +7777,26 @@ function showWinner(isReopen=false) {
   hero.classList.add('no-photo');
   fallback.textContent=displayIcon(winner);
   fallback.setAttribute('aria-label',isRestaurant?'Restaurant photo unavailable':'Food photo unavailable');
-  // Paint the complete Winner surface first. Photo probing is deferred so a
-  // slow/failed remote image can never delay the decision screen itself.
-  requestAnimationFrame(()=>{
-    if(hero.dataset.photoToken!==photoToken)return;
-    const winnerPhotoSrc=photoFor(winner);
-    if(!winnerPhotoSrc)return;
-    const probe=new Image();
-    probe.decoding='async';
-    probe.onload=()=>{
+  // Paint the complete Winner surface immediately. Load the winner image only
+  // once, with the fallback visible until it succeeds.
+  const winnerPhotoSrc=photoFor(winner);
+  if(winnerPhotoSrc){
+    img.onload=()=>{
       if(hero.dataset.photoToken!==photoToken)return;
-      img.src=winnerPhotoSrc;
       img.style.objectPosition=photoPosition(winner);
       img.style.visibility='visible';
       img.style.display='block';
       hero.classList.remove('no-photo');
     };
-    probe.onerror=()=>{
+    img.onerror=()=>{
       if(hero.dataset.photoToken!==photoToken)return;
       img.removeAttribute('src');
       img.style.visibility='hidden';
       img.style.display='none';
       hero.classList.add('no-photo');
     };
-    probe.src=winnerPhotoSrc;
-  });
+    img.src=winnerPhotoSrc;
+  }
   $('winnerModeKicker').textContent=isRestaurant?'RESTAURANT DECIDED':'DINNER DECIDED';
   $('winnerKickerLabel').textContent=isRestaurant?"TONIGHT'S RESTAURANT":"TONIGHT'S WINNER";
   $('winnerName').textContent=winner.name;
@@ -8078,13 +8104,14 @@ function restaurantSortValue(item){
   return Number.isFinite(d)?d:Infinity;
 }
 function restaurantSearchMatches(row,query){
-  const q=String(query||'').trim().toLowerCase().replace(/[\u2019']/g,'').replace(/\s+/g,' ');
+  const normalize=v=>String(v??'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+  const q=normalize(query);
   if(!q)return true;
-  const hay=[
+  const hay=normalize([
     row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,row?.dish,row?.food,
     ...(Array.isArray(row?.tags)?row.tags:[row?.tags]),
     ...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])
-  ].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,' ');
+  ].filter(Boolean).join(' '));
   return q.split(' ').filter(Boolean).every(term=>hay.includes(term) || (typeof restaurantQuickCutMatches==='function' && restaurantQuickCutMatches(row,term)));
 }
 function filteredRestaurants(){
