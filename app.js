@@ -680,7 +680,9 @@ function hourStatus(row){
       S.custom.push({id,name,primary:id,category:$('newFoodCat').value,image:$('newFoodPhoto').value.trim()||HUNGRY_IMAGE,recipe:$('newFoodRecipe').value.trim()});
       buildFood();
       save();
-      modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+      modal.remove(); $('manageFoodsModalBg')?.remove();
+      updateContinue();
+      if (S.screen === 'food') { foodQuick(); drawFood(); }
     };
     modal.querySelectorAll('[data-food-restore]').forEach(btn => btn.onclick = () => { S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView(); });
     modal.querySelectorAll('[data-food-hide]').forEach(btn => btn.onclick = () => { S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView(); });
