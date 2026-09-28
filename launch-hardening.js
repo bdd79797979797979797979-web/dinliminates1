@@ -526,7 +526,20 @@
     host.querySelectorAll('[data-history-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();const it=historyItems[Number(b.dataset.historyOpen)];if(it){closeLibrary();openDetails(it);}});
     host.querySelectorAll('[data-history-remove]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=Number(b.dataset.historyRemove);if(historyItems[i]){const n=historyItems[i].name;historyItems.splice(i,1);saveHistoryItems();renderHistoryCalendar();toast(`${n||'Decision'} removed from history.`);}});
   }
-  function renderLibraryLaunch(){if(libraryTab==='history'){const b=$('clearLibraryBtn');if(b){b.classList.add('show');b.textContent='Reset history';}renderHistoryCalendar();return;}legacyRenderLibrary?.apply(this,arguments);}
+  function renderLibraryLaunch(tab){
+    if(tab==='saved'||tab==='history') libraryTab=tab;
+    if(libraryTab==='history'){
+      const b=$('clearLibraryBtn');
+      if(b){b.classList.add('show');b.textContent='Reset history';}
+      $('libraryTitle').textContent='History';
+      $('libraryTitle').setAttribute('data-library-mode','history');
+      renderHistoryCalendar();
+      return;
+    }
+    $('libraryTitle').textContent='Saved';
+    $('libraryTitle').setAttribute('data-library-mode','saved');
+    legacyRenderLibrary?.apply(this,arguments);
+  }
 
   function wrapRestaurantRender(){
     return function(){
@@ -663,7 +676,8 @@
       restaurantPassButton.onclick=()=>window.DinliminateOpenPassAround?.('restaurant');
       restaurantPassButton.setAttribute('aria-label','Pass Around restaurant choices');
     }
-    document.querySelectorAll('[data-library-tab]').forEach(b=>b.addEventListener('click',()=>{libraryTab=b.dataset.libraryTab;renderLibraryLaunch();}));$('historyMenuBtn')?.addEventListener('click',()=>setTimeout(renderLibraryLaunch,0));
+    $('savedMenuBtn')?.addEventListener('click',()=>setTimeout(()=>renderLibraryLaunch('saved'),0));
+    $('historyMenuBtn')?.addEventListener('click',()=>setTimeout(()=>renderLibraryLaunch('history'),0));
     // Disable the legacy website-metadata image hydrator so it cannot substitute another restaurant's photo.
     window.restaurantPhotoIsReal=typeof restaurantPhotoIsReal==='function'?restaurantPhotoIsReal:undefined;
     setupRestaurantTools();renderFoodQuickCuts();renderRestaurantQuickCuts();cleanRestaurantLabels();
