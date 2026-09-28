@@ -72,6 +72,18 @@ Pass Around has compact styling and saved restaurant rounds can surface Continue
 Commit: `2200275855045b570c90f6f56d9c19909a1012b6`
 Added `qa/clean-static-qa.js` to check critical HTML/app/API/data contracts and syntax on each clean checkpoint.
 
+## CP18 — iPhone install help + About
+Commits: `987c3df`, `7f32b21`
+Added discreet Home install guidance and About text.
+
+## CP19 — Manage Foods restore/delete controls
+Commit: `ee3cfa9b11ba36c370c2607f283dc5e41682c1a9`
+Hidden foods remain visible in Manage Foods for Restore; custom foods can be hidden or deleted.
+
+## CP20 — History calendar actions
+Commit: `e07798f90daf3c18ba7b829508eb60568be3bbc5`
+History supports month navigation, date details, individual decision details, and small date-level X removal.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
