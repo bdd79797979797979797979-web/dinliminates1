@@ -222,8 +222,14 @@
 
   function filterRestaurants(){
     let a=[...(activeRestaurants||[])];
-    const q=String(restaurantFilters.query||'').trim().toLowerCase().replace(/[\u2019']/g,'');
-    if(q)a=a.filter(r=>[r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[r?.menuItems])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,'').includes(q));
+    const q=String(restaurantFilters.query||'').trim();
+    if(q){
+      a=a.filter(r=>{
+        if(typeof restaurantSearchMatches==='function')return restaurantSearchMatches(r,q);
+        const hay=[r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,r?.dish,r?.food,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,'');
+        return q.toLowerCase().replace(/[\u2019']/g,'').split(/\s+/).filter(Boolean).every(term=>hay.includes(term));
+      });
+    }
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
     if(hours==='open-unknown')a=a.filter(r=>restaurantOpenStatus?.(r)!==false);
     if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
@@ -253,13 +259,22 @@
       const d=Number(item?.distanceMiles);
       return !Number.isFinite(d)||d<=radius;
     };
-    // Radius is authoritative: every live restaurant state used by Quick Cuts
-    // must remain inside the currently selected radius.
+    // Keep restaurantItems/restaurantBase as the full loaded universe. Only the
+    // actionable active deck is radius-bounded. Maybe and Cut state must survive
+    // a temporary narrowing and become available again when the radius expands.
+    const full=uniq([
+      ...(Array.isArray(restaurantBase)?restaurantBase:[]),
+      ...(Array.isArray(restaurantItems)?restaurantItems:[]),
+      ...(Array.isArray(activeRestaurants)?activeRestaurants:[]),
+      ...(Array.isArray(holdingRestaurants)?holdingRestaurants:[])
+    ],restKey);
+    if(full.length){
+      restaurantBase=[...full];
+      restaurantItems=[...full];
+    }
     if(Array.isArray(activeRestaurants)) activeRestaurants=activeRestaurants.filter(withinRadius);
-    if(Array.isArray(holdingRestaurants)) holdingRestaurants=holdingRestaurants.filter(withinRadius);
     const pool=currentRestaurantQuickCutUniverse();
-    if(pool.length || !Array.isArray(restaurantItems) || restaurantItems.length===0) restaurantBase=[...pool];
-    return restaurantBase;
+    return pool.length?pool:restaurantBase.filter(withinRadius);
   }
 
   function restaurantQuickCutDisplayPool(forKey=''){
