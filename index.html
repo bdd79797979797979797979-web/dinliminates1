@@ -5533,7 +5533,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   .pass-around-start{border:1px solid #2a6753;background:#153a2e;color:#fff}
   @media(max-width:520px){.game-bottom{gap:5px!important}.food-secondary-action{flex:1 1 30%;padding:0 8px!important;font-size:.51rem!important}.restaurant-tool-btn{min-height:32px;padding:0 10px}.restaurant-inline-search input{height:34px}}
 </style><style id="dinliminate-p636-final-ui">
-#restaurantOpenUnknownBtn,.restaurant-open-chip,#restaurantResetFilters{display:none!important}
+#restaurantOpenUnknownBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important}.restaurant-open-chip,#restaurantResetFilters{display:none!important}
 .restaurant-utility-row{display:flex!important;align-items:center!important;gap:7px!important;margin:3px 0 4px!important;padding:0!important;overflow:visible!important}
 .restaurant-utility-row .restaurant-tool-btn{flex:1 1 0!important;min-width:0!important;min-height:34px!important}
 body.restaurant-mode .restaurant-status-line{min-height:16px!important}
@@ -6140,7 +6140,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p702-restaurant-launch-fix';
+const DINLIMINATE_VERSION = 'p704-restaurant-launch-fix';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8208,7 +8208,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
         try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
       }else{
         clearRestaurantRoundAfterFailedNewSearch();
-        showError(ST.lastRestaurantError,e?.code==='TIMEOUT'?'The restaurant provider took too long to respond.':'');
+        showError(ST.lastRestaurantError,e?.code==='TIMEOUT'?'The restaurant providers took too long to respond. Try a smaller radius or another area.':'');
         setStatus(ST.lastRestaurantError,'warn');
       }
       return false;
