@@ -303,6 +303,10 @@ Kept the Restaurant swipe implementation unchanged and made its browser assertio
 Commit: `937feefc03f520775db48c7114e8bef3957c34ba`
 The release candidate passed the full QA gate after adding Food swipe support and deterministic Restaurant pointer-event coverage. Live provider smoke returned 50 restaurants including 44 fast-food results; browser smoke and static QA also passed.
 
+## CP77 — stable resume manifest
+Commit: `76b0d82d502c1847347ceaf96739a7393f42c3b0`
+Updated `CHECKPOINT.md` with the exact CP76 green release-candidate commit, current QA coverage, recent fixes, and deployment status so an interrupted session can resume from one documented state.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
