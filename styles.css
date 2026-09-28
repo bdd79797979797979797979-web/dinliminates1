@@ -22,3 +22,10 @@
 .food-row-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:390px){.pass-head{padding:0 10px;font-size:10px}.heading{grid-template-columns:64px 1fr auto}.food-head-tools{gap:4px}.round-tools{gap:8px}}
 </style>
+<style>
+.card{will-change:transform,opacity;transition:box-shadow .18s ease,transform .12s ease;box-shadow:0 18px 55px #0008}
+.card[data-swipe="cut"]::after,.card[data-swipe="maybe"]::after{position:absolute;top:18px;padding:7px 10px;border:2px solid currentColor;border-radius:11px;font-size:12px;letter-spacing:.12em;font-weight:900;z-index:4;background:#090909cc;text-transform:uppercase}
+.card[data-swipe="cut"]::after{content:"CUT";left:18px;color:#ff7a1a;transform:rotate(-10deg)}
+.card[data-swipe="maybe"]::after{content:"MAYBE";right:18px;color:#f2ebe3;transform:rotate(10deg)}
+.card:active{cursor:grabbing}
+</style>
