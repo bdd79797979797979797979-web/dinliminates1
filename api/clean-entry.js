@@ -1,12 +1,14 @@
-const CLEAN_VERSION = "p727-final-launch";
+const CLEAN_VERSION = "p729-final-launch";
 
 function transform(html) {
   return html
     .replace(/<script id="dinliminate-release-migration">[\s\S]*?<\/script>\s*/i, "")
     .replaceAll("./launch-hardening.css?v=p635", "./launch-hardening.css?v="+CLEAN_VERSION)
     .replaceAll("./launch-hardening.css?v=p636-final", "./launch-hardening.css?v="+CLEAN_VERSION)
+    .replaceAll("./launch-hardening.css?v=p688-qc-radius-live-sync", "./launch-hardening.css?v="+CLEAN_VERSION)
     .replaceAll("./launch-hardening.js?v=p635", "./launch-hardening.js?v="+CLEAN_VERSION)
     .replaceAll("./launch-hardening.js?v=p636-final", "./launch-hardening.js?v="+CLEAN_VERSION)
+    .replaceAll("./launch-hardening.js?v=p688-qc-radius-live-sync", "./launch-hardening.js?v="+CLEAN_VERSION)
     .replaceAll("const DINLIMINATE_VERSION = 'p635';", "const DINLIMINATE_VERSION = '"+CLEAN_VERSION+"';")
     .replaceAll("const DINLIMINATE_VERSION = 'p636-final';", "const DINLIMINATE_VERSION = '"+CLEAN_VERSION+"';")
     .replaceAll("const V='p623';", "const V='"+CLEAN_VERSION+"';")
