@@ -827,23 +827,26 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await page.locator('#confirmCutBtn').click();
   await expect.poll(async()=>page.evaluate(()=>!customItems.some(x=>x.name==='Virtual User Edited Dinner'))).toBe(true);
 
-  // LIBRARY: saved + history tabs and details/remove actions.
+  // LIBRARY: Saved and History are separate destinations.
   await page.locator('#menuBtn').click();
-  await page.locator('#historyMenuBtn').click();
+  await page.locator('#savedMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
-  await expect(page.locator('[data-library-tab="saved"]')).toBeVisible();
-  await expect(page.locator('[data-library-tab="history"]')).toBeVisible();
-  await page.locator('[data-library-tab="saved"]').click();
+  await expect(page.locator('#libraryTitle')).toHaveText('Saved');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
+  await expect(page.locator('[data-library-tab]')).toHaveCount(0);
   await expect(page.locator('#libraryList')).toBeVisible();
   if (await page.locator('[data-lib-detail]').count()) {
     await page.locator('[data-lib-detail]').first().click();
     await expect(page.locator('#detailBackdrop')).toBeVisible();
     await page.locator('#detailCloseBtn').click();
-    await page.locator('#menuBtn').click();
-    await page.locator('#historyMenuBtn').click();
   }
-  await page.locator('[data-library-tab="history"]').click();
-  await expect(page.locator('#libraryList')).toBeVisible();
+  await page.locator('#menuBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('#libraryTitle')).toHaveText('History');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
+  await expect(page.locator('[data-library-tab]')).toHaveCount(0);
+  await expect(page.locator('.history-calendar-grid')).toBeVisible();
   await page.locator('#closeLibraryBtn').click();
 
   // WINNER: choose, share, back to start, and reopen last winner from Home.
@@ -1051,9 +1054,12 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
     await expect(page.locator('.history-calendar-grid')).toBeVisible();
   }
 
-  // The Saved tab must expose a Remove action for saved choices.
-  await page.locator('[data-library-tab="saved"]').click();
-  await expect(page.locator('#libraryList')).toBeVisible();
+  // Saved is its own menu destination and exposes Remove for saved choices.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#savedMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('#libraryTitle')).toHaveText('Saved');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
   const savedRemove = page.locator('[data-lib-remove]').first();
   if (await savedRemove.count()) {
     await savedRemove.click();
