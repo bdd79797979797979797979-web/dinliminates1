@@ -116,6 +116,18 @@ Winner states no longer advertise Continue, and Potato is represented by its own
 Commit: `ec6455c8aa33ab614f408d08ae0e50305072688d`
 QA now enforces no JS stylesheet builder, explicit winner type persistence, the clean API version, and key food coverage.
 
+## CP29 — opening-hours filter
+Commit: `d699e981bb1ed0f66521bcbfa629561474fecc19`
+Common opening-hours strings now inform the Open/Unknown versus Closed filter.
+
+## CP30 — expanded Food catalog
+Commit: `21fdfbe5c18038a5f2d2136d4d804cc207ee058c`
+Added missing decision choices, including Burger & Fries, Goulash, Southern Vegetable Plate, Southern Vegetable Beef Soup, Buttermilk & Cornbread, and Fish & Chips.
+
+## CP31 — Pass Around undo correctness
+Commit: `2b1af9f99502eca7b23992f74e95ecee08527343`
+Pass Around Back now restores the exact choice that was cut.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
