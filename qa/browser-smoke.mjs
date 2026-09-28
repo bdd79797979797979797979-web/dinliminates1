@@ -187,7 +187,9 @@ await assert.ok((await page.locator('#restStage').innerText()).includes('Common'
 await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); await page.locator('#detailDone').click(); await settle();
 
 const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
-await click('#menu'); await settle(); await click('#settings'); await settle();
+await page.locator('#menu').click({force:true});
+await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
+await page.locator('#settings').click(); await settle();
 const settingsDiag=await page.evaluate(()=>{const el=document.querySelector('#settingsModal'); return {count:document.querySelectorAll('#settingsModal').length,drawerHidden:document.querySelector('#drawer')?.classList.contains('hidden')??null,bgCount:document.querySelectorAll('#settingsModalBg').length,exists:!!el,text:el?.textContent||'',display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,rect:el?el.getBoundingClientRect().toJSON():null};}); console.log('Settings diagnostic',JSON.stringify(settingsDiag));
 assert.equal(await visible('settingsModal'),true,'Settings modal should open');
 const settingsText=await page.locator('#settingsModal').innerText(); assert.match(settingsText,/Hidden Restaurants/i,'Settings should show Hidden Restaurants');
@@ -195,6 +197,8 @@ const restore=page.locator('#settingsModal [data-setting-rest]').first(); assert
 await restore.click(); await settle(); s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length,0,'Restaurant Restore should remove the hidden registry entry');
 
 await page.locator('#settingsModal [data-close]').click(); await settle();
+assert.equal(await page.locator('#settingsModal').count(),0,'Settings close should remove the modal');
+assert.equal(await page.locator('#drawer').evaluate(el=>el.classList.contains('hidden')),true,'Settings close should leave the drawer closed');
 await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
 await click('[data-food-hide="popcorn"]'); await settle();
