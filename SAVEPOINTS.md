@@ -240,6 +240,10 @@ Fixed the browser QA address assertion to await Playwright inputValue().
 Commit: `767287a0e5e682b3c6d9393f53445a10e291ffdc`
 Chromium QA now uses `America/Chicago` so restaurant opening-hour tests match the intended user timezone.
 
+## CP61 — explicit Restaurant Hide QA
+Commit: `b99758e99d123020dc7556abdd513fe67af7e468`
+Browser QA explicitly accepts the Hide confirmation dialog and logs the resulting hidden-restaurant registry.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
