@@ -1187,7 +1187,6 @@ test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ pa
     restaurantBase=[...rows];
     activeRestaurants=[...rows];
     holdingRestaurants=[];
-    restaurantManual=new Set();
     restaurantQuickCuts=new Set();
     restaurantFilters={query:'',sort:'shuffle'};
     restaurantRadiusMiles=10;
@@ -1777,12 +1776,7 @@ test('P781 food categories, Mexican Stir Fry photo, and exact primary Quick Cut 
     finalistMode = false;
     searchQuery = '';
     originalCount = activeItems.length;
-    foodBase = [...chosen];
-    foodManual = new Set();
-    foodQuickHidden = new Set();
-    foodInProgress = true;
     renderStage();
-    renderFoodQuickCuts();
   }, wanted);
 
   const mapping = {
@@ -1829,8 +1823,8 @@ test('P781 food Quick Cut overlap restore never cuts secondary items', async ({ 
     const names = ['Steak & Potato','Meatloaf & Mashed Potatoes','Potato Soup','Beef Stew','Chicken Noodle Soup','Southern Vegetable Beef Soup','Chili','Loaded Baked Potato','Mashed Potatoes'];
     const chosen = homeMeals.filter(x => names.includes(x.name));
     activeItems=[...chosen]; holdingItems=[]; undoStack=[]; finalistMode=false; searchQuery='';
-    originalCount=activeItems.length; foodBase=[...chosen]; foodManual=new Set(); foodQuickHidden=new Set(); foodInProgress=true;
-    renderStage(); renderFoodQuickCuts();
+    originalCount=activeItems.length;
+    renderStage();
   });
 
   const potato=page.locator('#quickCutsBar button[data-launch-quick="potato"]');
