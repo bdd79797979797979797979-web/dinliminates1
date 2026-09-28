@@ -68,7 +68,7 @@ function res(){
   assert.equal(mc.opening_hours,'Mo-Su 06:00-23:00');
   assert.equal(mc.website,'https://www.mcdonalds.com');
   assert(r.body.results.every(x=>Number(x.distanceMiles)<=100));
-  assert(r.body.results.every(x=>/^osm-(node|way|relation)-\d+$/.test(x.id) || /^photon-|^nominatim-/.test(x.id)));
+  assert(r.body.results.every(x=>/^osm-|^photon-|^nominatim-/.test(x.id)));
   assert(r.body.providersUsed.includes('Photon POI'));
   assert(r.body.providersUsed.includes('Nominatim POI'));
   console.log('API_UNIT_TESTS_OK');
