@@ -1,13 +1,15 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v706-launch-fix';
+const VERSION = 'restaurant-v707-launch-fix';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
 const OVERPASS_ENDPOINTS = [
   'https://z.overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
   'https://overpass-api.de/api/interpreter',
+  'https://overpass.nchc.org.tw/api/interpreter',
   'https://lz4.overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
   'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
@@ -358,43 +360,45 @@ async function doSearch(lat, lon, radiusMi) {
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
   if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
     async function firstUsableProvider(endpoints) {
-      const states = new Array(endpoints.length);
-      const attempts = endpoints.map((endpoint, index) =>
+      const attempted = [];
+      for (const endpoint of endpoints) {
+        const result = await overpassProvider(endpoint, lat, lon, radiusMi);
+        attempted.push(result);
+        if (result.rows?.length) return { winner: result, results: attempted };
+      }
+      return { winner: null, results: attempted };
+    }
+
+    if (radiusMi <= 25) {
+      // Small searches are the common path: use one mirror at a time so public
+      // providers are not needlessly hammered and the first healthy mirror wins.
+      const first = await firstUsableProvider(OVERPASS_ENDPOINTS);
+      providerResults.push(...first.results);
+    } else {
+      // Larger searches are intrinsically multi-tile. Race two independent
+      // global mirrors so one slow public endpoint cannot block the search.
+      const primary = OVERPASS_ENDPOINTS.slice(0, 2);
+      const states = new Array(primary.length);
+      const attempts = primary.map((endpoint,index) =>
         overpassProvider(endpoint, lat, lon, radiusMi).then(result => {
           states[index] = result;
           if (result.rows?.length) return result;
           throw Object.assign(new Error('No usable restaurant rows.'), { result });
         }).catch(err => {
-          if (!states[index]) states[index] = err?.result || {
-            endpoint,
-            rows: [],
-            errors: [errorText(err)]
-          };
+          if (!states[index]) states[index] = err?.result || { endpoint, rows: [], errors: [errorText(err)] };
           throw err;
         })
       );
-      try {
-        const winner = await Promise.any(attempts);
-        await Promise.allSettled(attempts);
-        return { winner, results: states.filter(Boolean) };
-      } catch {
-        await Promise.allSettled(attempts);
-        return { winner: null, results: states.filter(Boolean) };
+      let winner = null;
+      try { winner = await Promise.any(attempts); } catch {}
+      await Promise.allSettled(attempts);
+      providerResults.push(...states.filter(Boolean));
+      if (!winner) {
+        const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(2));
+        providerResults.push(...fallback.results);
       }
     }
-
-    // Race a small primary set so a healthy mirror returns immediately.
-    // We still keep the remaining provider results for diagnostics/fallback.
-    const providerFanOut = radiusMi > 50 ? 2 : 3;
-    const firstBatch = OVERPASS_ENDPOINTS.slice(0, Math.min(providerFanOut, OVERPASS_ENDPOINTS.length));
-    const first = await firstUsableProvider(firstBatch);
-    providerResults.push(...first.results);
-    if (!first.winner) {
-      const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(providerFanOut));
-      providerResults.push(...fallback.results);
-    }
   }
-
   const providerStats = providerResults.map(x => ({
     endpoint: x.endpoint,
     rows: Number(x.rows?.length || 0),
