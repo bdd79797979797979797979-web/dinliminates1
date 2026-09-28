@@ -277,16 +277,6 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
-  await page.waitForTimeout(300);
-  console.log('QA initial restaurant state', await page.evaluate(()=>({
-    cards:document.querySelectorAll('#restaurantStage .restaurant-card-v240').length,
-    active:document.querySelectorAll('#restaurantStage .restaurant-card-v240.active').length,
-    stage:document.querySelector('#restaurantStage')?.innerText?.slice(0,800),
-    top:document.querySelector('#restaurantTopCount')?.textContent,
-    mode:window.DinliminateRestaurantSearchV3?.diagnose?.(),
-    state:window.DinliminateRestaurantSearchV3?.state?.(),
-    errors:[]
-  })));
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
@@ -1545,7 +1535,8 @@ test('food and restaurant winners are instant, clearly themed, and image-safe', 
   await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-food/);
   const foodColor=await page.locator('#winnerQuickActions .winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(foodColor).toBe('rgb(255, 111, 97)');
-  expect(await page.locator('#winnerImage').getAttribute('src')).toBeNull();
+  const foodImgState=await page.locator('#winnerImage').evaluate(el=>({src:el.getAttribute('src'),visibility:getComputedStyle(el).visibility,naturalWidth:el.naturalWidth}));
+  expect(foodImgState.visibility==='hidden' || foodImgState.naturalWidth>0).toBeTruthy();
   await page.locator('#winnerHomeBtn').click();
 
   const restMs=await page.evaluate(()=>{
@@ -1557,6 +1548,7 @@ test('food and restaurant winners are instant, clearly themed, and image-safe', 
   await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-restaurant/);
   const restColor=await page.locator('#winnerQuickActions .winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(restColor).toBe('rgb(103, 196, 155)');
-  expect(await page.locator('#winnerImage').getAttribute('src')).toBeNull();
+  const restImgState=await page.locator('#winnerImage').evaluate(el=>({src:el.getAttribute('src'),visibility:getComputedStyle(el).visibility,naturalWidth:el.naturalWidth}));
+  expect(restImgState.visibility==='hidden' || restImgState.naturalWidth>0).toBeTruthy();
   expect(errors).toEqual([]);
 });
