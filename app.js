@@ -796,8 +796,11 @@ function hourStatus(row){
         if(allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
         S.custom.push({id,name,primary:id,category:cat,image:photo,recipe});
       }
-      buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove(); manageFoodsView();
-      if(S.screen==='food'){foodQuick();drawFood();}
+      buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
+      // Adding from the Food deck should return directly to the swipe experience.
+      // Editing an existing food is managed from the menu, so reopen the manager after save.
+      if(S.screen==='food' && !isEdit){ foodQuick(); drawFood(); }
+      else manageFoodsView();
     };
   }
 
