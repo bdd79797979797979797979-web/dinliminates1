@@ -292,7 +292,7 @@
     if(key && activeQuick.has(key)){
       pool=scope.filter(r=>{
         const id=restKey(r);
-        if(currentActive.has(id)||manual.has(id)||held.has(id))return false;
+        if(manual.has(id)||held.has(id))return false;
         if(!restaurantQuickCutMatches(r,key))return false;
         return ![...activeQuick].some(other=>other!==key&&restaurantQuickCutMatches(r,other));
       });
@@ -313,9 +313,11 @@
       return !Number.isFinite(d)||d<=radius;
     });
 
-    const q=String(restaurantFilters?.query||'').trim().toLowerCase();
+    const q=String(restaurantFilters?.query||'').trim();
     if(q){
-      pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
+      pool=pool.filter(r=>typeof restaurantSearchMatches==='function'
+        ? restaurantSearchMatches(r,q)
+        : String(r?.name||'').toLowerCase().includes(q.toLowerCase()));
     }
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
     if(hours==='open-unknown') pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
