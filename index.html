@@ -5939,6 +5939,12 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 .detail-sheet{animation-duration:.12s!important;}
 .detail-backdrop{backdrop-filter:blur(5px)!important;}
 </style>
+
+<style id="dinliminate-p744-detail-speed">
+/* P744 — details should feel immediate on phone: shorten the sheet animation
+   while keeping the content available immediately from already-loaded card data. */
+#detailBackdrop .detail-sheet{animation-duration:.16s!important;will-change:transform,opacity;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -6779,7 +6785,7 @@ function openDetails(item){
   $('detailTitle').textContent = item.name;
   $('detailMeta').textContent = item.type === 'restaurant' ? (item.address || 'Nearby restaurant') : `${(item.tags||[]).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Dinner option'} · ${item.category || (item.type === 'home' ? 'Homemade' : 'Food')}${item.prep ? ` · ${item.prep}` : ''}${item.budget ? ` · ${item.budget}` : ''}`;
   $('detailFallback').textContent = displayIcon(item);
-  const detailPhoto=item?.type==='restaurant'?restaurantPhotoUrl(item):photoFor(item); const detailImg=$('detailImage'); detailImg.removeAttribute('src'); detailImg.style.display='none'; detailImg.style.objectPosition=photoPosition(item); $('detailHero').classList.toggle('no-photo',!detailPhoto); requestAnimationFrame(()=>{if(!$('detailBackdrop')?.classList.contains('hidden')){detailImg.src=detailPhoto||RESTAURANT_FALLBACK_PHOTO;detailImg.style.display='block';}});
+  const detailPhoto=item?.type==='restaurant'?restaurantPhotoUrl(item):photoFor(item); const detailImg=$('detailImage'); detailImg.removeAttribute('src'); detailImg.style.display='block'; detailImg.style.objectPosition=photoPosition(item); $('detailHero').classList.toggle('no-photo',!detailPhoto); if(detailPhoto){detailImg.src=detailPhoto;} else {detailImg.src=item?.type==='restaurant'?RESTAURANT_FALLBACK_PHOTO:FOOD_FALLBACK_PHOTO;}
   if(item.type === 'restaurant'){
     const website = safeExternalUrl(item.website) ? `<a class="restaurant-link" href="${escapeHtml(safeExternalUrl(item.website))}" target="_blank" rel="noopener">Visit Restaurant Website ↗</a>` : `<a class="restaurant-link" href="https://www.google.com/search?q=${encodeURIComponent(item.name)}" target="_blank" rel="noopener">Search restaurant ↗</a>`;
     const menuItems=restaurantMenuItems(item);
