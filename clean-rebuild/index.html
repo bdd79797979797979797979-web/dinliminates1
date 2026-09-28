@@ -332,6 +332,39 @@ $('restStart').onclick=()=>{S.screen='restaurant';S.restaurantActions=[];S.lastR
 const oldContinue=$('continue').onclick;
 $('continue').onclick=()=>{if(!hydrate())return startFood();S.saved=true;if(S.screen==='food'){show('food');drawQuick();drawFood()}else if(S.screen==='restaurant'){show('restaurant');drawQuick();renderRestaurantQuickCuts();cleanDrawRestaurants()}else startFood()};
 
+
+/* CP6: restaurant hours filter + real Details sheet */
+S.hoursMode=S.hoursMode||'openUnknown';
+function explicitClosed(r){
+  const h=String(r?.opening_hours||'').trim().toLowerCase();
+  return h==='closed'||h==='off'||h==='24/7'&&false||/\boff\b/.test(h);
+}
+function hourMatches(r){return S.hoursMode==='closed'?explicitClosed(r):!explicitClosed(r)}
+const prevRestaurantFiltered=restaurantFiltered;
+restaurantFiltered=function(){return (S.restaurantPool||[]).filter(r=>!S.restaurantCuts.has(restCategory(r))&&!r._maybe&&!r._cut&&!r._hidden&&hourMatches(r))};
+function detailsSheet(r){
+  const body='<div class="detail-grid"><div class="detail-hero"><img src="'+(r.photo||r.image||'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85')+'" alt="'+r.name.replace(/"/g,'&quot;')+'"></div><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+r.name+'</h2><p class="status">'+(r.address||'Address not listed')+'</p><p class="status">'+(r.cuisine||restCategory(r))+'</p><p class="status">'+(r.opening_hours?'Hours: '+r.opening_hours:'Open/Unknown Hours')+'</p>'+(r.phone?'<p class="status">Phone: '+r.phone+'</p>':'')+((r.menuItems||[]).length?'<div class="panel" style="margin-top:12px"><b style="font-size:12px">Common menu items</b><p class="status">'+r.menuItems.slice(0,8).join(' · ')+'</p></div>':'')+'<div class="winner-actions" style="margin-top:12px"><button class="small" id="detailClose2">Close</button>'+(r.website?'<button class="cut" id="detailWeb2">Website</button>':'')+'</div></div>';
+  const m=addOverlay('restaurantDetails','Details',body);showOverlay('restaurantDetails');
+  if($('detailClose2'))$('detailClose2').onclick=()=>{$('restaurantDetails').classList.add('hidden');$('restaurantDetailsBg').classList.add('hidden')};
+  if($('detailWeb2'))$('detailWeb2').onclick=()=>window.open(r.website,'_blank','noopener');
+}
+function injectHoursControl(){
+  let b=$('hoursToggle');if(b)return;
+  b=document.createElement('button');b.id='hoursToggle';b.className='small';b.style.cssText='width:100%;margin-top:8px';$('status').insertAdjacentElement('afterend',b);
+  b.onclick=()=>{S.hoursMode=S.hoursMode==='openUnknown'?'closed':'openUnknown';renderHoursControl();cleanDrawRestaurants();persist()};
+  renderHoursControl();
+}
+function renderHoursControl(){const b=$('hoursToggle');if(b)b.textContent=S.hoursMode==='openUnknown'?'Open/Unknown Hours':'Closed';}
+const cp6style=document.createElement('style');cp6style.textContent='.detail-hero img{width:100%;aspect-ratio:1.5;object-fit:cover;border-radius:16px}.detail-grid p{margin:6px 0}.detail-grid .panel{background:#1a1a1a}';document.head.appendChild(cp6style);
+const previousRestStart=$('restStart').onclick;
+$('restStart').onclick=()=>{S.screen='restaurant';S.restaurantActions=[];S.lastRestaurantWinner=null;show('restaurant');drawQuick();renderRestaurantQuickCuts();injectHoursControl()};
+injectHoursControl();
+const oldCleanSearch2=cleanSearch;
+cleanSearch=async function(){S.lastRestaurantWinner=null;await oldCleanSearch2();injectHoursControl();renderHoursControl()};
+const currentCore=cleanDrawRestaurants;
+cleanDrawRestaurants=function(){currentCore();const p=restaurantFiltered();if(p.length&&$('restDetails')){$('restDetails').onclick=()=>detailsSheet(p[Math.min(S.restaurantIndex,p.length-1)])}};
+window.drawRestaurants=cleanDrawRestaurants;
+
 </script>
 </main>
 </body>
