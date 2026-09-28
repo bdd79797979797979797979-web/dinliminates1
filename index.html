@@ -8725,7 +8725,8 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   const ST={
     seq:0, searching:false, selected:null, origin:null,
     lastLocationError:null, lastRestaurantError:null,
-    status:'idle', autoTimer:0, autoSeq:0, queryTimer:0, lastSearchMeta:null
+    status:'idle', autoTimer:0, autoSeq:0, queryTimer:0, lastSearchMeta:null,
+    universeKey:'', universeRadius:0, universeRows:[]
   };
 
   const $=id=>document.getElementById(id);
@@ -8925,21 +8926,68 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     ST.origin={lat,lon};
     ST.lastRestaurantError=null;
     busy('find',true,'Finding…');
-    setStatus('Searching restaurants near '+text(label||'your location')+'…','live');
+    const requestedRadius=clamp(restaurantRadiusMiles);
+    const searchQuery=text(options.query||'').slice(0,80);
+    const key=lat.toFixed(5)+':'+lon.toFixed(5);
+    setStatus(searchQuery?'Searching for “'+searchQuery+'”…':'Searching restaurants near '+text(label||'your location')+'…','live');
 
     try{
-      const params={mode:'search',lat,lon,radius:clamp(restaurantRadiusMiles),limit:1000}; if(options.query)params.q=String(options.query).slice(0,80); const d=await request(params,30_000);
+      // The unfiltered restaurant universe is session-scoped by origin. A smaller
+      // radius can always be derived from a wider loaded universe without another
+      // network request. A wider radius adds to the existing universe instead of
+      // replacing it with a provider's potentially incomplete larger-radius response.
+      if(!searchQuery && ST.universeKey===key && ST.universeRadius>=requestedRadius && ST.universeRows.length){
+        const rows=ST.universeRows.filter(r=>{const d=Number(r?.distanceMiles);return Number.isFinite(d)&&d<=requestedRadius;});
+        if(!rows.length)throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
+        applyRestaurantData({businesses:rows},text(label||userCity||'Selected location'));
+        try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
+        setRadiusUi();
+        const ff=rows.filter(r=>r?.fastFood===true).length;
+        ST.lastSearchMeta={count:rows.length,fastFood:ff,radius:requestedRadius,providers:['session restaurant pool']};
+        setStatus(rows.length+' restaurants · '+ff+' fast food · '+requestedRadius+' mi · loaded search pool','live');
+        return true;
+      }
+
+      const params={mode:'search',lat,lon,radius:requestedRadius,limit:1000};
+      if(searchQuery)params.q=searchQuery;
+      const d=await request(params,30_000);
       if(seq!==ST.seq)return false;
-      const rows=Array.isArray(d.results)?d.results:[];
-      if(!rows.length)throw Object.assign(new Error('No restaurants were found within '+clamp(restaurantRadiusMiles)+' miles.'),{code:'NO_RESULTS'});
+      let incoming=Array.isArray(d.results)?d.results:[];
+      if(!incoming.length)throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
+
+      let rows=incoming;
+      if(!searchQuery){
+        const incomingKey=key;
+        const sameOrigin=ST.universeKey===incomingKey;
+        if(!sameOrigin){ST.universeRows=[];ST.universeRadius=0;ST.universeKey=incomingKey;}
+        const byKey=new Map();
+        for(const row of [...ST.universeRows,...incoming]){
+          const name=String(row?.name||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+          const address=String(row?.address||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+          const id=String(row?.id||'').trim().toLowerCase();
+          const k=address?name+'|'+address:(name&&Number.isFinite(Number(row?.lat))&&Number.isFinite(Number(row?.lon))?name+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4):'id:'+id);
+          const existing=byKey.get(k);
+          if(!existing)byKey.set(k,row);
+          else {
+            const merged={...existing};
+            for(const field of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl','category'])if(!merged[field]&&row[field])merged[field]=row[field];
+            merged.fastFood=merged.fastFood||row.fastFood;
+            merged.tags=[...new Set([...(merged.tags||[]),...(row.tags||[])])];
+            byKey.set(k,merged);
+          }
+        }
+        ST.universeRows=[...byKey.values()].filter(r=>Number.isFinite(Number(r?.distanceMiles))&&Number(r.distanceMiles)<=Math.max(ST.universeRadius,requestedRadius));
+        ST.universeRadius=Math.max(ST.universeRadius,requestedRadius);
+        rows=ST.universeRows.filter(r=>Number(r.distanceMiles)<=requestedRadius);
+      }
+
       applyRestaurantData({businesses:rows},text(label||userCity||'Selected location'));
       try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
       setRadiusUi();
       const ff=Number(d.fastFoodCount)||rows.filter(r=>r?.fastFood===true).length;
-      const providers=Array.isArray(d.providersUsed)?d.providersUsed:[];
-      const providerText=providers.length?providers.join(' + '):'restaurant data providers';
-      ST.lastSearchMeta={count:rows.length,fastFood:ff,radius:clamp(restaurantRadiusMiles),providers};
-      setStatus(rows.length+' restaurants · '+ff+' fast food · '+clamp(restaurantRadiusMiles)+' mi · '+providerText,'live');
+      const providers=searchQuery?(Array.isArray(d.providersUsed)?d.providersUsed:['restaurant data providers']):((Array.isArray(d.providersUsed)&&d.providersUsed.length)?d.providersUsed:['loaded search pool']);
+      ST.lastSearchMeta={count:rows.length,fastFood:ff,radius:requestedRadius,providers};
+      setStatus(rows.length+' restaurants · '+ff+' fast food · '+requestedRadius+' mi · '+providers.join(' + '),'live');
       ST.lastRestaurantError=null;
       return true;
     }catch(e){
@@ -8958,7 +9006,6 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       if(seq===ST.seq){ST.searching=false;busy('find',false);}
     }
   }
-
   async function resolve(q){
     const d=await request({mode:'resolve',q:text(q)},14_000);
     const loc=d?.location||{};
@@ -9127,60 +9174,21 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   function setRadius(milesValue,refreshNow=true){
     const next=clamp(milesValue);
     const previous=clamp(restaurantRadiusMiles);
-
-    // Selecting the already-active radius is a no-op. The old behavior launched
-    // a redundant network search, which could race a subsequent narrower radius
-    // selection and let a stale response replace the live deck.
-    if(next===previous){
-      restaurantRadiusMiles=next;
-      safeWrite('dinliminateRestaurantRadius',String(next));
-      setRadiusUi();
-      return true;
-    }
-
+    if(next===previous){restaurantRadiusMiles=next;safeWrite('dinliminateRestaurantRadius',String(next));setRadiusUi();return true;}
     restaurantRadiusMiles=next;
     safeWrite('dinliminateRestaurantRadius',String(next));
     setRadiusUi();
     if(!refreshNow)return true;
+    if(ST.searching){ST.seq++;ST.searching=false;busy('find',false);}
 
-    // A radius change supersedes any prior search. We cannot always abort the
-    // provider fetch itself, but invalidating its sequence prevents stale data
-    // from being applied after the user has changed radius.
-    if(ST.searching){
-      ST.seq++;
-      ST.searching=false;
-      busy('find',false);
-    }
-
-    if(restaurantItems?.length&&next<previous){
-      const inRadius=new Set(
-        restaurantItems
-          .filter(r=>{const d=Number(r?.distanceMiles);return Number.isFinite(d)&&d<=next;})
-          .map(r=>String(r?.id||r?.name||'').trim().toLowerCase())
-      );
-      activeRestaurants=(activeRestaurants||[]).filter(r=>inRadius.has(String(r?.id||r?.name||'').trim().toLowerCase()));
-      holdingRestaurants=(holdingRestaurants||[]).filter(r=>inRadius.has(String(r?.id||r?.name||'').trim().toLowerCase()));
-      restaurantUndoStack=[];
-      restaurantFinalistMode=false;
-      restaurantEliminationExhausted=false;
-      restaurantFilters={...(restaurantFilters||{}),query:''};
-      try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
-      try{renderRestaurantStage();syncRestaurantActionLabels?.();}catch{}
-      setStatus((activeRestaurants||[]).length+' restaurants within '+next+' mi','live');
-      return true;
-    }
-
-    if(restaurantLocationMode==='device'&&userCoords){
-      try{window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();}catch{}
-      return searchAt({lat:userCoords.latitude,lon:userCoords.longitude},userCity||'your location',{preserveOnError:true});
-    }
-    if(restaurantLocationMode==='area'&&restaurantAreaCoords){
-      try{window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();}catch{}
-      return searchAt({lat:restaurantAreaCoords.lat,lon:restaurantAreaCoords.lon},restaurantAreaCoords.display||userCity||'selected location',{preserveOnError:true});
-    }
-    return true;
+    const origin=currentSearchOrigin();
+    if(!origin)return true;
+    const query=String(restaurantFilters?.query||'').trim();
+    try{window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();}catch{}
+    // The current search origin owns the loaded universe. Narrower radii derive
+    // locally; wider radii fetch and merge into that same universe.
+    return searchAt(origin,userCity||restaurantAreaCoords?.display||'selected location',{query,supersede:true,preserveOnError:true});
   }
-
   function currentSearchOrigin(){
     if(ST.origin&&Number.isFinite(Number(ST.origin.lat))&&Number.isFinite(Number(ST.origin.lon)))return ST.origin;
     if(restaurantLocationMode==='device'&&userCoords)return {lat:Number(userCoords.latitude),lon:Number(userCoords.longitude)};
