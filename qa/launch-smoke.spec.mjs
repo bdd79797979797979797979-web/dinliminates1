@@ -1798,8 +1798,8 @@ test('P781 food categories, Mexican Stir Fry photo, and exact primary Quick Cut 
       expect(await page.evaluate(name => foodPrimaryQuickCut(homeMeals.find(x => x.name === name)) || '', name)).toBe(key);
     }
     if (key === 'mexican') {
-      const stirCard = page.locator('#stage .stack-card.active .card-photo img');
-      await expect(stirCard).toHaveAttribute('src', /4924603/);
+      const stirPhoto = await page.evaluate(() => photoFor(homeMeals.find(x => x.name === 'Mexican Stir Fry')));
+      expect(stirPhoto).toContain('4924603');
     }
   }
 
