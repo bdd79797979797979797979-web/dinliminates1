@@ -94,7 +94,7 @@
   }
 
   function updateContinue() {
-    const active = (S.pool?.length || 0) > 0 || (S.restaurantPool?.length || 0) > 0;
+    const active = (S.screen !== 'winner') && ((S.pool?.length || 0) > 0 || (S.restaurantPool?.length || 0) > 0);
     $('continue')?.classList.toggle('hidden', !S.saved || !active);
   }
 
