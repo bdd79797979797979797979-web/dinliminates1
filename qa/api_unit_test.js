@@ -86,7 +86,7 @@ function res(){
   assert.equal(mc.website,'https://www.mcdonalds.com');
   assert(r.body.results.every(x=>Number(x.distanceMiles)<=100));
   assert(r.body.results.every(x=>/^osm-|^photon-|^nominatim-/.test(x.id)));
-  assert(r.body.providersUsed.includes('Photon POI'));
-  assert(r.body.providersUsed.includes('Nominatim POI'));
+  assert(r.body.providersUsed.includes('Photon POI + Nominatim fallback'));
+  assert(r.body.providerCounts['Photon POI + Nominatim fallback'] >= 2);
   console.log('API_UNIT_TESTS_OK');
 })().catch(e=>{console.error(e);process.exit(1)});
