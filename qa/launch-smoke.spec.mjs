@@ -143,6 +143,10 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
     const btn = page.locator('#restaurantQuickCuts button').filter({ hasText: label }).first();
     await expect(btn).toBeVisible();
     await expect(btn).toHaveAttribute('aria-pressed','false');
+    // A live area may legitimately have zero matches for a cuisine. Such a
+    // Quick Cut is disabled; deterministic coverage verifies click/restore
+    // behavior when matches exist.
+    if (await btn.isDisabled()) continue;
     await btn.click();
     await expect(btn).toHaveAttribute('aria-pressed','true');
     await btn.click();
