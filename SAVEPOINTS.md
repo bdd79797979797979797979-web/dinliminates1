@@ -346,3 +346,18 @@ Added:
 
 Recovery:
 Restore branch to the commit immediately before CP78 if this checkpoint introduces a regression.
+
+## CP79 — Premium Tinder-style swipe checkpoint
+Source commits:
+- app.js: 0ac977de700da1119ca482718afa0e5397386706
+- styles.css: b8d4b4f345bfd2ca0578292214ea4dcf5bc46202
+- browser QA: dafb93ef0ea0ee7f5b5c57f9974a0311c6f6bce4
+
+Added:
+- Live horizontal drag + tilt for Food and Restaurant cards.
+- CUT/MAYBE visual stamp while dragging.
+- Swipe-out transition before the decision is committed.
+- Matching behavior remains left=Cut, right=Maybe.
+- Browser QA now verifies the visual swipe state.
+
+Recovery point: CP79.
