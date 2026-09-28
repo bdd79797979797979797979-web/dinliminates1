@@ -24,4 +24,10 @@ const DINLIMINATE_FOODS=[
 ['frozen','Stouffer’s Frozen Dinner','frozen','American','https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85'],
 ['popcorn','Popcorn','snack','Snack','https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=1200&q=85'],
 ['fruit','Fruit Bowl','healthy','Healthy','https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85']
-].map(([id,name,primary,category,image])=>({id,name,primary,category,image}));
+
+['burger-fries','Burger & Fries','burger','American','https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'],
+['goulash','Goulash','pasta','Pasta','https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'],
+['southern-vegetable-plate','Southern Vegetable Plate','vegetable-plate','Southern','https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'],
+['southern-vegetable-beef-soup','Southern Vegetable Beef Soup','soup','Soup','https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85'],
+['buttermilk-cornbread','Buttermilk & Cornbread','southern-bread','Southern','https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=85'],
+['fish-chips','Fish & Chips','fish','American','https://images.unsplash.com/photo-1579208030886-b937da0925dc?auto=format&fit=crop&w=1200&q=85'],].map(([id,name,primary,category,image])=>({id,name,primary,category,image}));
