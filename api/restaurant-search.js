@@ -461,6 +461,46 @@ async function googleSearch(lat, lon, radiusMi) {
   }
 }
 
+async function photonSearchProvider(lat,lon,radiusMi,query){
+  const started=Date.now(),radius=clampRadius(radiusMi),q=String(query||'').trim();
+  const latDelta=radius/69,lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
+  const bbox=[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta].join(',');
+  try{
+    const data=await fetchJson('https://photon.komoot.io/api?'+new URLSearchParams({q,bbox,limit:radius>50?'200':'120',lang:'en',countrycode:'US',dedupe:'1',location_bias_scale:'0.25'}).toString(),{},5500);
+    const rows=[];
+    for(const feature of (data?.features||[])){
+      const row=photonRow(feature); if(!row)continue;
+      const a=String(row.amenity||'').toLowerCase();
+      if(a!=='restaurant'&&a!=='fast_food'&&a!=='cafe'&&!row.fastFood)continue;
+      row.distanceMiles=miles(lat,lon,row.lat,row.lon);
+      if(row.distanceMiles<=radius&&restaurantMatchesSearch(row,q))rows.push(row);
+    }
+    return {endpoint:'Photon text search',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors:[]};
+  }catch(e){return {endpoint:'Photon text search',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
+}
+async function nominatimSearchProvider(lat,lon,radiusMi,query){
+  const started=Date.now(),radius=clampRadius(radiusMi),q=String(query||'').trim();
+  const latDelta=radius/69,lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
+  const viewbox=[lon-lonDelta,lat+latDelta,lon+lonDelta,lat-latDelta].join(',');
+  try{
+    const data=await fetchJson('https://nominatim.openstreetmap.org/search?'+new URLSearchParams({q,format:'jsonv2',limit:'60',bounded:'1',viewbox,countrycodes:'us',dedupe:'1',addressdetails:'1',extratags:'1'}).toString(),{headers:{'User-Agent':'Dinliminate/1.0 restaurant text search; contact via app'}},5500);
+    const rows=[];
+    for(const hit of Array.isArray(data)?data:[]){
+      const la=num(hit?.lat),lo=num(hit?.lon),name=String(hit?.name||hit?.display_name||'').split(',')[0].trim();
+      if(!name||!Number.isFinite(la)||!Number.isFinite(lo))continue;
+      const type=String(hit?.type||'').toLowerCase(),cls=String(hit?.class||'').toLowerCase();
+      if(!(type==='restaurant'||type==='fast_food'||type==='cafe'||cls==='amenity'))continue;
+      const extra=hit?.extratags||{},cuisine=String(extra.cuisine||'').trim(),brand=String(extra.brand||'').trim(),operator=String(extra.operator||'').trim();
+      let website=String(extra.website||extra['contact:website']||'').trim();
+      if(website&&!/^https?:\/\//i.test(website))website='https://'+website;
+      let address=String(hit?.display_name||'').trim(); if(address.startsWith(name+','))address=address.slice(name.length+1).trim();
+      const fast=type==='fast_food'||isFastFoodText(name+' '+brand+' '+operator+' '+cuisine);
+      const row={id:hit?.osm_id?'osm-'+({N:'node',W:'way',R:'relation'}[String(hit?.osm_type||'').toUpperCase()]||'place')+'-'+hit.osm_id:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(cuisine||'Restaurant'),cuisine,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone:String(extra.phone||extra['contact:phone']||'').trim(),website,opening_hours:String(extra.opening_hours||'').trim(),lat:la,lon:lo,photo:String(extra.image||extra.image_url||'').trim(),rating:0,priceLevel:'',menuItems:[],menuUrl:String(extra.menu||extra['contact:menu']||'').trim(),timeZone:'',source:'Nominatim text search',distanceMiles:miles(lat,lon,la,lo)};
+      if(row.distanceMiles<=radius&&restaurantMatchesSearch(row,q))rows.push(row);
+    }
+    return {endpoint:'Nominatim text search',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors:[]};
+  }catch(e){return {endpoint:'Nominatim text search',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
+}
 async function doSearch(lat, lon, radiusMi) {
   const key = lat.toFixed(3) + ':' + lon.toFixed(3) + ':' + radiusMi.toFixed(1);
   const cached = memoryCache.get(key);
