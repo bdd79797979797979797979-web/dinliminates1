@@ -6276,7 +6276,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p712-restaurant-hours-complete';
+const DINLIMINATE_VERSION = 'p713-food-quickcuts-scroll';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -8815,6 +8815,37 @@ body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu{
   border:1px solid rgba(255,255,255,.13)!important;border-radius:13px!important;
   background:rgba(255,255,255,.055)!important;color:#fff!important;
   box-shadow:0 8px 24px rgba(0,0,0,.14)!important;
+}
+</style>
+<style id="dinliminate-p713-food-quickcuts-scroll">
+/* P713 — Food Quick Cuts now uses the same visible horizontal scrollbar as Restaurant Quick Cuts. */
+body.game-mode #quickCutsBar{
+  display:flex!important;
+  gap:6px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-x!important;
+  scrollbar-width:thin!important;
+  scrollbar-color:rgba(255,255,255,.22) rgba(255,255,255,.05)!important;
+  scroll-snap-type:x proximity!important;
+  padding-bottom:5px!important;
+}
+body.game-mode #quickCutsBar::-webkit-scrollbar{
+  height:4px!important;
+  display:block!important;
+}
+body.game-mode #quickCutsBar::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.05)!important;
+  border-radius:999px!important;
+}
+body.game-mode #quickCutsBar::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.22)!important;
+  border-radius:999px!important;
+}
+body.game-mode #quickCutsBar .quick-cut{
+  flex:0 0 auto!important;
+  scroll-snap-align:start!important;
 }
 </style>
 </body>
