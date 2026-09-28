@@ -591,7 +591,7 @@ function hourStatus(row){
       (item.cuisine ? '<p class="status">'+esc(item.cuisine)+'</p>' : '')+
       (item.opening_hours ? '<p class="status">Hours: '+esc(item.opening_hours)+'</p>' : type === 'restaurant' ? '<p class="status">Open/Unknown Hours</p>' : '')+
       (item.phone ? '<p class="status">Phone: '+esc(item.phone)+'</p>' : '')+
-      ((item.menuItems||[]).length ? '<div class="panel"><b style="font-size:12px">Common menu items</b><p class="status">'+esc(item.menuItems.slice(0,8).join(' · '))+'</p></div>' : '')+
+      ((item.menuItems||[]).length ? '<div class="panel"><b style="font-size:12px">Common menu items</b><p class="status">'+esc(item.menuItems.slice(0,8).join(' · '))+'</p></div>' : '')+(item.recipe ? '<div class="panel"><b style="font-size:12px">Recipe / notes</b><p class="status">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>' : '')+
       '<div class="winner-actions" style="margin-top:12px"><button class="small" id="detailDone">Close</button>'+
       (item.website ? '<button class="cut" id="detailWeb">Website</button>' : '')+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
@@ -657,7 +657,7 @@ function hourStatus(row){
 
   function manageFoodsView() {
     const rows = allFoods();
-    const body = '<form class="add" id="foodAddForm"><input id="newFoodName" placeholder="Food name" required><select id="newFoodCat"><option>American</option><option>Southern</option><option>Asian</option><option>Mexican</option><option>Pasta</option><option>Pork</option><option>Healthy</option><option>Breakfast</option><option>Soup</option><option>Greek</option><option>Snack</option></select><button class="cut">Add Food</button></form><div class="food-list">'+rows.map(item => {
+    const body = '<form class="add" id="foodAddForm"><input id="newFoodName" placeholder="Food name" required><select id="newFoodCat"><option>American</option><option>Southern</option><option>Asian</option><option>Mexican</option><option>Pasta</option><option>Pork</option><option>Healthy</option><option>Breakfast</option><option>Soup</option><option>Greek</option><option>Snack</option></select><input id="newFoodPhoto" placeholder="Photo URL (optional)" inputmode="url"><textarea id="newFoodRecipe" placeholder="Recipe or notes (optional)" rows="4"></textarea><button class="cut">Add Food</button></form><div class="food-list">'+rows.map(item => {
       const hidden = S.hidden.has(item.id);
       const custom = S.custom.some(x => x.id === item.id);
       return '<div class="food-row"><span>'+esc(item.name)+'</span><span class="food-row-actions">'+
@@ -672,7 +672,7 @@ function hourStatus(row){
       if (!name) return;
       const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
       if (allFoods().some(x => x.id === id)) return;
-      S.custom.push({id,name,primary:id,category:$('newFoodCat').value,image:HUNGRY_IMAGE});
+      S.custom.push({id,name,primary:id,category:$('newFoodCat').value,image:$('newFoodPhoto').value.trim()||HUNGRY_IMAGE,recipe:$('newFoodRecipe').value.trim()});
       buildFood();
       save();
       modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
