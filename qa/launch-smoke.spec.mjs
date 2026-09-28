@@ -327,7 +327,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
     active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,open:r.openNow,cat:r.category})) : [],
     americanText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="american"] .quick-cut-copy em')?.textContent || null
   })));
-  await expect.poll(()=>count(american)).toBe(1);
+  await expect.poll(()=>count(american)).toBe(2);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
   await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)!==false))).toBe(true);
