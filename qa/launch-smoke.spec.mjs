@@ -1232,3 +1232,77 @@ test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ pa
 
   expect(errors).toEqual([]);
 });
+
+
+test('P743 one-choice finishing rules are identical for food and restaurants', async ({ page }) => {
+  test.setTimeout(30000);
+  page.setDefaultTimeout(5000);
+  await page.goto(BASE, {waitUntil:'domcontentloaded'});
+
+  // FOOD: 1 left -> Maybe becomes Choose; Choose -> Winner.
+  await page.locator('#startBtn').click();
+  await page.evaluate(() => {
+    const one = activeItems.find(x => x && !isDeletedFood?.(x)) || activeItems[0];
+    activeItems=[one];
+    holdingItems=[];
+    finalistMode=false;
+    transitioning=false;
+    renderStage();
+    syncDecisionActionLabels();
+  });
+  await expect(page.locator('#gameTopCount')).toHaveText('1');
+  await expect(page.locator('#holdBtn')).toHaveText('Choose');
+  await expect(page.locator('#holdBtn')).toHaveAttribute('aria-label','Choose this food');
+  await page.locator('#holdBtn').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await expect(page.locator('#winnerName')).not.toHaveText('');
+
+  // FOOD: 1 left -> Cut -> Hungry, not recycling.
+  await page.locator('#winnerHomeBtn').click();
+  await page.locator('#startBtn').click();
+  await page.evaluate(() => {
+    const one=activeItems[0];
+    activeItems=[one];
+    holdingItems=[];
+    finalistMode=false;
+    transitioning=false;
+    renderStage();
+    syncDecisionActionLabels();
+  });
+  await page.locator('#cutBtn').click();
+  await expect(page.locator('.hungry-state')).toBeVisible();
+  await expect(page.locator('#gameTopCount')).toHaveText('0');
+  await expect(page.locator('#holdBtn')).toBeDisabled();
+
+  // RESTAURANT: deterministic fixture, 1 left -> Maybe/Choose and Cut/Hungry.
+  await page.locator('#homeRestaurantQuick').click();
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+  await page.evaluate(() => {
+    const rows=[
+      {id:'end-one',name:'End One Restaurant',type:'restaurant',category:'American',amenity:'restaurant',openNow:true,distanceMiles:1,lat:36.1,lon:-86.1,address:'1 Main St, Nashville, TN'},
+      {id:'end-two',name:'End Two Restaurant',type:'restaurant',category:'Italian',amenity:'restaurant',openNow:true,distanceMiles:2,lat:36.2,lon:-86.2,address:'2 Main St, Nashville, TN'}
+    ];
+    restaurantItems=rows; restaurantBase=[...rows]; activeRestaurants=[rows[0]]; holdingRestaurants=[];
+    restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts=new Set(); restaurantManual=new Set();
+    restaurantEliminationExhausted=false; restaurantFinalistMode=false; restaurantRoundInProgress=true;
+    restaurantHoursFilter='all'; safeWrite('dinliminateRestaurantHoursFilter','all');
+    renderRestaurantStage(); syncRestaurantActionLabels();
+  });
+  await expect(page.locator('#restaurantTopCount')).toHaveText('1');
+  const keep = page.locator('#restaurantKeepBtn');
+  await expect(keep).toHaveText('Choose');
+  await keep.click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await expect(page.locator('#winnerName')).toHaveText('End One Restaurant');
+
+  await page.locator('#winnerHomeBtn').click();
+  await page.locator('#homeRestaurantQuick').click();
+  await page.evaluate(() => {
+    const one=restaurantItems[0];
+    activeRestaurants=[one]; holdingRestaurants=[]; restaurantEliminationExhausted=false; restaurantFilters={query:'',sort:'shuffle'};
+    renderRestaurantStage(); syncRestaurantActionLabels();
+  });
+  await page.locator('#restaurantCutBtn').click();
+  await expect(page.locator('.restaurant-hungry-state')).toBeVisible();
+  await expect(page.locator('#restaurantTopCount')).toHaveText('0');
+});
