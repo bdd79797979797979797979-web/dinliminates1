@@ -108,6 +108,14 @@ Removed embedded CSS builders from JavaScript and centralized UI styles.
 Commit: `343afe33faa8489c1feefa4cc9c305ba1859fc6d`
 Photon is restricted to restaurant/fast-food POIs and named fast-food photo fallbacks are expanded.
 
+## CP27 — winner resume + Potato data semantics
+Commits: `070852e`, `4076e30`
+Winner states no longer advertise Continue, and Potato is represented by its own primary food data classification.
+
+## CP28 — stronger clean static QA
+Commit: `ec6455c8aa33ab614f408d08ae0e50305072688d`
+QA now enforces no JS stylesheet builder, explicit winner type persistence, the clean API version, and key food coverage.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
