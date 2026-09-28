@@ -212,13 +212,29 @@ function normalizeRows(elements, originLat, originLon, radiusMi) {
   return [...map.values()].sort((a, b) => a.distanceMiles - b.distanceMiles);
 }
 
-function overpassQuery(lat, lon, radiusMi) {
-  const meters = Math.round(Math.min(50, Math.max(1, radiusMi)) * 1609.344);
-  return '[out:json][timeout:12];' +
-    'nwr[amenity~"^(restaurant|fast_food)$"][name](around:' + meters + ',' + lat + ',' + lon + ');' +
-    'out center tags;';
+function searchText(value){
+  return String(value||'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 }
-
+function searchTerms(query){ return searchText(query).split(' ').filter(Boolean); }
+function restaurantMatchesSearch(row,query){
+  const q=searchText(query); if(!q)return true;
+  const fields=[row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,...(Array.isArray(row?.tags)?row.tags:[row?.tags]),...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])];
+  const hay=searchText(fields.filter(Boolean).join(' '));
+  return hay.includes(q) || searchTerms(q).every(term=>hay.includes(term));
+}
+function overpassRegex(query){ return searchText(query).replace(/[.*+?^${}()|[\]\\]/g,' ').split(/\s+/).filter(Boolean).join('.*'); }
+function overpassQuery(lat, lon, radiusMi, query=''){
+  const meters=Math.round(Math.min(50,Math.max(1,radiusMi))*1609.344);
+  const base='[out:json][timeout:12];';
+  if(!String(query||'').trim()) return base+'nwr[amenity~"^(restaurant|fast_food)$"][name](around:'+meters+','+lat+','+lon+');out center tags;';
+  const rx=overpassRegex(query).replace(/"/g,'\\"');
+  return base+'('+
+    'nwr[amenity~"^(restaurant|fast_food)$"][name~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
+    'nwr[amenity~"^(restaurant|fast_food)$"][brand~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
+    'nwr[amenity~"^(restaurant|fast_food)$"][operator~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
+    'nwr[amenity~"^(restaurant|fast_food)$"][cuisine~"'+rx+'",i](around:'+meters+','+lat+','+lon+');'+
+    ');out center tags;';
+}
 function tileCenters(lat, lon, radiusMi) {
   // Keep provider work bounded. A local search uses one query. A 25–50 mile
   // search uses four overlapping 35-mile circles. Larger searches use a
@@ -253,7 +269,7 @@ function tileCenters(lat, lon, radiusMi) {
   }
   return out;
 }
-async function overpassProvider(endpoint, lat, lon, radiusMi) {
+async function overpassProvider(endpoint, lat, lon, radiusMi, searchQuery='') {
   const started = Date.now();
   const centers = tileCenters(lat, lon, radiusMi);
   const elements = [];
@@ -262,7 +278,7 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
   const postTimeout = 2_500;
 
   async function queryCenter(c) {
-    const query = overpassQuery(c.lat, c.lon, c.radiusMi);
+    const query = overpassQuery(c.lat, c.lon, c.radiusMi, searchQuery);
     const encoded = encodeURIComponent(query);
     try {
       const data = await fetchJson(endpoint + '?data=' + encoded, {}, timeout);
