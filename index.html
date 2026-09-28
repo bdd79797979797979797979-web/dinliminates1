@@ -6153,7 +6153,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p706-restaurant-launch-fix';
+const DINLIMINATE_VERSION = 'p708-restaurant-hours-complete';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -7291,25 +7291,63 @@ function restaurantQuickCutMatches(item,key){
   return (terms[key]||[new RegExp(`\\b${String(key).replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')}\\b`,'i')]).some(re=>re.test(source));
 }
 function normalizePrice(v){const s=String(v??'').trim().toUpperCase();if(/^\$+$/.test(s))return s;const n=Number(v);if(Number.isFinite(n)){if(n<=1)return '$';if(n===2)return '$$';if(n===3)return '$$$';if(n>=4)return '$$$$';}return '';}
+function restaurantStateTimeZone(item){
+  const explicit=String(item?.timeZone||item?.timezone||item?.ianaTimezone||item?.iana_timezone||'').trim();
+  if(explicit)return explicit;
+  const text=(String(item?.address||'')+' '+String(item?.searchArea||'')).toUpperCase();
+  const states=['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
+  let state='';
+  for(const st of states){if(new RegExp('(?:^|[,\\s])'+st+'(?:$|[,\\s])','i').test(text)){state=st;break;}}
+  if(!state)return '';
+  const lon=Number(item?.lon);
+  switch(state){
+    case 'AK': return 'America/Anchorage';
+    case 'HI': return 'Pacific/Honolulu';
+    case 'AZ': return 'America/Phoenix';
+    case 'CA': case 'NV': case 'OR': case 'WA': return 'America/Los_Angeles';
+    case 'ID': return Number.isFinite(lon)&&lon>-114?'America/Boise':'America/Los_Angeles';
+    case 'CO': case 'MT': case 'NM': case 'UT': case 'WY': return 'America/Denver';
+    case 'FL': return Number.isFinite(lon)&&lon<=-85.3?'America/Chicago':'America/New_York';
+    case 'IN': return Number.isFinite(lon)&&lon<=-87.5?'America/Chicago':'America/New_York';
+    case 'KY': return Number.isFinite(lon)&&lon<=-86.5?'America/Chicago':'America/New_York';
+    case 'TN': return Number.isFinite(lon)&&lon>-86.3?'America/New_York':'America/Chicago';
+    case 'MI': return 'America/Detroit';
+    case 'ND': case 'SD': case 'NE': case 'KS': case 'TX': return Number.isFinite(lon)&&lon<-101?'America/Denver':'America/Chicago';
+    default: return /^(CT|DE|GA|ME|MD|MA|NH|NJ|NY|NC|OH|PA|RI|SC|VT|VA|WV|DC)$/.test(state) ? 'America/New_York' : 'America/Chicago';
+  }
+}
+function restaurantClock(item){
+  const tz=restaurantStateTimeZone(item);
+  const now=new Date();
+  if(!tz)return {day:now.getDay(),minutes:now.getHours()*60+now.getMinutes(),timezone:''};
+  try{
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);
+    const map=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+    const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+    return {day:dayMap[map.weekday]??now.getDay(),minutes:(Number(map.hour)||0)*60+(Number(map.minute)||0),timezone:tz};
+  }catch{return {day:now.getDay(),minutes:now.getHours()*60+now.getMinutes(),timezone:''};}
+}
 function restaurantOpenStatus(item){
-  // Prefer provider-supplied live status because it is evaluated in the restaurant's local timezone.
   if(typeof item?.openNow==='boolean')return item.openNow;
   if(typeof item?.currentlyOpen==='boolean')return item.currentlyOpen;
   const source=item?.openingHours||item?.hours||item?.opening_hours;
-  // For a manually selected area, the phone's clock can be in a different timezone.
-  // Without a timezone-aware status from the provider, do not guess and incorrectly filter a place.
-  const hasTimezone=!!String(item?.timeZone||item?.timezone||item?.ianaTimezone||item?.iana_timezone||'').trim();
-  if(restaurantLocationMode==='area' && !hasTimezone)return null;
   if(source && typeof source==='string' && source.trim()){
-    const parsed=restaurantHoursStringStatus(source,new Date().getDay());
+    const clock=restaurantClock(item);
+    const parsed=restaurantHoursStringStatus(source,clock.day,clock.minutes);
     if(parsed!==null)return parsed;
   }
   if(source && typeof source==='object' && !Array.isArray(source)){
+    const clock=restaurantClock(item);
     const dayLong=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const dayShort=['Su','Mo','Tu','We','Th','Fr','Sa'];
-    const keys=[dayLong[new Date().getDay()],dayShort[new Date().getDay()],dayLong[new Date().getDay()].slice(0,3)];
+    const keys=[dayLong[clock.day],dayShort[clock.day],dayLong[clock.day].slice(0,3)];
     for(const k of keys){
-      if(source[k]!=null){const v=source[k];if(typeof v==='boolean')return v;const parsed=restaurantHoursStringStatus(String(v),new Date().getDay());if(parsed!==null)return parsed;}
+      if(source[k]!=null){
+        const v=source[k];
+        if(typeof v==='boolean')return v;
+        const parsed=restaurantHoursStringStatus(String(v),clock.day,clock.minutes);
+        if(parsed!==null)return parsed;
+      }
     }
   }
   return null;
@@ -7351,10 +7389,10 @@ function restaurantTimeRangeOpen(range,nowMinutes){
   const a=restaurantTimeMinutes(parts[0]),b=restaurantTimeMinutes(parts[1]); if(a===null||b===null)return false;
   return b<a ? (nowMinutes>=a||nowMinutes<=b) : nowMinutes>=a&&nowMinutes<=b;
 }
-function restaurantHoursStringStatus(raw,today){
+function restaurantHoursStringStatus(raw,today,nowMinutesOverride=null){
   const text=String(raw||'').trim(); if(!text)return null;
   if(/24\s*\/\s*7|open\s*24\s*hours|open\s*all\s*day/i.test(text))return true;
-  const now=new Date(); const mins=now.getHours()*60+now.getMinutes();
+  const now=new Date(); const mins=Number.isFinite(Number(nowMinutesOverride))?Number(nowMinutesOverride):now.getHours()*60+now.getMinutes();
   let sawToday=false;
   for(const clauseRaw of text.split(';')){
     const clause=clauseRaw.trim(); if(!clause)continue;
@@ -7433,6 +7471,7 @@ function syncRestaurantHoursControl(){
   b.title=closed?'Show open or unknown-hour restaurants':'Show closed restaurants';
   b.classList.toggle('is-hours-closed',closed);
 }
+window.syncRestaurantHoursControl=syncRestaurantHoursControl;
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
   // exactly like Food mode; there is intentionally no restaurant Quick Cuts Clear control.
@@ -7673,7 +7712,7 @@ function applyRestaurantData(restData,locationLabel){
     const photo=restaurantPhotoUrl(r);
     const menuItems=r.menuItems||r.menu_items||r.popularItems||r.popular_items||r.commonMenuItems||r.common_menu_items||r.menu||[];
     const amenity=String(r.amenity||r.type||'').trim().toLowerCase(); const categoryRaw=String(r.category||r.cuisine||r.amenity||'Restaurant').trim(); const normalizedCategory=amenity==='fast_food'||categoryRaw.toLowerCase()==='fast_food'?'Fast Food':categoryRaw;
-    return {...r,id:stable,type:'restaurant',name:String(r.name||'Restaurant').trim(),category:normalizedCategory,cuisine:String(r.cuisine||'').trim(),tags:[...new Set([...tags,'restaurant',...(amenity==='fast_food'?['fast_food','fast food']:[])])],address:String(r.address||'').trim(),phone:String(r.phone||'').trim(),website,opening_hours:String(r.opening_hours||r.openingHours||'').trim(),openNow:typeof r.openNow==='boolean'?r.openNow:(typeof r.currentlyOpen==='boolean'?r.currentlyOpen:undefined),lat:Number.isFinite(lat)?lat:undefined,lon:Number.isFinite(lon)?lon:undefined,distanceMiles:distance,photo,photoName:String(r.photoName||'').trim(),menuItems,menuUrl:String(r.menuUrl||r.menu_url||'').trim(),photoSource:r.photoName?'google-places':(photo?'restaurant-specific':'unavailable')};
+    return {...r,id:stable,type:'restaurant',name:String(r.name||'Restaurant').trim(),category:normalizedCategory,cuisine:String(r.cuisine||'').trim(),tags:[...new Set([...tags,'restaurant',...(amenity==='fast_food'?['fast_food','fast food']:[])])],address:String(r.address||'').trim(),phone:String(r.phone||'').trim(),website,opening_hours:String(r.opening_hours||r.openingHours||'').trim(),openNow:typeof r.openNow==='boolean'?r.openNow:(typeof r.currentlyOpen==='boolean'?r.currentlyOpen:undefined),lat:Number.isFinite(lat)?lat:undefined,lon:Number.isFinite(lon)?lon:undefined,distanceMiles:distance,photo,photoName:String(r.photoName||'').trim(),menuItems,menuUrl:String(r.menuUrl||r.menu_url||'').trim(),photoSource:r.photoName?'google-places':(photo?'restaurant-specific':'unavailable'),searchArea:String(r.searchArea||locationLabel||'').trim()};
   }).filter(r=>r.name&&r.name!=='Restaurant' || r.address);
   const dedup=new Map();
   const identityText=v=>String(v||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
