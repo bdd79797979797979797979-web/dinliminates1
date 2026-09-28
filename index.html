@@ -5934,6 +5934,11 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 .phone-help-note{display:grid;gap:3px;margin-top:9px;padding:12px 13px;border-radius:15px;background:#fff3ed;border:1px solid #efd0c8;}
 .phone-help-note strong{margin:0!important;color:#a2473d!important;font-size:.68rem!important;}
 </style>
+
+<style id="dinliminate-p730-details-speed">
+.detail-sheet{animation-duration:.12s!important;}
+.detail-backdrop{backdrop-filter:blur(5px)!important;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -6774,7 +6779,7 @@ function openDetails(item){
   $('detailTitle').textContent = item.name;
   $('detailMeta').textContent = item.type === 'restaurant' ? (item.address || 'Nearby restaurant') : `${(item.tags||[]).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Dinner option'} · ${item.category || (item.type === 'home' ? 'Homemade' : 'Food')}${item.prep ? ` · ${item.prep}` : ''}${item.budget ? ` · ${item.budget}` : ''}`;
   $('detailFallback').textContent = displayIcon(item);
-  const detailPhoto=item?.type==='restaurant'?restaurantPhotoUrl(item):photoFor(item); $('detailImage').src = detailPhoto || RESTAURANT_FALLBACK_PHOTO; $('detailImage').style.objectPosition = photoPosition(item); $('detailImage').style.display='block'; $('detailHero').classList.toggle('no-photo',!detailPhoto);
+  const detailPhoto=item?.type==='restaurant'?restaurantPhotoUrl(item):photoFor(item); const detailImg=$('detailImage'); detailImg.removeAttribute('src'); detailImg.style.display='none'; detailImg.style.objectPosition=photoPosition(item); $('detailHero').classList.toggle('no-photo',!detailPhoto); requestAnimationFrame(()=>{if(!$('detailBackdrop')?.classList.contains('hidden')){detailImg.src=detailPhoto||RESTAURANT_FALLBACK_PHOTO;detailImg.style.display='block';}});
   if(item.type === 'restaurant'){
     const website = safeExternalUrl(item.website) ? `<a class="restaurant-link" href="${escapeHtml(safeExternalUrl(item.website))}" target="_blank" rel="noopener">Visit Restaurant Website ↗</a>` : `<a class="restaurant-link" href="https://www.google.com/search?q=${encodeURIComponent(item.name)}" target="_blank" rel="noopener">Search restaurant ↗</a>`;
     const menuItems=restaurantMenuItems(item);
@@ -7899,7 +7904,7 @@ function filteredRestaurants(){
   let list=[...activeRestaurants];
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'all' ? 'all' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
-  if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  if(q)list=list.filter(r=>[r.name||'',r.brand||'',r.operator||'',r.cuisine||'',r.category||'',(r.tags||[]).join(' '),...(Array.isArray(r.menuItems)?r.menuItems:[])].join(' ').toLowerCase().replace(/[\u2019']/g,'').includes(q.replace(/[\u2019']/g,'')));
   // Pass Around owns its complete restaurant pool; the normal hours filter
   // must not hide a restaurant that a participant still needs to vote on.
   if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return list;
@@ -8433,7 +8438,7 @@ bind('restaurantOpenUnknownBtn','click',(e)=>{
   setRestaurantHoursFilter(current==='all'?'open-unknown':'all');
   toast(current==='all'?'Showing open / unknown-hour restaurants.':'Showing all restaurants.');
 });
-bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
+bind('restaurantInlineSearchInput','input',e=>{const q=String(e.target.value||'');if(window.DinliminateRestaurantSearchV3?.setQuery)window.DinliminateRestaurantSearchV3.setQuery(q);else{restaurantFilters.query=q;saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();}});
 
 bind('cutBtn','click',(e)=>{e?.preventDefault?.();window.cutCurrent?.($('stage')?.querySelector('.active'));});
 bind('backBtn','click',undoLast);
@@ -8628,7 +8633,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   const ST={
     seq:0, searching:false, selected:null, origin:null,
     lastLocationError:null, lastRestaurantError:null,
-    status:'idle', autoTimer:0, autoSeq:0, lastSearchMeta:null
+    status:'idle', autoTimer:0, autoSeq:0, queryTimer:0, lastSearchMeta:null
   };
 
   const $=id=>document.getElementById(id);
@@ -8819,7 +8824,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   async function searchAt(origin,label,options={}){
     const lat=Number(origin?.lat),lon=Number(origin?.lon);
     if(!Number.isFinite(lat)||!Number.isFinite(lon))throw new Error('Search coordinates are invalid.');
-    if(ST.searching){return false;}
+    if(ST.searching){if(options.supersede){ST.seq++;ST.searching=false;busy('find',false);}else{return false;}}
     const seq=++ST.seq;
     ST.searching=true;
     ST.origin={lat,lon};
@@ -8828,7 +8833,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     setStatus('Searching restaurants near '+text(label||'your location')+'…','live');
 
     try{
-      const d=await request({mode:'search',lat,lon,radius:clamp(restaurantRadiusMiles),limit:1000},30_000);
+      const params={mode:'search',lat,lon,radius:clamp(restaurantRadiusMiles),limit:1000}; if(options.query)params.q=String(options.query).slice(0,80); const d=await request(params,30_000);
       if(seq!==ST.seq)return false;
       const rows=Array.isArray(d.results)?d.results:[];
       if(!rows.length)throw Object.assign(new Error('No restaurants were found within '+clamp(restaurantRadiusMiles)+' miles.'),{code:'NO_RESULTS'});
@@ -9081,6 +9086,33 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     return true;
   }
 
+  function currentSearchOrigin(){
+    if(ST.origin&&Number.isFinite(Number(ST.origin.lat))&&Number.isFinite(Number(ST.origin.lon)))return ST.origin;
+    if(restaurantLocationMode==='device'&&userCoords)return {lat:Number(userCoords.latitude),lon:Number(userCoords.longitude)};
+    if(restaurantLocationMode==='area'&&restaurantAreaCoords)return {lat:Number(restaurantAreaCoords.lat),lon:Number(restaurantAreaCoords.lon)};
+    return null;
+  }
+  function setQuery(value){
+    const q=text(value).slice(0,80);
+    restaurantFilters.query=q; saveRestaurantFilters();
+    clearTimeout(ST.queryTimer);
+    try{renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();}catch{}
+    if(!q){
+      const origin=currentSearchOrigin();
+      if(!origin)return false;
+      return searchAt(origin,userCity||'selected location',{query:'',supersede:true});
+    }
+    const origin=currentSearchOrigin();
+    if(!origin)return false;
+    ST.seq++; ST.searching=false; busy('find',false);
+    setStatus('Searching for “'+q+'”…','live');
+    ST.queryTimer=setTimeout(()=>{
+      const latest=String(restaurantFilters.query||'').trim();
+      if(latest!==q)return;
+      void searchAt(origin,userCity||'selected location',{query:q,supersede:true});
+    },350);
+    return true;
+  }
   function diagnose(){
     return {
       version:V,
@@ -9105,7 +9137,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   }
 
   const controller={
-    version:V,find,locate,setRadius,refresh,diagnose,
+    version:V,find,locate,setRadius,refresh,setQuery,diagnose,
     state:()=>({...ST,radius:clamp(restaurantRadiusMiles),mode:restaurantLocationMode,area:restaurantAreaCoords,device:userCoords})
   };
 
