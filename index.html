@@ -8945,10 +8945,30 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   function setRadius(milesValue,refreshNow=true){
     const next=clamp(milesValue);
     const previous=clamp(restaurantRadiusMiles);
+
+    // Selecting the already-active radius is a no-op. The old behavior launched
+    // a redundant network search, which could race a subsequent narrower radius
+    // selection and let a stale response replace the live deck.
+    if(next===previous){
+      restaurantRadiusMiles=next;
+      safeWrite('dinliminateRestaurantRadius',String(next));
+      setRadiusUi();
+      return true;
+    }
+
     restaurantRadiusMiles=next;
     safeWrite('dinliminateRestaurantRadius',String(next));
     setRadiusUi();
-    if(!refreshNow||ST.searching)return true;
+    if(!refreshNow)return true;
+
+    // A radius change supersedes any prior search. We cannot always abort the
+    // provider fetch itself, but invalidating its sequence prevents stale data
+    // from being applied after the user has changed radius.
+    if(ST.searching){
+      ST.seq++;
+      ST.searching=false;
+      busy('find',false);
+    }
 
     if(restaurantItems?.length&&next<previous){
       const inRadius=new Set(
