@@ -5972,12 +5972,81 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 #winnerPanel .winner-v240-hero{transition:none!important;}
 </style>
 <style id="dinliminate-p758-winner-photo-safety">
-/* P758 — Winner opens immediately; photos are progressive and broken URLs never flash. */
+/* P758/P760 — Winner paints immediately. Remote photos are progressive and
+   broken URLs never expose the browser's broken-image/alt-text UI. */
 #winnerPanel .winner-v240-hero{position:relative;isolation:isolate;}
 #winnerPanel .winner-v240-hero.no-photo{background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.08),transparent 38%),linear-gradient(145deg,#213d33,#0c2119)!important;}
 #winnerPanel .winner-v240-hero.no-photo .winner-v240-hero-fallback{display:flex!important;align-items:center;justify-content:center;}
 #winnerPanel .winner-v240-hero-fallback{z-index:1;}
-#winnerPanel .winner-v240-hero img{z-index:2;}
+#winnerPanel .winner-v240-hero img{z-index:2;visibility:hidden;}
+</style>
+<style id="dinliminate-p760-winner-themes">
+/* Clear visual coding: Food uses warm coral; Restaurant uses fresh mint.
+   Both retain Dinliminate's dark-green foundation while keeping the winner
+   action hierarchy identical. */
+#winnerPanel.winner-theme-food{
+  --winner-accent:#ff806f;
+  --winner-accent-strong:#ff6f61;
+  --winner-soft:rgba(255,128,111,.13);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,128,111,.17),transparent 34%),
+    linear-gradient(180deg,#071612 0%,#10221b 58%,#071612 100%)!important;
+}
+#winnerPanel.winner-theme-restaurant{
+  --winner-accent:#7fe0bd;
+  --winner-accent-strong:#67c49b;
+  --winner-soft:rgba(127,224,189,.13);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(127,224,189,.17),transparent 34%),
+    linear-gradient(180deg,#06140f 0%,#0d241c 58%,#06140f 100%)!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-kicker,
+#winnerPanel.winner-theme-food .winner-v240-mark{color:var(--winner-accent)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-kicker,
+#winnerPanel.winner-theme-restaurant .winner-v240-mark{color:var(--winner-accent)!important;}
+#winnerPanel.winner-theme-food .winner-v240-hero{
+  border:1px solid rgba(255,128,111,.42)!important;
+  box-shadow:0 28px 82px rgba(255,111,97,.20)!important;
+}
+#winnerPanel.winner-theme-restaurant .winner-v240-hero{
+  border:1px solid rgba(127,224,189,.42)!important;
+  box-shadow:0 28px 82px rgba(103,196,155,.20)!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-summary h2{color:#fff!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-summary h2{color:#f4fff9!important;}
+#winnerPanel.winner-theme-food .winner-v240-action.primary{
+  background:var(--winner-accent-strong)!important;
+  border-color:var(--winner-accent-strong)!important;
+  box-shadow:0 12px 28px rgba(255,111,97,.22)!important;
+}
+#winnerPanel.winner-theme-restaurant .winner-v240-action.primary{
+  background:var(--winner-accent-strong)!important;
+  border-color:var(--winner-accent-strong)!important;
+  box-shadow:0 12px 28px rgba(103,196,155,.22)!important;
+  color:#082117!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-share{
+  background:var(--winner-accent-strong)!important;
+}
+#winnerPanel.winner-theme-restaurant .winner-v240-share{
+  background:var(--winner-accent-strong)!important;
+  color:#082117!important;
+}
+#winnerPanel .winner-v240-again{
+  border-color:color-mix(in srgb,var(--winner-accent,#67c49b) 24%,transparent)!important;
+}
+@supports not (color-mix(in srgb, white, black)){
+  #winnerPanel.winner-theme-food .winner-v240-again{border-color:rgba(255,111,97,.25)!important;}
+  #winnerPanel.winner-theme-restaurant .winner-v240-again{border-color:rgba(103,196,155,.25)!important;}
+}
+#winnerPanel.winner-theme-food .winner-v240-hero::after{
+  background:rgba(71,25,20,.76)!important;
+  border-color:rgba(255,128,111,.24)!important;
+}
+#winnerPanel.winner-theme-restaurant .winner-v240-hero::after{
+  background:rgba(8,43,30,.76)!important;
+  border-color:rgba(127,224,189,.24)!important;
+}
 </style>
 </head>
 <body>
@@ -7650,20 +7719,31 @@ function showWinner(isReopen=false) {
   hero.classList.add('no-photo');
   fallback.textContent=displayIcon(winner);
   fallback.setAttribute('aria-label',isRestaurant?'Restaurant photo unavailable':'Food photo unavailable');
-  const winnerPhotoSrc=photoFor(winner);
-  if(winnerPhotoSrc){
+  // Paint the complete Winner surface first. Photo probing is deferred so a
+  // slow/failed remote image can never delay the decision screen itself.
+  requestAnimationFrame(()=>{
+    if(hero.dataset.photoToken!==photoToken)return;
+    const winnerPhotoSrc=photoFor(winner);
+    if(!winnerPhotoSrc)return;
     const probe=new Image();
     probe.decoding='async';
     probe.onload=()=>{
       if(hero.dataset.photoToken!==photoToken)return;
       img.src=winnerPhotoSrc;
       img.style.objectPosition=photoPosition(winner);
+      img.style.visibility='visible';
       img.style.display='block';
       hero.classList.remove('no-photo');
     };
-    probe.onerror=()=>{ if(hero.dataset.photoToken===photoToken){ img.removeAttribute('src'); img.style.display='none'; hero.classList.add('no-photo'); } };
+    probe.onerror=()=>{
+      if(hero.dataset.photoToken!==photoToken)return;
+      img.removeAttribute('src');
+      img.style.visibility='hidden';
+      img.style.display='none';
+      hero.classList.add('no-photo');
+    };
     probe.src=winnerPhotoSrc;
-  }
+  });
   $('winnerModeKicker').textContent=isRestaurant?'RESTAURANT DECIDED':'DINNER DECIDED';
   $('winnerKickerLabel').textContent=isRestaurant?"TONIGHT'S RESTAURANT":"TONIGHT'S WINNER";
   $('winnerName').textContent=winner.name;
@@ -7690,7 +7770,7 @@ function showWinner(isReopen=false) {
   }
   if(!isReopen) recordHistory(winner,isRestaurant?'restaurant':'food');
   toast(isRestaurant?'Restaurant selected. 🍽️':'Dinner decided. 🍽️');
-  if(!isReopen) requestAnimationFrame(()=>setTimeout(()=>{launchConfetti();launchFireworks();},0));
+  if(!isReopen) setTimeout(()=>{launchConfetti();launchFireworks();},180);
 }
 function launchFireworks(){
   const layer=document.createElement('div'); layer.className='fireworks-layer';
