@@ -7404,7 +7404,6 @@ function performDeleteCustomFood(target){
   editingCustomId=null;
   closeDetails();
   closeModal();
-  closeDetails();
   updateHomeCount();
   renderHiddenFoodList();
   if(document.body.classList.contains('game-mode')){
@@ -7932,7 +7931,7 @@ function renderRestaurantQuickCuts(){
   });
 }
 function saveRestaurantFilters(){
-  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter',restaurantHoursFilter) === 'closed' ? 'closed' : 'open-unknown';
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter',restaurantHoursFilter) === 'all' ? 'all' : 'open-unknown';
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
   safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
   syncRestaurantHoursControl();
