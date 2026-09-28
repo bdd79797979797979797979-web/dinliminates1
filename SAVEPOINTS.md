@@ -160,6 +160,14 @@ Autocomplete ignores stale responses, restaurant duplicates merge more reliably,
 Commit: `5bb79ad2df62739b05df851a6ee7ecf2510bbfd8`
 Static QA now expects the current `clean-r6` service.
 
+## CP40 — release QA gate
+Commit: `f795a04a5e6b63b446f67db384df3e108b909928`
+Added a non-runtime release gate marker and kept Vercel/Netlify preview verification separate from production.
+
+## CP41 — restore complete app after QA catch
+Commit: `98d25db3e19a39559d062175f2d45c6f189ad116`
+Restored the full clean application after a bad matcher patch truncated `app.js`, then safely reapplied the case-normalized hours matcher. Syntax checks pass.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
