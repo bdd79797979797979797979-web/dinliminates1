@@ -62,7 +62,7 @@ await page.route('**/*', async route => {
 function qa(){ return page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot()); }
 async function visible(id){return page.locator('#'+id).isVisible();}
 async function click(sel){await page.locator(sel).click();}
-async function settle(){await page.waitForTimeout(80);}
+async function settle(){await page.waitForTimeout(150);}
 
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
@@ -90,6 +90,8 @@ if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
 await page.mouse.move(foodBox.x+foodBox.width/2,foodBox.y+foodBox.height/2);
 await page.mouse.down();
 await page.mouse.move(foodBox.x+60,foodBox.y+foodBox.height/2,{steps:4});
+assert.equal(await page.locator('#foodCard').getAttribute('data-swipe'),'cut','Food swipe should show CUT affordance while dragging');
+assert.ok((await page.locator('#foodCard').evaluate(el=>el.style.transform)).includes('translateX'),'Food swipe should visibly drag the card');
 await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
