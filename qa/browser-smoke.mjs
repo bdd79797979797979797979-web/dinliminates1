@@ -205,7 +205,6 @@ assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),
 const settingsDeleteDialog=page.waitForEvent('dialog'); const settingsDeleteClick=page.locator('[data-setting-food-delete="popcorn"]').click(); const settingsDeleteDlg=await settingsDeleteDialog; assert.equal(settingsDeleteDlg.type(),'confirm'); await settingsDeleteDlg.accept(); await settingsDeleteClick; await settle();
 assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),false,'Settings Delete should remove the hidden food');
 await page.locator('#settingsModal [data-close]').click(); await settle();
-await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
 await page.locator('#editFoodName').fill('QA Special');
