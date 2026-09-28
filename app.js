@@ -429,3 +429,15 @@ function endPassWinner(){
 function endPass(reopen=false){const p=S.pass;if(!p)return;const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);S.pass=null;$('passModal')?.classList.add('hidden');$('passModalBg')?.classList.add('hidden');if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(r=>rows.some(x=>x.id===r.id));S.restaurantIndex=0;cleanDrawRestaurants()}else{S.pool=rows;S.index=0;drawFood()}persist()}
 $('foodPassAround').onclick=passSetup;
 $('restaurantPassAround').onclick=passSetup;
+
+
+const previousUpdateContinue=updateContinue;
+updateContinue=function(){
+ const hasFood=Array.isArray(S.pool)&&S.pool.length>0;
+ const hasRest=Array.isArray(S.restaurantPool)&&S.restaurantPool.length>0;
+ $('continue').classList.toggle('hidden',!S.saved||(!hasFood&&!hasRest));
+ if(hasFood||hasRest)$('continue').textContent='Continue saved round';
+};
+const previousRestEnter=$('restStart').onclick;
+$('restStart').onclick=()=>{S.screen='restaurant';S.restaurantActions=[];S.lastRestaurantWinner=null;S.saved=true;show('restaurant');drawQuick();renderRestaurantQuickCuts();injectHoursControl();updateContinue();persist()};
+const originalWinnerForSave=S.winnerItem;
