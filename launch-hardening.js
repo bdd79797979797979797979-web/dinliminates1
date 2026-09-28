@@ -2,7 +2,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p692-quickcut-live-unified';
+  const VERSION='p700-restaurant-search-launch';
   const $=id=>document.getElementById(id);
   const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -301,9 +301,14 @@
   window.DinliminateRefreshRestaurantQuickCuts=refreshRestaurantQuickCutsNow;
   function toggleRestaurantQuick(k){
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
-    const scope=restaurantQuickCutDisplayPool(k);
-    if(!scope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
-    restaurantQuickCuts.has(k)?restaurantQuickCuts.delete(k):restaurantQuickCuts.add(k);
+    const active=restaurantQuickCuts.has(k);
+    if(!active){
+      const scope=restaurantQuickCutDisplayPool(k);
+      if(!scope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
+      restaurantQuickCuts.add(k);
+    }else{
+      restaurantQuickCuts.delete(k);
+    }
     activeRestaurants=visibleRestaurants();holdingRestaurants=[];restaurantFilters.query='';restaurantRoundInProgress=true;saveRestaurantRoundState();renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantTools();
     const label=RESTAURANT_QUICK_CUTS.find(x=>x[1]===k)?.[0]||k;toast(`${label} ${restaurantQuickCuts.has(k)?'hidden':'brought back'}.`);
   }
@@ -531,7 +536,7 @@
       // A V3 search calls applyRestaurantData(), and the legacy renderer calls showRestaurantMode().
       // Never refresh from inside that in-flight search or it recursively starts another search,
       // causing the restaurant card to cycle rapidly on its own.
-      if(hasRound&&!searchInFlight){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
+      if(hasRound&&!searchInFlight&&!window.__dinliminateRestaurantControllerOpening){window.DinliminateRestaurantSearchV3?.refresh?.();renderRestaurantStage();syncRestaurantTools();setStatus(`${activeRestaurants.length} restaurants left · continuing your round`,'live');}
       return r;
     };
     window.DinliminatePreserveRestaurantQuickCutsOnRefresh=()=>{preserveRestaurantQuickCutsOnNextApply=new Set(restaurantQuickCuts||[]);};
