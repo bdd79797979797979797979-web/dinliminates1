@@ -242,6 +242,23 @@ function restaurantSearchSemanticText(row){
   add('soupstew',/\b(?:soup|stew|chili)\b/i);
   return semantic.join(' ');
 }
+function searchQueryAlternates(query){
+  const q=searchText(query);
+  const map={
+    pasta:['italian'],
+    burger:['hamburger','fast food'],
+    chicken:['chicken'],
+    pizza:['pizzeria','italian'],
+    breakfast:['brunch'],
+    sandwich:['subs','deli'],
+    seafood:['fish'],
+    mexican:['tex mex'],
+    southern:['soul food'],
+    healthy:['salad','vegetarian'],
+    soupstew:['soup','stew','chili']
+  };
+  return [...new Set(map[q]||[])].filter(x=>x!==q);
+}
 function restaurantMatchesSearch(row,query){
   const q=searchText(query); if(!q)return true;
   const hay=searchText([
@@ -547,6 +564,18 @@ async function doSearch(lat, lon, radiusMi, query='') {
     ]);
     const direct=[photonQ,nominatimQ];
     let merged=dedupeRestaurantRows(direct.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
+    if(!merged.length){
+      const alternates=searchQueryAlternates(searchQuery);
+      for(const alternate of alternates){
+        const [ph,nm]=await Promise.all([
+          photonSearchProvider(lat,lon,radiusMi,alternate),
+          nominatimSearchProvider(lat,lon,radiusMi,alternate)
+        ]);
+        direct.push(ph,nm);
+        merged=dedupeRestaurantRows([ph,nm].flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
+        if(merged.length)break;
+      }
+    }
     if(!merged.length){
       const states=await Promise.all(OVERPASS_ENDPOINTS.slice(0,2).map(endpoint=>overpassProvider(endpoint,lat,lon,radiusMi,searchQuery)));
       direct.push(...states);
