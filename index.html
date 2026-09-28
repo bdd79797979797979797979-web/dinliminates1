@@ -6153,7 +6153,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p710-restaurant-hours-complete';
+const DINLIMINATE_VERSION = 'p711-restaurant-hours-complete';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -7400,14 +7400,24 @@ function restaurantHoursStringStatus(raw,today,nowMinutesOverride=null){
   if(/24\s*\/\s*7|open\s*24\s*hours|open\s*all\s*day/i.test(text))return true;
   const now=new Date(); const mins=Number.isFinite(Number(nowMinutesOverride))?Number(nowMinutesOverride):now.getHours()*60+now.getMinutes();
   let sawToday=false;
+  let sawKnownSchedule=false;
   for(const clauseRaw of text.split(';')){
     const clause=clauseRaw.trim(); if(!clause)continue;
     const dayMatch=clause.match(/^([A-Za-z]{2,3}(?:\s*-\s*[A-Za-z]{2,3})?(?:\s*,\s*[A-Za-z]{2,3})*)\b/);
     const dayExpr=dayMatch?dayMatch[1].trim():'';
     const times=dayMatch?clause.slice(dayMatch[0].length).trim():clause;
     const applies=dayExpr?restaurantDayExprMatches(dayExpr,today):text.split(';').length===1;
+    if(dayExpr){
+      const normalizedDays=dayExpr.replace(/\s+/g,'').split(',');
+      if(normalizedDays.some(token=>restaurantDayExprMatches(token,today)))sawToday=true;
+      // A recognizable weekday expression is enough to establish that the
+      // venue has a known weekly schedule, even when today is not included.
+      if(normalizedDays.some(token=>restaurantDayExprMatches(token,0)||restaurantDayExprMatches(token,1)||restaurantDayExprMatches(token,2)||restaurantDayExprMatches(token,3)||restaurantDayExprMatches(token,4)||restaurantDayExprMatches(token,5)||restaurantDayExprMatches(token,6)))sawKnownSchedule=true;
+    }else if(text.split(';').length===1){
+      sawToday=true;
+      sawKnownSchedule=true;
+    }
     if(!applies)continue;
-    sawToday=true;
     if(/\b(off|closed)\b/i.test(times))return false;
     if(!times)return null;
     const ranges=times.split(',').map(x=>x.trim()).filter(Boolean);
@@ -7421,7 +7431,7 @@ function restaurantHoursStringStatus(raw,today,nowMinutesOverride=null){
     }
     if(parsedAny)return false;
   }
-  return sawToday?false:null;
+  return sawKnownSchedule?false:(sawToday?false:null);
 }
 
 function restaurantSortValue(item){
