@@ -259,22 +259,28 @@
       const d=Number(item?.distanceMiles);
       return !Number.isFinite(d)||d<=radius;
     };
-    // Keep restaurantItems/restaurantBase as the full loaded universe. Only the
-    // actionable active deck is radius-bounded. Maybe and Cut state must survive
-    // a temporary narrowing and become available again when the radius expands.
-    const full=uniq([
-      ...(Array.isArray(restaurantBase)?restaurantBase:[]),
-      ...(Array.isArray(restaurantItems)?restaurantItems:[]),
-      ...(Array.isArray(activeRestaurants)?activeRestaurants:[]),
-      ...(Array.isArray(holdingRestaurants)?holdingRestaurants:[])
-    ],restKey);
+
+    // A provider/search refresh makes restaurantItems the authoritative full
+    // loaded universe. Do not merge active/holding state back into it here:
+    // doing so can resurrect stale restaurants from the previous search and
+    // inflate Quick Cut counts. Active/holding state is only a fallback when
+    // there is no loaded universe yet (legacy/restored fixture state).
+    const source = Array.isArray(restaurantItems) && restaurantItems.length
+      ? [...restaurantItems]
+      : uniq([
+          ...(Array.isArray(restaurantBase)?restaurantBase:[]),
+          ...(Array.isArray(activeRestaurants)?activeRestaurants:[]),
+          ...(Array.isArray(holdingRestaurants)?holdingRestaurants:[])
+        ],restKey);
+
+    const full=uniq(source,restKey);
     if(full.length){
       restaurantBase=[...full];
       restaurantItems=[...full];
     }
+
     if(Array.isArray(activeRestaurants)) activeRestaurants=activeRestaurants.filter(withinRadius);
-    const pool=currentRestaurantQuickCutUniverse();
-    return pool.length?pool:restaurantBase.filter(withinRadius);
+    return (restaurantItems||[]).filter(withinRadius);
   }
 
   function restaurantQuickCutDisplayPool(forKey=''){
