@@ -28,7 +28,6 @@ page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
 page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); });
 page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) requestFailures.push({url:req.url(),error:req.failure()?.errorText||'unknown'}); });
-page.on('dialog', async dialog => { await dialog.accept(); });
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/restaurants?mode=suggest')) {
