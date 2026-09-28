@@ -7355,12 +7355,118 @@ const QUICK_CUT_RULES = {
   soupstew:  { label:'Soup / Stew', tags:['soup','stew'], names:['soup','stew','chowder','chili','goulash'], photo:'chickenNoodleSoup' }
 };
 
+/*
+ * Primary-food Quick Cuts.
+ * Secondary ingredients remain in tags/details/search, but they do not make
+ * a food eligible for a Quick Cut. Example: "Steak & Potato" is steak-primary,
+ * so Potato must not remove it.
+ */
+const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
+  "spaghetti":"pasta",
+  "grilled chicken + rice":"chicken",
+  "tacos":"mexican",
+  "fruit bowl":"healthy",
+  "stir fry":"asian",
+  "homemade pizza":"pizza",
+  "burgers":"burgers",
+  "eggs & toast":"breakfast",
+  "soup & sandwich":"sandwiches",
+  "pasta alfredo":"pasta",
+  "salad bowl":"healthy",
+  "mac & cheese":"pasta",
+  "fried rice":"asian",
+  "grilled cheese":"sandwiches",
+  "burrito bowl":"mexican",
+  "southern vegetable plate":"southern",
+  "meatloaf & mashed potatoes":"american",
+  "beef stroganoff":"american",
+  "grilled salmon":"seafood",
+  "lasagna":"pasta",
+  "chicken parmesan":"chicken",
+  "goulash":"pasta",
+  "santa fe soup":"soupstew",
+  "southern vegetable beef soup":"soupstew",
+  "chicken fried steak":"steak",
+  "country fried chicken":"chicken",
+  "pot roast":"american",
+  "chicken & dumplings":"chicken",
+  "bbq pulled pork":"bbq",
+  "bbq ribs":"bbq",
+  "pork chops":"american",
+  "fried catfish":"seafood",
+  "shrimp & grits":"seafood",
+  "chili":"soupstew",
+  "chili cheese baked potato":"potato",
+  "loaded baked potato":"potato",
+  "mashed potatoes":"potato",
+  "biscuits & gravy":"breakfast",
+  "buttermilk & cornbread":"southern",
+  "sausage & peppers":"italian",
+  "bacon & eggs":"breakfast",
+  "chicken & waffles":"breakfast",
+  "chicken tenders & fries":"chicken",
+  "sloppy joes & fries":"sandwiches",
+  "cabbage & sausage":"southern",
+  "steak & potato":"steak",
+  "potato soup":"soupstew",
+  "beef stew":"soupstew",
+  "chicken noodle soup":"soupstew",
+  "chicken wings":"chicken",
+  "meatball subs":"sandwiches",
+  "tuna melt":"sandwiches",
+  "philly cheesesteak":"sandwiches",
+  "peanut butter & jelly sandwich + chips":"sandwiches",
+  "ham sandwich + chips":"sandwiches",
+  "parfait":"breakfast",
+  "smoothie":"healthy",
+  "gyro":"mediterranean",
+  "cereal":"breakfast",
+  "stouffer’s frozen dinner":"american",
+  "baked chicken thighs":"chicken",
+  "pork tenderloin":"american",
+  "fish sticks":"seafood"
+};
+const PRIMARY_FOOD_FALLBACKS = [
+  ['burgers',/\b(?:burger|burgers|hamburger|hamburgers)\b/i],
+  ['pizza',/\b(?:pizza|pizzeria)\b/i],
+  ['chicken',/\b(?:chicken|wings?|tenders?)\b/i],
+  ['mexican',/\b(?:taco|burrito|enchilada|quesadilla|mexican)\b/i],
+  ['bbq',/\b(?:bbq|barbecue|smokehouse)\b/i],
+  ['seafood',/\b(?:seafood|salmon|catfish|shrimp|fish|crab|oyster|lobster)\b/i],
+  ['steak',/\b(?:steak|steakhouse)\b/i],
+  ['sandwiches',/\b(?:sandwich|subs?|melt|cheesesteak|sloppy joe|grilled cheese)\b/i],
+  ['soupstew',/\b(?:soup|stew|chili|chowder)\b/i],
+  ['pasta',/\b(?:spaghetti|pasta|lasagna|alfredo|mac ?& ?cheese|macaroni|goulash|ravioli|stroganoff)\b/i],
+  ['italian',/\b(?:italian|sausage & peppers|parmesan)\b/i],
+  ['southern',/\b(?:southern|cornbread|buttermilk|cabbage & sausage)\b/i],
+  ['breakfast',/\b(?:breakfast|brunch|eggs?|bacon|waffles?|pancakes?|biscuits|parfait|cereal)\b/i],
+  ['potato',/\b(?:loaded baked potato|baked potato|mashed potatoes?|potato)\b/i],
+  ['healthy',/\b(?:salad|smoothie|fruit bowl|healthy)\b/i],
+  ['mediterranean',/\b(?:gyro|mediterranean|greek|falafel|hummus|kebab)\b/i],
+  ['american',/\b(?:meatloaf|pot roast|pork chops?|pork tenderloin|stroganoff|dinner)\b/i]
+];
+function normalizePrimaryFoodKey(value){
+  const s=String(value||'').trim().toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
+  const aliases={burger:'burgers',burgers:'burgers',sandwich:'sandwiches',sandwiches:'sandwiches',soup:'soupstew',stew:'soupstew',soups:'soupstew',salad:'healthy',drink:'healthy'};
+  return aliases[s]||s;
+}
+function foodPrimaryQuickCut(item){
+  const explicit=normalizePrimaryFoodKey(item?.primaryQuickCut||item?.primaryQuickCategory||item?.primary);
+  if(explicit && QUICK_CUT_RULES?.[explicit]) return explicit;
+  const name=String(item?.name||'').trim().toLowerCase();
+  const mapped=PRIMARY_FOOD_QUICK_CUT_BY_NAME[name];
+  if(mapped) return mapped;
+  const category=String(item?.category||'').trim().toLowerCase();
+  const categoryMap={breakfast:'breakfast',sandwich:'sandwiches',soup:'soupstew'};
+  if(categoryMap[category]) return categoryMap[category];
+  const hay=[item?.name,item?.category,item?.cuisine,(item?.tags||[]).join(' ')].filter(Boolean).join(' ');
+  for(const [key,re] of PRIMARY_FOOD_FALLBACKS) if(re.test(hay)) return key;
+  return '';
+}
+Object.entries(QUICK_CUT_RULES).forEach(([key,rule])=>{rule.primaryKey=key;});
 function quickCutMatches(item, rule) {
-  const tags = new Set((item.tags || []).map(t=>String(t).toLowerCase()));
-  if ((rule.tags || []).some(t => tags.has(String(t).toLowerCase()))) return true;
-  const hay = [item.name,item.category,item.cuisine,item.mealType,(item.tags||[]).join(' ')].filter(Boolean).join(' ').toLowerCase();
-  if ((rule.names || []).length) return rule.names.some(term => hay.includes(String(term).toLowerCase()));
-  return false;
+  const key=normalizePrimaryFoodKey(rule?.primaryKey||rule?.key||'');
+  return !!key && foodPrimaryQuickCut(item)===key;
 }
 
 function renderTags() {
@@ -7890,7 +7996,7 @@ function addCustom(){
   const normalizedName=name.toLowerCase();
   const duplicate=customItems.find(i=>i.id!==editingCustomId && String(i.name||'').trim().toLowerCase()===normalizedName) || homeMeals.find(i=>String(i.name||'').trim().toLowerCase()===normalizedName);
   if(duplicate){toast('That food is already in your deck.');return;}
-  const tags=[...new Set((tagsStr?tagsStr.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean):['other']).concat(['home']))],common={category,notes,recipe,tags,type:'home',mealType:category,createdAt:editingCustomId?(customItems.find(i=>i.id===editingCustomId)?.createdAt||new Date().toISOString()):new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const tags=[...new Set((tagsStr?tagsStr.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean):['other']).concat(['home']))],primaryQuickCut=foodPrimaryQuickCut({name,category,tags}),common={category,notes,recipe,tags,primaryQuickCut,type:'home',mealType:category,createdAt:editingCustomId?(customItems.find(i=>i.id===editingCustomId)?.createdAt||new Date().toISOString()):new Date().toISOString(),updatedAt:new Date().toISOString()};
   if(editingCustomId){const idx=customItems.findIndex(i=>i.id===editingCustomId);if(idx<0){toast('That custom food could not be found.');return;}const old=customItems[idx],item={...old,name,...common,...(pendingPhotoData?{photo:pendingPhotoData}:photoCleared?{photo:''}:{})};customItems[idx]=item;saveCustomItems(); if(item.photo) mirrorPendingPhoto(item.id,item.photo);allItems=dedupe([...allItems.filter(i=>i.id!==editingCustomId),item]);activeItems=activeItems.map(i=>i.id===editingCustomId?item:i);updateHomeCount();closeModal();renderStage();toast(`Updated ${name} ✏️`);return;}
   const item={id:`custom-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,name,...common,...(pendingPhotoData?{photo:pendingPhotoData}:{})};customItems.push(item);saveCustomItems(); if(item.photo) mirrorPendingPhoto(item.id,item.photo);allItems=dedupe([...allItems,item]);updateHomeCount();activeItems=dedupe([...activeItems,item]);originalCount=Math.max(activeItems.length,1);closeModal();showGame();toast(`Added ${name} to your food deck.`);
 }
