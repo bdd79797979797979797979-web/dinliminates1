@@ -602,6 +602,7 @@
   }
 
   function backToStartFresh(){
+    try{window.DinliminateRestaurantSearchV3?.cancel?.();}catch{}
     clearPassState();pass=null;
     clearRestaurantRoundState();
     try{localStorage.removeItem(FOOD_ROUND_KEY);}catch{}
