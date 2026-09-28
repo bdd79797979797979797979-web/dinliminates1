@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v714-resilient-photon';
+const VERSION = 'restaurant-v715-photon-nominatim-fallback';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -324,18 +324,54 @@ function dedupeRestaurantRows(rows=[]) {
   }
   return [...map.values()].sort((a,b)=>a.distanceMiles-b.distanceMiles);
 }
+
+async function nominatimPoiProvider(lat,lon,radiusMi,kind){
+  const started=Date.now(), radius=clampRadius(radiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
+  const viewbox=[lon-lonDelta,lat+latDelta,lon+lonDelta,lat-latDelta].join(',');
+  const q=kind==='fast_food'?'fast food':'restaurant';
+  try{
+    const data=await fetchJson('https://nominatim.openstreetmap.org/search?'+new URLSearchParams({
+      q,format:'jsonv2',limit:kind==='fast_food'?'60':'80',bounded:'1',viewbox,countrycodes:'us',dedupe:'1',addressdetails:'1'
+    }).toString(),{headers:{'User-Agent':'Dinliminate/1.0 restaurant search; contact via app'}},5000);
+    const rows=[];
+    for(const hit of Array.isArray(data)?data:[]){
+      const la=num(hit?.lat),lo=num(hit?.lon),name=String(hit?.name||hit?.display_name||'').split(',')[0].trim();
+      if(!name||!Number.isFinite(la)||!Number.isFinite(lo))continue;
+      const type=String(hit?.type||'').toLowerCase(), cls=String(hit?.class||'').toLowerCase();
+      const fast=kind==='fast_food'||type==='fast_food'||isFastFoodText(name+' '+String(hit?.display_name||''));
+      if(kind==='restaurant' && !(type==='restaurant'||type==='fast_food'||type==='cafe'||cls==='amenity')) continue;
+      const osmId=hit?.osm_id, osmType=String(hit?.osm_type||'').toUpperCase(), mapType={N:'node',W:'way',R:'relation'};
+      let address=String(hit?.display_name||'').trim();
+      if(address.startsWith(name+','))address=address.slice(name.length+1).trim();
+      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(type==='cafe'?'Cafe':'Restaurant'),cuisine:'',tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand:'',operator:'',address,phone:'',website:'',opening_hours:'',lat:la,lon:lo,photo:'',rating:0,priceLevel:'',menuItems:[],menuUrl:'',timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
+    }
+    return {endpoint:'Nominatim POI',rows:dedupeRestaurantRows(rows.filter(x=>x.distanceMiles<=radius)),ms:Date.now()-started,errors:[]};
+  }catch(e){return {endpoint:'Nominatim POI',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
+}
+
 async function photonProvider(lat,lon,radiusMi){
   const started=Date.now(), radius=clampRadius(radiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
   const bbox=[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta].join(',');
   const common={bbox,limit:radius>50?'250':'200',lang:'en',countrycode:'US',dedupe:'1',location_bias_scale:'0.15'};
   async function queryPhoton(q,tag){const p=new URLSearchParams(common);p.set('q',q);p.set('osm_tag',tag);return fetchJson('https://photon.komoot.io/api?'+p.toString(),{},4500);}
   const settled=await Promise.allSettled([queryPhoton('restaurant','amenity:restaurant'),queryPhoton('fast food','amenity:fast_food')]);
-  const rows=[],errors=[];
-  for(const result of settled){
+  const rows=[],errors=[],fastMissing=[];
+  for(let i=0;i<settled.length;i++){
+    const result=settled[i];
     if(result.status!=='fulfilled'){errors.push(errorText(result.reason));continue;}
-    for(const feature of result.value?.features||[]){const row=photonRow(feature);if(!row)continue;row.distanceMiles=miles(lat,lon,row.lat,row.lon);if(Number.isFinite(row.distanceMiles)&&row.distanceMiles<=radius)rows.push(row);}
+    const features=result.value?.features||[];
+    if(i===1 && !features.length) fastMissing.push('fast_food');
+    for(const feature of features){const row=photonRow(feature);if(!row)continue;row.distanceMiles=miles(lat,lon,row.lat,row.lon);if(Number.isFinite(row.distanceMiles)&&row.distanceMiles<=radius)rows.push(row);}
   }
-  return {endpoint:'Photon POI',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors};
+  if(fastMissing.length){
+    const fallback=await nominatimPoiProvider(lat,lon,radius,'fast_food');
+    rows.push(...fallback.rows); errors.push(...fallback.errors.map(x=>'fast-food fallback: '+x));
+  }
+  if(!rows.some(r=>!r.fastFood)){
+    const fallback=await nominatimPoiProvider(lat,lon,radius,'restaurant');
+    rows.push(...fallback.rows); errors.push(...fallback.errors.map(x=>'restaurant fallback: '+x));
+  }
+  return {endpoint:'Photon POI + Nominatim fallback',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors};
 }
 async function probePhoton(){
   const started=Date.now();
@@ -407,7 +443,7 @@ async function doSearch(lat, lon, radiusMi) {
     const photon = await photonProvider(lat, lon, radiusMi);
     providerResults.push(photon);
     if (photon.rows?.length) {
-      const data = { results: photon.rows.slice(0, RESULT_LIMIT), restaurants: photon.rows.slice(0, RESULT_LIMIT), items: photon.rows.slice(0, RESULT_LIMIT), total: photon.rows.length, fastFoodCount: photon.rows.filter(r=>r.fastFood).length, providersUsed:['Photon POI'], googleConfigured:!!GOOGLE_KEY, providerCounts:{'Photon POI':photon.rows.length}, diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:[{endpoint:'Photon POI',rows:photon.rows.length,ms:photon.ms,errors:photon.errors||[]}]}};
+      const data = { results: photon.rows.slice(0, RESULT_LIMIT), restaurants: photon.rows.slice(0, RESULT_LIMIT), items: photon.rows.slice(0, RESULT_LIMIT), total: photon.rows.length, fastFoodCount: photon.rows.filter(r=>r.fastFood).length, providersUsed:[...new Set(photon.rows.map(r=>r.source).filter(Boolean))], googleConfigured:!!GOOGLE_KEY, providerCounts:Object.fromEntries(Object.entries(photon.rows.reduce((m,r)=>(m[r.source]=(m[r.source]||0)+1,m),{}))), diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:[{endpoint:'Photon POI + Nominatim fallback',rows:photon.rows.length,ms:photon.ms,errors:photon.errors||[]}]}};
       memoryCache.set(key,{at:Date.now(),data});
       return data;
     }
