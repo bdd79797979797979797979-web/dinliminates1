@@ -24,7 +24,7 @@ test('production HTML and search API are healthy', async ({ request }) => {
   expect(html.ok()).toBeTruthy();
   const body = await html.text();
   expect(body).toContain('Dinliminate');
-  expect(body).toContain('p687-authoritative-quickcut-refresh');
+  expect(body).toContain('p733-launch-lock');
   expect(body).toContain('restaurantOpenUnknownBtn');
   expect(body).toContain('restaurantPassAroundBtn');
 
@@ -266,7 +266,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
     renderRestaurantStage();
     window.DinliminateRefreshRestaurantQuickCuts?.();
   });
-  await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("McDonald's");
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toHaveText("McDonald's");
   await page.locator('#restaurantKeepBtn').click();
   await expect.poll(()=>count(fast)).toBe(1);
   await page.locator('#restaurantBackAction').click();
@@ -416,5 +416,54 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   await expect(fastFood).toHaveAttribute('aria-pressed','false');
   await expect.poll(async () => page.evaluate(() => activeRestaurants.length)).toBe(3);
 
+  expect(pageErrors).toEqual([]);
+});
+
+
+test('front page chrome and food Quick Cuts/end-state stay launch-clean', async ({ page }) => {
+  const pageErrors=[];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  await page.setViewportSize({ width:390, height:844 });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+
+  await expect(page.locator('#homeMenuTopBtn')).toHaveCount(1);
+  await expect(page.locator('#homeMenuTopBtn > span')).toHaveCount(1);
+  await expect(page.locator('#homeMenuTopBtn')).toBeVisible();
+  await expect(page.locator('.home-topbar-brand')).toContainText('Dinliminate');
+  const homeChrome=await page.evaluate(()=>{
+    const brand=document.querySelector('.home-topbar-brand');
+    const menu=document.querySelector('#homeMenuTopBtn');
+    return {
+      brandBg:brand?getComputedStyle(brand).backgroundColor:'',
+      brandBorder:brand?getComputedStyle(brand).borderTopWidth:'',
+      menuText:menu?String(menu.textContent||''):'',
+      literalHamburger:document.body.textContent.includes('☰')
+    };
+  });
+  expect(homeChrome.brandBg).toBe('rgba(0, 0, 0, 0)');
+  expect(homeChrome.brandBorder).toBe('0px');
+  expect(homeChrome.menuText).not.toContain('☰');
+  expect(homeChrome.literalHamburger).toBeFalsy();
+
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  const quick=page.locator('#quickCutsBar .quick-cut').first();
+  if(await quick.count()){
+    const before=await quick.getAttribute('aria-pressed');
+    await quick.click();
+    await expect(quick).toHaveAttribute('aria-pressed','true');
+    await quick.click();
+    await expect(quick).toHaveAttribute('aria-pressed',before||'false');
+  }
+
+  await page.evaluate(() => {
+    activeItems=[];
+    holdingItems=[];
+    undoStack=[];
+    finalistMode=false;
+    showHungryState?.();
+  });
+  await expect(page.locator('#gameTopCount')).toHaveText('0');
+  await expect(page.locator('#countNumber')).toHaveText('0');
   expect(pageErrors).toEqual([]);
 });
