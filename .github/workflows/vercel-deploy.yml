@@ -13,38 +13,54 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Wait for Vercel production
-        env:
-          EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          set -eu
-          for i in $(seq 1 30); do
-            body=$(curl -fsSL --max-time 15 https://dinliminates1.vercel.app/api/release || true)
-            echo "$body"
-            actual=$(printf '%s' "$body" | EXPECTED_SHA="$EXPECTED_SHA" node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const j=JSON.parse(s);console.log(j.sha||'')}catch(e){console.log('')}})")
-            if [ "$actual" = "$EXPECTED_SHA" ]; then
-              echo "Vercel production matches $EXPECTED_SHA"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "Vercel production did not reach $EXPECTED_SHA"
-          exit 1
-      - name: Verify production entry
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify production is healthy
         run: |
           set -eu
           node <<'NODE'
-          const r = await fetch('https://dinliminates1.vercel.app/');
-          const t = await r.text();
-          if (!r.ok || !t.includes('Dinliminate')) throw new Error(`Production entry failed: HTTP ${r.status}`);
-          console.log('Production entry OK');
-          NODE
-      - name: Verify restaurant API
-        run: |
-          set -eu
-          node <<'NODE'
-          const r = await fetch('https://dinliminates1.vercel.app/api/restaurant-search?mode=health');
+          const r = await fetch('https://dinliminates1.vercel.app/api/release');
           const j = await r.json();
-          if (!r.ok || j.ok !== true) throw new Error(`Restaurant API health failed: HTTP ${r.status}`);
-          console.log('Restaurant API OK');
+          if (!r.ok || j.ok !== true || j.environment !== 'production' || j.ref !== 'main' || !j.sha) {
+            throw new Error('Invalid Vercel production release response: ' + JSON.stringify(j));
+          }
+          console.log(JSON.stringify(j));
+          NODE
+      - name: Verify current commit is either deployed or QA-only
+        env:
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          production_sha=$(node -e "fetch('https://dinliminates1.vercel.app/api/release').then(r=>r.json()).then(j=>process.stdout.write(j.sha||''))")
+          echo "Production commit: $production_sha"
+          echo "Current commit:    $CURRENT_SHA"
+          if [ "$production_sha" = "$CURRENT_SHA" ]; then
+            echo "Production is exactly this commit."
+            exit 0
+          fi
+          if ! git cat-file -e "$production_sha^{commit}" 2>/dev/null; then
+            git fetch --no-tags origin "$production_sha" || true
+          fi
+          changed=$(git diff --name-only "$production_sha" "$CURRENT_SHA" || true)
+          echo "Changes after production commit:"
+          printf '%s\n' "$changed"
+          bad=$(printf '%s\n' "$changed" | grep -Ev '^(qa/|\.github/workflows/)' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Production is behind by application files; a Vercel deployment is required."
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+          echo "Production is already current for application code; remaining changes are QA/CI only."
+      - name: Verify production entry and restaurant API
+        run: |
+          set -eu
+          node <<'NODE'
+          const entry = await fetch('https://dinliminates1.vercel.app/');
+          const html = await entry.text();
+          if (!entry.ok || !html.includes('Dinliminate')) throw new Error(`Production entry failed: HTTP ${entry.status}`);
+          const api = await fetch('https://dinliminates1.vercel.app/api/restaurant-search?mode=health');
+          const health = await api.json();
+          if (!api.ok || health.ok !== true) throw new Error(`Restaurant search health failed: HTTP ${api.status}`);
+          console.log('Production entry and restaurant API OK');
           NODE
