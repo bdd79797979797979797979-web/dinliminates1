@@ -36,6 +36,14 @@ Winner Details uses the selected result; restaurant card rendering is normalized
 Root promotion commits: `86e4592`, `74375cc`, `f8b1a46`, `7cfac19`; docs/consolidation follow.
 The clean app, API, manifest and icon are at repository root on this branch.
 
+## CP9 — merged fast-food coverage
+Commit: `3a26cc96f35897039c18fd4f5b762e34181f72ce`
+Search merges Overpass and Photon instead of stopping after the first populated provider.
+
+## CP10 — radius + service syntax fix
+Commits: `fc4dfb78a627fd185c60d43a81273a2f038a205f`, `f2fe707ebb45374e1b9ba55822cf2ae6a7f8782b`
+Photon uses the requested radius up to 100 miles and the URL formatter was corrected and syntax-checked.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
