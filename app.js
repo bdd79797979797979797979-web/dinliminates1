@@ -883,6 +883,8 @@ function hourStatus(row){
         screen:S.screen,
         foodPool:foodPool().map(x=>x.id),
         restaurantPool:restaurantPoolFiltered().map(x=>x.id),
+        custom:S.custom.map(x=>({...x})),
+        allRestaurantIds:(S.restaurantPool||[]).map(x=>x.id),
         foodActions:S.foodActions.map(x=>({...x})),
         restaurantActions:S.restaurantActions.map(x=>({...x})),
         hiddenFoods:[...S.hidden],
