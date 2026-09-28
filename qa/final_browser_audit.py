@@ -40,6 +40,7 @@ def api_route(route):
 with sync_playwright() as pw:
     browser=pw.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
     page=browser.new_page(viewport={'width':393,'height':852})
+    page.set_default_timeout(5000)
     page.on('pageerror',lambda e: errors.append(str(e)))
     page.on('console',lambda m: console_events.append((m.type,m.text)))
     page.route(re.compile(r'http://mock\.local/api/restaurant-search.*'),api_route)
@@ -97,3 +98,5 @@ with sync_playwright() as pw:
     print(json.dumps(result,indent=2))
     (root/'qa/final-browser-results.json').write_text(json.dumps(result,indent=2))
     browser.close()
+    if not result['ok']:
+        raise SystemExit(1)
