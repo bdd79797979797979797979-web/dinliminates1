@@ -34,10 +34,8 @@ jobs:
           echo "::error::Vercel production did not report commit $EXPECTED_SHA"
           exit 1
       - name: Smoke production entry
-        run: |
-          set -euo pipefail
-          curl --compressed -fsSL --max-time 20 https://dinliminates1.vercel.app/ | grep -q "Dinliminate"
+        run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();if(!r.ok||!t.includes('Dinliminate'))throw new Error('Production entry smoke failed: HTTP '+r.status);console.log('Production entry OK')})"
+      - name: Smoke production release endpoint
+        run: node -e "fetch('https://dinliminates1.vercel.app/api/release').then(async r=>{const j=await r.json();if(!r.ok||j.ok!==true||j.sha!=='${{ github.sha }}')throw new Error('Release endpoint mismatch: '+JSON.stringify(j));console.log('Release endpoint OK')})"
       - name: Smoke production search API
-        run: |
-          set -euo pipefail
-          curl --compressed -fsSL --max-time 30 "https://dinliminates1.vercel.app/api/restaurant-search?mode=health" | grep -q '"ok":true'
+        run: node -e "fetch('https://dinliminates1.vercel.app/api/restaurant-search?mode=health').then(async r=>{const j=await r.json();if(!r.ok||j.ok!==true)throw new Error('Search API health failed: HTTP '+r.status+' '+JSON.stringify(j));console.log('Restaurant search API OK')})"
