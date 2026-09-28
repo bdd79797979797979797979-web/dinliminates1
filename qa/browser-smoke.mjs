@@ -84,6 +84,28 @@ assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burger-fries'),true);
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa(); assert.equal(s.foodPool.length,31,'Quick Cut should restore');
+
+const foodBox=await page.locator('#foodCard').boundingBox();
+if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
+await page.mouse.move(foodBox.x+foodBox.width/2,foodBox.y+foodBox.height/2);
+await page.mouse.down();
+await page.mouse.move(foodBox.x+60,foodBox.y+foodBox.height/2,{steps:4});
+await page.mouse.up();
+await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
+await click('#foodBack'); await settle();
+s=await qa(); assert.equal(s.foodPool.length,31,'Food Back should restore left swipe');
+
+const foodBox2=await page.locator('#foodCard').boundingBox();
+if(!foodBox2) throw new Error('Food card bounding box missing for right swipe QA');
+await page.mouse.move(foodBox2.x+60,foodBox2.y+foodBox2.height/2);
+await page.mouse.down();
+await page.mouse.move(foodBox2.x+foodBox2.width-20,foodBox2.y+foodBox2.height/2,{steps:4});
+await page.mouse.up();
+await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should Maybe');
+await click('#foodBack'); await settle();
+s=await qa(); assert.equal(s.foodPool.length,31,'Food Back should restore right swipe');
 const beforeCut=s.foodPool.length;
 await click('#foodCut'); await settle();
 let afterCut=await qa(); assert.equal(afterCut.foodPool.length < beforeCut,true);
