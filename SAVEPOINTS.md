@@ -92,6 +92,22 @@ Hidden restaurants are retained in a registry and can be restored even after lat
 Commits: `4402dd9`, `a5f502f`, `60ec794`
 Restaurant Search, Open/Unknown Hours, and Pass Around sit together; restaurant text filtering uses the current result pool.
 
+## CP23 — single-source application implementation
+Commit: `7b470a225835c7e2f4a3d4d210242dbfae8bf86f`
+Replaced accumulated JS override layers with one coherent application implementation.
+
+## CP24 — final logic cleanup
+Commits: `9d184efe0deaca6068b36984c00e602d345cfa1a`, `f7cc04f5f0ee3461b2cfbc3589f390ed4a303e09`
+Winner Details type, modal cleanup, local History dates, and History menu entry fixed.
+
+## CP25 — logic/style separation
+Commits: `a76d66e`, `07f3c60`
+Removed embedded CSS builders from JavaScript and centralized UI styles.
+
+## CP26 — restaurant POI/photo cleanup
+Commit: `343afe33faa8489c1feefa4cc9c305ba1859fc6d`
+Photon is restricted to restaurant/fast-food POIs and named fast-food photo fallbacks are expanded.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
