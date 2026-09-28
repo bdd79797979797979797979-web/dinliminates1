@@ -101,6 +101,72 @@ function useLocation(){if(!navigator.geolocation){$('status').textContent='Locat
 $('foodStart').onclick=startFood;$('restStart').onclick=()=>{S.screen='restaurant';show('restaurant');drawQuick()};document.querySelectorAll('[data-home]').forEach(b=>b.onclick=home);$('foodCut').onclick=cut;$('foodMaybe').onclick=maybe;$('foodBack').onclick=back;$('foodHide').onclick=hide;$('menu').onclick=()=>openDrawer(true);$('drawerClose').onclick=()=>openDrawer(false);$('drawerBg').onclick=()=>openDrawer(false);$('manage').onclick=()=>{openDrawer(false);openModal(true)};$('modalClose').onclick=()=>openModal(false);$('modalBg').onclick=()=>openModal(false);$('locate').onclick=useLocation;$('find').onclick=searchRestaurants;$('continue').onclick=()=>{if(!hydrate())return startFood();S.saved=true;if(S.screen==='food'){show('food');drawQuick();drawFood()}else if(S.screen==='restaurant'){show('restaurant');drawQuick();drawRestaurants()}else startFood()};$('restart').onclick=()=>{localStorage.removeItem(KEY);Object.assign(S,{hidden:new Set(),cutCats:new Set(),cutPrimary:new Set(),maybe:new Set(),pool:[],index:0,saved:false});startFood()};$('share').onclick=async()=>{try{await navigator.share({title:'Dinliminate',text:'Tonight: '+$('winName').textContent})}catch{}};$('details').onclick=()=>alert('The clean Details view is part of the next milestone.');$('addForm').onsubmit=e=>{e.preventDefault();const n=$('newName').value.trim();if(!n)return;const id=n.toLowerCase().replace(/[^a-z0-9]+/g,'-');S.custom.push({id,name:n,primary:id,category:$('newCat').value,image:'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85'});$('newName').value='';build();drawList();drawFood();persist()};
 let downX=0;let dragging=false;$('foodCard').addEventListener('pointerdown',e=>{downX=e.clientX;dragging=true;$('foodCard').setPointerCapture(e.pointerId)});$('foodCard').addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;const dx=e.clientX-downX;if(Math.abs(dx)>90){dx<0?cut():maybe()}});$('foodCard').addEventListener('pointercancel',()=>dragging=false);
 S.saved=hydrate()||false;if(S.saved){drawQuick();updateContinue()}else updateContinue();
+
+/* CHECKPOINT 2 runtime: live restaurant flow */
+const REST_CATS=['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup','Greek','Pork','BBQ'];
+function restCategory(r){
+  if(r.fastFood || String(r.category||'').toLowerCase().includes('fast food')) return 'Fast Food';
+  const s=(String(r.category||'')+' '+String(r.cuisine||'')).toLowerCase();
+  if(/mexican|tex mex|taco|burrito/.test(s))return'Mexican';
+  if(/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(s))return'Asian';
+  if(/italian|pasta|pizza/.test(s))return'Pasta';
+  if(/southern|soul|country/.test(s))return'Southern';
+  if(/healthy|salad|vegetarian|vegan/.test(s))return'Healthy';
+  if(/soup|stew|chili|chowder/.test(s))return'Soup';
+  if(/greek|mediterranean|gyro/.test(s))return'Greek';
+  if(/pork|barbecue|bbq/.test(s))return/PORK/.test(s.toUpperCase())?'Pork':'BBQ';
+  return 'American';
+}
+function renderRestaurantQuickCuts(){
+  $('restQuick').innerHTML=REST_CATS.map(c=>'<button class="chip '+(S.restaurantCuts.has(c)?'cut':'')+'" data-rq="'+c+'">'+c+'</button>').join('');
+  document.querySelectorAll('#restQuick .chip').forEach(b=>b.onclick=()=>{const c=b.dataset.rq;S.restaurantCuts.has(c)?S.restaurantCuts.delete(c):S.restaurantCuts.add(c);renderRestaurantQuickCuts();cleanDrawRestaurants();persist()});
+}
+function restaurantFiltered(){return (S.restaurantPool||[]).filter(r=>!S.restaurantCuts.has(restCategory(r))&& !r._maybe);}
+function cleanDrawRestaurants(){
+  const p=restaurantFiltered();
+  if(!p.length){$('restStage').innerHTML='<div class="empty"><b>Hungry.</b><span>No restaurants match the current cuts.</span></div>';return;}
+  S.restaurantIndex=Math.max(0,Math.min(S.restaurantIndex||0,p.length-1));
+  const r=p[S.restaurantIndex], cat=restCategory(r);
+  $('restStage').innerHTML='<article class="card" id="restaurantCard"><img src="'+(r.photo||r.image||'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85')+'" alt="'+r.name.replace(/"/g,'&quot;')+'"><div class="shade"></div><div class="card-copy"><small>'+cat+' · '+(Number.isFinite(Number(r.distance))?Number(r.distance).toFixed(1)+' mi':'')+'</small><h3>'+r.name+'</h3></div></article><div class="result-count" style="position:relative;margin-top:8px;text-align:center;color:#666;font-size:11px">'+p.length+' restaurants</div><div class="actions" style="width:100%"><button class="secondary" id="restBack">Back</button><button class="maybe" id="restMaybe">Maybe</button><button class="cut" id="restCut">Cut</button><button class="secondary" id="restHide">Hide</button></div><div class="card-links" style="display:flex;gap:8px;margin-top:8px"><button class="small" id="restDetails" style="flex:1">Details</button><button class="small" id="restWebsite" style="flex:1">Website</button></div>';
+  $('restBack').onclick=()=>{if(S.restaurantIndex>0){S.restaurantIndex--;cleanDrawRestaurants();persist()}};
+  $('restMaybe').onclick=()=>{const x=p[S.restaurantIndex];x._maybe=true;S.restaurantIndex=Math.min(S.restaurantIndex,p.length-1);cleanDrawRestaurants();persist()};
+  $('restCut').onclick=()=>{const x=p[S.restaurantIndex];S.restaurantPool=S.restaurantPool.filter(z=>z.id!==x.id);S.restaurantIndex=Math.min(S.restaurantIndex,Math.max(0,restaurantFiltered().length-1));if(!restaurantFiltered().length){$('restStage').innerHTML='<div class="empty"><b>Hungry.</b><span>You cut the last restaurant.</span></div>'}else cleanDrawRestaurants();persist()};
+  $('restHide').onclick=()=>{const x=p[S.restaurantIndex];if(confirm('Hide '+x.name+' until you restore it in Manage Foods?')){S.restaurantPool=S.restaurantPool.filter(z=>z.id!==x.id);cleanDrawRestaurants();persist()}};
+  $('restDetails').onclick=()=>alert([r.name, r.address||'', r.cuisine||cat, r.phone||''].filter(Boolean).join('\n'));
+  $('restWebsite').onclick=()=>{if(r.website)location.href=r.website;else alert('No website is listed for this restaurant.')};
+  let sx=0,drag=false;const card=$('restaurantCard');card.onpointerdown=e=>{sx=e.clientX;drag=true;try{card.setPointerCapture(e.pointerId)}catch{}};card.onpointerup=e=>{if(!drag)return;drag=false;const dx=e.clientX-sx;if(Math.abs(dx)>90){if(dx<0)$('restCut').click();else $('restMaybe').click()}};card.onpointercancel=()=>drag=false;
+}
+function renderSuggestions(rows){
+  let box=$('suggestionsBox');if(!box){box=document.createElement('div');box.id='suggestionsBox';$('address').insertAdjacentElement('afterend',box)}
+  box.innerHTML=(rows||[]).map((x,i)=>'<button type="button" data-i="'+i+'">'+x.display.replace(/</g,'&lt;')+'</button>').join('');
+  box.style.display=rows&&rows.length?'grid':'none';
+  box.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{const x=rows[i];S.location={lat:x.lat,lon:x.lon,label:x.display};$('address').value=x.display;box.style.display='none';$('status').textContent='Location selected.';persist()});
+}
+let suggestTimer=0,suggestRows=[];
+$('address').addEventListener('input',()=>{
+  S.location=null;$('status').textContent='Searching addresses…';clearTimeout(suggestTimer);
+  const q=$('address').value.trim();if(q.length<2){renderSuggestions([]);$('status').textContent='Enter an address or use your location.';return}
+  suggestTimer=setTimeout(async()=>{try{const r=await fetch('./api/restaurants?mode=suggest&q='+encodeURIComponent(q));const d=await r.json();suggestRows=d.results||[];renderSuggestions(suggestRows);$('status').textContent=suggestRows.length?'Choose an address suggestion.':'No address suggestions yet.'}catch{renderSuggestions([]);$('status').textContent='Address lookup is temporarily unavailable.'}},280);
+});
+function setLocation(lat,lon,label){S.location={lat,lon,label};$('address').value=label||(''+lat+', '+lon);persist()}
+async function cleanSearch(){
+  let loc=S.location;
+  $('status').textContent='Searching restaurants…';
+  try{
+    if(!loc){const q=$('address').value.trim();if(!q){$('status').textContent='Enter an address or use your location.';return}const rr=await fetch('./api/restaurants?mode=resolve&q='+encodeURIComponent(q));const dd=await rr.json();if(!rr.ok||!dd.ok)throw new Error(dd.message||'Could not locate that address.');loc={lat:dd.lat,lon:dd.lon,label:dd.display};S.location=loc;$('address').value=dd.display}
+    const radius=Number($('radius').value)||10;
+    const rr=await fetch('./api/restaurants?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+encodeURIComponent(radius));
+    const dd=await rr.json();if(!rr.ok||!dd.ok)throw new Error(dd.message||'Restaurant search failed.');
+    S.restaurantPool=(dd.results||[]).map(x=>({...x,_maybe:false,category:restCategory(x)}));S.restaurantIndex=0;$('status').textContent=dd.total?((dd.total)+' restaurants found'+(dd.fastFoodCount?' · '+dd.fastFoodCount+' fast food':'')):'No restaurants found in this radius.';renderRestaurantQuickCuts();cleanDrawRestaurants();persist();
+  }catch(e){S.restaurantPool=[];cleanDrawRestaurants();$('status').textContent=e.message||'Could not complete the search.'}
+}
+async function cleanLocate(){
+  if(!navigator.geolocation){$('status').textContent='Location is not available in this browser.';return}
+  $('status').textContent='Finding your location…';
+  navigator.geolocation.getCurrentPosition(async p=>{try{const label=await fetch('./api/restaurants?mode=reverse&lat='+p.coords.latitude+'&lon='+p.coords.longitude).then(r=>r.json());setLocation(p.coords.latitude,p.coords.longitude,label.display||'Current location');$('status').textContent='Location ready.';await cleanSearch()}catch{$('status').textContent='Location found, but restaurant search could not start.'}},()=>{$('status').textContent='Could not access your location. Enter an address instead.'},{enableHighAccuracy:true,timeout:12000,maximumAge:60000})
+}
+$('find').onclick=cleanSearch;$('locate').onclick=cleanLocate;window.drawRestaurants=cleanDrawRestaurants;window.searchRestaurants=cleanSearch;renderRestaurantQuickCuts();
+
 </script>
 </main>
 </body>
