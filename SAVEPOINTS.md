@@ -176,6 +176,10 @@ Static QA now checks the actual single-source app function names rather than ret
 Commit: `cc08322098de5cbec321a33199e06d4d602f9da4`
 Static QA now matches the clean API's actual JavaScript mode comparisons.
 
+## CP44 — black winner QA
+Commits: `a09781f`, `8488ea1`
+Winner window is explicitly black and browser QA asserts the black presentation.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
