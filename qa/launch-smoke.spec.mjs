@@ -262,7 +262,9 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours 
   await page.locator('#restaurantBackAction').click();
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill('');
   await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantSearchBtn').click();
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
   await expect.poll(()=>count(american)).toBe(1);
