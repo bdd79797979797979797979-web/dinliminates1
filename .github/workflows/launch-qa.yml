@@ -17,6 +17,8 @@ jobs:
         run: node qa/source-check.mjs
       - name: API unit and fallback regression tests
         run: node qa/api_unit_test.js
+      - name: Restaurant search radius and semantic contract
+        run: node qa/restaurant-search-contract.mjs
       - name: Real-provider Wendy and semantic restaurant search
         run: node qa/api_live_search_test.mjs
       - name: Install Playwright
