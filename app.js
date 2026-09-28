@@ -886,6 +886,7 @@ function hourStatus(row){
     window.__DINLIMINATE_QA__ = {
       snapshot: () => ({
         screen:S.screen,
+        foodCatalog:allFoods().length,
         foodPool:foodPool().map(x=>x.id),
         restaurantPool:restaurantPoolFiltered().map(x=>x.id),
         custom:S.custom.map(x=>({...x})),
