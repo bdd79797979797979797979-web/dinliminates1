@@ -996,24 +996,46 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
   await expect(page.locator('#gamePanel')).toBeVisible();
   await expect(page.locator('#stage .stack-card.active')).toBeVisible();
 
-  // Make a history entry, then exercise Library reset.
+  // Make a history entry, then exercise the calendar, event removal, Saved removal, and reset.
   await page.locator('#stage .stack-card.active [data-card-action="choose"]').click();
   await expect(page.locator('#winnerPanel')).toBeVisible();
   await page.locator('#winnerHomeBtn').click();
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#historyMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
+
   await page.locator('[data-library-tab="history"]').click();
-  await expect(page.locator('#libraryList')).toContainText(/Virtual Edge Dinner|No history yet|No decisions yet/i);
-  const clearHistory = page.locator('#clearLibraryBtn');
-  if (await clearHistory.isVisible()) {
-    page.once('dialog', d => d.accept());
-    await clearHistory.click();
-    await expect(page.locator('#libraryList')).toContainText(/No history|No decisions/i);
+  await expect(page.locator('.history-calendar-grid')).toBeVisible();
+  await expect(page.locator('.history-day')).toHaveCount(42);
+  await expect(page.locator('[data-cal-prev]')).toBeVisible();
+  await expect(page.locator('[data-cal-today]')).toBeVisible();
+  await expect(page.locator('[data-cal-next]')).toBeVisible();
+  const historyEvents = page.locator('.history-event');
+  if (await historyEvents.count()) {
+    await expect(page.locator('.history-event-x').first()).toBeVisible();
+    await page.locator('.history-event-x').first().click();
+    await expect(page.locator('.history-calendar-grid')).toBeVisible();
+  }
+
+  // The Saved tab must expose a Remove action for saved choices.
+  await page.locator('[data-library-tab="saved"]').click();
+  await expect(page.locator('#libraryList')).toBeVisible();
+  const savedRemove = page.locator('[data-lib-remove]').first();
+  if (await savedRemove.count()) {
+    await savedRemove.click();
+    await expect(page.locator('#libraryList')).toBeVisible();
   }
   await page.locator('#closeLibraryBtn').click();
 
-  // Backup export + import must reload cleanly.
+  // Backup export + import must reload cleanly; first verify the real Restore confirmation.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#settingsBtn').click();
+  await page.locator('#systemRestoreBtn').click();
+  await expect(page.locator('#restoreBackdrop')).toBeVisible();
+  await page.locator('#restoreConfirmBtn').click();
+  await page.waitForTimeout(600);
+  await expect(page.locator('#homePanel')).toBeVisible();
+
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#settingsBtn').click();
   const importPayload = {
