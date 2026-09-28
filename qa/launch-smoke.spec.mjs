@@ -277,6 +277,16 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
+  await page.waitForTimeout(300);
+  console.log('QA initial restaurant state', await page.evaluate(()=>({
+    cards:document.querySelectorAll('#restaurantStage .restaurant-card-v240').length,
+    active:document.querySelectorAll('#restaurantStage .restaurant-card-v240.active').length,
+    stage:document.querySelector('#restaurantStage')?.innerText?.slice(0,800),
+    top:document.querySelector('#restaurantTopCount')?.textContent,
+    mode:window.DinliminateRestaurantSearchV3?.diagnose?.(),
+    state:window.DinliminateRestaurantSearchV3?.state?.(),
+    errors:[]
+  })));
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
