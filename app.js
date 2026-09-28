@@ -356,8 +356,10 @@ function hourStatus(row){
   }
 
   let suggestTimer = 0;
+  let suggestSeq = 0;
   async function suggestAddresses() {
     const q = $('address').value.trim();
+    const seq = ++suggestSeq;
     if (q.length < 2) { clearSuggestions(); $('status').textContent = 'Enter an address or use your location.'; return; }
     $('status').textContent = 'Searching addresses…';
     clearTimeout(suggestTimer);
@@ -365,6 +367,7 @@ function hourStatus(row){
       try {
         const r = await fetch('./api/restaurants?mode=suggest&q='+encodeURIComponent(q));
         const d = await r.json();
+        if (seq !== suggestSeq) return;
         renderSuggestions(d.results || []);
       } catch {
         clearSuggestions();
@@ -854,7 +857,7 @@ function hourStatus(row){
 
   $('locate').onclick = useLocation;
   $('find').onclick = searchRestaurants;
-  $('address').addEventListener('input', () => { S.location=null; suggestAddresses(); });
+  $('address').addEventListener('input', () => { S.location=null; clearSuggestions(); suggestAddresses(); });
   $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
   $('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();clearSuggestions();searchRestaurants();} if(e.key==='Escape') clearSuggestions(); });
 
