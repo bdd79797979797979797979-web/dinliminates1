@@ -1,4 +1,4 @@
-const DINLIMINATE_FOODS=[
+window.DINLIMINATE_FOODS=[
 ['meatloaf','Meatloaf & Mashed Potatoes','meatloaf','Southern','https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'],
 ['stroganoff','Beef Stroganoff','pasta','Pasta','https://images.unsplash.com/photo-1551892374-ecf8754cf8b0?auto=format&fit=crop&w=1200&q=85'],
 ['fried-rice','Fried Rice','fried-rice','Asian','https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=1200&q=85'],
