@@ -39,6 +39,15 @@ jobs:
         run: python3 -m pip install --disable-pip-version-check playwright
       - name: Run deep browser audit
         run: python3 qa/final_browser_audit.py
+      - name: Archive deep browser audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dinliminate-deep-browser-audit
+          path: |
+            qa/final-browser-results.json
+            qa/p636-final-iphone.png
+          if-no-files-found: warn
 
   restaurant_quickcut_focus:
     runs-on: ubuntu-latest
