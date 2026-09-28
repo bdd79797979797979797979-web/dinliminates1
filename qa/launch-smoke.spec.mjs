@@ -660,7 +660,7 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   // HOME / PHONE HELP / MENU / ABOUT
   await page.locator('#homePhoneHelpBtn').click();
   await expect(page.locator('#infoBackdrop')).toBeVisible();
-  await expect(page.locator('#infoTitle')).toHaveText('How to add to iPhone');
+  await expect(page.locator('#infoTitle')).toHaveText('How to add Dinliminate to iPhone');
   await expect(page.locator('#infoBody')).toContainText('Add to Home Screen');
   await page.locator('#closeInfoBtn').click();
 
@@ -1076,6 +1076,8 @@ test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ pa
 
   // FOOD: two choices -> Maybe -> one choice -> Choose.
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
   await page.evaluate(()=>{
     activeItems=[homeMeals[0],homeMeals[1]];
     holdingItems=[];
