@@ -287,6 +287,10 @@ Updated the clean static API contract check from the retired `clean-r6` response
 Commits: `d5f153fd27494f1002591e4a64b7087ef2f82c5e`, `ae74c4ed73c5226befc94a6dd401a057a754879e`
 Broadened the fast-food Overpass fallback to search `amenity=fast_food` plus major chain names and brands. Live API smoke now requires at least one fast-food result instead of allowing a zero-fast-food search to pass.
 
+## CP73 — Photon named-chain fast-food fallback
+Commit: `a3ad1f647579116edaae5f6526048eed1c3d0df1`
+Added a live Photon fallback that searches major named chains when the generic restaurant/fast-food queries return no fast-food rows. Expanded the chain detector to match common punctuation variants such as McDonald’s and Wendy’s.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
