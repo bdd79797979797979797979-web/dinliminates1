@@ -9103,31 +9103,40 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       if(searchQuery)params.q=searchQuery;
       const d=await request(params,30_000);
       if(seq!==ST.seq)return false;
-      let incoming=Array.isArray(d.results)?d.results:[];
-      if(!incoming.length)throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
+      const requestedIncoming=Array.isArray(d.results)?d.results:[];
+      const coverageIncoming=Array.isArray(d.coverageResults)?d.coverageResults:requestedIncoming;
+      if(!requestedIncoming.length&&!coverageIncoming.length){
+        throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
+      }
 
-      let rows=incoming;
+      let rows=requestedIncoming;
       if(searchQuery){
         const local=ST.universeRows.filter(r=>{
           const d=Number(r?.distanceMiles);
           return (!Number.isFinite(d)||d<=requestedRadius) && restaurantSearchMatches(r,searchQuery);
         });
-        rows=mergeRows([...incoming,...local]);
-        ST.universeRows=mergeRows([...ST.universeRows,...incoming]).filter(r=>{
-          const d=Number(r?.distanceMiles); return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,requestedRadius);
+        rows=mergeRows([...requestedIncoming,...local]);
+        ST.universeRows=mergeRows([...ST.universeRows,...coverageIncoming]).filter(r=>{
+          const d=Number(r?.distanceMiles);
+          const coverage=Number(d?.coverageRadiusMiles ?? NaN);
+          return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,Number(d?.coverageRadiusMiles)||requestedRadius);
         });
-        ST.universeRadius=Math.max(ST.universeRadius,requestedRadius);
+        ST.universeRadius=Math.max(ST.universeRadius,Number(d?.diagnostics?.coverageRadiusMiles)||requestedRadius);
       }
       if(!searchQuery){
         const incomingKey=key;
         const sameOrigin=ST.universeKey===incomingKey;
         if(!sameOrigin){ST.universeRows=[];ST.universeRadius=0;ST.universeKey=incomingKey;}
-        ST.universeRows=mergeRows([...ST.universeRows,...incoming]).filter(r=>{
-          const d=Number(r?.distanceMiles);
-          return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,requestedRadius);
+        const coverageRadius=Number(d?.diagnostics?.coverageRadiusMiles)||Number(d?.coverageRadiusMiles)||requestedRadius;
+        ST.universeRows=mergeRows([...ST.universeRows,...coverageIncoming]).filter(r=>{
+          const dist=Number(r?.distanceMiles);
+          return Number.isFinite(dist)&&dist<=Math.max(ST.universeRadius,coverageRadius);
         });
-        ST.universeRadius=Math.max(ST.universeRadius,requestedRadius);
-        rows=ST.universeRows.filter(r=>Number(r.distanceMiles)<=requestedRadius);
+        ST.universeRadius=Math.max(ST.universeRadius,coverageRadius);
+        rows=ST.universeRows.filter(r=>{
+          const dist=Number(r?.distanceMiles);
+          return Number.isFinite(dist)&&dist<=requestedRadius;
+        });
       }
 
       applySearchRows(rows,text(label||userCity||'Selected location'),!!options.preserveRound);
