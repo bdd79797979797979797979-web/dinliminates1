@@ -305,6 +305,11 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantBackAction').click();
   await expect.poll(()=>count(fast)).toBe(2);
 
+  await expect.poll(()=>count(american)).toBe(1);
+  await page.locator('#restaurantOpenUnknownBtn').click();
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('All');
+  await expect(page.locator('#restaurantTopCount')).toHaveText('6');
+
   const fastAllCount = await count(fast);
   expect(fastAllCount).toBe(3);
   const allBeforeQuick = Number(await page.locator('#restaurantTopCount').textContent());
@@ -313,10 +318,6 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent())).toBe(allBeforeQuick-fastAllCount);
   await fast.click();
   await expect(fast).toHaveAttribute('aria-pressed','false');
-
-  await expect.poll(()=>count(american)).toBe(1);
-  await page.locator('#restaurantOpenUnknownBtn').click();
-  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('All');
   await expect(page.locator('#restaurantTopCount')).toHaveText('6');
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
   await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Waffle House' && restaurantOpenStatus(r)===false))).toBe(true);
