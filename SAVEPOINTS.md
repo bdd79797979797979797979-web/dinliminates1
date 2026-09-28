@@ -208,6 +208,10 @@ QA state now exposes catalog count and the browser suite verifies the Food catal
 Commit: `bc79aa9268d1f09d854808799cc079e6573064c5`
 Chromium QA now fails on uncaught page errors or console errors.
 
+## CP53 — Restaurant Search derived-category matching
+Commit: `942649220d327b07e70496f71bb5025cbb926262`
+Restaurant text search now includes the app-derived category, so searches such as Pasta match Italian restaurants classified as Pasta.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
