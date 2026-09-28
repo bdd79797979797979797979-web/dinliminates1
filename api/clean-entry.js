@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p715-photon-nominatim-fallback";
+const CLEAN_VERSION = "p716-launch-candidate";
 
 function transform(html) {
   return html
