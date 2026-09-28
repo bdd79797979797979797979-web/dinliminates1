@@ -24,7 +24,7 @@
 <button class="home-card" id="foodStart"><span class="home-icon">🍽️</span><span><strong>Choose a food</strong><span>Start with dinner ideas</span></span><span class="arrow">›</span></button>
 <button class="home-card" id="restStart"><span class="home-icon">📍</span><span><strong>Find a restaurant</strong><span>Search nearby places</span></span><span class="arrow">›</span></button>
 </div>
-<div class="home-foot"><button class="text-btn hidden" id="continue">Continue saved round</button><span class="tiny">clean rebuild · CP1</span></div>
+<div class="home-foot"><div><button class="text-btn hidden" id="continue">Continue saved round</button><button class="text-btn" id="iphoneHelp">How to add to iPhone</button></div><span class="tiny">clean rebuild</span></div>
 </section>
 
 <section class="screen hidden" id="food">
@@ -43,7 +43,7 @@
 
 <section class="screen winner hidden" id="winner"><p class="eyebrow">WINNER</p><h2 id="winName"></h2><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
 
-<div class="drawer-bg hidden" id="drawerBg"></div><aside class="drawer hidden" id="drawer"><div class="drawer-head"><b>Menu</b><button class="menu" id="drawerClose">×</button></div><button class="drawer-row" id="manage">Manage Foods <span>›</span></button><button class="drawer-row" id="settings">Settings <span>›</span></button><p class="drawer-note">Clean rebuild. The legacy main branch is preserved separately.</p></aside>
+<div class="drawer-bg hidden" id="drawerBg"></div><aside class="drawer hidden" id="drawer"><div class="drawer-head"><b>Menu</b><button class="menu" id="drawerClose">×</button></div><button class="drawer-row" id="manage">Manage Foods <span>›</span></button><button class="drawer-row" id="settings">Settings <span>›</span></button><button class="drawer-row" id="about">About <span>›</span></button><p class="drawer-note">Clean rebuild. The legacy main branch is preserved separately.</p></aside>
 
 <div class="modal-bg hidden" id="modalBg"></div><section class="modal hidden" id="modal"><div class="modal-head"><h3>Manage Foods</h3><button class="menu" id="modalClose">×</button></div><form class="add" id="addForm"><input id="newName" placeholder="Food name" required><select id="newCat"><option>American</option><option>Southern</option><option>Asian</option><option>Mexican</option><option>Pasta</option><option>Pork</option><option>Healthy</option><option>Breakfast</option><option>Soup</option></select><button class="cut">Add Food</button></form><div class="food-list" id="foodList"></div></section>
 
