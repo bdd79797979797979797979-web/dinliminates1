@@ -129,8 +129,40 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('.restaurant-card-v240.active .restaurant-address-v240')).toBeVisible();
   await expect(page.locator('.restaurant-card-v240.active .restaurant-status-pill')).toBeVisible();
   await expect(page.locator('.restaurant-card-v240.active .restaurant-distance-pill')).toBeVisible();
-  await expect(page.locator('.restaurant-card-v240.active .restaurant-detail-btn-v240')).toBeVisible();
-  await expect(page.locator('.restaurant-card-v240.active .restaurant-order-btn-v240')).toBeVisible();
+  const activeCard = page.locator('.restaurant-card-v240.active');
+  const detailBtn = activeCard.locator('.restaurant-detail-btn-v240');
+  const websiteBtn = activeCard.locator('.restaurant-order-btn-v240');
+  await expect(detailBtn).toBeVisible();
+  await expect(websiteBtn).toBeVisible();
+
+  // The important card controls must be physically inside the visible card, not merely in the DOM.
+  const cardBox = await activeCard.boundingBox();
+  const detailBox = await detailBtn.boundingBox();
+  const websiteBox = await websiteBtn.boundingBox();
+  expect(cardBox).toBeTruthy();
+  expect(detailBox).toBeTruthy();
+  expect(websiteBox).toBeTruthy();
+  for (const box of [detailBox, websiteBox]) {
+    expect(box.x).toBeGreaterThanOrEqual(cardBox.x - 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
+    expect(box.y).toBeGreaterThanOrEqual(cardBox.y - 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(cardBox.y + cardBox.height + 1);
+  }
+
+  const menuCard = activeCard.locator('.restaurant-menu-card');
+  if (await menuCard.count()) {
+    await expect(menuCard).toBeVisible();
+  }
+
+  // Details opens from already-rendered card data; it should not wait on a search/provider request.
+  const detailStart = performance.now();
+  await detailBtn.click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  const detailOpenMs = performance.now() - detailStart;
+  console.log('restaurant detail open ms', Math.round(detailOpenMs));
+  expect(detailOpenMs).toBeLessThan(500);
+  await page.locator('#detailCloseBtn').click();
+  await expect(page.locator('#detailBackdrop')).toHaveClass(/hidden/);
 
   const hours = page.locator('#restaurantOpenUnknownBtn');
   await expect(hours).toHaveText(/Open \/ Unknown/);
