@@ -840,7 +840,8 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
     await expect(page.locator('#detailBackdrop')).toBeVisible();
     await page.locator('#detailCloseBtn').click();
   }
-  await page.locator('#menuBtn').click();
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.locator('#homeMenuTopBtn').click();
   await page.locator('#historyMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
   await expect(page.locator('#libraryTitle')).toHaveText('History');
