@@ -341,3 +341,16 @@ addOverlay=function(id,title,body){
 };
 const cp12=document.createElement('style');cp12.textContent='button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #ff7a1a;outline-offset:2px}.modal{scrollbar-width:thin}';document.head.appendChild(cp12);
 
+
+
+const cleanRandom=document.createElement('style');cleanRandom.textContent='.round-tools{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:8px}.round-tools .text-btn{font-size:11px;color:#999}.round-tools .tiny{font-size:9px}';document.head.appendChild(cleanRandom);
+$('addFood').onclick=()=>openModal(true);
+$('randomOne').onclick=()=>{
+ const candidates=S.pool.filter(Boolean);if(candidates.length<2)return;
+ const pick=candidates[Math.floor(Math.random()*candidates.length)];
+ const had=S.cutPrimary.has(pick.primary);
+ S.foodActions.push({type:'cut',id:pick.id,primary:pick.primary,primaryAlready:had,index:S.index});
+ S.cutPrimary.add(pick.primary);build();
+ if(S.pool.length===1)winner(S.pool[0]);else if(S.pool.length===0)winner({name:'Nothing left — hungry mode',image:'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85'});else{S.index=Math.min(S.index,S.pool.length-1);drawFood()}
+ persist();
+};
