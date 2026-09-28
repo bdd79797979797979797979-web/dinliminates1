@@ -1071,8 +1071,6 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
 
 
 test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ page }) => {
-
-test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ page }) => {
   test.setTimeout(60000);
   const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
 
