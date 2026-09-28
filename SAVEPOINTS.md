@@ -216,6 +216,10 @@ Restaurant text search now includes the app-derived category, so searches such a
 Commit: `f1602b7188657c85d4463f60d8075363e7dd7c25`
 Removed `defer` from the small Food-data and app scripts at the bottom of the page so the catalog is guaranteed to exist before app initialization.
 
+## CP55 — script-order regression guard
+Commit: `4e653ac58c5504f0dc632047b4d6e2845fa91ade`
+Static QA now enforces synchronous `data/foods.js` then `app.js` loading at the bottom of the HTML.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
