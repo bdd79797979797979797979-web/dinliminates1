@@ -1657,3 +1657,89 @@ test('restaurant radius never shrinks after a larger provider response is incomp
   expect(pageErrors).toEqual([]);
   console.log('radius monotonic counts',counts);
 });
+
+
+test('Food Quick Cuts use primary category and every Quick Cut can restore', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  page.on('console', msg => { if (msg.type() === 'error') errors.push('console: '+msg.text()); });
+
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+
+  await page.evaluate(() => {
+    activeItems = [...homeMeals];
+    holdingItems = [];
+    undoStack = [];
+    finalistMode = false;
+    searchQuery = '';
+    originalCount = activeItems.length;
+    renderStage();
+    syncDecisionActionLabels();
+  });
+
+  const baseline = await page.evaluate(() => activeItems.length);
+
+  // Potato must only remove potato-primary foods. Secondary potatoes in
+  // Steak & Potato, Chicken Tenders & Fries, and Meatloaf & Mashed Potatoes
+  // must stay in the active deck.
+  const potato = page.locator('#quickCutsBar button[data-launch-quick="potato"]');
+  await expect(potato).toBeVisible();
+  await expect(potato).not.toBeDisabled();
+  const potatoBefore = await page.evaluate(() => activeItems.length);
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','true');
+  const potatoState = await page.evaluate(() => ({
+    count: activeItems.length,
+    names: activeItems.map(x => x.name),
+    primaryPotato: homeMeals.filter(x => foodPrimaryQuickCut(x)==='potato').map(x => x.name)
+  }));
+  expect(potatoState.count).toBeLessThan(potatoBefore);
+  expect(potatoState.names).toContain('Steak & Potato');
+  expect(potatoState.names).toContain('Chicken Tenders & Fries');
+  expect(potatoState.names).toContain('Meatloaf & Mashed Potatoes');
+  expect(potatoState.names).not.toContain('Loaded Baked Potato');
+  expect(potatoState.names).not.toContain('Chili Cheese Baked Potato');
+  expect(potatoState.names).not.toContain('Mashed Potatoes');
+
+  // The same Potato control must immediately restore its primary choices.
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','false');
+  await expect.poll(async () => page.evaluate(() => activeItems.length)).toBe(baseline);
+
+  // Every food Quick Cut shown on the launch UI must have a working
+  // hide -> restore cycle. This catches dead restore controls and stale state.
+  const keys = await page.locator('#quickCutsBar button[data-launch-quick]').evaluateAll(btns =>
+    btns.map(b => ({ key:b.dataset.launchQuick, disabled:b.disabled }))
+  );
+  expect(keys.length).toBeGreaterThanOrEqual(10);
+  for (const {key, disabled} of keys) {
+    expect(disabled, key+' should be available for a primary category').toBe(false);
+    const btn = page.locator('#quickCutsBar button[data-launch-quick="'+key+'"]');
+    const before = await page.evaluate(() => activeItems.length);
+    await btn.click();
+    await expect(btn).toHaveAttribute('aria-pressed','true');
+    await expect(btn.locator('.quick-cut-x')).toHaveText('×');
+    await btn.click();
+    await expect(btn).toHaveAttribute('aria-pressed','false');
+    await expect(btn.locator('.quick-cut-x')).toHaveText('×');
+    await expect.poll(async () => page.evaluate(() => activeItems.length)).toBe(before);
+  }
+
+  // Verify the controls survive a full render while hidden.
+  const pizza = page.locator('#quickCutsBar button[data-launch-quick="pizza"]');
+  await pizza.click();
+  await expect(pizza).toHaveAttribute('aria-pressed','true');
+  await page.evaluate(() => renderStage());
+  const pizzaAfterRender = page.locator('#quickCutsBar button[data-launch-quick="pizza"]');
+  await expect(pizzaAfterRender).toBeVisible();
+  await expect(pizzaAfterRender).toHaveAttribute('aria-pressed','true');
+  await expect(pizzaAfterRender).not.toBeDisabled();
+  await pizzaAfterRender.click();
+  await expect(pizzaAfterRender).toHaveAttribute('aria-pressed','false');
+  await expect.poll(async () => page.evaluate(() => activeItems.length)).toBe(baseline);
+
+  expect(errors).toEqual([]);
+});
