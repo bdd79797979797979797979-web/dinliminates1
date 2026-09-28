@@ -1552,3 +1552,85 @@ test('food and restaurant winners are instant, clearly themed, and image-safe', 
   expect(restImgState.visibility==='hidden' || restImgState.naturalWidth>0).toBeTruthy();
   expect(errors).toEqual([]);
 });
+
+
+test('restaurant radius never shrinks after a larger provider response is incomplete', async ({ page }) => {
+  const pageErrors=[];
+  page.on('pageerror',e=>pageErrors.push(String(e)));
+
+  const lat=36.1, lon=-86.8;
+  const rowsByRadius=new Map([
+    [15,27],[25,20],[50,66],[75,68],[100,52]
+  ]);
+  const allRows=[];
+  for(let i=1;i<=100;i++){
+    const d=i;
+    allRows.push({
+      id:'qa-radius-'+i,
+      name:'Radius Test Restaurant '+i,
+      type:'restaurant',
+      fastFood:i<=10,
+      category:i<=10?'Fast Food':'American',
+      cuisine:i<=10?'burger':'american',
+      tags:['restaurant', ...(i<=10?['fast_food','fast food']:['american'])],
+      distanceMiles:d,
+      openNow:true,
+      address:(100+i)+' Main St, Nashville, TN 37201',
+      lat:lat+(d/69),
+      lon
+    });
+  }
+
+  await page.route('**/api/restaurant-search?*',async route=>{
+    const u=new URL(route.request().url());
+    const mode=u.searchParams.get('mode');
+    let body={};
+    if(mode==='suggest'){
+      body={results:[{display:'QA Radius Address, Nashville, TN 37201',query:'QA Radius Address, Nashville, TN 37201',precision:'address',lat,lon}]};
+    } else if(mode==='resolve'){
+      body={location:{lat,lon},display:'QA Radius Address, Nashville, TN 37201',precision:'address'};
+    } else if(mode==='search'){
+      const radius=Number(u.searchParams.get('radius')||10);
+      const target=rowsByRadius.get(radius) || Math.min(100,Math.round(radius));
+      // Simulate a bad provider: each larger-radius response can contain fewer
+      // rows than the previous response and is not guaranteed to include the
+      // smaller-radius rows the provider returned earlier.
+      const start=radius===15?0:radius===25?27:radius===50?47:radius===75?47:radius===100?52:0;
+      const end=Math.min(allRows.length,start+target);
+      const rows=allRows.filter(r=>r.distanceMiles<=radius).slice(start,end);
+      body={results:rows,businesses:rows,restaurants:rows,items:rows,total:rows.length,
+        fastFoodCount:rows.filter(r=>r.fastFood).length,providersUsed:['QA incomplete provider'],
+        diagnostics:{coverageRadiusMiles:radius}};
+    }
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  });
+
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{
+    localStorage.setItem('dinliminateRestaurantHoursFilter','all');
+    localStorage.setItem('dinliminateRestaurantLocationMode','area');
+    localStorage.removeItem('dinliminateRestaurantAreaCoords');
+  });
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#homeRestaurantQuick').click();
+  await page.locator('#restaurantLocationInput').fill('QA Radius Address Nashville');
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+
+  const counts=[];
+  for(const radius of [15,25,50,75,100]){
+    await page.locator('#restaurantRadiusFilter').selectOption(String(radius));
+    await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText(radius+' mi');
+    await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent()),{timeout:20000}).toBeGreaterThan(0);
+    counts.push(Number(await page.locator('#restaurantTopCount').textContent()));
+  }
+
+  for(let i=1;i<counts.length;i++){
+    expect(counts[i]).toBeGreaterThanOrEqual(counts[i-1]);
+  }
+  expect(counts[0]).toBeGreaterThanOrEqual(27);
+  expect(counts[4]).toBeGreaterThanOrEqual(68);
+  expect(pageErrors).toEqual([]);
+  console.log('radius monotonic counts',counts);
+});
