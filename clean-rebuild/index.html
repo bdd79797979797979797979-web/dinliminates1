@@ -365,6 +365,16 @@ const currentCore=cleanDrawRestaurants;
 cleanDrawRestaurants=function(){currentCore();const p=restaurantFiltered();if(p.length&&$('restDetails')){$('restDetails').onclick=()=>detailsSheet(p[Math.min(S.restaurantIndex,p.length-1)])}};
 window.drawRestaurants=cleanDrawRestaurants;
 
+
+/* CP7: winner detail data + duplicate card cleanup */
+const priorWinner=winner;
+winner=function(x){S.winnerItem=x;priorWinner(x)};
+$('details').onclick=()=>{if(S.winnerItem&&S.screen==='winner'&&S.winnerItem.name&&!/^Nothing left/.test(S.winnerItem.name))detailsSheet(S.winnerItem);else alert('No additional details are available for this result.')};
+const latestDraw=cleanDrawRestaurants;
+cleanDrawRestaurants=function(){latestDraw();const extras=document.querySelectorAll('#restaurantCard .rest-card-extra');extras.forEach((el,i)=>{if(i>0)el.remove()});const p=restaurantFiltered();if(p.length&&$('restDetails'))$('restDetails').onclick=()=>detailsSheet(p[Math.min(S.restaurantIndex,p.length-1)])};
+window.drawRestaurants=cleanDrawRestaurants;
+const cp7=document.createElement('style');cp7.textContent='.rest-card-extra .rest-card-extra{display:none}';document.head.appendChild(cp7);
+
 </script>
 </main>
 </body>
