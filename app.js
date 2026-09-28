@@ -796,7 +796,7 @@ function hourStatus(row){
         const state=deleted?'Deleted':hidden?'Hidden':'Active';
         return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-state">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
           (!deleted?(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>'):'<button class="restore" data-food-restore-deleted="'+esc(item.id)+'">Restore</button>')+
-          '<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>'+
+          (custom?'<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
           '<button class="restore danger-lite" data-food-delete="'+esc(item.id)+'">Delete</button></span></div>';
       }).join('')+'</div>';
     const modal=openModal('manageFoodsModal','Manage Foods',body);
