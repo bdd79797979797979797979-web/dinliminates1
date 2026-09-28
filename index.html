@@ -7375,7 +7375,7 @@ function filteredRestaurants(){
   else list=list.filter(r=>restaurantOpenStatus(r)!==false);
   return list;
 }
-function restaurantQuickCutCount(key){ return activeRestaurants.filter(r=>restaurantQuickCutMatches(r,key)).length; }
+function restaurantQuickCutCount(key){ const pool=typeof filteredRestaurants==='function'?filteredRestaurants():[...activeRestaurants]; const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10)); return pool.filter(r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;}).filter(r=>restaurantQuickCutMatches(r,key)).length; }
 function renderRestaurantQuickCuts(){
   const host=$('restaurantQuickCuts');
   const title=$('restaurantQuickCutsTitle');
