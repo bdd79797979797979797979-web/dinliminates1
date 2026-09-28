@@ -85,7 +85,12 @@ with sync_playwright() as pw:
             add('25 Restaurant Cut is actionable after results load',False,str(e))
         else:
             b=int(page.locator('#restaurantTopCount').inner_text());page.locator('#restaurantCutBtn').click();page.wait_for_timeout(300);a=int(page.locator('#restaurantTopCount').inner_text());add('25 Restaurant Cut changes count',a!=b);page.locator('#restaurantBackAction').click();page.wait_for_timeout(100);add('26 Restaurant Undo restores',int(page.locator('#restaurantTopCount').inner_text())==b)
-    page.locator('#restaurantPassAroundBtn').click();page.wait_for_timeout(70);add('27 Restaurant Pass Around opens',page.locator('#passSetupBackdrop').is_visible());page.locator('[data-pass-cancel]').click()
+    try:
+        page.wait_for_function("document.querySelector('#restaurantPassAroundBtn') && !document.querySelector('#restaurantPassAroundBtn').disabled", timeout=5000)
+        page.locator('#restaurantPassAroundBtn').click();page.wait_for_timeout(70);add('27 Restaurant Pass Around opens',page.locator('#passSetupBackdrop').is_visible())
+        if page.locator('[data-pass-cancel]').count(): page.locator('[data-pass-cancel]').click()
+    except Exception as e:
+        add('27 Restaurant Pass Around actionable',False,str(e))
     page.locator('#restaurantMenuBtn').click();page.wait_for_timeout(50);page.locator('#settingsBtn').click();page.wait_for_timeout(80);add('28 Settings opens',page.locator('#settingsBackdrop').is_visible());add('29 System Restore present',page.locator('#systemRestoreBtn').count()==1);page.locator('#closeSettingsBtn').click();page.wait_for_timeout(30);page.locator('#restaurantMenuBtn').click();page.wait_for_timeout(30);page.locator('#historyMenuBtn').click();page.wait_for_timeout(80);add('30 History opens',page.locator('#libraryBackdrop').is_visible());add('31 History calendar present',page.locator('.history-calendar-grid').count()==1);page.locator('#closeLibraryBtn').click()
     dups=page.evaluate("(()=>{const a=[...document.querySelectorAll('[id]')].map(e=>e.id).filter(Boolean);return [...new Set(a.filter((x,i)=>a.indexOf(x)!==i))]})()")
     add('32 No duplicate live DOM IDs',len(dups)==0,','.join(dups))
