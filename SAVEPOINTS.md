@@ -279,6 +279,10 @@ Successful custom Food creation now closes the Manage Foods modal instead of imm
 Commits: `487dca7bf06f2ed38941b294d307347077063211`, `2c4494f6933b2d63214916291ac6d098eac2d092`
 GitHub Actions now checks out `${{ github.sha }}` explicitly so each run tests the exact triggering commit. The Restaurant API search response version now also reports `clean-r7`, matching health and the fast-food fallback release.
 
+## CP71 — static QA aligned to clean-r7
+Commit: `02ac1b40a6f8c65210f13ba4d143fa09397e31cf`
+Updated the clean static API contract check from the retired `clean-r6` response version to `clean-r7` after the fast-food fallback release.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
