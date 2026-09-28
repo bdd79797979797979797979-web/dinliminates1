@@ -184,10 +184,11 @@ function normalizeRows(elements, originLat, originLon, radiusMi) {
     if (!Number.isFinite(distanceMiles) || distanceMiles > radiusMi) continue;
     row.distanceMiles = distanceMiles;
 
-    const key = [
-      String(row.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(),
-      String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-    ].join('|');
+    const nameKey=String(row.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const addressKey=String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const key=addressKey
+      ? nameKey+'|'+addressKey
+      : nameKey+'|'+row.lat.toFixed(4)+'|'+row.lon.toFixed(4);
 
     const existing = map.get(key);
     if (!existing) map.set(key, row);
@@ -335,10 +336,11 @@ async function doSearch(lat, lon, radiusMi) {
   const allRows = providerResults.flatMap(x => x.rows || []);
   const mergedMap = new Map();
   for (const row of allRows) {
-    const keyRow = [
-      String(row.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(),
-      String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-    ].join('|');
+    const nameKey=String(row.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const addressKey=String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const keyRow=addressKey
+      ? nameKey+'|'+addressKey
+      : nameKey+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4);
     if (!mergedMap.has(keyRow)) mergedMap.set(keyRow, row);
     else {
       const existing = mergedMap.get(keyRow);
