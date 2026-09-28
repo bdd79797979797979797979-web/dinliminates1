@@ -296,7 +296,7 @@ function hourStatus(row){
     const q = S.restaurantQuery.trim().toLowerCase();
     if (!q) return true;
     const hay = [
-      row.name,row.brand,row.operator,row.category,row.cuisine,
+      row.name,row.brand,row.operator,row.category,row.cuisine,restaurantCategory(row),
       ...(Array.isArray(row.menuItems) ? row.menuItems : [])
     ].filter(Boolean).join(' ').toLowerCase();
     return q.split(/\s+/).every(term => hay.includes(term));
