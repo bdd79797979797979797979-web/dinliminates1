@@ -263,6 +263,10 @@ Browser QA now verifies the Settings modal structure and confirms Restaurant Res
 Commit: `18ffbf0259e595ee0c3d7253cc55164809d47547`
 Browser QA now logs whether the Settings modal is created, whether the drawer closes, its computed visibility, and its DOM rectangle.
 
+## CP67 — browser QA Settings navigation
+Commit: `3a998d088f53082a6b50e3d8ba8726406b1e2b40`
+Restored the browser smoke test after an accidental empty-file write, then fixed the post-Settings-Restore navigation to close the Settings modal and use the visible Restaurant Home control. The app itself was not changed by this checkpoint.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
