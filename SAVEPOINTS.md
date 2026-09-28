@@ -44,6 +44,22 @@ Search merges Overpass and Photon instead of stopping after the first populated 
 Commits: `fc4dfb78a627fd185c60d43a81273a2f038a205f`, `f2fe707ebb45374e1b9ba55822cf2ae6a7f8782b`
 Photon uses the requested radius up to 100 miles and the URL formatter was corrected and syntax-checked.
 
+## CP11 — restaurant Hide persistence
+Commit: `520345da6fbb5fbc5c41f4a3ec376cf2e515dc56`
+Restaurant Hide persists in the saved search and can be restored from Settings.
+
+## CP12 — overlay lifecycle
+Commit: `288b64647fcf085fdb4b713cefa29d751ab2c5da`
+Settings and Details overlays rebuild cleanly each time they open.
+
+## CP13 — modular source structure
+Commits: `750ee68`, `c2328d2`, `2a4e536`, `7e5606c`
+Clean app split into root HTML, stylesheet, application script, and food data.
+
+## CP14 — Food controls
+Commits: `618a3f59249277ef8ec0153797c3303ee3642da1`, `6ff2362c137219c4e346285a26acab90b278a26a`
+Food Add button is wired and Random Cut One is available without adding first-page clutter.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
