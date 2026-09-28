@@ -184,6 +184,14 @@ Winner window is explicitly black and browser QA asserts the black presentation.
 Commits: `aac5c60`, `17f6886`
 CI now runs the real clean restaurant handler against live geocoding and restaurant providers before browser smoke.
 
+## CP46 — fix Food data browser global
+Commit: `e412efa5821072aa6f14a04da70f9e34d8dded1d`
+Food data now explicitly publishes `window.DINLIMINATE_FOODS`, fixing the empty Food runtime found by Chromium QA.
+
+## CP47 — guard Food data loading in QA
+Commit: `5f5bf9f5b14f77f10db88c7683ac10fb971b02cc`
+Static QA now enforces the browser data-global contract.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
