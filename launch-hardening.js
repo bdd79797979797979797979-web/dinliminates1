@@ -107,9 +107,11 @@
       // Inactive cuts use the live deck. Active cuts count choices this cut can restore.
       // An active cut stays clickable even when another active cut overlaps it.
       const n=h
-        ? foodBase.filter(x=>foodQuickMatch(x,k)&&!foodManual.has(foodKey(x))&&!([...foodQuickHidden].some(other=>other!==k&&foodQuickMatch(x,other)))).length
+        ? foodBase.filter(x=>foodQuickMatch(x,k)&&!foodManual.has(foodKey(x))).length
         : (activeItems||[]).filter(x=>foodQuickMatch(x,k)).length;
-      const disabled=(!n&&!h)||!!pass;
+      // Once a Quick Cut is active its button must always remain tappable so
+      // the user has a direct, reliable path to bring that category back.
+      const disabled=!!pass || (!h&&!n);
       return `<button type="button" class="quick-cut${h?' is-quick-hidden':''}" data-launch-quick="${html(k)}" ${disabled?'disabled':''} aria-pressed="${h}" title="${h?'Show '+html(r.label):'Hide '+html(r.label)}"><span class="quick-cut-copy"><strong>${html(r.label)}</strong><em>${h?'show':'hide'} · ${n}</em></span><span class="quick-cut-x" aria-hidden="true">${h?'↺':'×'}</span></button>`;
     }).join('');
     host.querySelectorAll('[data-launch-quick]').forEach(b=>{const photoKey=QUICK_CUT_RULES[b.dataset.launchQuick]?.photo;const photo=photoKey&&PHOTO_LIBRARY?.[photoKey];if(photo)b.style.setProperty('--quick-photo',`url("${photo.replace(/"/g,'&quot;')}")`);b.onclick=()=>toggleFoodQuick(b.dataset.launchQuick);});
