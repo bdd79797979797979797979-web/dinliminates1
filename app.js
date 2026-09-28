@@ -53,6 +53,8 @@
   };
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
+  const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
   const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
   const allFoods = () => [...getDefaultFoods(), ...S.custom];
 
@@ -827,7 +829,7 @@ function hourStatus(row){
 
   function settingsView() {
     // Never stack Settings on top of a Manage/Edit Food modal.
-    ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(id=>$(id)?.remove());
+    removeFoodOverlays();
     const hiddenFoods=allFoods().filter(x=>S.hidden.has(x.id));
     const deletedFoods=allFoods().filter(x=>S.deleted.has(x.id));
     const hiddenRestaurants=Object.values(S.hiddenRestaurants);
