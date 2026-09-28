@@ -493,7 +493,7 @@ test('P684 live restaurant Quick Cut scope follows radius, Maybe, hours and refr
   // by the radius and restaurant-state assertions below.
   const hoursButton=page.locator('#restaurantOpenUnknownBtn');
   await hoursButton.click();
-  await expect(hoursButton).toHaveText('Closed');
+  await expect(hoursButton).toHaveText('All');
   await hoursButton.click();
   await expect(hoursButton).toHaveText(/Open \/ Unknown/);
 
