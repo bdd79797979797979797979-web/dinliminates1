@@ -64,6 +64,14 @@ Food Add button is wired and Random Cut One is available without adding first-pa
 Commits: `e07e0b3579330307ee1a783f0f6a3b5161fa1fec`, `a47c6a78cffb955644ba09540a411850d318c070`
 Added a self-contained social voting flow for Food and Restaurant with participant setup, keep/cut voting, handoff state, Back undo, survivor continuation, and winner handling.
 
+## CP16 — Pass Around styling + saved Restaurant Continue
+Commits: `83812fb`, `bd4554ac`
+Pass Around has compact styling and saved restaurant rounds can surface Continue correctly.
+
+## CP17 — static QA harness
+Commit: `2200275855045b570c90f6f56d9c19909a1012b6`
+Added `qa/clean-static-qa.js` to check critical HTML/app/API/data contracts and syntax on each clean checkpoint.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
