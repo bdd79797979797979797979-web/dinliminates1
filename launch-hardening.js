@@ -635,23 +635,66 @@
       return r;
     };
     window.DinliminatePreserveRestaurantQuickCutsOnRefresh=()=>{preserveRestaurantQuickCutsOnNextApply=new Set(restaurantQuickCuts||[]);};
+    window.DinliminateGetRestaurantRoundState=()=>({
+      base:uniq([...(restaurantBase||[]),...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey),
+      active:[...(activeRestaurants||[])],
+      holding:[...(holdingRestaurants||[])],
+      manual:[...(restaurantManual||[])],
+      quick:[...(restaurantQuickCuts||[])],
+      finalist:!!restaurantFinalistMode,
+      exhausted:!!restaurantEliminationExhausted,
+      roundInProgress:!!restaurantRoundInProgress
+    });
+    window.__dinliminatePreserveRestaurantRoundState=null;
     window.applyRestaurantData=function(){
-      const preserved=preserveRestaurantQuickCutsOnNextApply;
+      const preservedQuick=preserveRestaurantQuickCutsOnNextApply;
       preserveRestaurantQuickCutsOnNextApply=null;
+      const preservedRound=window.__dinliminatePreserveRestaurantRoundState;
+      window.__dinliminatePreserveRestaurantRoundState=null;
       const r=legacyApplyRestaurant.apply(this,arguments);
-      restaurantBase=uniq([...(restaurantItems||[])],restKey);
-      syncRestaurantQuickCutScope();
-      restaurantManual.clear();
-      restaurantQuickCuts=preserved||new Set();
-      const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
-      activeRestaurants=[...(restaurantItems||[])].filter(r=>{
-        const d=Number(r?.distanceMiles);
-        if(Number.isFinite(d)&&d>radius)return false;
-        return ![...restaurantQuickCuts].some(k=>restQuickMatch(r,k));
-      });
-      holdingRestaurants=[];
-      restaurantRoundInProgress=!!restaurantItems.length;
-      saveRestaurantRoundState();
+
+      if(preservedRound){
+        const full=uniq([...(preservedRound.base||[]),...(restaurantItems||[])],restKey);
+        restaurantBase=[...full];
+        restaurantItems=[...full];
+
+        const manual=new Set(preservedRound.manual||[]);
+        const quick=new Set(preservedRound.quick||[]);
+        const heldKeys=new Set((preservedRound.holding||[]).map(restKey));
+        const byKey=new Map(full.map(item=>[restKey(item),item]));
+        const held=(preservedRound.holding||[]).map(item=>byKey.get(restKey(item))||item);
+        const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+        const within=item=>{const d=Number(item?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
+
+        holdingRestaurants=held;
+        restaurantManual=manual;
+        restaurantQuickCuts=quick;
+        restaurantFinalistMode=!!preservedRound.finalist;
+        restaurantEliminationExhausted=!!preservedRound.exhausted;
+        activeRestaurants=full.filter(item=>{
+          const id=restKey(item);
+          if(!within(item)||manual.has(id)||heldKeys.has(id))return false;
+          return ![...quick].some(k=>restQuickMatch(item,k));
+        });
+        restaurantRoundInProgress=!!full.length || !!held.length || !!preservedRound.roundInProgress;
+        restaurantUndoStack=[];
+        saveRestaurantRoundState();
+      }else{
+        restaurantBase=uniq([...(restaurantItems||[])],restKey);
+        syncRestaurantQuickCutScope();
+        restaurantManual.clear();
+        restaurantQuickCuts=preservedQuick||new Set();
+        const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+        activeRestaurants=[...(restaurantItems||[])].filter(r=>{
+          const d=Number(r?.distanceMiles);
+          if(Number.isFinite(d)&&d>radius)return false;
+          return ![...restaurantQuickCuts].some(k=>restQuickMatch(r,k));
+        });
+        holdingRestaurants=[];
+        restaurantRoundInProgress=!!restaurantItems.length;
+        saveRestaurantRoundState();
+      }
+
       renderRestaurantQuickCuts();
       renderRestaurantStage();
       return r;
