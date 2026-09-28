@@ -6140,7 +6140,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p688-qc-radius-live-sync';
+const DINLIMINATE_VERSION = 'p700-restaurant-qa-fix';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -7264,7 +7264,7 @@ function restaurantQuickCutMatches(item,key){
     sandwich:[/\bsandwich(?:es)?\b/,/\bdeli\b/,/\bsubs?\b/,/\bhoagies?\b/,/\bpanini\b/,/\bcheesesteak\b/],
     mediterranean:[/\bmediterranean\b/,/\bgreek\b/,/\blebanese\b/,/\bgyro\b/,/\bfalafel\b/,/\bhummus\b/,/\bkebab\b/,/\bshawarma\b/],
     southern:[/\bsouthern\b/,/\bsoul\s+food\b/,/\bcountry\s+cooking\b/],
-    american:[/\bamerican\b/,/\bdiner\b/,/\bgrill\b/,/\bwaffle house\b/,/\bapplebee'?s\b/,/\bcracker barrel\b/,/\bdenny'?s\b/,/\bchili'?s\b/,/\btgi friday'?s\b/],
+    american:[/\bamerican\b/,/\bdiner\b/,/\bwaffle house\b/,/\bapplebee'?s\b/,/\bcracker barrel\b/,/\bdenny'?s\b/,/\bchili'?s\b/,/\btgi friday'?s\b/],
     pasta:[/\bpasta\b/,/\bitalian\b/,/\bnoodle\b/],
     potato:[/\bpotato(?:es)?\b/,/\btater tots?\b/,/\bfries?\b/],
     healthy:[/\bhealthy\b/,/\bsalad\b/,/\bvegetarian\b/,/\bvegan\b/,/\bgluten[- ]?free\b/,/\bbowl\b/],
@@ -7461,7 +7461,7 @@ function showRestaurantHungryState(reason='exhausted'){
   $('restaurantPanel').classList.remove('hidden');
   if($('restaurantTopCount'))$('restaurantTopCount').textContent='0';
   const qs=$('restaurantQuickCuts');
-  if(qs) qs.innerHTML='';
+  if(qs && reason!=='filters') qs.innerHTML='';
   const copy = reason==='filters'
     ? {title:'No restaurants match your filters.',sub:'Change the filters or try again.'}
     : reason==='no-results'
