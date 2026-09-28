@@ -24,7 +24,7 @@ for (const rel of files) {
       fs.unlinkSync(temp);
       if (r.status !== 0) failures.push('index.html inline script: ' + (r.stderr || r.stdout));
     }
-    const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/gi)].map(m => m[1]);
+    const ids = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(m => m[1]);
     const counts = new Map();
     for (const id of ids) counts.set(id, (counts.get(id) || 0) + 1);
     for (const [id,count] of counts) if (count > 1) failures.push('duplicate id #' + id + ' (' + count + 'x)');
