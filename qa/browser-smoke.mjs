@@ -196,6 +196,15 @@ await restore.click(); await settle(); s=await qa(); assert.equal(Object.keys(s.
 await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
+await click('[data-food-hide="popcorn"]'); await settle();
+await page.locator('#menu').click(); await settle(); await page.locator('#settings').click(); await settle();
+assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),true,'Settings should list hidden built-in food');
+assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),1,'Settings should place Delete beside hidden-food Restore');
+const settingsDeleteDialog=page.waitForEvent('dialog'); const settingsDeleteClick=page.locator('[data-setting-food-delete="popcorn"]').click(); const settingsDeleteDlg=await settingsDeleteDialog; assert.equal(settingsDeleteDlg.type(),'confirm'); await settingsDeleteDlg.accept(); await settingsDeleteClick; await settle();
+assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),false,'Settings Delete should remove the hidden food');
+await page.locator('#settingsModal [data-close]').click(); await settle();
+await click('#foodStart'); await settle();
+await click('#addFood'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
@@ -225,7 +234,7 @@ while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle();
 assert.equal(await visible('winner'),true,'Food elimination should produce winner');
 const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
 assert.equal(bg,'rgb(9, 9, 9)','winner should use the black winner window');
-await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); await page.locator('#detailDone').click(); await settle();
+await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); assert.match(await page.locator('#detailsModal').innerText(),/Recipe \/ notes/i,'Built-in food Details should include recipe notes'); await page.locator('#detailDone').click(); await settle();
 
 await click('#restart'); await settle();
 await click('#menu'); await settle(); await click('#about'); await settle(); assert.equal(await visible('aboutModal'),true,'About should open'); await page.locator('[data-close]').click(); await settle();
