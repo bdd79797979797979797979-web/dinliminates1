@@ -745,6 +745,12 @@ body.game-mode .bottom-nav{z-index:90;bottom:0;border-radius:18px 18px 0 0;width
 .drawer-title{font-family:var(--display-face);font-size:1.35rem;font-weight:500;letter-spacing:-.03em;line-height:1;}
 .drawer-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;}
 .drawer-card-saved{border-color:#cfe0d6!important;background:#f4faf6!important;}
+.library-tabs{display:none!important;}
+.library-note{margin:0 0 10px;color:#788780;font-size:.62rem;line-height:1.4;}
+#libraryBackdrop .library-head{align-items:center!important;}
+#libraryBackdrop #libraryTitle{font-family:var(--display-face)!important;font-size:1.55rem!important;font-weight:500!important;letter-spacing:-.045em!important;}
+#libraryBackdrop .library-clear{border:1px solid #ddd4c8;background:#fbf8f1;color:#52645c;border-radius:11px;padding:7px 9px;font-size:.56rem;font-weight:800;}
+#libraryBackdrop .library-clear:not(.show){display:none!important;}
 .drawer-card-saved b{color:#2b604b!important;}
 .drawer-card-saved em{color:#60756a!important;}
 .drawer-card{position:relative;min-height:94px;overflow:hidden;border:1px solid #e6ded1!important;border-radius:17px!important;padding:0!important;background:#fbf7ef!important;color:var(--premium-ink)!important;text-align:left!important;box-shadow:0 8px 22px rgba(23,32,29,.06)!important;touch-action:manipulation;}
@@ -1044,7 +1050,9 @@ button{-webkit-appearance:none;appearance:none;}
   .home{padding:20px 13px 22px!important;}
   .home h1{font-size:clamp(2.75rem,13.8vw,4.2rem)!important;}
   .home-lede{font-size:.80rem!important;max-width:340px!important;}
-  .mode-card{min-height:96px;border-radius:18px;}
+  .mode-card{min-height:96px;border-radius:18px;background:transparent!important;border-color:rgba(255,255,255,.16)!important;box-shadow:0 14px 28px rgba(0,0,0,.14)!important;}
+.mode-card .mode-card-shade{background:linear-gradient(90deg,rgba(7,22,17,.70),rgba(7,22,17,.30) 68%,rgba(7,22,17,.12))!important;}
+.mode-card .mode-card-arrow{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important;}
   .mode-card-copy{padding:14px 48px 14px 15px;}
   .mode-card-copy strong{font-size:1.20rem;}
   .home-secondary .sub-btn{padding:8px 10px;font-size:.64rem;}
@@ -5945,9 +5953,11 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 </style>
 
 <style id="dinliminate-p744-detail-speed">
-/* P744 — details should feel immediate on phone: shorten the sheet animation
-   while keeping the content available immediately from already-loaded card data. */
-#detailBackdrop .detail-sheet{animation-duration:.16s!important;will-change:transform,opacity;}
+/* P744/P756 — details are content-first and should open immediately on phone.
+   No sheet animation or backdrop blur; the photo loads independently of the panel. */
+#detailBackdrop .detail-sheet{animation:none!important;transform:none!important;opacity:1!important;will-change:auto!important;}
+#detailBackdrop{backdrop-filter:none!important;}
+#detailBackdrop .detail-hero img{display:block!important;content-visibility:auto;contain:paint;}
 </style>
 </head>
 <body>
@@ -8339,7 +8349,44 @@ function openPhoneHelp(){
 }
 function openLibrary(tab='saved'){closeMenu();libraryTab=tab;renderLibrary();$('libraryBackdrop').classList.remove('hidden');focusOverlay('libraryBackdrop');}
 function closeLibrary(){if(!$('libraryBackdrop')?.classList.contains('hidden'))restoreFocus();$('libraryBackdrop').classList.add('hidden');}
-function renderLibrary(){document.querySelectorAll('[data-library-tab]').forEach(b=>b.classList.toggle('active',b.dataset.libraryTab===libraryTab));const list=libraryTab==='saved'?savedItems:historyItems;const clear=$('clearLibraryBtn');if(clear){clear.classList.toggle('show',list.length>0);clear.textContent=libraryTab==='history'?'Reset history':'Clear saved';}$('libraryList').innerHTML=list.length?list.map((item,idx)=>`<div class="library-item"><div class="library-thumb"><img src="${escapeHtml(item.photo||photoFor(item))}" alt="" onerror="this.style.display='none'"></div><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.mode==='restaurant'||item.type==='restaurant'?'Restaurant':'Food')}${item.date?` · ${new Date(item.date).toLocaleDateString()}`:''}</small></div><div class="library-actions">${libraryTab==='saved'?`<button class="library-action" data-lib-detail="${idx}" type="button">Details</button><button class="library-action" data-lib-remove="${idx}" type="button">Remove</button>`:`<button class="library-action" data-history-detail="${idx}" type="button">Details</button>`}</div></div>`).join(''):'<div class="library-empty">Nothing here yet.<br/>Save a food or restaurant to build your list.</div>';document.querySelectorAll('[data-lib-remove]').forEach(b=>b.onclick=()=>{savedItems.splice(Number(b.dataset.libRemove),1);saveSavedItems();renderLibrary();});document.querySelectorAll('[data-lib-detail]').forEach(b=>b.onclick=()=>{const item=savedItems[Number(b.dataset.libDetail)];closeLibrary();openDetails(item);});document.querySelectorAll('[data-history-detail]').forEach(b=>b.onclick=()=>{const item=historyItems[Number(b.dataset.historyDetail)];closeLibrary();openDetails(item);});}
+function renderLibrary(){
+  const isSavedTab=libraryTab==='saved';
+  const list=isSavedTab?savedItems:historyItems;
+  $('libraryTitle').textContent=isSavedTab?'Saved':'History';
+  $('libraryTitle').setAttribute('data-library-mode',isSavedTab?'saved':'history');
+  document.querySelectorAll('[data-library-tab]').forEach(b=>b.remove());
+  const clear=$('clearLibraryBtn');
+  if(clear){
+    clear.classList.toggle('show',list.length>0);
+    clear.textContent=isSavedTab?'Clear saved':'Reset history';
+  }
+  const note=isSavedTab
+    ? 'Choices you bookmarked on a card.'
+    : 'Foods and restaurants you have finished deciding on.';
+  const empty=isSavedTab
+    ? 'Nothing saved yet.<br/>Tap the heart on a food or restaurant card to save it.'
+    : 'No decisions yet.<br/>Your completed food and restaurant decisions will appear here.';
+  $('libraryList').innerHTML = `
+    <div class="library-note">${note}</div>
+    ${list.length ? list.map((item,idx)=>`<div class="library-item">
+      <div class="library-thumb"><img src="${escapeHtml(item.photo||photoFor(item))}" alt="" loading="lazy" onerror="this.style.display='none'"></div>
+      <div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.mode==='restaurant'||item.type==='restaurant'?'Restaurant':'Food')}${item.date?` · ${new Date(item.date).toLocaleDateString()}`:''}</small></div>
+      <div class="library-actions">${isSavedTab
+        ? `<button class="library-action" data-lib-detail="${idx}" type="button">Details</button><button class="library-action" data-lib-remove="${idx}" type="button">Remove</button>`
+        : `<button class="library-action" data-history-detail="${idx}" type="button">Details</button>`
+      }</div>
+    </div>`).join('') : `<div class="library-empty">${empty}</div>`}
+  `;
+  document.querySelectorAll('[data-lib-remove]').forEach(b=>b.onclick=()=>{
+    savedItems.splice(Number(b.dataset.libRemove),1); saveSavedItems(); renderLibrary();
+  });
+  document.querySelectorAll('[data-lib-detail]').forEach(b=>b.onclick=()=>{
+    const item=savedItems[Number(b.dataset.libDetail)]; closeLibrary(); openDetails(item);
+  });
+  document.querySelectorAll('[data-history-detail]').forEach(b=>b.onclick=()=>{
+    const item=historyItems[Number(b.dataset.historyDetail)]; closeLibrary(); openDetails(item);
+  });
+}
 
 function setMotionToggleUI(){const btn=$('motionTiltToggle');if(btn){btn.classList.toggle('on',motionTiltEnabled);btn.setAttribute('aria-pressed',String(motionTiltEnabled));}}
 function resetMotionTilt(){motionBaseline={beta:null,gamma:null};document.documentElement.style.setProperty('--gyro-x','0px');document.documentElement.style.setProperty('--gyro-y','0px');document.documentElement.style.setProperty('--gyro-x-hero','0px');document.documentElement.style.setProperty('--gyro-y-hero','0px');}
@@ -9328,7 +9375,14 @@ body.game-mode #quickCutsBar .quick-cut{
 
 <style id="dinliminate-p730-final-home-cascade">
 body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar{background:transparent!important;border:0!important;box-shadow:none!important;}
-body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{width:auto!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;color:rgba(255,255,255,.94)!important;font-family:var(--display-face)!important;font-size:1.55rem!important;line-height:1!important;font-weight:520!important;letter-spacing:-.045em!important;text-transform:none!important;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{
+  width:auto!important;padding:0!important;margin:0!important;background:transparent!important;
+  border:0!important;box-shadow:none!important;border-radius:0!important;
+  color:rgba(255,255,255,.96)!important;font-family:var(--display-face)!important;
+  font-size:1.72rem!important;line-height:1!important;font-weight:520!important;
+  letter-spacing:-.052em!important;text-transform:none!important;
+  text-shadow:0 2px 22px rgba(0,0,0,.18)!important;
+}
 body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{font-size:1.88rem!important;font-weight:700!important;letter-spacing:-.065em!important;color:#8fe0ba!important;}
 body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-menu{display:grid!important;width:42px!important;height:42px!important;min-width:42px!important;border-radius:14px!important;background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.13)!important;}
 body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:none!important;}
