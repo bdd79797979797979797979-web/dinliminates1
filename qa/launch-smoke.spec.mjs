@@ -273,40 +273,6 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
-  // This content-visibility check uses the fixture's fully populated restaurant deterministically.
-  await page.evaluate(()=>{
-    activeRestaurants.sort((a,b)=>(Number(a.distanceMiles)||999)-(Number(b.distanceMiles)||999));
-    restaurantFilters.query='';
-    renderRestaurantStage();
-    window.DinliminateRefreshRestaurantQuickCuts?.();
-  });
-  const activeCard=page.locator('.restaurant-card-v240.active');
-  for (const selector of [
-    '.restaurant-name-v240',
-    '.restaurant-meta-v240',
-    '.restaurant-address-v240',
-    '.restaurant-menu-card',
-    '.restaurant-card-choose-btn',
-    '.restaurant-detail-btn-v240',
-    '.restaurant-order-btn-v240'
-  ]) {
-    await expect(activeCard.locator(selector)).toBeVisible();
-  }
-  const fullCardBox=await activeCard.boundingBox();
-  for (const selector of [
-    '.restaurant-address-v240',
-    '.restaurant-menu-card',
-    '.restaurant-card-choice-row',
-    '.restaurant-v240-actions'
-  ]) {
-    const box=await activeCard.locator(selector).boundingBox();
-    expect(box).toBeTruthy();
-    expect(box.x).toBeGreaterThanOrEqual(fullCardBox.x-1);
-    expect(box.x+box.width).toBeLessThanOrEqual(fullCardBox.x+fullCardBox.width+1);
-    expect(box.y).toBeGreaterThanOrEqual(fullCardBox.y-1);
-    expect(box.y+box.height).toBeLessThanOrEqual(fullCardBox.y+fullCardBox.height+1);
-  }
-
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
   const count=async b=>{const t=await b.locator('.quick-cut-copy em').textContent(),m=String(t||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
@@ -370,6 +336,72 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
 
   expect(pageErrors).toEqual([]);
 });
+
+test('restaurant card shows all available card data without clipping', async ({ page }) => {
+  const pageErrors=[];
+  page.on('pageerror', e => pageErrors.push(String(e)));
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(() => {
+    localStorage.setItem('dinliminateRestaurantHoursFilter','open-unknown');
+    restaurantHoursFilter='open-unknown';
+    window.applyRestaurantData?.({
+      businesses:[{
+        id:'qa-card-full',
+        name:'QA Full Restaurant',
+        type:'restaurant',
+        category:'American',
+        cuisine:'American',
+        tags:['restaurant','american'],
+        address:'123 Main Street, Nashville, TN 37203',
+        phone:'615-555-0100',
+        website:'https://example.com',
+        opening_hours:'Mo-Su 8:00 AM-10:00 PM',
+        openNow:true,
+        distanceMiles:.8,
+        lat:36.16,
+        lon:-86.77,
+        menuItems:['Burgers','Fries','Milkshakes']
+      }]
+    },'QA Card');
+    const item=restaurantItems.find(r=>r.id==='qa-card-full') || restaurantItems[0];
+    activeRestaurants=item?[item]:[];
+    holdingRestaurants=[];
+    restaurantQuickCuts=new Set();
+    restaurantManual=new Set();
+    restaurantFilters={query:'',sort:'shuffle'};
+    restaurantRadiusMiles=10;
+    renderRestaurantStage();
+    renderRestaurantQuickCuts();
+  });
+  const card=page.locator('.restaurant-card-v240.active');
+  await expect(card).toBeVisible();
+  for(const selector of [
+    '.restaurant-name-v240',
+    '.restaurant-meta-v240',
+    '.restaurant-address-v240',
+    '.restaurant-menu-card',
+    '.restaurant-card-choose-btn',
+    '.restaurant-detail-btn-v240',
+    '.restaurant-order-btn-v240'
+  ]) await expect(card.locator(selector)).toBeVisible();
+  const cardBox=await card.boundingBox();
+  expect(cardBox).toBeTruthy();
+  for(const selector of [
+    '.restaurant-address-v240',
+    '.restaurant-menu-card',
+    '.restaurant-card-choice-row',
+    '.restaurant-v240-actions'
+  ]){
+    const box=await card.locator(selector).boundingBox();
+    expect(box).toBeTruthy();
+    expect(box.x).toBeGreaterThanOrEqual(cardBox.x-1);
+    expect(box.x+box.width).toBeLessThanOrEqual(cardBox.x+cardBox.width+1);
+    expect(box.y).toBeGreaterThanOrEqual(cardBox.y-1);
+    expect(box.y+box.height).toBeLessThanOrEqual(cardBox.y+cardBox.height+1);
+  }
+  expect(pageErrors).toEqual([]);
+});
+
 test('iPhone viewport has no horizontal overflow and keeps primary controls visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
