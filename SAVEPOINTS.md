@@ -220,6 +220,10 @@ Removed `defer` from the small Food-data and app scripts at the bottom of the pa
 Commit: `4e653ac58c5504f0dc632047b4d6e2845fa91ade`
 Static QA now enforces synchronous `data/foods.js` then `app.js` loading at the bottom of the HTML.
 
+## CP56 — Food data browser diagnostic
+Commit: `55a8193a79bd87a5f48d622dad6bcef9bb5d8c95`
+Browser QA now records the Food-data response status, request failures, runtime catalog count, page errors, and console errors before the first interaction.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
