@@ -192,6 +192,10 @@ Food data now explicitly publishes `window.DINLIMINATE_FOODS`, fixing the empty 
 Commit: `5f5bf9f5b14f77f10db88c7683ac10fb971b02cc`
 Static QA now enforces the browser data-global contract.
 
+## CP48 — iPhone browser geometry QA
+Commit: `eeafe2ccecaf6be9e65153b6dd931119cb18ebd8`
+Chromium smoke now checks for horizontal overflow and captures Food card/control geometry at 393×852.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
