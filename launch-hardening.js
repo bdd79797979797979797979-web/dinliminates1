@@ -226,8 +226,9 @@
     if(q){
       a=a.filter(r=>{
         if(typeof restaurantSearchMatches==='function')return restaurantSearchMatches(r,q);
-        const hay=[r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,r?.dish,r?.food,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,'');
-        return q.toLowerCase().replace(/[\u2019']/g,'').split(/\s+/).filter(Boolean).every(term=>hay.includes(term));
+        const normalize=v=>String(v??'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+        const hay=normalize([r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,r?.dish,r?.food,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[])].filter(Boolean).join(' '));
+        return normalize(q).split(/\s+/).filter(Boolean).every(term=>hay.includes(term));
       });
     }
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
@@ -321,9 +322,11 @@
 
     const q=String(restaurantFilters?.query||'').trim();
     if(q){
-      pool=pool.filter(r=>typeof restaurantSearchMatches==='function'
-        ? restaurantSearchMatches(r,q)
-        : String(r?.name||'').toLowerCase().includes(q.toLowerCase()));
+      pool=pool.filter(r=>{
+        if(typeof restaurantSearchMatches==='function')return restaurantSearchMatches(r,q);
+        const normalize=v=>String(v??'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+        return normalize(r?.name).includes(normalize(q));
+      });
     }
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
     if(hours==='open-unknown') pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
@@ -356,9 +359,10 @@
     pool=pool.filter(r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;});
     const q=String(restaurantFilters?.query||'').trim();
     if(q)pool=pool.filter(r=>{
-      if(typeof restaurantSearchMatches==='function') return restaurantSearchMatches(r,q);
-      const hay=[r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,r?.dish,r?.food,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,'');
-      return q.toLowerCase().replace(/[\u2019']/g,'').split(/\s+/).filter(Boolean).every(term=>hay.includes(term));
+      if(typeof restaurantSearchMatches==='function')return restaurantSearchMatches(r,q);
+      const normalize=v=>String(v??'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+      const hay=normalize([r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,r?.dish,r?.food,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[])].filter(Boolean).join(' '));
+      return normalize(q).split(/\s+/).filter(Boolean).every(term=>hay.includes(term));
     });
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
     if(hours==='open-unknown')pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
