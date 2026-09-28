@@ -5835,6 +5835,19 @@ body.restaurant-mode .restaurant-status-line{min-height:16px!important}
 
 
 
+window.DinliminateHoursQA={
+  state:()=>restaurantHoursFilter,
+  button:()=>{const b=$('restaurantOpenUnknownBtn');return b?{text:b.textContent,pressed:b.getAttribute('aria-pressed'),filter:b.getAttribute('data-hours-filter'),disabled:!!b.disabled,visible:!!(b.offsetWidth||b.offsetHeight||b.getClientRects().length)}:null;},
+  classify:(items=[])=>{
+    const open=items.filter(r=>restaurantOpenStatus(r)!==false).map(r=>r.id||r.name);
+    const closed=items.filter(r=>restaurantOpenStatus(r)===false).map(r=>r.id||r.name);
+    const unknown=items.filter(r=>restaurantOpenStatus(r)===null).map(r=>r.id||r.name);
+    return {open,closed,unknown};
+  },
+  expectedClosed:(items=[])=>items.filter(r=>restaurantOpenStatus(r)===false).map(r=>r.id||r.name),
+  expectedOpenUnknown:(items=[])=>items.filter(r=>restaurantOpenStatus(r)!==false).map(r=>r.id||r.name)
+};
+
 <script>
 const homeMeals = [
   { name: "Spaghetti", tags: ["pasta", "italian", "quick", "home"], type: "home" },
@@ -6429,7 +6442,7 @@ async function restoreDinliminateDefaults(){
   activeItems=[...allItems]; originalCount=Math.max(activeItems.length,1); holdingItems=[]; undoStack=[]; finalistMode=false;
   searchQuery=''; deletedFoodKeys=[]; savedItems=[]; historyItems=[]; lastWinner=null;
   foodPreferences={quick:false,comfort:false}; restaurantItems=[]; activeRestaurants=[]; holdingRestaurants=[]; restaurantUndoStack=[];
-  restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts.clear(); restaurantFinalistMode=false; restaurantQuickCutsExpanded=false; restaurantHoursFilter='open-unknown'; safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter})); safeWrite('dinliminateRestaurantHoursFilter','open-unknown');
+  restaurantFilters={query:'',sort:'shuffle'}; restaurantQuickCuts.clear(); restaurantFinalistMode=false; restaurantQuickCutsExpanded=false; restaurantHoursFilter='open-unknown'; safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter})); safeWrite('dinliminateRestaurantHoursFilter','open-unknown'); syncRestaurantHoursControl();
   restaurantRadiusMiles=10;
   closeSettings(); closeMenu(); closeLibrary(); closeDetails(); closeSearch(); closeConfirm(); closeInfo();
   toast('Dinliminate restored. Reloading…');
@@ -7406,7 +7419,19 @@ function saveRestaurantFilters(){
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter',restaurantHoursFilter) === 'closed' ? 'closed' : 'open-unknown';
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
   safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
+  syncRestaurantHoursControl();
   window.renderRestaurantQuickCuts?.();
+}
+function syncRestaurantHoursControl(){
+  const b=$('restaurantOpenUnknownBtn');
+  if(!b)return;
+  const closed=restaurantHoursFilter==='closed';
+  b.textContent=closed?'Closed':'Open / Unknown';
+  b.setAttribute('aria-pressed',String(closed));
+  b.setAttribute('data-hours-filter',closed?'closed':'open-unknown');
+  b.setAttribute('aria-label',closed?'Showing closed restaurants. Tap to show open or unknown hours.':'Showing open or unknown-hour restaurants. Tap to show closed restaurants.');
+  b.title=closed?'Show open or unknown-hour restaurants':'Show closed restaurants';
+  b.classList.toggle('is-hours-closed',closed);
 }
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
@@ -7574,6 +7599,7 @@ function restaurantLocationQualityText(){
   return `Location low accuracy · ±${mi<10?mi.toFixed(1):Math.round(mi)} mi`;
 }
 function showRestaurantMode(){
+  syncRestaurantHoursControl();
   currentWinnerMode='restaurant';
   document.title='Dinliminate — Find a Restaurant';
   setNavActive('navRestaurants');
@@ -7791,6 +7817,17 @@ bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
 bind('searchBtn','click',startSearch);
 
 bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');const btn=$('restaurantSearchBtn');if(!box||!btn)return;const open=!box.classList.contains('hidden');box.classList.toggle('hidden',open);btn.setAttribute('aria-expanded',String(!open));if(!open)$('restaurantInlineSearchInput')?.focus();});
+bind('restaurantOpenUnknownBtn','click',(e)=>{
+  e?.preventDefault?.();
+  if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return;
+  restaurantHoursFilter=restaurantHoursFilter==='closed'?'open-unknown':'closed';
+  safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
+  safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
+  syncRestaurantHoursControl();
+  renderRestaurantStage();
+  window.renderRestaurantQuickCuts?.();
+  toast(restaurantHoursFilter==='closed'?'Closed restaurants only.':'Open or unknown-hour restaurants.');
+});
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
 
 bind('cutBtn','click',(e)=>{e?.preventDefault?.();window.cutCurrent?.($('stage')?.querySelector('.active'));});
