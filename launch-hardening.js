@@ -610,7 +610,7 @@
 
 /* P677 — launch completion hardening. */
 (() => {
-  const VERSION = 'p711-restaurant-hours-complete';
+  const VERSION = 'p712-restaurant-hours-complete';
   const q = (sel, root=document) => root.querySelector(sel);
   const text = (v='') => String(v ?? '').trim();
   const read = (k, fallback='') => { try { return localStorage.getItem(k) ?? fallback; } catch { return fallback; } };
@@ -622,11 +622,10 @@
     if (!b) return;
     const closed = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed';
     b.textContent = closed ? 'Closed' : 'Open / Unknown';
-    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap for open or unknown.' : 'Showing open or unknown-hour restaurants. Tap for closed.');
+    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap to show open or unknown-hour restaurants.' : 'Showing open or unknown-hour restaurants. Tap to show closed restaurants.');
     b.setAttribute('aria-pressed', String(closed));
     b.dataset.hoursFilter = closed ? 'closed' : 'open-unknown';
   }
-
   function installHoursFilter() {
     const b = q('#restaurantOpenUnknownBtn');
     if (!b || b.dataset.launchHoursSync === '1') return;
