@@ -23,9 +23,11 @@ const context = await browser.newContext({viewport:{width:393,height:852},device
 const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
-const pageErrors=[]; const consoleErrors=[];
+const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[];
 page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
+page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); });
+page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) requestFailures.push({url:req.url(),error:req.failure()?.errorText||'unknown'}); });
 page.on('dialog', async dialog => { await dialog.accept(); });
 await page.route('**/*', async route => {
   const u = route.request().url();
@@ -65,6 +67,8 @@ async function settle(){await page.waitForTimeout(80);}
 
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
+await page.waitForTimeout(100);
+console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
 await assert.equal(await page.locator('#home h1').innerText(),'what sounds good tonight?');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
