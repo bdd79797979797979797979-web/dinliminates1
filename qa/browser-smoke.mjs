@@ -149,8 +149,8 @@ s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='T
 
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal(await visible('winner'),true,'Food elimination should produce winner');
-const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundImage);
-assert.match(bg,/linear-gradient/i,'winner should use dark gradient');
+const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
+assert.equal(bg,'rgb(9, 9, 9)','winner should use the black winner window');
 await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); await page.locator('#detailDone').click(); await settle();
 
 await click('#restart'); await settle();
