@@ -589,3 +589,318 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
   await expect(page.locator('#countNumber')).toHaveText('0');
   expect(pageErrors).toEqual([]);
 });
+
+
+// P729 — full virtual-user journey: every major user-facing flow.
+
+
+test('P729 full virtual-user journey covers the complete app surface', async ({ page }) => {
+  test.setTimeout(120000);
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  page.on('console', msg => {
+    if (msg.type() === 'error') errors.push('console: ' + msg.text());
+  });
+
+  const restaurantFixture = [
+    { id:'vu-mcd', name:"McDonald's", type:'restaurant', fastFood:true, amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food','burger'], cuisine:'', address:'1 Titans Way, Nashville, TN 37213', website:'https://www.mcdonalds.com', opening_hours:'Mo-Su 06:00-23:00', openNow:true, distanceMiles:.4, lat:36.1665, lon:-86.7713, menuItems:['Burgers','Fries'] },
+    { id:'vu-bk', name:'Burger King', type:'restaurant', fastFood:true, amenity:'fast_food', category:'Fast Food', tags:['restaurant','fast_food','burger'], address:'2 Titans Way, Nashville, TN 37213', openNow:true, distanceMiles:1.5, lat:36.1666, lon:-86.7714 },
+    { id:'vu-wh', name:'Waffle House', type:'restaurant', fastFood:false, amenity:'restaurant', category:'American', cuisine:'american', tags:['restaurant','american','breakfast'], address:'3 Titans Way, Nashville, TN 37213', openNow:false, distanceMiles:2.2, lat:36.1667, lon:-86.7715 },
+    { id:'vu-south', name:'Southern Kitchen', type:'restaurant', fastFood:false, amenity:'restaurant', category:'Southern', cuisine:'southern', tags:['restaurant','southern'], address:'4 Titans Way, Nashville, TN 37213', distanceMiles:2.8, lat:36.1668, lon:-86.7716 },
+    { id:'vu-pasta', name:'Pasta House', type:'restaurant', fastFood:false, amenity:'restaurant', category:'Pasta', cuisine:'italian', tags:['restaurant','italian','pasta'], address:'5 Titans Way, Nashville, TN 37213', openNow:true, distanceMiles:4.4, lat:36.1669, lon:-86.7717 }
+  ];
+
+  await page.route('**/api/restaurant-search*', async route => {
+    const u = new URL(route.request().url());
+    const mode = u.searchParams.get('mode');
+    if (mode === 'reverse') {
+      return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({
+        ok:true, version:'virtual-user', display:'Nashville, Tennessee', city:'Nashville'
+      })});
+    }
+    if (mode === 'suggest') {
+      const q = u.searchParams.get('q') || '';
+      return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({
+        ok:true, version:'virtual-user',
+        results:[{display:'1 Titans Way, Nashville, Tennessee, 37213',query:q,precision:'address',lat:36.1661,lon:-86.7716}]
+      })});
+    }
+    if (mode === 'resolve') {
+      return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({
+        ok:true, version:'virtual-user', location:{lat:36.1661,lon:-86.7716},
+        display:'1 Titans Way, Nashville, Tennessee, 37213',precision:'address'
+      })});
+    }
+    if (mode === 'health') {
+      return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({ok:true,version:'virtual-user'})});
+    }
+    if (mode === 'search') {
+      const radius = Number(u.searchParams.get('radius') || 25);
+      const rows = restaurantFixture.filter(r => r.distanceMiles <= radius);
+      return route.fulfill({status:200, contentType:'application/json', body:JSON.stringify({
+        ok:true, version:'virtual-user', radiusMiles:radius,
+        results:rows, restaurants:rows, businesses:rows, items:rows,
+        total:rows.length, fastFoodCount:rows.filter(r=>r.fastFood).length,
+        providersUsed:['Virtual User Fixture'], diagnostics:{elapsedMs:3,cacheHit:false}
+      })});
+    }
+    return route.fulfill({status:400, contentType:'application/json', body:JSON.stringify({ok:false})});
+  });
+
+  await page.goto(BASE, {waitUntil:'domcontentloaded'});
+  await expect(page.locator('#startBtn')).toBeVisible();
+  await expect(page.locator('#homeRestaurantQuick')).toBeVisible();
+  await expect(page.locator('#homePhoneHelpBtn')).toBeVisible();
+
+  // HOME / PHONE HELP / MENU / ABOUT
+  await page.locator('#homePhoneHelpBtn').click();
+  await expect(page.locator('#infoBackdrop')).toBeVisible();
+  await expect(page.locator('#infoTitle')).toHaveText('How to add to iPhone');
+  await expect(page.locator('#infoBody')).toContainText('Add to Home Screen');
+  await page.locator('#closeInfoBtn').click();
+
+  await page.locator('#homeMenuTopBtn').click();
+  await expect(page.locator('#drawer')).toBeVisible();
+  for (const id of ['addMenuBtn','restaurantsMenuBtn','settingsBtn','historyMenuBtn','winnerMenuBtn','aboutMenuBtn','homeMenuBtn']) {
+    await expect(page.locator('#drawer #' + id)).toBeVisible();
+  }
+  await page.locator('#aboutMenuBtn').click();
+  await expect(page.locator('#infoBackdrop')).toBeVisible();
+  await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn');
+  await page.locator('#closeInfoBtn').click();
+
+  // SETTINGS: toggles, hidden list, export, restore cancel, close.
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toBeVisible();
+  const initialPrefQuick = await page.locator('#prefQuick').getAttribute('aria-pressed');
+  await page.locator('#prefQuick').click();
+  await expect(page.locator('#prefQuick')).toHaveAttribute('aria-pressed', initialPrefQuick === 'true' ? 'false' : 'true');
+  await page.locator('#prefQuick').click();
+  await expect(page.locator('#prefQuick')).toHaveAttribute('aria-pressed', initialPrefQuick || 'false');
+
+  const initialPrefComfort = await page.locator('#prefComfort').getAttribute('aria-pressed');
+  await page.locator('#prefComfort').click();
+  await expect(page.locator('#prefComfort')).toHaveAttribute('aria-pressed', initialPrefComfort === 'true' ? 'false' : 'true');
+  await page.locator('#prefComfort').click();
+
+  const initialMotion = await page.locator('#motionTiltToggle').getAttribute('aria-pressed');
+  await page.locator('#motionTiltToggle').click();
+  await page.waitForTimeout(150);
+  const motionAfter = await page.locator('#motionTiltToggle').getAttribute('aria-pressed');
+  expect(motionAfter).toMatch(/true|false/);
+  if (motionAfter !== initialMotion) {
+    await page.locator('#motionTiltToggle').click();
+    await expect(page.locator('#motionTiltToggle')).toHaveAttribute('aria-pressed', initialMotion || 'false');
+  }
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportDataBtn').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/dinliminate/i);
+  const backupPath = await download.path();
+  expect(backupPath).toBeTruthy();
+
+  await page.locator('#systemRestoreBtn').click();
+  await expect(page.locator('#restoreBackdrop')).toBeVisible();
+  await page.locator('#restoreCancelBtn').click();
+  await expect(page.locator('#restoreBackdrop')).toHaveClass(/hidden/);
+  await page.locator('#closeSettingsBtn').click();
+  await expect(page.locator('#settingsBackdrop')).toHaveClass(/hidden/);
+
+  // FOOD MODE: quick cuts, details/save, hide confirmation + undo, add/edit/delete custom food.
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  await expect(page.locator('#stage .stack-card.active')).toBeVisible();
+  expect(await page.locator('#quickCutsBar .quick-cut').count()).toBeGreaterThan(0);
+
+  const foodQuickCuts = page.locator('#quickCutsBar .quick-cut');
+  const foodQuickCount = await foodQuickCuts.count();
+  for (let i = 0; i < Math.min(foodQuickCount, 6); i++) {
+    const q = foodQuickCuts.nth(i);
+    if (await q.isDisabled()) continue;
+    const before = await q.getAttribute('aria-pressed');
+    await q.click();
+    await expect(q).toHaveAttribute('aria-pressed','true');
+    await q.click();
+    await expect(q).toHaveAttribute('aria-pressed',before || 'false');
+  }
+
+  const foodDetail = page.locator('#stage .stack-card.active [data-card-action="details"]');
+  await foodDetail.click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await expect(page.locator('#detailTitle')).not.toHaveText('');
+  const saveFood = page.locator('#detailSaveBtn');
+  await expect(saveFood).toBeVisible();
+  const savedBefore = await saveFood.textContent();
+  await saveFood.click();
+  await expect(saveFood).toHaveText(/Saved|Save/);
+  await page.locator('#detailCloseBtn').click();
+
+  const foodCountBeforeCut = Number(await page.locator('#gameTopCount').textContent());
+  await page.locator('#cutBtn').click();
+  await expect.poll(async()=>Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(foodCountBeforeCut);
+  await page.locator('#backBtn').click();
+  await expect.poll(async()=>Number(await page.locator('#gameTopCount').textContent())).toBe(foodCountBeforeCut);
+
+  // Hide is a confirmed action.
+  await page.locator('#hideBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeVisible();
+  await expect(page.locator('#confirmTitle')).toHaveText(/Hide this food/);
+  await page.locator('#confirmCancelBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toHaveClass(/hidden/);
+  const beforeHideCount = Number(await page.locator('#gameTopCount').textContent());
+  await page.locator('#hideBtn').click();
+  await page.locator('#confirmCutBtn').click();
+  await expect.poll(async()=>Number(await page.locator('#gameTopCount').textContent())).toBeLessThan(beforeHideCount);
+
+  // Open Settings from the live round and unhide the hidden food.
+  await page.locator('#menuBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#hiddenFoodList [data-unhide]').first()).toBeVisible();
+  await page.locator('#hiddenFoodList [data-unhide]').first().click();
+  await page.locator('#closeSettingsBtn').click();
+
+  // Add a custom food, then edit it and delete it permanently.
+  await page.locator('#menuBtn').click();
+  await page.locator('#addMenuBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+  await page.locator('#newName').fill('Virtual User Test Dinner');
+  await page.locator('#newCategory').selectOption({label:'Dinner'});
+  await page.locator('#newNotes').fill('Created by the launch virtual-user audit.');
+  await page.locator('#newRecipe').fill('Test recipe: mix, heat, serve.');
+  const tagButtons = page.locator('#addFoodTagRow button');
+  if (await tagButtons.count()) await tagButtons.first().click();
+  await page.locator('#saveBtn').click();
+  await expect(page.locator('#modalBackdrop')).toHaveClass(/hidden/);
+  await expect.poll(async()=>page.evaluate(()=>customItems.some(x=>x.name==='Virtual User Test Dinner'))).toBe(true);
+
+  await page.evaluate(() => {
+    const item = customItems.find(x=>x.name==='Virtual User Test Dinner');
+    if (item) {
+      activeItems = [item, ...activeItems.filter(x=>x.id!==item.id)];
+      renderStage();
+    }
+  });
+  await page.locator('#stage .stack-card.active [data-card-action="details"]').click();
+  await expect(page.locator('#editCardBtn')).toBeVisible();
+  await page.locator('#editCardBtn').click();
+  await expect(page.locator('#modalBackdrop')).toBeVisible();
+  await page.locator('#newName').fill('Virtual User Edited Dinner');
+  await page.locator('#saveBtn').click();
+  await expect.poll(async()=>page.evaluate(()=>customItems.some(x=>x.name==='Virtual User Edited Dinner'))).toBe(true);
+
+  await page.locator('#stage .stack-card.active [data-card-action="details"]').click();
+  await page.locator('#deleteCardBtn').click();
+  await expect(page.locator('#confirmBackdrop')).toBeVisible();
+  await page.locator('#confirmCutBtn').click();
+  await expect.poll(async()=>page.evaluate(()=>!customItems.some(x=>x.name==='Virtual User Edited Dinner'))).toBe(true);
+
+  // LIBRARY: saved + history tabs and details/remove actions.
+  await page.locator('#menuBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('[data-library-tab="saved"]')).toBeVisible();
+  await expect(page.locator('[data-library-tab="history"]')).toBeVisible();
+  await page.locator('[data-library-tab="saved"]').click();
+  await expect(page.locator('#libraryList')).toBeVisible();
+  if (await page.locator('[data-lib-detail]').count()) {
+    await page.locator('[data-lib-detail]').first().click();
+    await expect(page.locator('#detailBackdrop')).toBeVisible();
+    await page.locator('#detailCloseBtn').click();
+    await page.locator('#menuBtn').click();
+    await page.locator('#historyMenuBtn').click();
+  }
+  await page.locator('[data-library-tab="history"]').click();
+  await expect(page.locator('#libraryList')).toBeVisible();
+  await page.locator('#closeLibraryBtn').click();
+
+  // WINNER: choose, share, back to start, and reopen last winner from Home.
+  await page.evaluate(() => {
+    activeItems = activeItems.slice(0, Math.max(2, Math.min(4, activeItems.length)));
+    holdingItems = [];
+    finalistMode = false;
+    renderStage();
+  });
+  await page.locator('#stage .stack-card.active [data-card-action="choose"]').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#shareBtn').click();
+  await page.waitForTimeout(100);
+  await page.locator('#winnerHomeBtn').click();
+  await expect(page.locator('#homePanel')).toBeVisible();
+  if (await page.locator('#homeWinnerBtn').isVisible()) {
+    await page.locator('#homeWinnerBtn').click();
+    await expect(page.locator('#winnerPanel')).toBeVisible();
+    await page.locator('#winnerHomeBtn').click();
+  }
+
+  // RESTAURANT MODE: location, radius, inline search, hours, Quick Cuts, actions, details.
+  await page.locator('#homeRestaurantQuick').click();
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+  await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-meta-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-address-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-status-pill')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-distance-pill')).toBeVisible();
+
+  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('1 mi');
+  await page.locator('#restaurantRadiusFilter').selectOption('5');
+  await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('5 mi');
+
+  const rSearchBtn = page.locator('#restaurantSearchBtn');
+  await rSearchBtn.click();
+  await expect(rSearchBtn).toHaveAttribute('aria-expanded','true');
+  await page.locator('#restaurantInlineSearchInput').fill("McDonald");
+  await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText("McDonald's");
+  await page.locator('#restaurantInlineSearchInput').fill('');
+
+  const rHours = page.locator('#restaurantOpenUnknownBtn');
+  await rHours.click();
+  await expect(rHours).toHaveText('Closed');
+  await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText('Waffle House');
+  await rHours.click();
+  await expect(rHours).toHaveText('Open / Unknown');
+
+  for (const key of ['fast_food','american','pasta','healthy','southern','potato','soupstew']) {
+    const b = page.locator('#restaurantQuickCuts button[data-launch-rq="' + key + '"]').first();
+    if (!(await b.count()) || await b.isDisabled()) continue;
+    await b.click();
+    await expect(b).toHaveAttribute('aria-pressed','true');
+    await b.click();
+    await expect(b).toHaveAttribute('aria-pressed','false');
+  }
+
+  await page.locator('#restaurantInlineSearchInput').fill('zzz-no-restaurant');
+  await expect(page.locator('#restaurantTopCount')).toHaveText('0');
+  await expect(page.locator('.restaurant-hungry-state')).toBeVisible();
+  await page.locator('#restaurantHungryResetBtn').click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
+
+  const rDetail = page.locator('#restaurantStage .restaurant-card-v240.active .restaurant-detail-btn-v240');
+  await rDetail.click();
+  await expect(page.locator('#detailBackdrop')).toBeVisible();
+  await expect(page.locator('#detailActions')).toContainText(/Save/);
+  await expect(page.locator('#detailActions')).toContainText(/Open in Maps/);
+  await expect(page.locator('#detailActions')).toContainText(/Visit Website/);
+  await expect(page.locator('#detailActions')).toContainText(/Report data/);
+  await page.locator('#detailSaveBtn').click();
+  await expect(page.locator('#detailSaveBtn')).toHaveText(/Saved|Save/);
+  await page.locator('#detailReportBtn').click();
+  await expect(page.locator('#toast')).toContainText('marked for data review');
+  await page.locator('#detailCloseBtn').click();
+
+  await page.locator('#restaurantMenuBtn').click();
+  await expect(page.locator('#drawer')).toBeVisible();
+  await expect(page.locator('#drawer #settingsBtn')).toBeVisible();
+  await expect(page.locator('#drawer #historyMenuBtn')).toBeVisible();
+  await expect(page.locator('#drawer #homeMenuBtn')).toBeVisible();
+  await page.locator('#homeMenuBtn').click();
+  await expect(page.locator('#homePanel')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
