@@ -248,6 +248,9 @@ Browser QA explicitly accepts the Hide confirmation dialog and logs the resultin
 Commit: `5fc97a970effec969356a82fb68037ae08752656`
 Removed the duplicate global Playwright dialog handler so the Restaurant Hide confirmation is handled exactly once.
 
+## CP63 — resume checkpoint
+Current recovery point after CP62. Browser QA is in progress; no production merge or Vercel promotion has been performed.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
