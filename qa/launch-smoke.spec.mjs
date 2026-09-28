@@ -1564,7 +1564,13 @@ test('restaurant radius never shrinks after a larger provider response is incomp
   ]);
   const allRows=[];
   for(let i=1;i<=100;i++){
-    const d=i;
+    const d = i<=27
+      ? 5 + ((i-1) * 0.30)          // 5.0–12.8mi: 27 restaurants inside 15mi
+      : i<=66
+        ? 20 + ((i-28) * 0.65)      // expands through ~44.7mi
+        : i<=68
+          ? 70 + ((i-67) * 4.0)      // 70 and 74mi
+          : 90 + ((i-69) * 1.0);     // farther 90–100mi
     allRows.push({
       id:'qa-radius-'+i,
       name:'Radius Test Restaurant '+i,
