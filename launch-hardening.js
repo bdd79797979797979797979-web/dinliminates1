@@ -348,25 +348,27 @@
     if(pass){toast('Quick Cuts are locked during Pass Around.');return;}
     const active=restaurantQuickCuts.has(k);
     if(!active){
-      const scope=restaurantQuickCutDisplayPool(k);
-      if(!scope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
+      const visibleScope=restaurantQuickCutDisplayPool(k);
+      if(!visibleScope.some(x=>restQuickMatch(x,k))){toast('No matching restaurants in this round.');return;}
       restaurantQuickCuts.add(k);
+      // The displayed count and the action must use the same live scope.
+      // In Open / Unknown mode, closed restaurants remain in the underlying
+      // deck and are simply hidden by the hours filter; they are not silently
+      // eliminated by a Quick Cut the user saw a smaller count for.
+      const removeIds=new Set(visibleScope.filter(x=>restQuickMatch(x,k)).map(restKey));
+      activeRestaurants=[...(activeRestaurants||[])].filter(r=>!removeIds.has(restKey(r)));
     }else{
       restaurantQuickCuts.delete(k);
+      const held=new Set((holdingRestaurants||[]).map(restKey));
+      const manual=new Set(restaurantManual||new Set());
+      const activeQuick=new Set(restaurantQuickCuts||[]);
+      const universe=[...syncRestaurantQuickCutScope()];
+      activeRestaurants=universe.filter(r=>{
+        const id=restKey(r);
+        if(manual.has(id)||held.has(id))return false;
+        return ![...activeQuick].some(other=>restQuickMatch(r,other));
+      });
     }
-
-    // Quick Cuts change category membership, not the open/closed filter.
-    // Never rebuild the active deck from visibleRestaurants(), because that
-    // would permanently drop restaurants hidden by the current hours filter.
-    const held=new Set((holdingRestaurants||[]).map(restKey));
-    const manual=new Set(restaurantManual||new Set());
-    const activeQuick=new Set(restaurantQuickCuts||[]);
-    const universe=[...syncRestaurantQuickCutScope()];
-    activeRestaurants=universe.filter(r=>{
-      const id=restKey(r);
-      if(manual.has(id)||held.has(id))return false;
-      return ![...activeQuick].some(other=>restQuickMatch(r,other));
-    });
     restaurantFilters.query='';
     restaurantRoundInProgress=!!activeRestaurants.length||!!holdingRestaurants.length;
     saveRestaurantRoundState();
