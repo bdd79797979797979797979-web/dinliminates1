@@ -8256,8 +8256,15 @@ function restaurantCut(card=$('restaurantStage')?.querySelector('.active')){
   restaurantFilters.query='';
   transitionRestaurantCard(card,-1,()=>{
     activeRestaurants.splice(idx,1);
+    if(activeRestaurants.length===0 && holdingRestaurants.length===0){
+      // Final restaurant is gone: end the round and lock the Hungry state.
+      restaurantEliminationExhausted=true;
+      restaurantRoundInProgress=false;
+      clearRestaurantRoundState?.();
+      showRestaurantHungryState();
+      return;
+    }
     window.renderRestaurantQuickCuts?.();
-    if(activeRestaurants.length===0 && holdingRestaurants.length===0){ restaurantEliminationExhausted=true; showRestaurantHungryState(); return; }
     afterRestaurantEliminate('cut');
     window.renderRestaurantQuickCuts?.();
   });
@@ -9306,6 +9313,17 @@ body.game-mode #quickCutsBar .quick-cut{
   flex:0 0 auto!important;
   scroll-snap-align:start!important;
 }
+</style>
+
+<style id="dinliminate-p730-final-home-cascade">
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar{background:transparent!important;border:0!important;box-shadow:none!important;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{width:auto!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;color:rgba(255,255,255,.94)!important;font-family:var(--display-face)!important;font-size:1.55rem!important;line-height:1!important;font-weight:520!important;letter-spacing:-.045em!important;text-transform:none!important;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{font-size:1.88rem!important;font-weight:700!important;letter-spacing:-.065em!important;color:#8fe0ba!important;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-menu{display:grid!important;width:42px!important;height:42px!important;min-width:42px!important;border-radius:14px!important;background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.13)!important;}
+body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:none!important;}
+body:not(.game-mode):not(.restaurant-mode) #homePanel #menuBtn,
+body:not(.game-mode):not(.restaurant-mode) #homePanel #restaurantMenuBtn{display:none!important;}
+@media(max-width:430px){body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{font-size:1.46rem!important;}body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{font-size:1.78rem!important;}}
 </style>
 </body>
 <!-- Dinliminate P636 FINAL: authoritative restaurant location controller. -->
