@@ -1434,7 +1434,7 @@ test('restaurant radius universe never shrinks on an incomplete provider respons
 
   const rows=[];
   for(let i=1;i<=68;i++){
-    const distance=i<=27 ? 4 + (i%10)*0.35 : i<=66 ? 20 + (i-28)*0.72 : 76 + (i-67)*8;
+    const distance=i<=27 ? 4 + (i%10)*0.35 : i<=66 ? 20 + (i-28)*0.72 : 70 + (i-67)*2;
     const burger=i<=3;
     rows.push({
       id:'radius-'+i,
