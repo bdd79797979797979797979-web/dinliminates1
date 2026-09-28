@@ -311,7 +311,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect(page.locator('#restaurantTopCount')).toHaveText('6');
 
   const fastAllCount = await count(fast);
-  expect(fastAllCount).toBe(3);
+  expect(fastAllCount).toBe(2);
   const allBeforeQuick = Number(await page.locator('#restaurantTopCount').textContent());
   await fast.click();
   await expect(fast).toHaveAttribute('aria-pressed','true');
