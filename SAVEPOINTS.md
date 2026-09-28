@@ -244,6 +244,10 @@ Chromium QA now uses `America/Chicago` so restaurant opening-hour tests match th
 Commit: `b99758e99d123020dc7556abdd513fe67af7e468`
 Browser QA explicitly accepts the Hide confirmation dialog and logs the resulting hidden-restaurant registry.
 
+## CP62 — browser dialog handler cleanup
+Commit: `5fc97a970effec969356a82fb68037ae08752656`
+Removed the duplicate global Playwright dialog handler so the Restaurant Hide confirmation is handled exactly once.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
