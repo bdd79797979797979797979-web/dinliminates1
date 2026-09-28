@@ -1347,3 +1347,82 @@ test('P744 focused touch hit-test and Pasta Quick Cut restore regression', async
   await expect(page.locator('#winnerPanel')).toBeVisible();
   await expect(page.locator('#winnerName')).toHaveText('Pasta House');
 });
+
+
+test('restaurant radius pool cannot shrink and generic burger search stays semantic', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+
+  const rows=[
+    {id:'r1',name:'Burger King',type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:1,openNow:true,address:'1 Main St, Nashville, TN',website:'https://bk.com'},
+    {id:'r2',name:'Local Grill',type:'restaurant',fastFood:false,category:'Burgers',cuisine:'burger',tags:['restaurant','burger'],distanceMiles:4,openNow:true,address:'4 Main St, Nashville, TN'},
+    {id:'r3',name:'Main Street Diner',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],menuItems:['Burgers','Fries'],distanceMiles:10,openNow:true,address:'10 Main St, Nashville, TN'},
+    {id:'r4',name:'Twenty Mile Kitchen',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],distanceMiles:20,openNow:true,address:'20 Main St, Nashville, TN'},
+    {id:'r5',name:'Forty Mile House',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],distanceMiles:40,openNow:true,address:'40 Main St, Nashville, TN'},
+    {id:'r6',name:'Sixty Mile Cafe',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],distanceMiles:60,openNow:true,address:'60 Main St, Nashville, TN'},
+    {id:'r7',name:'Eighty Mile Grill',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],distanceMiles:80,openNow:true,address:'80 Main St, Nashville, TN'},
+    {id:'r8',name:'Ninety Mile Diner',type:'restaurant',fastFood:false,category:'American',tags:['restaurant','american'],distanceMiles:90,openNow:true,address:'90 Main St, Nashville, TN'}
+  ];
+
+  await page.route('**/api/restaurant-search?*',async route=>{
+    const u=new URL(route.request().url());
+    const mode=u.searchParams.get('mode');
+    if(mode==='suggest'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({results:[{display:'QA Test Address, Nashville, TN',query:'QA Test Address, Nashville, TN',precision:'address',lat:36.1661,lon:-86.7716}]})});
+    }
+    if(mode==='resolve'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({location:{lat:36.1661,lon:-86.7716},display:'QA Test Address, Nashville, TN',precision:'address'})});
+    }
+    if(mode==='search'){
+      const radius=Number(u.searchParams.get('radius')||10), q=String(u.searchParams.get('q')||'').trim().toLowerCase();
+      let out;
+      if(q==='burger'){
+        out=rows.slice(0,3);
+      }else if(radius===25){
+        // Intentionally incomplete provider response: the client must retain the
+        // already-loaded 15-mile universe rather than replace it with this row.
+        out=[rows[3]];
+      }else if(radius===50){
+        out=[rows[4]];
+      }else if(radius===75){
+        out=[rows[5]];
+      }else if(radius===100){
+        out=[rows[6],rows[7]];
+      }else{
+        out=rows.filter(r=>r.distanceMiles<=radius);
+      }
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        results:out,total:out.length,fastFoodCount:out.filter(r=>r.fastFood).length,
+        providersUsed:['QA shrinking-provider'],diagnostics:{}
+      })});
+    }
+    return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:'bad test route'})});
+  });
+
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#homeRestaurantQuick').click();
+  await page.locator('#restaurantRadiusFilter').selectOption('15');
+  await page.locator('#restaurantLocationInput').fill('QA Test Address');
+  await page.locator('#restaurantLoadBtn').click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
+  await expect(page.locator('#restaurantTopCount')).toHaveText('3');
+
+  await page.locator('#restaurantRadiusFilter').selectOption('25');
+  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(4);
+
+  await page.locator('#restaurantRadiusFilter').selectOption('50');
+  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(5);
+
+  await page.locator('#restaurantRadiusFilter').selectOption('75');
+  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(6);
+
+  await page.locator('#restaurantRadiusFilter').selectOption('100');
+  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(8);
+
+  await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill('burger');
+  await expect.poll(()=>Number(page.locator('#restaurantTopCount').textContent())).toBe(3);
+
+  expect(errors).toEqual([]);
+});
