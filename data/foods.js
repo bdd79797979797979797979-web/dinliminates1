@@ -23,8 +23,7 @@ window.DINLIMINATE_FOODS=[
 ['cheerios','Cheerios Cereal','cereal','Breakfast','https://images.unsplash.com/photo-1517093157656-b9eccef91cb1?auto=format&fit=crop&w=1200&q=85'],
 ['frozen','Stouffer’s Frozen Dinner','frozen','American','https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85'],
 ['popcorn','Popcorn','snack','Snack','https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=1200&q=85'],
-['fruit','Fruit Bowl','healthy','Healthy','https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85']
-
+['fruit','Fruit Bowl','healthy','Healthy','https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'],
 ['burger-fries','Burger & Fries','burger','American','https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'],
 ['goulash','Goulash','pasta','Pasta','https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'],
 ['southern-vegetable-plate','Southern Vegetable Plate','vegetable-plate','Southern','https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'],
