@@ -212,7 +212,7 @@ function overpassQuery(lat, lon, radiusMi) {
 
 function tileCenters(lat, lon, radiusMi) {
   if (radiusMi <= 50) return [{ lat, lon, radiusMi }];
-  const tileRadius = 40;
+  const tileRadius = 50;
   const latStep = tileRadius / 69;
   const lonStep = tileRadius / (69 * Math.max(0.35, Math.cos(lat * Math.PI / 180)));
   const out = [];
@@ -251,7 +251,7 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
       elements.push(...result.elements);
       if (result.error) errors.push(result.error);
     }
-    if (normalizeRows(elements, lat, lon, radiusMi).length >= 160) break;
+    if (radiusMi <= 50 && normalizeRows(elements, lat, lon, radiusMi).length >= 160) break;
   }
 
   return {
