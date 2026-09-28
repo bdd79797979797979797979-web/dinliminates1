@@ -610,7 +610,7 @@
 
 /* P677 — launch completion hardening. */
 (() => {
-  const VERSION = 'p708-launch-complete';
+  const VERSION = 'p711-restaurant-hours-complete';
   const q = (sel, root=document) => root.querySelector(sel);
   const text = (v='') => String(v ?? '').trim();
   const read = (k, fallback='') => { try { return localStorage.getItem(k) ?? fallback; } catch { return fallback; } };
