@@ -603,6 +603,13 @@
 
   function backToStartFresh(){
     try{window.DinliminateRestaurantSearchV3?.cancel?.();}catch{}
+    try{
+      document.body.classList.remove('game-mode','restaurant-mode','finalist-mode','overlay-open','gesture-active');
+      ['winnerPanel','gamePanel','restaurantPanel','scrim','drawer','searchBackdrop','infoBackdrop','detailBackdrop','modalBackdrop','settingsBackdrop','confirmBackdrop','restoreBackdrop','libraryBackdrop','passSetupBackdrop','passHandoffBackdrop'].forEach(id=>$(id)?.classList.add('hidden'));
+      $('homePanel')?.classList.remove('hidden');
+      document.title='Dinliminate — Dinner Decisions';
+      window.scrollTo?.(0,0);
+    }catch{}
     clearPassState();pass=null;
     clearRestaurantRoundState();
     try{localStorage.removeItem(FOOD_ROUND_KEY);}catch{}
