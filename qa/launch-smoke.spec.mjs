@@ -1068,3 +1068,120 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
 
   expect(pageErrors).toEqual([]);
 });
+
+
+test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ page }) => {
+
+test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+
+  // FOOD: two choices -> Maybe -> one choice -> Choose.
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{
+    activeItems=[homeMeals[0],homeMeals[1]];
+    holdingItems=[];
+    undoStack=[];
+    finalistMode=false;
+    searchQuery='';
+    originalCount=2;
+    renderStage();
+    syncDecisionActionLabels();
+  });
+  await expect(page.locator('#gamePanel')).toBeVisible();
+  await expect(page.locator('#holdBtn')).toHaveText(/Maybe/);
+  await page.locator('#holdBtn').click();
+  await expect.poll(async()=>page.evaluate(()=>activeItems.length)).toBe(1);
+  await expect(page.locator('#holdBtn')).toHaveText('Choose');
+  await expect(page.locator('#holdBtn')).toHaveClass(/is-final-choice/);
+  await page.locator('#holdBtn').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#winnerHomeBtn').click();
+
+  // FOOD: one choice -> Cut -> Hungry.
+  await page.locator('#startBtn').click();
+  await page.evaluate(()=>{
+    activeItems=[homeMeals[0]];
+    holdingItems=[];
+    undoStack=[];
+    finalistMode=false;
+    renderStage();
+    syncDecisionActionLabels();
+  });
+  await expect(page.locator('#holdBtn')).toHaveText('Choose');
+  await page.locator('#cutBtn').click();
+  await expect(page.locator('#hungryResetBtn')).toBeVisible();
+  await expect(page.locator('#gameTopCount')).toHaveText('0');
+
+  // RESTAURANT: exact 27 -> 15 Fast Food hidden -> 12 remain.
+  await page.evaluate(()=>{
+    const rows=[];
+    for(let i=1;i<=27;i++) rows.push({
+      id:'vu-ff-'+i,
+      name:i<=15?'Fast Food '+i:'Restaurant '+i,
+      type:'restaurant',
+      amenity:i<=15?'fast_food':'restaurant',
+      category:i<=15?'Fast Food':'American',
+      cuisine:i<=15?'':'american',
+      tags:i<=15?['restaurant','fast_food']:['restaurant','american'],
+      address:i+' Main St, Nashville, TN 37213',
+      openNow:true,
+      distanceMiles:i<=27?i/3:9.5,
+      lat:36.16, lon:-86.77
+    });
+    window.applyRestaurantData?.({businesses:rows},'QA Fast Food Count');
+    restaurantItems=rows;
+    restaurantBase=[...rows];
+    activeRestaurants=[...rows];
+    holdingRestaurants=[];
+    restaurantManual=new Set();
+    restaurantQuickCuts=new Set();
+    restaurantFilters={query:'',sort:'shuffle'};
+    restaurantRadiusMiles=10;
+    restaurantHoursFilter='open-unknown';
+    restaurantEliminationExhausted=false;
+    showRestaurantMode();
+    renderRestaurantStage();
+    renderRestaurantQuickCuts();
+    syncRestaurantActionLabels();
+  });
+  await expect(page.locator('#restaurantTopCount')).toHaveText('27');
+  const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]');
+  await expect(fast).toContainText('hide · 15');
+  await fast.click();
+  await expect(page.locator('#restaurantTopCount')).toHaveText('12');
+  await expect(fast).toContainText('show · 15');
+  await fast.click();
+  await expect(page.locator('#restaurantTopCount')).toHaveText('27');
+
+  // RESTAURANT: two choices -> Maybe -> one choice -> Choose.
+  await page.evaluate(()=>{
+    const base=[
+      {id:'vu-r1',name:'Virtual Restaurant One',type:'restaurant',amenity:'restaurant',category:'American',cuisine:'american',tags:['restaurant','american'],openNow:true,distanceMiles:1,lat:36.16,lon:-86.77},
+      {id:'vu-r2',name:'Virtual Restaurant Two',type:'restaurant',amenity:'restaurant',category:'Italian',cuisine:'italian',tags:['restaurant','italian'],openNow:true,distanceMiles:2,lat:36.17,lon:-86.76}
+    ];
+    restaurantItems=base; restaurantBase=[...base]; activeRestaurants=[...base]; holdingRestaurants=[]; restaurantQuickCuts=new Set(); restaurantManual=new Set(); restaurantFilters={query:'',sort:'shuffle'}; restaurantRadiusMiles=10; restaurantHoursFilter='open-unknown'; restaurantEliminationExhausted=false;
+    renderRestaurantStage(); renderRestaurantQuickCuts(); syncRestaurantActionLabels();
+  });
+  await expect(page.locator('#restaurantKeepBtn')).toHaveText(/Maybe/);
+  await page.locator('#restaurantKeepBtn').click();
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(1);
+  await expect(page.locator('#restaurantKeepBtn')).toHaveText('Choose');
+  await expect(page.locator('#restaurantKeepBtn')).toHaveClass(/is-final-choice/);
+  await page.locator('#restaurantKeepBtn').click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await page.locator('#winnerHomeBtn').click();
+
+  // RESTAURANT: one choice -> Cut -> Hungry.
+  await page.evaluate(()=>{
+    const base=[{id:'vu-r3',name:'Virtual Restaurant Three',type:'restaurant',amenity:'restaurant',category:'American',cuisine:'american',tags:['restaurant','american'],openNow:true,distanceMiles:1,lat:36.16,lon:-86.77}];
+    restaurantItems=base; restaurantBase=[...base]; activeRestaurants=[...base]; holdingRestaurants=[]; restaurantQuickCuts=new Set(); restaurantManual=new Set(); restaurantFilters={query:'',sort:'shuffle'}; restaurantRadiusMiles=10; restaurantHoursFilter='open-unknown'; restaurantEliminationExhausted=false;
+    renderRestaurantStage(); renderRestaurantQuickCuts(); syncRestaurantActionLabels();
+  });
+  await expect(page.locator('#restaurantKeepBtn')).toHaveText('Choose');
+  await page.locator('#restaurantCutBtn').click();
+  await expect(page.locator('#restaurantHungryResetBtn')).toBeVisible();
+  await expect(page.locator('#restaurantTopCount')).toHaveText('0');
+
+  expect(errors).toEqual([]);
+});
