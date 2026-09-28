@@ -508,3 +508,30 @@ settingsView=function(){
   m.querySelectorAll('[data-rrest]').forEach(b=>b.onclick=()=>{const id=b.dataset.rrest;S.hidden.delete('restaurant:'+id);delete S.hiddenRestaurants[id];const r=(S.restaurantPool||[]).find(x=>x.id===id);if(r){r._hidden=false;r._cut=false}persist();settingsView()});
   m.querySelector('#systemRestore').onclick=()=>{if(confirm('Restore the default Dinliminate setup and clear this saved round?')){S.hidden.clear();S.hiddenRestaurants={};S.custom=[];S.cutCats.clear();S.cutPrimary.clear();S.maybe.clear();S.pool=[];S.restaurantPool=[];S.restaurantCuts.clear();S.restaurantActions=[];S.index=0;S.restaurantIndex=0;localStorage.removeItem(KEY);persist();settingsView();home()}};
 };
+
+
+/* CP22: compact Restaurant tools + client-side restaurant search */
+S.restaurantQuery=S.restaurantQuery||'';
+function restaurantMatchesQuery(r){
+ const q=String(S.restaurantQuery||'').trim().toLowerCase();if(!q)return true;
+ const hay=[r.name,r.brand,r.operator,r.category,r.cuisine,...(r.menuItems||[])].filter(Boolean).join(' ').toLowerCase();
+ return q.split(/\s+/).every(t=>hay.includes(t));
+}
+const cp22BaseFiltered=restaurantFiltered;
+restaurantFiltered=function(){return (S.restaurantPool||[]).filter(r=>!S.restaurantCuts.has(restCategory(r))&&!r._maybe&&!r._cut&&!r._hidden&&hourMatches(r)&&restaurantMatchesQuery(r))};
+function renderRestaurantTools(){
+ const h=$('hoursToggle');if(h){h.textContent=S.hoursMode==='openUnknown'?'Open/Unknown Hours':'Closed';h.classList.toggle('active-tool',true)}
+}
+function bindRestaurantTools(){
+ const searchBtn=$('restaurantSearch'),box=$('restaurantSearchBox'),input=$('restaurantQuery');
+ if(searchBtn&&!searchBtn.dataset.bound22){searchBtn.dataset.bound22='1';searchBtn.onclick=()=>{box.classList.toggle('hidden');searchBtn.classList.toggle('active-tool',!box.classList.contains('hidden'));if(!box.classList.contains('hidden'))input.focus()}}
+ if(input&&!input.dataset.bound22){input.dataset.bound22='1';input.oninput=()=>{S.restaurantQuery=input.value;S.restaurantIndex=0;cleanDrawRestaurants();persist()}}
+ const h=$('hoursToggle');
+ if(h&&!h.dataset.bound22){h.dataset.bound22='1';h.onclick=()=>{S.hoursMode=S.hoursMode==='openUnknown'?'closed':'openUnknown';renderRestaurantTools();cleanDrawRestaurants();persist()}}
+ const pass=$('restaurantPassAround');if(pass&&!pass.dataset.bound22){pass.dataset.bound22='1';pass.onclick=passSetup}
+}
+bindRestaurantTools();renderRestaurantTools();
+const cp22oldRestStart=$('restStart').onclick;
+$('restStart').onclick=()=>{S.restaurantQuery='';S.screen='restaurant';S.restaurantActions=[];S.lastRestaurantWinner=null;S.saved=true;show('restaurant');drawQuick();renderRestaurantQuickCuts();bindRestaurantTools();renderRestaurantTools();$('restaurantSearchBox')?.classList.add('hidden');$('restaurantSearch')?.classList.remove('active-tool');updateContinue();persist()};
+const cp22oldSearch=cleanSearch;
+cleanSearch=async function(){S.restaurantQuery='';$('restaurantQuery') && ($('restaurantQuery').value='');$('restaurantSearchBox')?.classList.add('hidden');$('restaurantSearch')?.classList.remove('active-tool');await cp22oldSearch();bindRestaurantTools();renderRestaurantTools()};
