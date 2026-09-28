@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v707-launch-fix';
+const VERSION = 'restaurant-v714-resilient-photon';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -300,6 +300,51 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
     errors
   };
 }
+
+function photonAddressFromProperties(p = {}) {
+  return [p.housenumber,p.street,p.city || p.town || p.village || p.municipality || p.locality,p.state || p.statecode,p.postcode].filter(Boolean).join(', ');
+}
+function photonRow(feature) {
+  const p=feature?.properties||{}, c=feature?.geometry?.coordinates||[];
+  const lon=num(c[0]), lat=num(c[1]), name=String(p.name||p.label||'').trim();
+  if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+  const osmValue=String(p.osm_value||'').trim().toLowerCase(), osmType=String(p.osm_type||'').trim().toUpperCase();
+  const fast=osmValue==='fast_food'||isFastFoodText(name+' '+(p.brand||'')+' '+(p.operator||'')+' '+(p.cuisine||'')+' '+osmValue);
+  const typeMap={N:'node',W:'way',R:'relation'};
+  const id=p.osm_id?'osm-'+(typeMap[osmType]||'place')+'-'+p.osm_id:'photon-'+slugStable(name+'|'+lat.toFixed(6)+'|'+lon.toFixed(6));
+  let website=String(p.website||p.url||'').trim(); if(website&&!/^https?:\/\//i.test(website))website='https://'+website;
+  return {id,name,type:'restaurant',amenity:fast?'fast_food':(osmValue||'restaurant'),fastFood:fast,category:fast?'Fast Food':(String(p.cuisine||'').trim()||'Restaurant'),cuisine:String(p.cuisine||'').trim(),tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand:String(p.brand||'').trim(),operator:String(p.operator||'').trim(),address:photonAddressFromProperties(p),phone:String(p.phone||'').trim(),website,opening_hours:String(p.opening_hours||'').trim(),lat,lon,photo:'',rating:num(p.stars,0),priceLevel:'',menuItems:[],menuUrl:'',timeZone:String(p.timezone||'').trim(),source:'Photon POI'};
+}
+function dedupeRestaurantRows(rows=[]) {
+  const map=new Map();
+  for(const row of rows){
+    const n=String(row.name||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(), a=String(row.address||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    const k=a?n+'|'+a:n+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4);
+    if(!map.has(k))map.set(k,row); else { const x=map.get(k); x.fastFood=x.fastFood||row.fastFood; x.tags=[...new Set([...(x.tags||[]),...(row.tags||[])])]; for(const f of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl']) if(!x[f]&&row[f])x[f]=row[f]; if(x.category==='Restaurant'&&row.category&&row.category!=='Restaurant')x.category=row.category; }
+  }
+  return [...map.values()].sort((a,b)=>a.distanceMiles-b.distanceMiles);
+}
+async function photonProvider(lat,lon,radiusMi){
+  const started=Date.now(), radius=clampRadius(radiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
+  const bbox=[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta].join(',');
+  const common={bbox,limit:radius>50?'250':'200',lang:'en',countrycode:'US',dedupe:'1',location_bias_scale:'0.15'};
+  async function queryPhoton(q,tag){const p=new URLSearchParams(common);p.set('q',q);p.set('osm_tag',tag);return fetchJson('https://photon.komoot.io/api?'+p.toString(),{},4500);}
+  const settled=await Promise.allSettled([queryPhoton('restaurant','amenity:restaurant'),queryPhoton('fast food','amenity:fast_food')]);
+  const rows=[],errors=[];
+  for(const result of settled){
+    if(result.status!=='fulfilled'){errors.push(errorText(result.reason));continue;}
+    for(const feature of result.value?.features||[]){const row=photonRow(feature);if(!row)continue;row.distanceMiles=miles(lat,lon,row.lat,row.lon);if(Number.isFinite(row.distanceMiles)&&row.distanceMiles<=radius)rows.push(row);}
+  }
+  return {endpoint:'Photon POI',rows:dedupeRestaurantRows(rows),ms:Date.now()-started,errors};
+}
+async function probePhoton(){
+  const started=Date.now();
+  try{
+    const data=await fetchJson('https://photon.komoot.io/api?'+new URLSearchParams({q:'restaurant',osm_tag:'amenity:restaurant',lat:'36.5277608',lon:'-87.3588703',limit:'3',lang:'en',countrycode:'US'}).toString(),{},5000);
+    return {endpoint:'Photon POI',ok:true,rows:Array.isArray(data?.features)?data.features.length:0,ms:Date.now()-started};
+  }catch(e){return {endpoint:'Photon POI',ok:false,rows:0,error:errorText(e),ms:Date.now()-started};}
+}
+
 async function googleSearch(lat, lon, radiusMi) {
   if (!GOOGLE_KEY) return { endpoint: 'Google Places', rows: [], ms: 0, errors: ['not configured'] };
   const started = Date.now();
@@ -359,6 +404,13 @@ async function doSearch(lat, lon, radiusMi) {
   const started = Date.now();
   const providerResults = [await googleSearch(lat, lon, radiusMi)];
   if (!(GOOGLE_KEY && providerResults[0].rows?.length)) {
+    const photon = await photonProvider(lat, lon, radiusMi);
+    providerResults.push(photon);
+    if (photon.rows?.length) {
+      const data = { results: photon.rows.slice(0, RESULT_LIMIT), restaurants: photon.rows.slice(0, RESULT_LIMIT), items: photon.rows.slice(0, RESULT_LIMIT), total: photon.rows.length, fastFoodCount: photon.rows.filter(r=>r.fastFood).length, providersUsed:['Photon POI'], googleConfigured:!!GOOGLE_KEY, providerCounts:{'Photon POI':photon.rows.length}, diagnostics:{elapsedMs:Date.now()-started,cacheHit:false,providers:[{endpoint:'Photon POI',rows:photon.rows.length,ms:photon.ms,errors:photon.errors||[]}]}};
+      memoryCache.set(key,{at:Date.now(),data});
+      return data;
+    }
     async function firstUsableProvider(endpoints) {
       const attempted = [];
       for (const endpoint of endpoints) {
@@ -762,6 +814,7 @@ async function handler(req, res) {
 
     if (mode === 'probe') {
       const results = await Promise.all(OVERPASS_ENDPOINTS.map(probeEndpoint));
+      results.push(await probePhoton());
       return res.status(200).json({ ok: true, version: VERSION, results });
     }
 
@@ -785,7 +838,7 @@ async function handler(req, res) {
 
     return res.status(400).json({ ok: false, code: 'UNKNOWN_MODE', message: 'Unknown restaurant search mode.' });
   } catch (err) {
-    console.error('restaurant-search-v702', err);
+    console.error('restaurant-search-v714', err);
     return res.status(502).json({
       ok: false,
       version: VERSION,
