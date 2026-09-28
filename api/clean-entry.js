@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p688-qc-radius-live-sync";
+const CLEAN_VERSION = "p700-location-search";
 
 function transform(html) {
   return html
