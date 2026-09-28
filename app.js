@@ -354,3 +354,78 @@ $('randomOne').onclick=()=>{
  if(S.pool.length===1)winner(S.pool[0]);else if(S.pool.length===0)winner({name:'Nothing left — hungry mode',image:'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85'});else{S.index=Math.min(S.index,S.pool.length-1);drawFood()}
  persist();
 };
+
+
+/* CP15: clean Pass Around social voting */
+const PASS_KEY='dinliminate.clean.pass';
+S.pass=null;
+function currentPassPool(){
+  return S.screen==='restaurant'?restaurantFiltered():S.pool;
+}
+function passCandidates(){
+  const p=currentPassPool()||[];
+  return p.filter(Boolean);
+}
+function passSetup(){
+  const countOptions=[2,3,4,5,6,7,8];
+  const body='<div class="pass-setup"><p class="status">Each person gets a turn on every choice. One Cut removes the choice; only choices everyone keeps survive the pass.</p><label class="pass-label">People</label><div class="pass-counts">'+countOptions.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pc="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:12px;min-height:48px;border-radius:14px">Start Pass Around</button></div>';
+  const m=addOverlay('passSetup','Pass Around',body);showOverlay('passSetup');
+  S.passDraftCount=S.passDraftCount||2;
+  const renderNames=()=>{const n=S.passDraftCount||2;$('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:n},(_,i)=>'<input class="pass-name" data-pn="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join('')+'</div>';document.querySelectorAll('.pass-count').forEach(b=>b.classList.toggle('selected',Number(b.dataset.pc)===n));document.querySelectorAll('.pass-name').forEach((x,i)=>x.value=(S.passDraftNames||[])[i]||'')};
+  renderNames();
+  document.querySelectorAll('.pass-count').forEach(b=>b.onclick=()=>{S.passDraftCount=Number(b.dataset.pc);renderNames()});
+  $('passBegin').onclick=()=>{S.passDraftNames=[...document.querySelectorAll('.pass-name')].map((x,i)=>x.value.trim()||'Person '+(i+1));startPass()};
+}
+function startPass(){
+  const pool=passCandidates();if(pool.length<1){alert('There are no choices left to pass around.');return}
+  S.pass={type:S.screen==='restaurant'?'restaurant':'food',players:S.passDraftNames||['Person 1','Person 2'],choiceIndex:0,voterIndex:0,decisions:[],history:[],poolIds:pool.map(x=>x.id)};
+  $('passSetup').classList.add('hidden');$('passSetupBg').classList.add('hidden');drawPass();
+}
+function passItem(){const id=S.pass?.poolIds?.[S.pass.choiceIndex];return passCandidates().find(x=>x.id===id)}
+function drawPass(){
+  const p=S.pass;if(!p)return;
+  if(p.choiceIndex>=p.poolIds.length){endPassWinner();return}
+  const item=passItem();if(!item){p.choiceIndex++;p.voterIndex=0;return drawPass()}
+  let m=$('passModal');if(!m){m=addOverlay('passModal','Pass Around','');}
+  showOverlay('passModal');
+  const voter=p.players[p.voterIndex]||('Person '+(p.voterIndex+1));
+  const voterNo=p.voterIndex+1;
+  const body='<div class="pass-view"><div class="pass-progress"><span>Choice '+(p.choiceIndex+1)+' of '+p.poolIds.length+'</span><span>'+voterNo+' / '+p.players.length+'</span></div><img class="pass-photo" src="'+(item.image||item.photo||'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80')+'" alt="'+item.name.replace(/"/g,'&quot;')+'"><h2>'+item.name+'</h2><p class="status">Pass to <strong style="color:#eee">'+voter+'</strong>. Keep or cut this choice.</p><div class="pass-actions"><button class="secondary" id="passBack">Back</button><button class="maybe" id="passKeep">Keep</button><button class="cut" id="passCut">Cut</button></div><button class="text-btn" id="passEnd">End Pass & keep survivors</button></div>';
+  m.innerHTML='<div class="modal-head"><h3>Pass Around</h3><button class="menu" id="passClose">×</button></div>'+body;
+  $('passClose').onclick=()=>endPass(false);
+  $('passEnd').onclick=()=>endPass(false);
+  $('passCut').onclick=()=>passVote(false);
+  $('passKeep').onclick=()=>passVote(true);
+  $('passBack').onclick=passUndo;
+}
+function passVote(keep){
+  const p=S.pass;if(!p)return;const item=passItem();if(!item)return;
+  p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,decisionCount:p.decisions.length});
+  p.decisions.push({choiceId:item.id,voter:p.voterIndex,keep});
+  if(!keep){p.poolIds=p.poolIds.filter(id=>id!==item.id);if(p.poolIds.length===1){endPassWinner();return}p.choiceIndex=Math.min(p.choiceIndex,p.poolIds.length-1);p.voterIndex=0;drawPass();return}
+  if(p.voterIndex<p.players.length-1){p.voterIndex++;drawPass();return}
+  p.choiceIndex++;
+  p.voterIndex=0;
+  if(p.poolIds.length===1){endPassWinner();return}
+  drawPass();
+}
+function passUndo(){
+  const p=S.pass;if(!p||!p.history.length)return;
+  const h=p.history.pop();const d=p.decisions[h.decisionCount];
+  if(d&&!d.keep&&!p.poolIds.includes(d.choiceId)){
+    const insertAt=Math.min(h.choiceIndex,p.poolIds.length);p.poolIds.splice(insertAt,0,d.choiceId);
+  }
+  p.choiceIndex=h.choiceIndex;p.voterIndex=h.voterIndex;p.decisions=p.decisions.slice(0,h.decisionCount);drawPass();
+}
+function endPassWinner(){
+  const p=S.pass;if(!p)return;const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
+  S.pass=null;
+  $('passModal')?.classList.add('hidden');$('passModalBg')?.classList.add('hidden');
+  if(rows.length===1){winner({...rows[0],image:rows[0].image||rows[0].photo});return}
+  if(!rows.length){winner({name:'Nothing left — hungry mode',image:'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85'});return}
+  if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(r=>rows.some(x=>x.id===r.id));S.restaurantIndex=0;cleanDrawRestaurants()}else{S.pool=rows;S.index=0;drawFood()}
+  persist();
+}
+function endPass(reopen=false){const p=S.pass;if(!p)return;const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);S.pass=null;$('passModal')?.classList.add('hidden');$('passModalBg')?.classList.add('hidden');if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(r=>rows.some(x=>x.id===r.id));S.restaurantIndex=0;cleanDrawRestaurants()}else{S.pool=rows;S.index=0;drawFood()}persist()}
+$('foodPassAround').onclick=passSetup;
+$('restaurantPassAround').onclick=passSetup;
