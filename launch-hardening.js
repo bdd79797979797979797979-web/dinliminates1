@@ -511,7 +511,12 @@
       syncRestaurantQuickCutScope();
       restaurantManual.clear();
       restaurantQuickCuts=preserved||new Set();
-      activeRestaurants=visibleRestaurants();
+      const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
+      activeRestaurants=[...(restaurantItems||[])].filter(r=>{
+        const d=Number(r?.distanceMiles);
+        if(Number.isFinite(d)&&d>radius)return false;
+        return ![...restaurantQuickCuts].some(k=>restQuickMatch(r,k));
+      });
       holdingRestaurants=[];
       restaurantRoundInProgress=!!restaurantItems.length;
       saveRestaurantRoundState();
