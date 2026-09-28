@@ -291,6 +291,10 @@ Broadened the fast-food Overpass fallback to search `amenity=fast_food` plus maj
 Commit: `a3ad1f647579116edaae5f6526048eed1c3d0df1`
 Added a live Photon fallback that searches major named chains when the generic restaurant/fast-food queries return no fast-food rows. Expanded the chain detector to match common punctuation variants such as McDonald’s and Wendy’s.
 
+## CP74 — swipe parity QA
+Commits: `471072a6460d99840f0582fde26c3122a2340838`, `17e9c4be780279ca9b4def6fe1580b662ff4e2a7`, `0dfe37747e487dce23d53aae16fe8667d42cffa4`
+Food now has the same pointer-swipe behavior as Restaurant: left swipe = Cut, right swipe = Maybe. Browser QA covers Food left/right swipe and Restaurant right-swipe Maybe + Back restoration.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
