@@ -155,6 +155,9 @@ test('Menu navigation exposes Saved and keeps Winner out', async ({ page }) => {
   await expect(page.locator('[data-library-tab]')).toHaveCount(0);
 
   await page.locator('#closeLibraryBtn').click();
+
+  // Start a fresh page for the independent History destination.
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#historyMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
@@ -163,6 +166,7 @@ test('Menu navigation exposes Saved and keeps Winner out', async ({ page }) => {
   await expect(page.locator('[data-library-tab]')).toHaveCount(0);
 
   await page.locator('#closeLibraryBtn').click();
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#aboutMenuBtn').click();
   await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn.');
