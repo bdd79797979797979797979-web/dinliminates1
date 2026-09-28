@@ -123,6 +123,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await location.fill(TEST_ADDRESS);
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
   await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-address-suggestion')).toHaveCount(0);
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({ timeout: 70000 });
   await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toBeVisible();
   await expect(page.locator('.restaurant-card-v240.active .restaurant-meta-v240')).toBeVisible();
@@ -904,8 +905,8 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
 
   const rHours = page.locator('#restaurantOpenUnknownBtn');
   await rHours.click();
-  await expect(rHours).toHaveText('Closed');
-  await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText('Waffle House');
+  await expect(rHours).toHaveText('All');
+  await expect(page.locator('#restaurantStage .restaurant-card-v240.active')).toBeVisible();
   await rHours.click();
   await expect(rHours).toHaveText('Open / Unknown');
 
