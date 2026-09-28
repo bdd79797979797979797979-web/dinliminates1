@@ -7477,8 +7477,9 @@ function saveRestaurantFilters(){
   window.renderRestaurantQuickCuts?.();
 }
 function syncRestaurantHoursControl(){
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
   const b=$('restaurantOpenUnknownBtn');
-  if(!b)return;
+  if(!b)return restaurantHoursFilter;
   const closed=restaurantHoursFilter==='closed';
   b.textContent=closed?'Closed':'Open / Unknown';
   b.setAttribute('aria-pressed',String(closed));
@@ -7486,8 +7487,22 @@ function syncRestaurantHoursControl(){
   b.setAttribute('aria-label',closed?'Showing closed restaurants. Tap to show open or unknown hours.':'Showing open or unknown-hour restaurants. Tap to show closed restaurants.');
   b.title=closed?'Show open or unknown-hour restaurants':'Show closed restaurants';
   b.classList.toggle('is-hours-closed',closed);
+  return restaurantHoursFilter;
+}
+function setRestaurantHoursFilter(value){
+  const next=String(value)==='closed'?'closed':'open-unknown';
+  restaurantHoursFilter=next;
+  safeWrite('dinliminateRestaurantHoursFilter',next);
+  safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
+  syncRestaurantHoursControl();
+  try{renderRestaurantStage();}catch{}
+  try{window.renderRestaurantQuickCuts?.();}catch{}
+  try{syncRestaurantActionLabels?.();}catch{}
+  try{window.saveRestaurantRoundState?.();}catch{}
+  return next;
 }
 window.syncRestaurantHoursControl=syncRestaurantHoursControl;
+window.setRestaurantHoursFilter=setRestaurantHoursFilter;
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
   // exactly like Food mode; there is intentionally no restaurant Quick Cuts Clear control.
@@ -7875,13 +7890,9 @@ bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');co
 bind('restaurantOpenUnknownBtn','click',(e)=>{
   e?.preventDefault?.();
   if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return;
-  restaurantHoursFilter=restaurantHoursFilter==='closed'?'open-unknown':'closed';
-  safeWrite('dinliminateRestaurantHoursFilter',restaurantHoursFilter);
-  safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:restaurantHoursFilter}));
-  syncRestaurantHoursControl();
-  renderRestaurantStage();
-  window.renderRestaurantQuickCuts?.();
-  toast(restaurantHoursFilter==='closed'?'Closed restaurants only.':'Open or unknown-hour restaurants.');
+  const next=restaurantHoursFilter==='closed'?'open-unknown':'closed';
+  window.setRestaurantHoursFilter?.(next);
+  toast(next==='closed'?'Closed restaurants only.':'Open or unknown-hour restaurants.');
 });
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
 
