@@ -224,6 +224,10 @@ Static QA now enforces synchronous `data/foods.js` then `app.js` loading at the 
 Commit: `55a8193a79bd87a5f48d622dad6bcef9bb5d8c95`
 Browser QA now records the Food-data response status, request failures, runtime catalog count, page errors, and console errors before the first interaction.
 
+## CP57 — fix malformed Food data separator
+Commit: `ab9fbd19ac700591abc5f9392978229b1c466af7`
+Fixed the missing comma between Fruit Bowl and Burger & Fries; sandbox execution now constructs exactly 31 Food objects.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
