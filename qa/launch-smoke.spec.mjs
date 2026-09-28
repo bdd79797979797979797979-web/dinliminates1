@@ -242,7 +242,17 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours 
     hours: localStorage.getItem('dinliminateRestaurantHoursFilter') || 'open-unknown',
     fastButton: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || null
   })));
-  await expect.poll(()=>count(fast)).toBe(2); await page.locator('#restaurantRadiusFilter').selectOption('1'); await expect.poll(()=>count(fast)).toBe(1); await page.locator('#restaurantRadiusFilter').selectOption('5'); await expect.poll(()=>count(fast)).toBe(2);
+  await expect.poll(()=>count(fast)).toBe(2);
+  await page.locator('#restaurantRadiusFilter').selectOption('1');
+  console.log('P689 radius=1 live state', await page.evaluate(() => ({
+    radius: typeof restaurantRadiusMiles !== 'undefined' ? restaurantRadiusMiles : null,
+    active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,fast:r.fastFood,open:r.openNow})) : [],
+    itemCount: Array.isArray(restaurantItems) ? restaurantItems.length : null,
+    fastText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || null
+  })));
+  await expect.poll(()=>count(fast)).toBe(1);
+  await page.locator('#restaurantRadiusFilter').selectOption('5');
+  await expect.poll(()=>count(fast)).toBe(2);
   await page.evaluate(()=>{restaurantFilters.sort='closest';renderRestaurantStage();}); await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("McDonald's"); await page.locator('#restaurantKeepBtn').click(); await expect.poll(()=>count(fast)).toBe(1);
   await expect.poll(()=>count(american)).toBe(2); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed'); await expect.poll(()=>count(american)).toBe(1); await page.locator('#restaurantOpenUnknownBtn').click(); await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown'); await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantSearchBtn').click(); await page.locator('#restaurantInlineSearchInput').fill('Burger King'); await expect.poll(()=>count(fast)).toBe(1); expect(pageErrors).toEqual([]);
