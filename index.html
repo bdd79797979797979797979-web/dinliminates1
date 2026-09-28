@@ -6093,10 +6093,10 @@ const homeMeals = [
 const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  tacos: 'https://images.pexels.com/photos/14179985/pexels-photo-14179985.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  tacos: 'https://images.pexels.com/photos/7388095/pexels-photo-7388095.jpeg?auto=compress&cs=tinysrgb&w=1400',
   stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  popcorn: 'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  popcorn: 'https://images.pexels.com/photos/11137525/pexels-photo-11137525.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
   eggs: 'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   soupSandwich: 'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6120,7 +6120,7 @@ const PHOTO_LIBRARY = {
   sloppyJoeFries: 'https://cdn.shopify.com/s/files/1/0984/6720/files/DSC_0239_32f6f925-62ba-481d-ab20-8b7903ba0659.jpg?v=1592862244',
   cabbageSausage: 'https://savouryflavor.com/assets/images/1764611130433-fm0ektkv.webp',
   steakPotato: 'https://resizer.otstatic.com/v3/photos/43647085-2',
-  potatoSoup: 'https://images.pexels.com/photos/29653177/pexels-photo-29653177.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  potatoSoup: 'https://images.pexels.com/photos/5794/pexels-photo-5794.jpeg?auto=compress&cs=tinysrgb&w=1400',
   beefStew: 'https://images.pexels.com/photos/10692537/pexels-photo-10692537.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenNoodleSoup: 'https://images.pexels.com/photos/34326231/pexels-photo-34326231.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenWings: 'https://images.pexels.com/photos/8862753/pexels-photo-8862753.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6156,7 +6156,7 @@ const PHOTO_LIBRARY = {
   hamSandwichChips: 'https://images.pexels.com/photos/37228374/pexels-photo-37228374.jpeg?auto=compress&cs=tinysrgb&w=1400',
   parfait: 'https://images.pexels.com/photos/20691481/pexels-photo-20691481.jpeg?auto=compress&cs=tinysrgb&w=1400',
   smoothie: 'https://images.pexels.com/photos/13116680/pexels-photo-13116680.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  fruitBowl: 'https://images.pexels.com/photos/6633395/pexels-photo-6633395.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  fruitBowl: 'https://images.pexels.com/photos/20518265/pexels-photo-20518265.jpeg?auto=compress&cs=tinysrgb&w=1400',
   bakedChickenThighs: 'https://images.pexels.com/photos/4589138/pexels-photo-4589138.jpeg?auto=compress&cs=tinysrgb&w=1400',
   porkTenderloin: 'https://images.pexels.com/photos/341044/pexels-photo-341044.jpeg?auto=compress&cs=tinysrgb&w=1400',
 };
@@ -6545,8 +6545,6 @@ function restaurantHoursDisplay(item){ return formatHoursDisplay(item?.openingHo
 
 function openDetails(item){
   if(!item) return;
-  $('detailBackdrop').classList.remove('hidden');
-  focusOverlay('detailBackdrop');
   $('detailKicker').textContent = item.type === 'restaurant' ? 'RESTAURANT DETAILS' : 'FOOD DETAILS';
   $('detailTitle').textContent = item.name;
   $('detailMeta').textContent = item.type === 'restaurant' ? (item.address || 'Nearby restaurant') : `${(item.tags||[]).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Dinner option'} · ${item.category || (item.type === 'home' ? 'Homemade' : 'Food')}${item.prep ? ` · ${item.prep}` : ''}${item.budget ? ` · ${item.budget}` : ''}`;
@@ -6588,6 +6586,8 @@ function openDetails(item){
     toast('Thanks — this restaurant is marked for data review.');
   });
   $('deleteCardBtn')?.addEventListener('click',()=>openDeleteCustomConfirm(item));
+  $('detailBackdrop')?.classList.remove('hidden');
+  focusOverlay('detailBackdrop');
 }
 function closeDetails(){ if(!$('detailBackdrop')?.classList.contains('hidden'))restoreFocus(); $('detailBackdrop').classList.add('hidden'); }
 function unhideItem(item){ const key=hiddenKey(item); hiddenItems=hiddenItems.filter(x=>x!==key&&x!==String(item.name||'').trim().toLowerCase()); saveHiddenItems(); closeDetails(); refreshFromCatalog(); openSettings(); toast(`${item.name} is visible again.`); }
@@ -9495,4 +9495,38 @@ body.restaurant-mode .restaurant-order-btn-v240,
 }
 </style>
 
-<!-- P725 front-page wordmark + single hamburger polish; P724 hours toggle + Tinder swipe parity. -->
+<!-- P733 launch lock: verified food photos, restaurant card fit, detail response, and home chrome. -->
+
+<style id="dinliminate-p733-launch-lock">
+/* P733 — launch lock: restore the intended final surfaces after legacy CSS layers. */
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand{
+  display:inline-flex!important;align-items:baseline!important;gap:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+  color:rgba(255,255,255,.92)!important;font-family:var(--display-face)!important;font-size:1.12rem!important;line-height:1!important;
+  font-weight:500!important;letter-spacing:-.045em!important;text-transform:none!important;text-shadow:0 2px 18px rgba(0,0,0,.16)!important;
+}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand-d{color:#8fe0ba!important;font-size:1.30rem!important;}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu{display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;line-height:0!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:13px!important;box-shadow:0 8px 24px rgba(0,0,0,.14)!important;}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu>span{position:relative!important;display:block!important;width:16px!important;height:1.5px!important;border-radius:999px!important;background:rgba(255,255,255,.90)!important;}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu>span::before,body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu>span::after{content:""!important;position:absolute!important;left:0!important;width:16px!important;height:1.5px!important;border-radius:999px!important;background:rgba(255,255,255,.90)!important;}
+body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu>span::before{top:-5px!important;}body:not(.game-mode):not(.restaurant-mode) .home-topbar-menu>span::after{top:5px!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240.active,body.restaurant-mode .restaurant-stage .restaurant-card-v240.back-one,body.restaurant-mode .restaurant-stage .restaurant-card-v240.back-two{display:block!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240.active{z-index:5!important;pointer-events:auto!important;opacity:1!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240.back-one{z-index:3!important;pointer-events:none!important;opacity:.68!important;transform:translateY(12px) scale(.972)!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-v240.back-two{z-index:2!important;pointer-events:none!important;opacity:.42!important;transform:translateY(24px) scale(.945)!important;}
+body.restaurant-mode .restaurant-stage .restaurant-body-v240{min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;}
+body.restaurant-mode .restaurant-stage .restaurant-address-v240{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;}
+body.restaurant-mode .restaurant-stage .restaurant-menu-card{flex:0 0 auto!important;min-height:0!important;max-height:34px!important;margin-top:5px!important;padding:5px 7px!important;overflow:hidden!important;}
+body.restaurant-mode .restaurant-stage .restaurant-menu-card span{display:block!important;margin-bottom:2px!important;font-size:.45rem!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+body.restaurant-mode .restaurant-stage .restaurant-menu-card strong{display:block!important;max-width:100%!important;font-size:.53rem!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+body.restaurant-mode .restaurant-stage .restaurant-card-choice-row,body.restaurant-mode .restaurant-stage .restaurant-v240-actions,body.restaurant-mode .restaurant-stage .restaurant-v240-hint{position:relative!important;z-index:10!important;}
+body.restaurant-mode .restaurant-stage .restaurant-v240-actions{flex:0 0 auto!important;margin-top:auto!important;padding-top:5px!important;}
+.detail-sheet{animation-duration:.12s!important;}
+@media(max-width:520px){
+ body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand{font-size:1.06rem!important;}body:not(.game-mode):not(.restaurant-mode) .home-topbar-brand-d{font-size:1.24rem!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex:0 0 46%!important;height:auto!important;min-height:0!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex:1 1 54%!important;height:auto!important;padding:8px 11px 8px!important;}
+ body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:clamp(1.52rem,7.5vw,2.12rem)!important;}
+}
+@media(max-width:390px){body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex:0 0 44%!important;}body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:56%!important;padding:8px 10px 7px!important;}body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:1.42rem!important;}body.restaurant-mode .restaurant-stage .restaurant-menu-card{max-height:32px!important;}}
+</style>
