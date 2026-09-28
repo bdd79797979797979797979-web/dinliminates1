@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p712-restaurant-hours-complete";
+const CLEAN_VERSION = "p714-resilient-restaurant-search";
 
 function transform(html) {
   return html
