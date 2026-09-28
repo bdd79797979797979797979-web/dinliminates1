@@ -1054,6 +1054,8 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
     await expect(page.locator('.history-calendar-grid')).toBeVisible();
   }
 
+  await page.locator('#closeLibraryBtn').click();
+
   // Saved is its own menu destination and exposes Remove for saved choices.
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#savedMenuBtn').click();
