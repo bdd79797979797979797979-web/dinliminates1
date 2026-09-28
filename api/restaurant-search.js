@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v719-launch-candidate';
+const VERSION = 'restaurant-v732-launch-qa';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -254,7 +254,8 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
   const centers = tileCenters(lat, lon, radiusMi);
   const elements = [];
   const errors = [];
-  const timeout = radiusMi > 50 ? 5_500 : radiusMi > 25 ? 4_800 : 4_200;
+  const timeout = radiusMi > 50 ? 3_500 : radiusMi > 25 ? 3_250 : 3_000;
+  const postTimeout = 2_500;
 
   async function queryCenter(c) {
     const query = overpassQuery(c.lat, c.lon, c.radiusMi);
@@ -268,7 +269,7 @@ async function overpassProvider(endpoint, lat, lon, radiusMi) {
           method: 'POST',
           body: 'data=' + encoded,
           headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-        }, timeout);
+        }, postTimeout);
         return { elements: Array.isArray(data?.elements) ? data.elements : [], error: null };
       } catch (postErr) {
         return { elements: [], error: errorText(postErr || getErr) };
@@ -363,7 +364,7 @@ async function photonProvider(lat,lon,radiusMi){
     if(i===1 && !features.length) fastMissing.push('fast_food');
     for(const feature of features){const row=photonRow(feature);if(!row)continue;row.distanceMiles=miles(lat,lon,row.lat,row.lon);if(Number.isFinite(row.distanceMiles)&&row.distanceMiles<=radius)rows.push(row);}
   }
-  if(fastMissing.length){
+  if(fastMissing.length || settled[1]?.status!=='fulfilled'){
     const fallback=await nominatimPoiProvider(lat,lon,radius,'fast_food');
     rows.push(...fallback.rows); errors.push(...fallback.errors.map(x=>'fast-food fallback: '+x));
   }
@@ -448,26 +449,8 @@ async function doSearch(lat, lon, radiusMi) {
       return data;
     }
     async function firstUsableProvider(endpoints) {
-      const attempted = [];
-      for (const endpoint of endpoints) {
-        const result = await overpassProvider(endpoint, lat, lon, radiusMi);
-        attempted.push(result);
-        if (result.rows?.length) return { winner: result, results: attempted };
-      }
-      return { winner: null, results: attempted };
-    }
-
-    if (radiusMi <= 25) {
-      // Small searches are the common path: use one mirror at a time so public
-      // providers are not needlessly hammered and the first healthy mirror wins.
-      const first = await firstUsableProvider(OVERPASS_ENDPOINTS);
-      providerResults.push(...first.results);
-    } else {
-      // Larger searches are intrinsically multi-tile. Race two independent
-      // global mirrors so one slow public endpoint cannot block the search.
-      const primary = OVERPASS_ENDPOINTS.slice(0, 2);
-      const states = new Array(primary.length);
-      const attempts = primary.map((endpoint,index) =>
+      const states = new Array(endpoints.length);
+      const attempts = endpoints.map((endpoint,index) =>
         overpassProvider(endpoint, lat, lon, radiusMi).then(result => {
           states[index] = result;
           if (result.rows?.length) return result;
@@ -479,13 +462,24 @@ async function doSearch(lat, lon, radiusMi) {
       );
       let winner = null;
       try { winner = await Promise.any(attempts); } catch {}
-      await Promise.allSettled(attempts);
-      providerResults.push(...states.filter(Boolean));
-      if (!winner) {
+      return { winner, results: states.filter(Boolean) };
+    }
+
+    if (radiusMi <= 25) {
+      // Race all mirrors in parallel so a dead mirror cannot block every
+      // subsequent mirror for several seconds in sequence.
+      const first = await firstUsableProvider(OVERPASS_ENDPOINTS);
+      providerResults.push(...first.results);
+    } else {
+      // Each provider already fans out across the selected radius tiles. Race
+      // two primary mirrors first, then try the secondary mirrors only if both fail.
+      const primary = OVERPASS_ENDPOINTS.slice(0, 2);
+      const first = await firstUsableProvider(primary);
+      providerResults.push(...first.results);
+      if (!first.winner) {
         const fallback = await firstUsableProvider(OVERPASS_ENDPOINTS.slice(2));
         providerResults.push(...fallback.results);
       }
-    }
   }
   const providerStats = providerResults.map(x => ({
     endpoint: x.endpoint,
