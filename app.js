@@ -28,6 +28,7 @@
   const S = {
     screen:'home',
     hidden:new Set(),
+    deleted:new Set(),
     hiddenRestaurants:{},
     cutCats:new Set(),
     cutPrimary:new Set(),
@@ -57,7 +58,7 @@
 
   function save() {
     const data = {
-      screen:S.screen, hidden:[...S.hidden], hiddenRestaurants:S.hiddenRestaurants,
+      screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
       cutCats:[...S.cutCats], cutPrimary:[...S.cutPrimary], maybe:[...S.maybe],
       custom:S.custom, pool:S.pool, index:S.index, foodActions:S.foodActions,
       restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
@@ -78,6 +79,7 @@
       const d = JSON.parse(raw);
       Object.assign(S, d);
       S.hidden = new Set(d.hidden || []);
+      S.deleted = new Set(d.deleted || []);
       S.hiddenRestaurants = d.hiddenRestaurants || {};
       S.cutCats = new Set(d.cutCats || []);
       S.cutPrimary = new Set(d.cutPrimary || []);
@@ -113,7 +115,7 @@
 
   function foodPool() {
     return allFoods().filter(item => {
-      if (S.hidden.has(item.id) || S.maybe.has(item.id)) return false;
+      if (S.hidden.has(item.id) || S.deleted.has(item.id) || S.maybe.has(item.id)) return false;
       if (S.cutPrimary.has(item.primary)) return false;
       if (S.cutCats.has(item.category)) return false;
       if (S.cutCats.has('Soup/Stew') && (item.category === 'Soup' || item.category === 'Stew' || item.primary === 'soup' || item.primary === 'stew')) return false;
@@ -241,6 +243,15 @@
     if (S.pool.length < 2) return;
     const item = S.pool[Math.floor(Math.random() * S.pool.length)];
     foodCut(item);
+  }
+
+  function allCut() {
+    const items = S.pool.slice();
+    if (!items.length) return;
+    items.forEach(item => foodCommit('cut', item));
+    items.forEach(item => S.cutPrimary.add(item.primary));
+    buildFood();
+    winner({name:'Nothing left — hungry mode', image:HUNGRY_IMAGE, category:'Hungry'});
   }
 
   function restaurantCategory(row) {
@@ -672,57 +683,136 @@ function hourStatus(row){
     render();
   }
 
-  function manageFoodsView() {
-    const rows = allFoods();
-    const body = '<form class="add" id="foodAddForm"><input id="newFoodName" placeholder="Food name" required><select id="newFoodCat"><option>American</option><option>Southern</option><option>Asian</option><option>Mexican</option><option>Pasta</option><option>Pork</option><option>Healthy</option><option>Breakfast</option><option>Soup</option><option>Greek</option><option>Snack</option></select><input id="newFoodPhoto" placeholder="Photo URL (optional)" inputmode="url"><textarea id="newFoodRecipe" placeholder="Recipe or notes (optional)" rows="4"></textarea><button class="cut">Add Food</button></form><div class="food-list">'+rows.map(item => {
-      const hidden = S.hidden.has(item.id);
-      const custom = S.custom.some(x => x.id === item.id);
-      return '<div class="food-row"><span>'+esc(item.name)+'</span><span class="food-row-actions">'+
-        (hidden ? '<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>' : '<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>')+
-        (custom ? '<button class="restore danger-lite" data-food-delete="'+esc(item.id)+'">Delete</button>' : '')+
-        '</span></div>';
-    }).join('')+'</div>';
-    const modal = openModal('manageFoodsModal','Manage Foods',body);
-    $('foodAddForm').onsubmit = e => {
-      e.preventDefault();
-      const name = $('newFoodName').value.trim();
-      if (!name) return;
-      const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-      if (allFoods().some(x => x.id === id)) return;
-      S.custom.push({id,name,primary:id,category:$('newFoodCat').value,image:$('newFoodPhoto').value.trim()||HUNGRY_IMAGE,recipe:$('newFoodRecipe').value.trim()});
-      buildFood();
-      save();
-      modal.remove(); $('manageFoodsModalBg')?.remove();
-      updateContinue();
-      if (S.screen === 'food') { foodQuick(); drawFood(); }
+  function readImageFile(file) {
+    return new Promise((resolve,reject) => {
+      if (!file) return resolve('');
+      if (!file.type.startsWith('image/')) return reject(new Error('Please choose an image file.'));
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Could not read that image.'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const max=1200, scale=Math.min(1,max/Math.max(img.width,img.height));
+          const canvas=document.createElement('canvas');
+          canvas.width=Math.max(1,Math.round(img.width*scale));
+          canvas.height=Math.max(1,Math.round(img.height*scale));
+          const ctx=canvas.getContext('2d');
+          ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          resolve(canvas.toDataURL('image/jpeg',0.82));
+        };
+        img.onerror=()=>reject(new Error('Could not decode that image.'));
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function foodEditor(item=null) {
+    const isEdit=!!item;
+    const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack'];
+    const body='<form class="add" id="foodEditorForm">'+
+      '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
+      '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
+      '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
+      '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
+      '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
+      '<button class="cut">'+(isEdit?'Save Food':'Add Food')+'</button></form>';
+    const modal=openModal('foodEditorModal',isEdit?'Edit Food':'Add Food',body);
+    $('editFoodFile').onchange=async()=>{
+      try {
+        const data=await readImageFile($('editFoodFile').files?.[0]);
+        if(data) $('editFoodPhoto').value=data;
+      } catch(e) { alert(e.message); }
     };
-    modal.querySelectorAll('[data-food-restore]').forEach(btn => btn.onclick = () => { S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView(); });
-    modal.querySelectorAll('[data-food-hide]').forEach(btn => btn.onclick = () => { S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView(); });
-    modal.querySelectorAll('[data-food-delete]').forEach(btn => btn.onclick = () => {
-      if (!confirm('Delete this custom food permanently?')) return;
-      S.custom = S.custom.filter(x => x.id !== btn.dataset.foodDelete);
-      S.hidden.delete(btn.dataset.foodDelete);
-      buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+    $('foodEditorForm').onsubmit=e=>{
+      e.preventDefault();
+      const name=$('editFoodName').value.trim(), cat=$('editFoodCat').value;
+      const photo=$('editFoodPhoto').value.trim()||HUNGRY_IMAGE, recipe=$('editFoodRecipe').value.trim();
+      if(!name)return;
+      if(isEdit){
+        const idx=S.custom.findIndex(x=>x.id===item.id);
+        if(idx<0)return;
+        const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+        if(id!==item.id && allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,image:photo,recipe};
+        S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
+      } else {
+        const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+        if(allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        S.custom.push({id,name,primary:id,category:cat,image:photo,recipe});
+      }
+      buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove(); manageFoodsView();
+      if(S.screen==='food'){foodQuick();drawFood();}
+    };
+  }
+
+  function manageFoodsView() {
+    const rows=allFoods();
+    const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Built-in foods can be hidden or removed.</div>'+
+      '<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Food</button>'+
+      '<div class="food-list">'+rows.map(item=>{
+        const hidden=S.hidden.has(item.id), deleted=S.deleted.has(item.id), custom=S.custom.some(x=>x.id===item.id);
+        const state=deleted?'Deleted':hidden?'Hidden':'Active';
+        return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-state">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
+          (!deleted?(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>'):'<button class="restore" data-food-restore-deleted="'+esc(item.id)+'">Restore</button>')+
+          '<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>'+
+          '<button class="restore danger-lite" data-food-delete="'+esc(item.id)+'">Delete</button></span></div>';
+      }).join('')+'</div>';
+    const modal=openModal('manageFoodsModal','Manage Foods',body);
+    $('openFoodEditor').onclick=()=>foodEditor();
+    modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
+      S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+    });
+    modal.querySelectorAll('[data-food-restore-deleted]').forEach(btn=>btn.onclick=()=>{
+      S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+    });
+    modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
+      S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
+    });
+    modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{
+      const row=allFoods().find(x=>x.id===btn.dataset.foodEdit);
+      if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
+    });
+    modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=()=>{
+      const row=allFoods().find(x=>x.id===btn.dataset.foodDelete);
+      if(!row)return;
+      if(!confirm((S.custom.some(x=>x.id===row.id)?'Delete custom food permanently? ':'Remove '+row.name+' from choices? ')+'You can restore deleted built-in foods here.'))return;
+      if(S.custom.some(x=>x.id===row.id))S.custom=S.custom.filter(x=>x.id!==row.id);
+      else S.deleted.add(row.id);
+      S.hidden.delete(row.id); S.maybe.delete(row.id); buildFood(); save();
+      modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
     });
   }
 
   function settingsView() {
-    const hiddenFoods = allFoods().filter(x => S.hidden.has(x.id));
-    const hiddenRestaurants = Object.values(S.hiddenRestaurants);
-    const body = '<div class="settings-stack"><h4>Hidden Choices</h4><div>'+
-      (hiddenFoods.length ? hiddenFoods.map(x => '<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button></div>').join('') : '<p class="status">No hidden foods.</p>')+
+    const hiddenFoods=allFoods().filter(x=>S.hidden.has(x.id));
+    const deletedFoods=allFoods().filter(x=>S.deleted.has(x.id));
+    const hiddenRestaurants=Object.values(S.hiddenRestaurants);
+    const body='<div class="settings-stack">'+
+      '<h4>Hidden Choices</h4><div>'+
+      (hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden foods.</p>')+
+      '</div><h4>Deleted Foods</h4><div>'+
+      (deletedFoods.length?deletedFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No deleted foods.</p>')+
       '</div><h4>Hidden Restaurants</h4><div>'+
-      (hiddenRestaurants.length ? hiddenRestaurants.map(x => '<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join('') : '<p class="status">No hidden restaurants.</p>')+
-      '</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the default food list and clears saved round changes.</p></div>';
-    const modal = openModal('settingsModal','Settings',body);
-    modal.querySelectorAll('[data-setting-food]').forEach(btn => btn.onclick = () => { S.hidden.delete(btn.dataset.settingFood); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView(); });
-    modal.querySelectorAll('[data-setting-rest]').forEach(btn => btn.onclick = () => { const id = btn.dataset.settingRest; delete S.hiddenRestaurants[id]; const row = S.restaurantPool.find(x => x.id === id); if(row) row._hidden = false; save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView(); });
-    $('systemRestore').onclick = () => {
-      if (!confirm('Restore the default Dinliminate setup and clear saved round changes?')) return;
-      S.hidden.clear(); S.hiddenRestaurants = {}; S.custom = []; S.cutCats.clear(); S.cutPrimary.clear(); S.maybe.clear(); S.pool = []; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
-      try { localStorage.removeItem(KEY); } catch {}
-      home(); updateContinue();
-      modal.remove(); $('settingsModalBg')?.remove();
+      (hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+
+      '</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the original foods and clears saved round changes.</p></div>';
+    const modal=openModal('settingsModal','Settings',body);
+    modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{
+      S.hidden.delete(btn.dataset.settingFood); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
+    });
+    modal.querySelectorAll('[data-setting-deleted]').forEach(btn=>btn.onclick=()=>{
+      S.deleted.delete(btn.dataset.settingDeleted); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
+    });
+    modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{
+      const id=btn.dataset.settingRest; delete S.hiddenRestaurants[id];
+      const row=S.restaurantPool.find(x=>x.id===id); if(row)row._hidden=false;
+      save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
+    });
+    $('systemRestore').onclick=()=>{
+      if(!confirm('Restore the default Dinliminate setup and clear saved round changes?'))return;
+      S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.cutPrimary.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
+      try{localStorage.removeItem(KEY)}catch{}
+      home(); updateContinue(); modal.remove(); $('settingsModalBg')?.remove();
     };
   }
 
@@ -858,6 +948,7 @@ function hourStatus(row){
   $('foodHide').onclick = foodHide;
   $('addFood').onclick = manageFoodsView;
   $('randomOne').onclick = randomCutOne;
+  $('allCut').onclick = allCut;
   $('foodPassAround').onclick = passSetup;
   $('restaurantPassAround').onclick = passSetup;
   document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
