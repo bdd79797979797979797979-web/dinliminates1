@@ -216,11 +216,41 @@ function searchText(value){
   return String(value||'').toLowerCase().replace(/[\u2019']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 }
 function searchTerms(query){ return searchText(query).split(' ').filter(Boolean); }
+function restaurantSearchSemanticText(row){
+  const base=[
+    row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+    ...(Array.isArray(row?.tags)?row.tags:[row?.tags]),
+    ...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])
+  ].filter(Boolean).join(' ');
+  const text=searchText(base);
+  const name=searchText(row?.name);
+  const brand=searchText(row?.brand);
+  const operator=searchText(row?.operator);
+  const semantic=[];
+  const add=(key,re)=>{if(re.test(text+' '+name+' '+brand+' '+operator))semantic.push(key);};
+  add('burger',/\b(?:burger|hamburger|mcdonalds?|wendys?|wendy|burger king|five guys|whataburger|culvers?|sonic|steak n shake|shake shack|hardees?|carls jr|checkers|rallys|white castle|jack in the box|freddys?)\b/i);
+  add('chicken',/\b(?:chicken|kfc|chick fil a|popeyes|zaxbys?|bojangles|raising canes?|churchs? chicken|slim chickens?|wingstop|buffalo wild wings?)\b/i);
+  add('pizza',/\b(?:pizza|pizzeria|dominos?|pizza hut|papa johns?|little caesars|pap(a|pa) murphys?|marcos? pizza)\b/i);
+  add('breakfast',/\b(?:breakfast|brunch|waffle house|dennys?|ihop|cracker barrel)\b/i);
+  add('sandwich',/\b(?:sandwich|sub|subway|jimmy johns?|jersey mikes?|firehouse subs?|potbelly|panera|arby'?s)\b/i);
+  add('bbq',/\b(?:bbq|barbecue|smokehouse|bar b q)\b/i);
+  add('southern',/\b(?:southern|soul food|country cooking|cracker barrel|waffle house|bojang)\b/i);
+  add('seafood',/\b(?:seafood|fish|shrimp|crab|oyster|lobster|long john silvers|captain ds)\b/i);
+  add('mexican',/\b(?:mexican|tex mex|taco|burrito|enchilada|quesadilla|taco bell|chipotle)\b/i);
+  add('italian',/\b(?:italian|pasta|trattoria|osteria)\b/i);
+  add('healthy',/\b(?:healthy|salad|vegetarian|vegan|juice|smoothie)\b/i);
+  add('soupstew',/\b(?:soup|stew|chili)\b/i);
+  return semantic.join(' ');
+}
 function restaurantMatchesSearch(row,query){
   const q=searchText(query); if(!q)return true;
-  const fields=[row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,...(Array.isArray(row?.tags)?row.tags:[row?.tags]),...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])];
-  const hay=searchText(fields.filter(Boolean).join(' '));
-  return hay.includes(q) || searchTerms(q).every(term=>hay.includes(term));
+  const hay=searchText([
+    row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+    ...(Array.isArray(row?.tags)?row.tags:[row?.tags]),
+    ...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems]),
+    restaurantSearchSemanticText(row)
+  ].filter(Boolean).join(' '));
+  return searchTerms(q).every(term=>hay.includes(term));
 }
 function overpassRegex(query){ return searchText(query).replace(/[.*+?^${}()|[\]\\]/g,' ').split(/\s+/).filter(Boolean).join('.*'); }
 function overpassQuery(lat, lon, radiusMi, query=''){
