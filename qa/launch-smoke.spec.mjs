@@ -1140,7 +1140,14 @@ test('P730 exact Quick Cut count and one-remaining-choice behavior', async ({ pa
     restaurantRadiusMiles=10;
     restaurantHoursFilter='open-unknown';
     restaurantEliminationExhausted=false;
-    showRestaurantMode();
+    restaurantRoundInProgress=false;
+    // Keep this exact-count fixture isolated from the normal V3 opener/refresh path.
+    document.body.classList.remove('game-mode','finalist-mode');
+    document.body.classList.add('restaurant-mode');
+    document.querySelector('#homePanel')?.classList.add('hidden');
+    document.querySelector('#gamePanel')?.classList.add('hidden');
+    document.querySelector('#winnerPanel')?.classList.add('hidden');
+    document.querySelector('#restaurantPanel')?.classList.remove('hidden');
     renderRestaurantStage();
     renderRestaurantQuickCuts();
     syncRestaurantActionLabels();
