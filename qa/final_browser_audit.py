@@ -35,7 +35,7 @@ def api_route(route):
             rows.append({'id':f'osm-node-{i+1}','name':name,'type':'restaurant','amenity':'fast_food' if i<3 else 'restaurant','fastFood':i<3,'category':'Fast Food' if i<3 else 'American','cuisine':'american' if i>=3 else '','tags':['restaurant','fast_food'] if i<3 else ['restaurant','american'],'address':f'{100+i} Main St, Clarksville, TN 37040','lat':36.52+i*0.001,'lon':-87.36,'distanceMiles':0.5+i*0.2,'photo':'','rating':0,'priceLevel':'','menuItems':[]})
         body={'ok':True,'radiusMiles':float(q.get('radius',['10'])[0]),'results':rows,'restaurants':rows,'items':rows,'count':6,'total':6,'fastFoodCount':3,'providersUsed':['OpenStreetMap'],'diagnostics':{'postpassTiles':1,'postpassCalls':1}}
     else: body={'ok':True,'version':'audit'}
-    route.fulfill(status=200,headers={'content-type':'application/json'},body=json.dumps(body))
+    route.fulfill(status=200,headers={'content-type':'application/json','access-control-allow-origin':'*'},body=json.dumps(body))
 
 with sync_playwright() as pw:
     browser=pw.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
