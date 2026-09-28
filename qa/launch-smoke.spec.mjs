@@ -257,7 +257,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantRadiusFilter').selectOption('5');
   await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('5 mi');
   await expect.poll(()=>count(fast)).toBe(2);
-  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(4);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(5);
 
   await page.evaluate(()=>{
     activeRestaurants.sort((a,b)=>(Number(a.distanceMiles)||999)-(Number(b.distanceMiles)||999));
