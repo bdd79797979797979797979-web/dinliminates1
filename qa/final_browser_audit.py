@@ -78,7 +78,12 @@ with sync_playwright() as pw:
     add('23 Pass Around button unique',page.locator('#restaurantPassAroundBtn').count()==1)
     add('24 No visible Order wording',not bool(re.search(r'\bOrder\b',page.locator('#restaurantPanel').inner_text(),re.I)))
     if page.locator('#restaurantCutBtn').count():
-        b=int(page.locator('#restaurantTopCount').inner_text());page.locator('#restaurantCutBtn').click();page.wait_for_timeout(300);a=int(page.locator('#restaurantTopCount').inner_text());add('25 Restaurant Cut changes count',a!=b);page.locator('#restaurantBackAction').click();page.wait_for_timeout(100);add('26 Restaurant Undo restores',int(page.locator('#restaurantTopCount').inner_text())==b)
+        try:
+            page.wait_for_function("document.querySelector('#restaurantCutBtn') && !document.querySelector('#restaurantCutBtn').disabled", timeout=10000)
+        except Exception as e:
+            add('25 Restaurant Cut is actionable after results load',False,str(e))
+        else:
+            b=int(page.locator('#restaurantTopCount').inner_text());page.locator('#restaurantCutBtn').click();page.wait_for_timeout(300);a=int(page.locator('#restaurantTopCount').inner_text());add('25 Restaurant Cut changes count',a!=b);page.locator('#restaurantBackAction').click();page.wait_for_timeout(100);add('26 Restaurant Undo restores',int(page.locator('#restaurantTopCount').inner_text())==b)
     page.locator('#restaurantPassAroundBtn').click();page.wait_for_timeout(70);add('27 Restaurant Pass Around opens',page.locator('#passSetupBackdrop').is_visible());page.locator('[data-pass-cancel]').click()
     page.locator('#restaurantMenuBtn').click();page.wait_for_timeout(50);page.locator('#settingsBtn').click();page.wait_for_timeout(80);add('28 Settings opens',page.locator('#settingsBackdrop').is_visible());add('29 System Restore present',page.locator('#systemRestoreBtn').count()==1);page.locator('#closeSettingsBtn').click();page.wait_for_timeout(30);page.locator('#restaurantMenuBtn').click();page.wait_for_timeout(30);page.locator('#historyMenuBtn').click();page.wait_for_timeout(80);add('30 History opens',page.locator('#libraryBackdrop').is_visible());add('31 History calendar present',page.locator('.history-calendar-grid').count()==1);page.locator('#closeLibraryBtn').click()
     dups=page.evaluate("(()=>{const a=[...document.querySelectorAll('[id]')].map(e=>e.id).filter(Boolean);return [...new Set(a.filter((x,i)=>a.indexOf(x)!==i))]})()")
