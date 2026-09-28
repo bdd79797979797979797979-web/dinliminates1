@@ -54,7 +54,7 @@ function res(){
   assert(r.body.results.some(x=>x.name==='Waffle House'));
   assert.equal(r.body.fastFoodCount,1);
   assert(r.body.results.every(x=>Number(x.distanceMiles)<=100));
-  assert(r.body.results.every(x=>/^osm-(node|way|relation)-\\d+$/.test(x.id) || /^photon-|^nominatim-/.test(x.id)));
+  assert(r.body.results.every(x=>/^osm-(node|way|relation)-\d+$/.test(x.id) || /^photon-|^nominatim-/.test(x.id)));
   assert(r.body.providersUsed.includes('Photon POI'));
   assert(r.body.providersUsed.includes('Nominatim POI'));
   console.log('API_UNIT_TESTS_OK');
