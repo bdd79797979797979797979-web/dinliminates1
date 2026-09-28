@@ -19,7 +19,7 @@ const server = http.createServer((req,res)=>{
 await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
 
 const browser = await chromium.launch({headless:true});
-const context = await browser.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+const context = await browser.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true,timezoneId:'America/Chicago'});
 const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
