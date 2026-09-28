@@ -435,7 +435,8 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
 
   await expect(page.locator('#homeMenuTopBtn')).toHaveCount(1);
-  await expect(page.locator('#homeMenuTopBtn > span')).toHaveCount(1);
+  await expect(page.locator('#homeMenuTopBtn')).toHaveAttribute('aria-label','Open menu');
+  await expect(page.locator('#homeMenuTopBtn svg')).toHaveCount(1);
   await expect(page.locator('#homeMenuTopBtn')).toBeVisible();
   await expect(page.locator('.home-topbar-brand')).toContainText('Dinliminate');
   const homeChrome=await page.evaluate(()=>{
