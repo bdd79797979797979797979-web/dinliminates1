@@ -741,8 +741,12 @@ body.game-mode .bottom-nav{z-index:90;bottom:0;border-radius:18px 18px 0 0;width
 .scrim{z-index:240!important;}
 .drawer{z-index:250!important;bottom:78px!important;padding:12px!important;border-radius:25px!important;background:rgba(248,244,236,.98)!important;backdrop-filter:blur(18px)!important;}
 .drawer-head{padding:2px 3px 10px;}
-.drawer-title{font-family:var(--display-face);font-size:1.35rem;font-weight:500;letter-spacing:-.03em;}
+.drawer-kicker{color:#9aa7a0;font-size:.50rem;font-weight:900;letter-spacing:.18em;margin-bottom:2px;}
+.drawer-title{font-family:var(--display-face);font-size:1.35rem;font-weight:500;letter-spacing:-.03em;line-height:1;}
 .drawer-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;}
+.drawer-card-saved{border-color:#cfe0d6!important;background:#f4faf6!important;}
+.drawer-card-saved b{color:#2b604b!important;}
+.drawer-card-saved em{color:#60756a!important;}
 .drawer-card{position:relative;min-height:94px;overflow:hidden;border:1px solid #e6ded1!important;border-radius:17px!important;padding:0!important;background:#fbf7ef!important;color:var(--premium-ink)!important;text-align:left!important;box-shadow:0 8px 22px rgba(23,32,29,.06)!important;touch-action:manipulation;}
 .drawer-card-wide{grid-column:1/-1;min-height:72px;}
 .drawer-card .drawer-photo{position:absolute;inset:0;background-image:var(--drawer-photo);background-size:cover;background-position:center;opacity:.28;}
@@ -6108,15 +6112,18 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 <div class="scrim hidden" id="scrim"></div>
 <div aria-label="Menu" class="drawer hidden" id="drawer">
 <div class="drawer-head">
-<div class="drawer-title">Options</div>
+<div>
+<div class="drawer-kicker">DINLIMINATE</div>
+<div class="drawer-title">Menu</div>
+</div>
 <button aria-label="Close menu" class="icon-btn" id="closeDrawerBtn" type="button">×</button>
 </div>
 <div class="drawer-grid">
-<button class="drawer-card" id="addMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Add food</b><em>Make it yours</em></span></button>
-<button class="drawer-card" id="restaurantsMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/10153085/pexels-photo-10153085.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Restaurants</b><em>Find nearby places</em></span></button>
-<button class="drawer-card" id="settingsBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/4887993/pexels-photo-4887993.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Settings</b><em>Hidden foods &amp; preferences</em></span></button>
+<button class="drawer-card drawer-card-saved" id="savedMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/1640773/pexels-photo-1640773.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Saved</b><em>Your saved choices</em></span></button>
 <button class="drawer-card" id="historyMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>History</b><em>See past decisions</em></span></button>
-<button class="drawer-card" id="winnerMenuBtn" type="button"><span><b>Winner</b><em>See your last dinner decision</em></span></button>
+<button class="drawer-card" id="restaurantsMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/10153085/pexels-photo-10153085.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Restaurants</b><em>Find nearby places</em></span></button>
+<button class="drawer-card" id="addMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Add food</b><em>Make it yours</em></span></button>
+<button class="drawer-card" id="settingsBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/4887993/pexels-photo-4887993.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Settings</b><em>Hidden foods &amp; preferences</em></span></button>
 <button class="drawer-card" id="aboutMenuBtn" type="button"><span><b>About</b><em>About Dinliminate</em></span></button>
 <button class="drawer-card drawer-card-wide danger" id="homeMenuBtn" type="button"><span class="drawer-photo" style="--drawer-photo:url('https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600')"></span><span><b>Back to start</b><em>Choose a new round</em></span></button>
 </div>
@@ -8427,7 +8434,7 @@ bind('stage','click',(e)=>{
   if(btn.dataset.cardAction==='menu') openMenu();
 });
 bind('hideBtn','click',(e)=>{ e?.stopPropagation?.(); hideCurrent(); });
-bind('settingsBtn','click',openSettings); bind('historyMenuBtn','click',()=>openLibrary('history'));
+bind('settingsBtn','click',openSettings); bind('savedMenuBtn','click',()=>openLibrary('saved')); bind('historyMenuBtn','click',()=>openLibrary('history'));
 bind('closeSettingsBtn','click',closeSettings);
 
 bind('settingsBackdrop','click',e=>{ if(e.target === $('settingsBackdrop')) closeSettings(); });
@@ -8437,7 +8444,7 @@ bind('closeDrawerBtn','click',closeMenu);bind('aboutMenuBtn','click',()=>{closeM
 bind('scrim','click',closeMenu);
 bind('addMenuBtn','click',openModal);
 document.addEventListener('click',(e)=>{const t=e.target?.closest?.('#homeMenuBtn');if(!t)return;e.preventDefault();e.stopImmediatePropagation();closeMenu();if(typeof window.DinliminateBackToStart==='function')window.DinliminateBackToStart();else goHome();},true);
-bind('winnerMenuBtn','click',()=>{closeMenu();openLastWinner();});
+
 function syncWinnerAccess(){const b=$('homeWinnerBtn');if(!b)return;b.classList.toggle('hidden',!lastWinner);}
 bind('homeWinnerBtn','click',()=>openLastWinner());
 bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
