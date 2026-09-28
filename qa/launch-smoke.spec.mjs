@@ -273,6 +273,13 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+  // This content-visibility check uses the fixture's fully populated restaurant deterministically.
+  await page.evaluate(()=>{
+    activeRestaurants.sort((a,b)=>(Number(a.distanceMiles)||999)-(Number(b.distanceMiles)||999));
+    restaurantFilters.query='';
+    renderRestaurantStage();
+    window.DinliminateRefreshRestaurantQuickCuts?.();
+  });
   const activeCard=page.locator('.restaurant-card-v240.active');
   for (const selector of [
     '.restaurant-name-v240',
