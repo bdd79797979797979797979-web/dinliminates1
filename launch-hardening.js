@@ -332,8 +332,7 @@
     const q=String(restaurantFilters?.query||'').trim().toLowerCase();
     if(q)pool=pool.filter(r=>`${r?.name||''} ${r?.address||''} ${r?.brand||''} ${r?.operator||''} ${r?.category||''} ${r?.cuisine||''} ${Array.isArray(r?.tags)?r.tags.join(' '):r?.tags||''}`.toLowerCase().includes(q));
     const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
-    if(hours==='closed')pool=pool.filter(r=>restaurantOpenStatus?.(r)===false);
-    else pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
+    if(hours==='open-unknown')pool=pool.filter(r=>restaurantOpenStatus?.(r)!==false);
     return pool;
   }
   function visibleRestaurants(){return restaurantCurrentEligiblePool();}
