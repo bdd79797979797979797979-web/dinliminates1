@@ -595,7 +595,8 @@ test('front page chrome and food Quick Cuts/end-state stay launch-clean', async 
 
 
 test('P729 full virtual-user journey covers the complete app surface', async ({ page }) => {
-  test.setTimeout(120000);
+  test.setTimeout(45000);
+  page.setDefaultTimeout(5000);
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', msg => {
