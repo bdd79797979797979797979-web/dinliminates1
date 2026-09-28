@@ -5561,9 +5561,9 @@ body.restaurant-mode .restaurant-card.back-two{
 body.restaurant-mode .restaurant-card.active{
   z-index:10!important;
   opacity:1!important;
-  transform:none!important;
 }
-/* The swipe should feel identical to Food. */
+/* The swipe should feel identical to Food. The active card must not have a CSS transform override,
+   because the pointer gesture supplies the live transform inline during dragging. */
 body.restaurant-mode .restaurant-card,
 body.restaurant-mode .restaurant-card *{touch-action:none;}
 body.restaurant-mode .restaurant-card.dragging{transition:none!important;}
