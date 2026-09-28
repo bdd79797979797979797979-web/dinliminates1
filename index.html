@@ -6569,7 +6569,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p726-food-photo-deck-and-zero-count';
+const DINLIMINATE_VERSION = 'p730-one-choice-and-home-polish';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -7368,6 +7368,9 @@ function openHideConfirm(item){
 }
 function openDeleteCustomConfirm(item){
   if(!item)return;
+  // Close any underlying Details sheet first so the destructive confirmation
+  // can never be visually or interactively trapped underneath it.
+  closeDetails();
   pendingConfirm={item,action:'delete'};
   $('confirmTitle').textContent='Delete this food?'; $('confirmText').textContent=`“${item.name}” will be removed from your personal food deck.`;
   $('confirmCancelBtn').textContent='Cancel'; $('confirmCutBtn').textContent='Delete permanently'; $('confirmCutBtn').classList.add('danger-confirm'); $('confirmBackdrop').classList.remove('hidden'); focusOverlay('confirmBackdrop');
