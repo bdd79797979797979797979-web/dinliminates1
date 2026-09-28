@@ -6042,7 +6042,7 @@ const homeMeals = [
 const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  tacos: 'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  tacos: 'https://images.pexels.com/photos/5837193/pexels-photo-5837193.jpeg?auto=compress&cs=tinysrgb&w=1400',
   stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6279,7 +6279,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p716-launch-candidate';
+const DINLIMINATE_VERSION = 'p719-launch-candidate';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
