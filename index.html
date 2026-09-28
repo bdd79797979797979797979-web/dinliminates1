@@ -8742,14 +8742,6 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     ST.searching=true;
     ST.origin={lat,lon};
     ST.lastRestaurantError=null;
-    // Explicit address/location searches start a clean restaurant deck; refreshes preserve Quick Cuts.
-    if(!options.preserveOnError){
-      restaurantQuickCuts.clear();
-      restaurantManual.clear();
-      restaurantUndoStack=[];
-      restaurantFinalistMode=false;
-      restaurantEliminationExhausted=false;
-    }
     busy('find',true,'Finding…');
     setStatus('Searching restaurants near '+text(label||'your location')+'…','live');
 
