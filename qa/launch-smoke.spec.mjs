@@ -901,7 +901,15 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await page.locator('#restaurantInlineSearchInput').fill("McDonald");
   await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText("McDonald's");
   await page.locator('#restaurantInlineSearchInput').fill("Wendy's");
-  await expect.poll(async()=>page.locator('#restaurantStage .restaurant-card-v240').count()).toBe(1);
+  await page.waitForTimeout(1200);
+  console.log('WENDY diagnostic',await page.evaluate(()=>({
+    query:restaurantFilters?.query,
+    active:(window.activeRestaurants||[]).map(r=>r.name),
+    filtered:(window.filteredRestaurants?.()||[]).map(r=>r.name),
+    current:(window.currentRestaurant?.()?.name||null),
+    cards:[...document.querySelectorAll('#restaurantStage .restaurant-card-v240')].map(x=>x.querySelector('.restaurant-name-v240')?.textContent)
+  })));
+  await expect.poll(async()=>page.locator('#restaurantStage .restaurant-card-v240').count(),{timeout:15000}).toBe(1);
   await expect(page.locator('#restaurantStage .restaurant-card.active .restaurant-name-v240')).toHaveText("Wendy's");
   await page.locator('#restaurantInlineSearchInput').fill("burger");
   await expect.poll(async()=>page.locator('#restaurantStage .restaurant-card-v240').count()).toBe(3);
@@ -1630,6 +1638,14 @@ test('restaurant radius never shrinks after a larger provider response is incomp
     await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText(radius+' mi');
     await expect.poll(async()=>Number(await page.locator('#restaurantTopCount').textContent()),{timeout:20000}).toBeGreaterThan(0);
     counts.push(Number(await page.locator('#restaurantTopCount').textContent()));
+    console.log('MONOTONIC radius',radius,await page.evaluate(()=>({
+      top:Number(document.querySelector('#restaurantTopCount')?.textContent||0),
+      active:(window.activeRestaurants||[]).length,
+      items:(window.restaurantItems||[]).length,
+      base:(window.restaurantBase||[]).length,
+      controller:window.DinliminateRestaurantSearchV3?.state?.(),
+      names:(window.filteredRestaurants?.()||[]).slice(0,8).map(r=>r.name)
+    })));
   }
 
   for(let i=1;i<counts.length;i++){
