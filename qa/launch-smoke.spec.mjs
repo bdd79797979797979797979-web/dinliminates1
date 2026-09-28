@@ -157,7 +157,8 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   const hours = page.locator('#restaurantOpenUnknownBtn');
   await expect(hours).toHaveText(/Open \/ Unknown/);
   await hours.click();
-  await expect(hours).toHaveText('Closed');
+  await hours.click();
+  await expect(hours).toHaveText('All');
   await hours.click();
   await expect(hours).toHaveText(/Open \/ Unknown/);
 
@@ -306,9 +307,11 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
 
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
-  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
-  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)===false))).toBe(true);
-  await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toHaveText('Waffle House');
+  await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('All');
+  await expect(page.locator('#restaurantTopCount')).toHaveText('6');
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Waffle House' && restaurantOpenStatus(r)===false))).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Southern Kitchen' && restaurantOpenStatus(r)===null))).toBe(true);
   console.log('P690 hours=closed state', await page.evaluate(() => ({
     hours: localStorage.getItem('dinliminateRestaurantHoursFilter'),
     active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,open:r.openNow,cat:r.category})) : [],
