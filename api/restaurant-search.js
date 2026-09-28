@@ -457,7 +457,7 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
 }
 
 async function photonProvider(lat,lon,coverageRadiusMi){
-  const started=Date.now(), radius=clampRadius(radiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
+  const started=Date.now(), radius=clampRadius(coverageRadiusMi), latDelta=radius/69, lonDelta=radius/(69*Math.max(0.35,Math.cos(lat*Math.PI/180)));
   const bbox=[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta].join(',');
   const common={bbox,limit:radius>50?'250':'200',lang:'en',countrycode:'US',dedupe:'1',location_bias_scale:'0.15'};
   async function queryPhoton(q,tag){const p=new URLSearchParams(common);p.set('q',q);p.set('osm_tag',tag);return fetchJson('https://photon.komoot.io/api?'+p.toString(),{},4500);}
@@ -491,7 +491,7 @@ async function probePhoton(){
 async function googleSearch(lat, lon, coverageRadiusMi) {
   if (!GOOGLE_KEY) return { endpoint: 'Google Places', rows: [], ms: 0, errors: ['not configured'] };
   const started = Date.now();
-  const meters = Math.round(Math.min(50, radiusMi) * 1609.344);
+  const meters = Math.round(Math.min(50, clampRadius(coverageRadiusMi)) * 1609.344);
   const url = 'https://places.googleapis.com/v1/places:searchNearby';
   try {
     const res = await fetchJson(url, {
