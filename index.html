@@ -5516,7 +5516,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
 })();
 </script>
-<link rel="stylesheet" href="./launch-hardening.css?v=p729-final-launch"><script src="./launch-hardening.js?v=p729-final-launch" defer></script><style id="dinliminate-p636-final-controls">
+<link rel="stylesheet" href="./launch-hardening.css?v=p781-launch-ready"><script src="./launch-hardening.js?v=p781-launch-ready" defer></script><style id="dinliminate-p636-final-controls">
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
@@ -6427,7 +6427,7 @@ const homeMeals = [
   { name: "Tacos", tags: ["mexican", "quick", "home"], type: "home" },
   { name: "Popcorn", tags: ["snack", "quick", "home"], type: "home" },
   { name: "Fruit Bowl", tags: ["healthy", "snack", "quick", "home"], type: "home" },
-  { name: "Stir Fry", tags: ["asian", "chicken", "quick", "rice", "vegetable", "home"], type: "home" },
+  { name: "Mexican Stir Fry", tags: ["mexican", "chicken", "quick", "rice", "vegetable", "home"], type: "home" },
   { name: "Homemade Pizza", tags: ["pizza", "italian", "quick", "home"], type: "home" },
   { name: "Burgers", tags: ["burger", "quick", "home"], type: "home" },
   { name: "Eggs & Toast", tags: ["quick", "breakfast", "home"], type: "home" },
@@ -6439,7 +6439,7 @@ const homeMeals = [
   { name: "Grilled Cheese", tags: ["quick", "comfort", "sandwich", "home"], type: "home" },
   { name: "Burrito Bowl", tags: ["mexican", "beans", "rice", "home"], type: "home" },
   { name: "Southern Vegetable Plate", tags: ["southern", "country", "vegetable", "corn", "beans", "quick", "home"], type: "home" },
-  { name: "Meatloaf & Mashed Potatoes", tags: ["comfort", "beef", "potato", "home"], type: "home" },
+  { name: "Meatloaf & Mashed Potatoes", tags: ["southern", "comfort", "beef", "potato", "home"], type: "home" },
   { name: "Beef Stroganoff", tags: ["beef", "comfort", "pasta", "home"], type: "home" },
   { name: "Grilled Salmon", tags: ["seafood", "healthy", "home"], type: "home" },
   { name: "Lasagna", tags: ["pasta", "italian", "comfort", "home"], type: "home" },
@@ -6449,7 +6449,7 @@ const homeMeals = [
   { name: "Southern Vegetable Beef Soup", tags: ["southern", "beef", "vegetable", "tomato", "corn", "beans", "soup", "home"], type: "home" },
   { name: "Chicken Fried Steak", tags: ["country", "beef", "comfort", "home"], type: "home" },
   { name: "Country Fried Chicken", tags: ["country", "chicken", "comfort", "home"], type: "home" },
-  { name: "Pot Roast", tags: ["beef", "country", "comfort", "potato", "home"], type: "home" },
+  { name: "Pot Roast", tags: ["southern", "beef", "country", "comfort", "potato", "home"], type: "home" },
   { name: "Chicken & Dumplings", tags: ["chicken", "country", "comfort", "soup", "home"], type: "home" },
   { name: "BBQ Pulled Pork", tags: ["bbq", "pork", "quick", "home"], type: "home" },
   { name: "BBQ Ribs", tags: ["bbq", "pork", "comfort", "home"], type: "home" },
@@ -6480,9 +6480,9 @@ const homeMeals = [
   { name: "Ham Sandwich + Chips", tags: ["sandwich", "snack", "quick", "home"], type: "home" },
   { name: "Parfait", tags: ["breakfast", "snack", "sweet", "quick", "home"], type: "home" },
   { name: "Smoothie", tags: ["breakfast", "drink", "healthy", "quick", "home"], type: "home" },
-  { name: "Gyro", tags: ["mediterranean", "sandwich", "quick", "home"], type: "home" },
+  { name: "Gyro", tags: ["greek", "mediterranean", "sandwich", "quick", "home"], type: "home" },
   { name: "Cereal", tags: ["breakfast", "quick", "home"], type: "home" },
-  { name: "Stouffer’s Frozen Dinner", tags: ["quick", "comfort", "home"], type: "home" },
+  { name: "Stouffer’s Frozen Dinner", tags: ["frozen", "quick", "comfort", "home"], type: "home" },
   { name: "Baked Chicken Thighs", tags: ["chicken", "country", "comfort", "home"], type: "home" },
   { name: "Pork Tenderloin", tags: ["pork", "comfort", "home"], type: "home" },
   { name: "Fish Sticks", tags: ["seafood", "fried", "quick", "home"], type: "home" }
@@ -6493,7 +6493,7 @@ const PHOTO_LIBRARY = {
   spaghetti: 'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400',
   chickenRice: 'https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400',
   tacos: 'https://images.pexels.com/photos/14179985/pexels-photo-14179985.jpeg?auto=compress&cs=tinysrgb&w=1400',
-  stirFry: 'https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400',
+  stirFry: 'https://images.pexels.com/photos/4924603/pexels-photo-4924603.png?auto=compress&cs=tinysrgb&w=1400',
   pizza: 'https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400',
   popcorn: 'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=1400',
   burger: 'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400',
@@ -6730,9 +6730,9 @@ let restaurantAutocompleteSeq=0;
 const RESTAURANT_QUICK_CUTS = [
   ['Fast Food','fast_food','burger'],['American','american','burger'],['Burgers','burger','burger'],['Chicken','chicken','chickenWings'],['Wings','wings','chickenWings'],
   ['Pizza','pizza','pizza'],['Mexican','mexican','tacos'],['Italian','italian','pastaAlfredo'],['Pasta','pasta','pastaAlfredo'],['Sandwiches','sandwich','philly'],
-  ['Breakfast','breakfast','baconEggs'],['BBQ','bbq','ribs'],['Southern','southern','buttermilk'],['Potato','potato','loadedPotato'],['Healthy','healthy','salad'],
+  ['Breakfast','breakfast','baconEggs'],['Pork','pork','ribs'],['Southern','southern','buttermilk'],['Potato','potato','loadedPotato'],['Healthy','healthy','salad'],
   ['Soup / Stew','soupstew','chickenNoodleSoup'],['Seafood','seafood','salmon'],['Chinese','chinese','friedRice'],['Japanese','japanese','sushi'],['Thai','thai','stirFry'],
-  ['Indian','indian','stirFry'],['Mediterranean','mediterranean','gyro'],['Steak','steak','steakPotato'],['Coffee & Cafe','coffee','eggs'],['Desserts','dessert','parfait']
+  ['Indian','indian','stirFry'],['Greek','greek','gyro'],['Steak','steak','steakPotato'],['Coffee & Cafe','coffee','eggs'],['Desserts','dessert','parfait']
 ];
 const RESTAURANT_QUICK_CUT_PHOTOS = Object.fromEntries(RESTAURANT_QUICK_CUTS.map(x=>[x[1],x[2]]));
 let currentWinnerMode = 'food';
@@ -7187,6 +7187,7 @@ function photoFor(item) {
     'grilled chicken + rice': PHOTO_LIBRARY.chickenRice,
     'tacos': PHOTO_LIBRARY.tacos,
     'stir fry': PHOTO_LIBRARY.stirFry,
+    'mexican stir fry': PHOTO_LIBRARY.stirFry,
     'homemade pizza': PHOTO_LIBRARY.pizza,
     'burgers': PHOTO_LIBRARY.burger,
     'eggs & toast': PHOTO_LIBRARY.eggs,
@@ -7336,17 +7337,18 @@ const QUICK_CUT_RULES = {
   mexican:   { label:'Mexican', tags:['mexican'], names:['taco','burrito','enchilada','quesadilla'], photo:'tacos' },
   italian:   { label:'Italian', tags:['italian'], names:['pasta','lasagna','spaghetti','alfredo','parmesan'], photo:'pastaAlfredo' },
   chinese:   { label:'Chinese', tags:['chinese'], names:['fried rice','lo mein','chow mein','kung pao','orange chicken'], photo:'friedRice' },
-  asian:     { label:'Asian', tags:['asian'], names:['stir fry','ramen','sushi','pho','teriyaki'], photo:'friedRice' },
+  asian:     { label:'Asian', tags:['asian'], names:['stir fry','ramen','sushi','pho','teriyaki','fried rice'], photo:'friedRice' },
   sandwiches:{ label:'Sandwiches', tags:['sandwich'], names:['sandwich','sub','melt','cheesesteak','sloppy joe'], photo:'philly' },
-  mediterranean:{ label:'Mediterranean', tags:['mediterranean'], names:['gyro','falafel','hummus','kebab'], photo:'gyro' },
+  greek:     { label:'Greek', tags:['greek'], names:['gyro','falafel','hummus','kebab'], photo:'gyro' },
   seafood:   { label:'Seafood', tags:['seafood'], names:['salmon','shrimp','catfish','tuna','fish'], photo:'salmon' },
   steak:     { label:'Steak', tags:['steak'], names:['steak'], photo:'steakPotato' },
-  bbq:       { label:'BBQ', tags:['bbq'], names:['bbq','ribs','pulled pork'], photo:'ribs' },
+  pork:      { label:'Pork', tags:['pork'], names:['pork','pork chops','pork tenderloin','pulled pork','ribs','sausage'], photo:'ribs' },
   breakfast: { label:'Breakfast', tags:['breakfast'], names:['eggs','bacon','waffles','pancakes','biscuits'], photo:'baconEggs' },
   soups:     { label:'Soups', tags:['soup'], names:['soup','stew'], photo:'chickenNoodleSoup' },
   salads:    { label:'Salads', tags:['healthy'], names:['salad'], photo:'salad' },
   desserts:  { label:'Desserts', tags:['sweet','dessert'], names:['cake','pie','cookie','brownie','dessert'], photo:'parfait' },
   drinks:    { label:'Drinks', tags:['drink'], names:['smoothie','shake','coffee','tea','drink'], photo:'smoothie' },
+  frozen:    { label:'Frozen', tags:['frozen'], names:['frozen dinner','stouffer'], photo:'frozenDinner' },
   southern:  { label:'Southern', tags:['southern','country'], names:['cornbread','buttermilk','goulash','dumplings','country fried'], photo:'buttermilk' },
   vegetarian:{ label:'Vegetarian', tags:['vegetable','vegetarian'], names:['vegetable','veggie'], photo:'southernVegPlate' },
   potato:    { label:'Potato', tags:['potato'], names:['potato','baked potato','mashed potatoes','mashed potato','fries','tater tot'], photo:'loadedPotato' },
@@ -7366,7 +7368,8 @@ const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
   "grilled chicken + rice":"chicken",
   "tacos":"mexican",
   "fruit bowl":"healthy",
-  "stir fry":"asian",
+  "stir fry":"mexican",
+  "mexican stir fry":"mexican",
   "homemade pizza":"pizza",
   "burgers":"burgers",
   "eggs & toast":"breakfast",
@@ -7378,8 +7381,8 @@ const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
   "grilled cheese":"sandwiches",
   "burrito bowl":"mexican",
   "southern vegetable plate":"southern",
-  "meatloaf & mashed potatoes":"american",
-  "beef stroganoff":"american",
+  "meatloaf & mashed potatoes":"southern",
+  "beef stroganoff":"pasta",
   "grilled salmon":"seafood",
   "lasagna":"pasta",
   "chicken parmesan":"chicken",
@@ -7388,11 +7391,11 @@ const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
   "southern vegetable beef soup":"soupstew",
   "chicken fried steak":"steak",
   "country fried chicken":"chicken",
-  "pot roast":"american",
+  "pot roast":"southern",
   "chicken & dumplings":"chicken",
-  "bbq pulled pork":"bbq",
-  "bbq ribs":"bbq",
-  "pork chops":"american",
+  "bbq pulled pork":"pork",
+  "bbq ribs":"pork",
+  "pork chops":"pork",
   "fried catfish":"seafood",
   "shrimp & grits":"seafood",
   "chili":"soupstew",
@@ -7408,7 +7411,7 @@ const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
   "sloppy joes & fries":"sandwiches",
   "cabbage & sausage":"southern",
   "steak & potato":"steak",
-  "potato soup":"soupstew",
+  "potato soup":"potato",
   "beef stew":"soupstew",
   "chicken noodle soup":"soupstew",
   "chicken wings":"chicken",
@@ -7419,11 +7422,11 @@ const PRIMARY_FOOD_QUICK_CUT_BY_NAME = {
   "ham sandwich + chips":"sandwiches",
   "parfait":"breakfast",
   "smoothie":"healthy",
-  "gyro":"mediterranean",
+  "gyro":"greek",
   "cereal":"breakfast",
-  "stouffer’s frozen dinner":"american",
+  "stouffer’s frozen dinner":"frozen",
   "baked chicken thighs":"chicken",
-  "pork tenderloin":"american",
+  "pork tenderloin":"pork",
   "fish sticks":"seafood"
 };
 const PRIMARY_FOOD_FALLBACKS = [
@@ -7431,7 +7434,7 @@ const PRIMARY_FOOD_FALLBACKS = [
   ['pizza',/\b(?:pizza|pizzeria)\b/i],
   ['chicken',/\b(?:chicken|wings?|tenders?)\b/i],
   ['mexican',/\b(?:taco|burrito|enchilada|quesadilla|mexican)\b/i],
-  ['bbq',/\b(?:bbq|barbecue|smokehouse)\b/i],
+  ['pork',/\b(?:pork|pulled pork|ribs|pork chops?|pork tenderloin|sausage)\b/i],
   ['seafood',/\b(?:seafood|salmon|catfish|shrimp|fish|crab|oyster|lobster)\b/i],
   ['steak',/\b(?:steak|steakhouse)\b/i],
   ['sandwiches',/\b(?:sandwich|subs?|melt|cheesesteak|sloppy joe|grilled cheese)\b/i],
@@ -7442,8 +7445,9 @@ const PRIMARY_FOOD_FALLBACKS = [
   ['breakfast',/\b(?:breakfast|brunch|eggs?|bacon|waffles?|pancakes?|biscuits|parfait|cereal)\b/i],
   ['potato',/\b(?:loaded baked potato|baked potato|mashed potatoes?|potato)\b/i],
   ['healthy',/\b(?:salad|smoothie|fruit bowl|healthy)\b/i],
-  ['mediterranean',/\b(?:gyro|mediterranean|greek|falafel|hummus|kebab)\b/i],
-  ['american',/\b(?:meatloaf|pot roast|pork chops?|pork tenderloin|stroganoff|dinner)\b/i]
+  ['frozen',/\b(?:frozen|stouffer)\b/i],
+  ['greek',/\b(?:gyro|greek|falafel|hummus|kebab)\b/i],
+  ['american',/\b(?:american|diner)\b/i]
 ];
 function normalizePrimaryFoodKey(value){
   const s=String(value||'').trim().toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
@@ -7472,7 +7476,7 @@ function quickCutMatches(item, rule) {
 function renderTags() {
   const host=$('quickCutsBar');
   if(!host)return;
-  const keys = Object.keys(QUICK_CUT_RULES).filter(key=>['burgers','pizza','chicken','mexican','italian','pasta','potato','southern','healthy','soupstew','sandwiches','seafood','steak','bbq','breakfast'].includes(key));
+  const keys = Object.keys(QUICK_CUT_RULES).filter(key=>['burgers','pizza','chicken','mexican','italian','pasta','potato','southern','healthy','soupstew','sandwiches','seafood','steak','pork','breakfast','asian','greek','frozen'].includes(key));
   const counts = Object.fromEntries(keys.map(key => [key, activeItems.filter(item => quickCutMatches(item, QUICK_CUT_RULES[key])).length]));
   const quickCutPhoto = key => {
     const name = QUICK_CUT_RULES[key]?.photo;
@@ -8042,11 +8046,11 @@ function restaurantQuickCutMatches(item,key){
     italian:[/\bitalian\b/,/\bpasta\b/,/\btrattoria\b/,/\bosteria\b/],
     chinese:[/\bchinese\b/,/\bdim\s+sum\b/,/\bsichuan\b/,/\bhunan\b/,/\bcantonese\b/],
     asian:[/\basian\b/,/\bsushi\b/,/\bramen\b/,/\bpho\b/,/\bthai\b/,/\bteriyaki\b/,/\bkorean\b/],
-    bbq:[/\bbbq\b/,/\bbarbecue\b/,/\bsmokehouse\b/,/\bbar[- ]b[- ]q\b/],
+    pork:[/\bpork\b/,/\bpulled pork\b/,/\bpork chops?\b/,/\bpork tenderloin\b/,/\bribs\b/,/\bsausage\b/,/\bbacon\b/],
     chicken:[/\bchicken\b/,/\bkfc\b/,/\bchick[- ]?fil[- ]?a\b/,/\bpopeyes\b/,/\bzaxby'?s\b/,/\bbojangles\b/,/\braising cane'?s\b/,/\bchurch'?s chicken\b/,/\bslim chickens\b/],
     seafood:[/\bseafood\b/,/\bfish\b/,/\bshrimp\b/,/\bcrab\b/,/\boysters?\b/,/\blobster\b/],
     sandwich:[/\bsandwich(?:es)?\b/,/\bdeli\b/,/\bsubs?\b/,/\bhoagies?\b/,/\bpanini\b/,/\bcheesesteak\b/,/\bsubway\b/,/\bfirehouse subs?\b/,/\bjimmy john'?s\b/,/\bjersey mike'?s\b/,/\barby'?s\b/],
-    mediterranean:[/\bmediterranean\b/,/\bgreek\b/,/\blebanese\b/,/\bgyro\b/,/\bfalafel\b/,/\bhummus\b/,/\bkebab\b/,/\bshawarma\b/],
+    greek:[/\bgreek\b/,/\bgyro\b/,/\bfalafel\b/,/\bhummus\b/,/\bkebab\b/,/\bshawarma\b/],
     southern:[/\bsouthern\b/,/\bsoul\s+food\b/,/\bcountry\s+cooking\b/,/\bcracker barrel\b/,/\bbo(jangles|jangles')\b/,/\bwaffle house\b/],
     american:[/\bamerican\b/,/\bdiner\b/,/\bwaffle house\b/,/\bapplebee'?s\b/,/\bcracker barrel\b/,/\bdenny'?s\b/,/\bchili'?s\b/,/\btgi friday'?s\b/,/\bihop\b/,/\bperkins\b/,/\bsteak[ '\u2019-]?n[ '\u2019-]?shake\b/],
     pasta:[/\bpasta\b/,/\bitalian\b/,/\bnoodle\b/],
@@ -9768,6 +9772,78 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 body:not(.game-mode):not(.restaurant-mode) #homePanel #menuBtn,
 body:not(.game-mode):not(.restaurant-mode) #homePanel #restaurantMenuBtn{display:none!important;}
 @media(max-width:430px){body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{font-size:1.46rem!important;}body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{font-size:1.78rem!important;}}
+</style>
+
+<style id="dinliminate-p781-final-user-repair">
+/* P781 — final user-requested repair: dark winner, unboxed home identity,
+   exactly one home menu, and unmistakably reversible Quick Cuts. */
+#winnerPanel.winner-v240,
+#winnerPanel.winner-v240 .winner-v240-shell{
+  background:linear-gradient(180deg,#06130f 0%,#0a1d16 56%,#06130f 100%)!important;
+  color:#fff!important;
+}
+#winnerPanel.winner-theme-food .winner-v240-shell,
+#winnerPanel.winner-theme-restaurant .winner-v240-shell{
+  border-top-color:var(--winner-accent,#67c49b)!important;
+}
+#winnerPanel .winner-v240-summary h2,
+#winnerPanel .winner-v240-meta,
+#winnerPanel .winner-v240-note{color:#fff!important;}
+#winnerPanel .winner-v240-meta{color:rgba(255,255,255,.68)!important;}
+#winnerPanel .winner-v240-note{color:rgba(255,255,255,.48)!important;}
+#winnerPanel .winner-v240-top{background:transparent!important;border-bottom:1px solid rgba(255,255,255,.10)!important;}
+#winnerPanel .winner-v240-again{background:rgba(255,255,255,.055)!important;color:#fff!important;}
+body:not(.game-mode):not(.restaurant-mode) header .brand,
+body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn,
+body:not(.game-mode):not(.restaurant-mode) #homePanel #menuBtn,
+body:not(.game-mode):not(.restaurant-mode) #homePanel #restaurantMenuBtn,
+body:not(.game-mode):not(.restaurant-mode) .game-menu{
+  display:none!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  margin:0 0 10px!important;padding:0 2px!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand{
+  display:inline-flex!important;width:auto!important;height:auto!important;padding:0!important;margin:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;
+  color:rgba(255,255,255,.96)!important;font-family:var(--display-face)!important;
+  font-size:1.48rem!important;line-height:1!important;font-weight:520!important;
+  letter-spacing:-.05em!important;text-transform:none!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-brand-d{
+  color:#ff806f!important;font-size:1.66rem!important;font-weight:700!important;letter-spacing:-.065em!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-menu{
+  display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;
+  padding:0!important;border-radius:13px!important;background:rgba(255,255,255,.045)!important;
+  border:1px solid rgba(255,255,255,.14)!important;color:#fff!important;
+}
+body:not(.game-mode):not(.restaurant-mode) #homePanel .home-topbar-menu > svg{
+  display:block!important;width:18px!important;height:18px!important;color:rgba(255,255,255,.92)!important;
+}
+/* A Quick Cut that is active/hidden is always an enabled restore control.
+   Never let disabled styling turn a restore tap into a red-looking dead end. */
+#quickCutsBar .is-quick-hidden,
+#restaurantQuickCuts .is-quick-hidden{
+  display:block!important;pointer-events:auto!important;opacity:1!important;filter:none!important;
+  border-color:rgba(143,224,186,.44)!important;
+  box-shadow:0 0 0 1px rgba(143,224,186,.08) inset!important;
+}
+#quickCutsBar .is-quick-hidden .quick-cut-x,
+#restaurantQuickCuts .is-quick-hidden .quick-cut-x{
+  color:#9be6c5!important;font-size:.88rem!important;text-shadow:0 1px 8px rgba(0,0,0,.18)!important;
+}
+#quickCutsBar .is-quick-hidden .quick-cut-copy em,
+#restaurantQuickCuts .is-quick-hidden .quick-cut-copy em{
+  color:#b9ecd5!important;
+}
+/* Category buttons are image cards, but restore state gets a calm mint ring rather
+   than the old destructive red/disabled treatment. */
+#quickCutsBar .quick-cut:disabled.is-quick-hidden,
+#restaurantQuickCuts .quick-cut:disabled.is-quick-hidden{
+  opacity:1!important;filter:none!important;pointer-events:auto!important;
+}
 </style>
 </body>
 <!-- Dinliminate P636 FINAL: authoritative restaurant location controller. -->
