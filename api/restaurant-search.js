@@ -640,7 +640,7 @@ async function doSearch(lat, lon, radiusMi, query='') {
   const attemptedOverpass=providerResults.filter(x=>x.endpoint!=='Google Places'&&x.endpoint!=='Photon POI + Nominatim fallback');
   const allRestaurantProvidersFailed=!usableProviders.length&&attemptedOverpass.length>0&&attemptedOverpass.every(x=>Array.isArray(x.errors)&&x.errors.length);
   if(allRestaurantProvidersFailed){
-    const providerSummary=attemptedOverpass.map(x=>x.endpoint.replace(/^https?:\\/\\//,'')+': '+((x.errors||[])[0]||'failed')).join(' · ');
+    const providerSummary=attemptedOverpass.map(x=>x.endpoint.replace(/^https?:\/\//,'')+': '+((x.errors||[])[0]||'failed')).join(' · ');
     throw Object.assign(new Error('Restaurant data providers are unavailable. Please try again.'),{code:'PROVIDERS_UNAVAILABLE',providerSummary});
   }
   const data={
