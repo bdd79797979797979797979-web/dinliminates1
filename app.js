@@ -655,7 +655,10 @@ function hourStatus(row){
     modal.className = 'modal';
     modal.innerHTML = '<div class="modal-head"><h3>'+esc(title)+'</h3><button class="menu" data-close>×</button></div>'+body;
     document.body.append(bg, modal);
-    const close = () => { modal.remove(); bg.remove(); };
+    const close = () => {
+      modal.remove(); bg.remove();
+      if (id === 'settingsModal') removeFoodOverlays();
+    };
     bg.onclick = close;
     modal.querySelector('[data-close]').onclick = close;
     return modal;
