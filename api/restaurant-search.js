@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v705-launch-fix';
+const VERSION = 'restaurant-v706-launch-fix';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -534,8 +534,10 @@ async function suggest(query, limit = 7) {
 
   rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
   const topScore = Number(rows[0]?.score || 0);
+  // When one result is clearly stronger, suppress low-confidence provider
+  // noise rather than showing distant/unrelated places in the type-ahead list.
   const filteredRows = topScore >= 100
-    ? rows.filter(row => Number(row.score || 0) >= 20)
+    ? rows.filter(row => Number(row.score || 0) >= Math.max(20, topScore * 0.40))
     : rows;
   const seen = new Set();
   const out = [];
