@@ -7970,13 +7970,21 @@ function restaurantSortValue(item){
   const d=Number(item?.distanceMiles);
   return Number.isFinite(d)?d:Infinity;
 }
+function restaurantSearchMatches(row,query){
+  const q=String(query||'').trim().toLowerCase().replace(/[\u2019']/g,'').replace(/\s+/g,' ');
+  if(!q)return true;
+  const hay=[
+    row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,row?.dish,row?.food,
+    ...(Array.isArray(row?.tags)?row.tags:[row?.tags]),
+    ...(Array.isArray(row?.menuItems)?row.menuItems:[row?.menuItems])
+  ].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,' ');
+  return q.split(' ').filter(Boolean).every(term=>hay.includes(term) || (typeof restaurantQuickCutMatches==='function' && restaurantQuickCutMatches(row,term)));
+}
 function filteredRestaurants(){
   let list=[...activeRestaurants];
   restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'all' ? 'all' : 'open-unknown';
-  const q=String(restaurantFilters.query||'').trim().toLowerCase();
-  if(q)list=list.filter(r=>[r.name||'',r.brand||'',r.operator||'',r.cuisine||'',r.category||'',(r.tags||[]).join(' '),...(Array.isArray(r.menuItems)?r.menuItems:[])].join(' ').toLowerCase().replace(/[\u2019']/g,'').includes(q.replace(/[\u2019']/g,'')));
-  // Pass Around owns its complete restaurant pool; the normal hours filter
-  // must not hide a restaurant that a participant still needs to vote on.
+  const q=String(restaurantFilters.query||'').trim();
+  if(q)list=list.filter(r=>restaurantSearchMatches(r,q));
   if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return list;
   if(restaurantHoursFilter==='open-unknown') list=list.filter(r=>restaurantOpenStatus(r)!==false);
   return list;
@@ -8941,6 +8949,67 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
   }
 
+  function mergeRows(rows){
+    const map=new Map();
+    for(const r of Array.isArray(rows)?rows:[]){
+      if(!r)continue;
+      const name=String(r.name||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+      const addr=String(r.address||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+      const id=String(r.id||'').trim().toLowerCase();
+      const k=addr?name+'|'+addr:(id||name+'|'+Number(r.lat).toFixed(4)+'|'+Number(r.lon).toFixed(4));
+      const prior=map.get(k);
+      if(!prior){map.set(k,r);continue;}
+      const merged={...prior};
+      for(const field of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl','photoName','category','dish','food'])
+        if(!merged[field]&&r[field])merged[field]=r[field];
+      merged.fastFood=!!(merged.fastFood||r.fastFood);
+      merged.tags=[...new Set([...(merged.tags||[]),...(r.tags||[])])];
+      merged.menuItems=[...new Set([...(Array.isArray(merged.menuItems)?merged.menuItems:[]),...(Array.isArray(r.menuItems)?r.menuItems:[])])].slice(0,12);
+      map.set(k,merged);
+    }
+    return [...map.values()];
+  }
+
+  function applySearchRows(rows,label,preserveRound=false){
+    const previous=preserveRound?{
+      active:[...(activeRestaurants||[])],
+      holding:[...(holdingRestaurants||[])],
+      base:[...(restaurantBase||[])],
+      manual:new Set(restaurantManual||[]),
+      quick:new Set(restaurantQuickCuts||[]),
+      finalist:!!restaurantFinalistMode,
+      exhausted:!!restaurantEliminationExhausted
+    }:null;
+
+    applyRestaurantData({businesses:rows},label);
+    if(!previous)return true;
+
+    const universe=mergeRows([...previous.base,...(restaurantItems||[])]);
+    const byKey=new Map(universe.map(r=>[restKey(r),r]));
+    const heldKeys=new Set(previous.holding.map(restKey));
+    const radius=clamp(restaurantRadiusMiles);
+    const within=r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;};
+
+    restaurantItems=universe;
+    restaurantBase=[...universe];
+    holdingRestaurants=previous.holding.map(r=>byKey.get(restKey(r))||r);
+    activeRestaurants=universe.filter(r=>{
+      const id=restKey(r);
+      if(!within(r)||heldKeys.has(id)||previous.manual.has(id))return false;
+      return ![...previous.quick].some(k=>restQuickMatch(r,k));
+    });
+    restaurantManual=new Set(previous.manual);
+    restaurantQuickCuts=new Set(previous.quick);
+    restaurantFinalistMode=previous.finalist;
+    restaurantEliminationExhausted=previous.exhausted;
+    restaurantUndoStack=[];
+    restaurantRoundInProgress=true;
+    renderRestaurantQuickCuts();
+    renderRestaurantStage();
+    syncRestaurantActionLabels();
+    return true;
+  }
+
   async function searchAt(origin,label,options={}){
     const lat=Number(origin?.lat),lon=Number(origin?.lon);
     if(!Number.isFinite(lat)||!Number.isFinite(lon))throw new Error('Search coordinates are invalid.');
@@ -8963,8 +9032,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       if(!searchQuery && ST.universeKey===key && ST.universeRadius>=requestedRadius && ST.universeRows.length){
         const rows=ST.universeRows.filter(r=>{const d=Number(r?.distanceMiles);return Number.isFinite(d)&&d<=requestedRadius;});
         if(!rows.length)throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
-        applyRestaurantData({businesses:rows},text(label||userCity||'Selected location'));
-        try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
+        applySearchRows(rows,text(label||userCity||'Selected location'),true);
         setRadiusUi();
         const ff=rows.filter(r=>r?.fastFood===true).length;
         ST.lastSearchMeta={count:rows.length,fastFood:ff,radius:requestedRadius,providers:['session restaurant pool']};
@@ -8980,33 +9048,30 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       if(!incoming.length)throw Object.assign(new Error('No restaurants were found within '+requestedRadius+' miles.'),{code:'NO_RESULTS'});
 
       let rows=incoming;
+      if(searchQuery){
+        const local=ST.universeRows.filter(r=>{
+          const d=Number(r?.distanceMiles);
+          return (!Number.isFinite(d)||d<=requestedRadius) && restaurantSearchMatches(r,searchQuery);
+        });
+        rows=mergeRows([...incoming,...local]);
+        ST.universeRows=mergeRows([...ST.universeRows,...incoming]).filter(r=>{
+          const d=Number(r?.distanceMiles); return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,requestedRadius);
+        });
+        ST.universeRadius=Math.max(ST.universeRadius,requestedRadius);
+      }
       if(!searchQuery){
         const incomingKey=key;
         const sameOrigin=ST.universeKey===incomingKey;
         if(!sameOrigin){ST.universeRows=[];ST.universeRadius=0;ST.universeKey=incomingKey;}
-        const byKey=new Map();
-        for(const row of [...ST.universeRows,...incoming]){
-          const name=String(row?.name||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          const address=String(row?.address||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          const id=String(row?.id||'').trim().toLowerCase();
-          const k=address?name+'|'+address:(name&&Number.isFinite(Number(row?.lat))&&Number.isFinite(Number(row?.lon))?name+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4):'id:'+id);
-          const existing=byKey.get(k);
-          if(!existing)byKey.set(k,row);
-          else {
-            const merged={...existing};
-            for(const field of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl','category'])if(!merged[field]&&row[field])merged[field]=row[field];
-            merged.fastFood=merged.fastFood||row.fastFood;
-            merged.tags=[...new Set([...(merged.tags||[]),...(row.tags||[])])];
-            byKey.set(k,merged);
-          }
-        }
-        ST.universeRows=[...byKey.values()].filter(r=>Number.isFinite(Number(r?.distanceMiles))&&Number(r.distanceMiles)<=Math.max(ST.universeRadius,requestedRadius));
+        ST.universeRows=mergeRows([...ST.universeRows,...incoming]).filter(r=>{
+          const d=Number(r?.distanceMiles);
+          return Number.isFinite(d)&&d<=Math.max(ST.universeRadius,requestedRadius);
+        });
         ST.universeRadius=Math.max(ST.universeRadius,requestedRadius);
         rows=ST.universeRows.filter(r=>Number(r.distanceMiles)<=requestedRadius);
       }
 
-      applyRestaurantData({businesses:rows},text(label||userCity||'Selected location'));
-      try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
+      applySearchRows(rows,text(label||userCity||'Selected location'),!!options.preserveRound);
       setRadiusUi();
       const ff=Number(d.fastFoodCount)||rows.filter(r=>r?.fastFood===true).length;
       const providers=searchQuery?(Array.isArray(d.providersUsed)?d.providersUsed:['restaurant data providers']):((Array.isArray(d.providersUsed)&&d.providersUsed.length)?d.providersUsed:['loaded search pool']);
@@ -9226,7 +9291,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     try{window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();}catch{}
     // The current search origin owns the loaded universe. Narrower radii derive
     // locally; wider radii fetch and merge into that same universe.
-    return searchAt(origin,userCity||restaurantAreaCoords?.display||'selected location',{query,supersede:true,preserveOnError:true});
+    return searchAt(origin,userCity||restaurantAreaCoords?.display||'selected location',{query,supersede:true,preserveOnError:true,preserveRound:true});
   }
   function currentSearchOrigin(){
     if(ST.origin&&Number.isFinite(Number(ST.origin.lat))&&Number.isFinite(Number(ST.origin.lon)))return ST.origin;
@@ -9242,7 +9307,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     if(!q){
       const origin=currentSearchOrigin();
       if(!origin)return false;
-      return searchAt(origin,userCity||'selected location',{query:'',supersede:true});
+      return searchAt(origin,userCity||'selected location',{query:'',supersede:true,preserveRound:true});
     }
     const origin=currentSearchOrigin();
     if(!origin)return false;
@@ -9251,7 +9316,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     ST.queryTimer=setTimeout(()=>{
       const latest=String(restaurantFilters.query||'').trim();
       if(latest!==q)return;
-      void searchAt(origin,userCity||'selected location',{query:q,supersede:true});
+      void searchAt(origin,userCity||'selected location',{query:q,supersede:true,preserveRound:true});
     },350);
     return true;
   }
