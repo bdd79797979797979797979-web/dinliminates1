@@ -875,5 +875,27 @@ function hourStatus(row){
   } else {
     home();
   }
+
+
+  if (new URLSearchParams(location.search).get('qa') === '1') {
+    window.__DINLIMINATE_QA__ = {
+      snapshot: () => ({
+        screen:S.screen,
+        foodPool:foodPool().map(x=>x.id),
+        restaurantPool:restaurantPoolFiltered().map(x=>x.id),
+        foodActions:S.foodActions.map(x=>({...x})),
+        restaurantActions:S.restaurantActions.map(x=>({...x})),
+        hiddenFoods:[...S.hidden],
+        hiddenRestaurants:{...S.hiddenRestaurants},
+        cutCats:[...S.cutCats],
+        cutPrimary:[...S.cutPrimary],
+        maybe:[...S.maybe],
+        restaurantCuts:[...S.restaurantCuts],
+        winner:S.winnerItem ? {...S.winnerItem} : null,
+        pass:S.pass ? JSON.parse(JSON.stringify(S.pass)) : null
+      })
+    };
+  }
+
   updateContinue();
 })();
