@@ -1721,7 +1721,7 @@ test('Food Quick Cuts use primary category and every Quick Cut can restore', asy
     const before = await page.evaluate(() => activeItems.length);
     await btn.click();
     await expect(btn).toHaveAttribute('aria-pressed','true');
-    await expect(btn.locator('.quick-cut-x')).toHaveText('×');
+    await expect(btn.locator('.quick-cut-x')).toHaveText('↺');
     await btn.click();
     await expect(btn).toHaveAttribute('aria-pressed','false');
     await expect(btn.locator('.quick-cut-x')).toHaveText('×');
