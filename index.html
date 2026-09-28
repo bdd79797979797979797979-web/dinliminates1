@@ -5959,6 +5959,18 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 #detailBackdrop{backdrop-filter:none!important;}
 #detailBackdrop .detail-hero img{display:block!important;content-visibility:auto;contain:paint;}
 </style>
+<style id="dinliminate-p757-winner-themes">
+/* P757 — distinct winner accents without adding another heavy box. */
+#winnerPanel.winner-theme-food .winner-v240-top{border-bottom:1px solid rgba(103,196,155,.24)!important;}
+#winnerPanel.winner-theme-food .winner-v240-kicker,#winnerPanel.winner-theme-food .winner-v240-eyebrow,#winnerPanel.winner-theme-food .winner-v240-path strong{color:#8fe0ba!important;}
+#winnerPanel.winner-theme-food .winner-v240-action.primary,#winnerPanel.winner-theme-food .winner-v240-share{background:#67c49b!important;color:#10211a!important;box-shadow:0 12px 30px rgba(103,196,155,.17)!important;}
+#winnerPanel.winner-theme-food .winner-v240-hero{box-shadow:0 24px 70px rgba(103,196,155,.16)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-top{border-bottom:1px solid rgba(255,111,97,.27)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-kicker,#winnerPanel.winner-theme-restaurant .winner-v240-eyebrow,#winnerPanel.winner-theme-restaurant .winner-v240-path strong{color:#ff9a90!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-action.primary,#winnerPanel.winner-theme-restaurant .winner-v240-share{background:#ff6f61!important;color:#fff!important;box-shadow:0 12px 30px rgba(255,111,97,.19)!important;}
+#winnerPanel.winner-theme-restaurant .winner-v240-hero{box-shadow:0 24px 70px rgba(255,111,97,.16)!important;}
+#winnerPanel .winner-v240-hero{transition:none!important;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -7614,9 +7626,20 @@ function showWinner(isReopen=false) {
   if(!isReopen) saveLastWinner(winner,isRestaurant?'restaurant':'food');
   document.body.classList.remove('game-mode','restaurant-mode','finalist-mode');
   document.title=isRestaurant?'Dinliminate — Restaurant Decided':'Dinliminate — Dinner Decided';
-  $('gamePanel').classList.add('hidden');$('restaurantPanel')?.classList.add('hidden');$('homePanel').classList.add('hidden');$('winnerPanel').classList.remove('hidden');
+  const winnerPanel=$('winnerPanel');
+  winnerPanel.classList.toggle('winner-theme-restaurant',isRestaurant);
+  winnerPanel.classList.toggle('winner-theme-food',!isRestaurant);
+  $('gamePanel').classList.add('hidden');$('restaurantPanel')?.classList.add('hidden');$('homePanel').classList.add('hidden');winnerPanel.classList.remove('hidden');
   const hero=$('winnerPhoto'),img=$('winnerImage'),fallback=$('winnerFallback');
-  hero.classList.toggle('restaurant-winner',isRestaurant); img.alt=isRestaurant?`${winner.name} restaurant`:`${winner.name} winning food`; img.src=photoFor(winner); img.style.objectPosition=photoPosition(winner); img.style.display='block'; hero.classList.remove('no-photo'); fallback.textContent=displayIcon(winner);
+  hero.classList.toggle('restaurant-winner',isRestaurant);
+  img.alt=isRestaurant?`${winner.name} restaurant`:`${winner.name} winning food`;
+  img.decoding='async'; img.setAttribute('fetchpriority','high');
+  img.onerror=()=>{img.onerror=null;img.style.display='none';hero.classList.add('no-photo');fallback.textContent=displayIcon(winner);};
+  const winnerPhotoSrc=photoFor(winner);
+  hero.classList.remove('no-photo');
+  img.style.display='block'; img.src=winnerPhotoSrc;
+  img.style.objectPosition=photoPosition(winner);
+  fallback.textContent=displayIcon(winner);
   $('winnerModeKicker').textContent=isRestaurant?'RESTAURANT DECIDED':'DINNER DECIDED';
   $('winnerKickerLabel').textContent=isRestaurant?"TONIGHT'S RESTAURANT":"TONIGHT'S WINNER";
   $('winnerName').textContent=winner.name;
@@ -7643,7 +7666,7 @@ function showWinner(isReopen=false) {
   }
   if(!isReopen) recordHistory(winner,isRestaurant?'restaurant':'food');
   toast(isRestaurant?'Restaurant selected. 🍽️':'Dinner decided. 🍽️');
-  if(!isReopen) { launchConfetti(); launchFireworks(); }
+  if(!isReopen) requestAnimationFrame(()=>setTimeout(()=>{launchConfetti();launchFireworks();},0));
 }
 function launchFireworks(){
   const layer=document.createElement('div'); layer.className='fireworks-layer';
