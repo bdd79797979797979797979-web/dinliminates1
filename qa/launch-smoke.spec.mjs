@@ -1555,8 +1555,8 @@ test('food and restaurant winners are instant, clearly themed, and image-safe', 
   await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-restaurant/);
   const restColor=await page.locator('#winnerQuickActions [data-winner-details].winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(restColor).toBe('rgb(103, 196, 155)');
-  const restImgState=await page.locator('#winnerImage').evaluate(el=>({src:el.getAttribute('src'),visibility:getComputedStyle(el).visibility,naturalWidth:el.naturalWidth}));
-  expect(restImgState.visibility==='hidden' || restImgState.naturalWidth>0).toBeTruthy();
+  const restImgState=await page.locator('#winnerImage').evaluate(el=>({src:el.getAttribute('src'),display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,naturalWidth:el.naturalWidth}));
+  expect(restImgState.display==='none' || restImgState.visibility==='hidden' || restImgState.naturalWidth>0).toBeTruthy();
   expect(errors).toEqual([]);
 });
 
@@ -1623,6 +1623,9 @@ test('restaurant radius never shrinks after a larger provider response is incomp
     localStorage.setItem('dinliminateRestaurantHoursFilter','all');
     localStorage.setItem('dinliminateRestaurantLocationMode','area');
     localStorage.removeItem('dinliminateRestaurantAreaCoords');
+    localStorage.removeItem('dinliminateRestaurantRound');
+    localStorage.removeItem('dinliminateRestaurantFilters');
+    sessionStorage.removeItem('dinliminateRestaurantAreaCoords');
   });
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('#homeRestaurantQuick').click();
