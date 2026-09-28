@@ -892,6 +892,11 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
   await page.locator('#restaurantHungryResetBtn').click();
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible();
 
+  // Select a restaurant with a known website before exercising the Website action.
+  await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill('McDonald');
+  await expect(page.locator('#restaurantStage .restaurant-card-v240.active .restaurant-name-v240')).toHaveText("McDonald's");
+
   const rDetail = page.locator('#restaurantStage .restaurant-card-v240.active .restaurant-detail-btn-v240');
   await rDetail.click();
   await expect(page.locator('#detailBackdrop')).toBeVisible();
