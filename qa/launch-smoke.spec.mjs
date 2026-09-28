@@ -681,9 +681,10 @@ test('P729 full virtual-user journey covers the complete app surface', async ({ 
 
   await page.locator('#homeMenuTopBtn').click();
   await expect(page.locator('#drawer')).toBeVisible();
-  for (const id of ['addMenuBtn','restaurantsMenuBtn','settingsBtn','historyMenuBtn','winnerMenuBtn','aboutMenuBtn','homeMenuBtn']) {
+  for (const id of ['savedMenuBtn','historyMenuBtn','restaurantsMenuBtn','addMenuBtn','settingsBtn','aboutMenuBtn','homeMenuBtn']) {
     await expect(page.locator('#drawer #' + id)).toBeVisible();
   }
+  await expect(page.locator('#drawer #winnerMenuBtn')).toHaveCount(0);
   await page.locator('#aboutMenuBtn').click();
   await expect(page.locator('#infoBackdrop')).toBeVisible();
   await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn');
@@ -1035,8 +1036,9 @@ test('P729 edge-control regression covers settings, photo editor, library reset 
   await page.locator('#homeMenuTopBtn').click();
   await page.locator('#historyMenuBtn').click();
   await expect(page.locator('#libraryBackdrop')).toBeVisible();
-
-  await page.locator('[data-library-tab="history"]').click();
+  await expect(page.locator('#libraryTitle')).toHaveText('History');
+  await expect(page.locator('.library-tabs')).toHaveCount(0);
+  await expect(page.locator('[data-library-tab]')).toHaveCount(0);
   await expect(page.locator('.history-calendar-grid')).toBeVisible();
   await expect(page.locator('.history-day')).toHaveCount(42);
   await expect(page.locator('[data-cal-prev]')).toBeVisible();
