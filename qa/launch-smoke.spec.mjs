@@ -1426,3 +1426,127 @@ test('restaurant radius pool cannot shrink and generic burger search stays seman
 
   expect(errors).toEqual([]);
 });
+
+
+test('restaurant radius universe never shrinks on an incomplete provider response', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+
+  const rows=[];
+  for(let i=1;i<=68;i++){
+    const distance=i<=27 ? 4 + (i%10)*0.35 : i<=66 ? 20 + (i-28)*0.72 : 76 + (i-67)*8;
+    const burger=i<=3;
+    rows.push({
+      id:'radius-'+i,
+      name: burger ? (i===1 ? 'Burger King' : i===2 ? 'Maple Street Grill' : 'Main Street Diner') : 'Radius Restaurant '+i,
+      type:'restaurant',
+      category:burger?(i===1?'Fast Food':'American'):'American',
+      cuisine:i===2?'burger':'',
+      menuItems:i===3?['Cheeseburger','Fries']:[],
+      fastFood:i===1,
+      tags:['restaurant',...(i===1?['fast_food']:[])],
+      distanceMiles:distance,
+      openNow:true,
+      address:i+' Main St, Nashville, TN 37203'
+    });
+  }
+
+  await page.route('**/api/restaurant-search?*',async route=>{
+    const u=new URL(route.request().url());
+    const mode=u.searchParams.get('mode');
+    if(mode==='suggest'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        results:[{display:'QA Radius Address, Nashville, TN',query:'QA Radius Address, Nashville, TN',precision:'address',lat:36.16,lon:-86.77}]
+      })});
+    }
+    if(mode==='resolve'){
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        location:{lat:36.16,lon:-86.77},display:'QA Radius Address, Nashville, TN',precision:'address'
+      })});
+    }
+    if(mode==='search'){
+      const radius=Number(u.searchParams.get('radius')||10);
+      const q=String(u.searchParams.get('q')||'').trim().toLowerCase();
+      let resultRows;
+      if(q){
+        // Deliberately sparse provider response: only the exact-name chain.
+        resultRows=rows.filter(r=>r.id==='radius-1');
+      }else if(radius<=15){
+        resultRows=rows.filter(r=>r.distanceMiles<=15).slice(0,27);
+      }else if(radius<=25){
+        resultRows=rows.filter(r=>r.distanceMiles<=15).slice(0,20);
+      }else if(radius<=50){
+        resultRows=rows.filter(r=>r.distanceMiles<=50).slice(0,66);
+      }else if(radius<=75){
+        resultRows=rows.filter(r=>r.distanceMiles<=75).slice(0,68);
+      }else{
+        resultRows=rows.filter(r=>r.distanceMiles<=75).slice(0,52);
+      }
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        ok:true,results:resultRows,businesses:resultRows,restaurants:resultRows,items:resultRows,
+        total:resultRows.length,fastFoodCount:resultRows.filter(r=>r.fastFood).length,providersUsed:['QA incomplete provider'],diagnostics:{}
+      })});
+    }
+    return route.continue();
+  });
+
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#homeRestaurantQuick').click();
+  await page.locator('#restaurantRadiusFilter').selectOption('15');
+  await page.locator('#restaurantLocationInput').fill('QA Radius Address');
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+
+  const getCount=()=>page.evaluate(()=>Number(document.querySelector('#restaurantTopCount')?.textContent||0));
+  await expect.poll(getCount,{timeout:10000}).toBe(27);
+
+  for(const [radius,expected] of [[25,27],[50,66],[75,68],[100,68]]){
+    await page.locator('#restaurantRadiusFilter').selectOption(String(radius));
+    await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText(radius+' mi');
+    await expect.poll(getCount,{timeout:15000}).toBe(expected);
+  }
+
+  // Search must use semantic food metadata, not only the restaurant name.
+  await page.locator('#restaurantSearchBtn').click();
+  await page.locator('#restaurantInlineSearchInput').fill('burger');
+  await expect.poll(getCount,{timeout:15000}).toBe(3);
+  const burgerNames=await page.evaluate(()=>filteredRestaurants().map(r=>r.name).sort());
+  expect(burgerNames).toEqual(['Burger King','Main Street Diner','Maple Street Grill']);
+
+  await page.locator('#restaurantInlineSearchInput').fill('');
+  await expect.poll(getCount,{timeout:15000}).toBe(68);
+  expect(errors).toEqual([]);
+});
+
+test('food and restaurant winners are instant, clearly themed, and image-safe', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.setViewportSize({width:390,height:844});
+
+  const foodMs=await page.evaluate(()=>{
+    const t=performance.now();
+    showWinnerFromItem({id:'winner-food-qa',name:'QA Dinner',type:'home',category:'Dinner',tags:['home','comfort'],photo:''});
+    return performance.now()-t;
+  });
+  expect(foodMs).toBeLessThan(100);
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-food/);
+  const foodColor=await page.locator('#winnerQuickActions .winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
+  expect(foodColor).toBe('rgb(255, 111, 97)');
+  expect(await page.locator('#winnerImage').getAttribute('src')).toBeNull();
+  await page.locator('#winnerHomeBtn').click();
+
+  const restMs=await page.evaluate(()=>{
+    const t=performance.now();
+    showWinnerFromItem({id:'winner-rest-qa',name:'QA Restaurant',type:'restaurant',category:'American',address:'1 Main St, Nashville, TN',distanceMiles:1.2,photo:''});
+    return performance.now()-t;
+  });
+  expect(restMs).toBeLessThan(100);
+  await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-restaurant/);
+  const restColor=await page.locator('#winnerQuickActions .winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
+  expect(restColor).toBe('rgb(103, 196, 155)');
+  expect(await page.locator('#winnerImage').getAttribute('src')).toBeNull();
+  expect(errors).toEqual([]);
+});
