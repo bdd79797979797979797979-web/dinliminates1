@@ -318,6 +318,12 @@ test('iPhone viewport has no horizontal overflow and keeps primary controls visi
     startVisible: !!document.querySelector('#startBtn'),
     restaurantVisible: !!document.querySelector('#homeRestaurantQuick')
   }));
+  const overflowProbe = await page.evaluate(() => Array.from(document.querySelectorAll('*')).map(el => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return {tag:el.tagName,id:el.id,cls:String(el.className||'').slice(0,90),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),display:cs.display,position:cs.position,transform:cs.transform};
+  }).filter(x => x.width>391 || x.right>391 || x.left<0).sort((a,b)=>b.width-a.width).slice(0,30));
+  console.log('iPhone overflow probe', JSON.stringify(overflowProbe));
   console.log('iPhone viewport metrics', JSON.stringify(metrics));
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
   expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
