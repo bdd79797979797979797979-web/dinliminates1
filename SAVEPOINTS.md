@@ -271,6 +271,10 @@ Restored the browser smoke test after an accidental empty-file write, then fixed
 Commit: `c52e1c5429589f2fc457ec2ea18b57763ca4b249`
 Restaurant search now falls back to a fast-food-only Overpass query when Photon returns restaurants but no fast-food POIs, preventing the combined result pool from silently omitting chains such as McDonald’s. Health version bumped to `clean-r7`.
 
+## CP69 — custom Food add closes cleanly
+Commit: `b46740beaff282b81882a7eb1f1878a759ca4dac`
+Successful custom Food creation now closes the Manage Foods modal instead of immediately reopening its backdrop over the active Food round. The active Food screen refreshes after the add.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
