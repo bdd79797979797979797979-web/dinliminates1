@@ -252,7 +252,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
 test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back and hours', async ({ page }) => {
   const pageErrors=[]; page.on('pageerror',e=>pageErrors.push(String(e)));
   const fixture=[
-    {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',cuisine:'American',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true,address:'1201 Broadway, Nashville, TN 37203',menuItems:['Burgers','Fries'],website:'https://www.mcdonalds.com'},
+    {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true,address:'1201 Broadway, Nashville, TN 37203',menuItems:['Burgers','Fries'],website:'https://www.mcdonalds.com'},
     {id:'qa-bk',name:'Burger King',type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:2,openNow:true},
     {id:'qa-wh',name:'Waffle House',type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:3,openNow:false},
     {id:'qa-ab',name:"Applebee's",type:'restaurant',fastFood:false,category:'american',cuisine:'american',tags:['restaurant','american'],distanceMiles:4,openNow:true},
@@ -300,16 +300,6 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantBackAction').click();
   await expect.poll(()=>count(fast)).toBe(2);
 
-  console.log('american/open diagnostic', await page.evaluate(() => ({
-    hoursFilter: localStorage.getItem('dinliminateRestaurantHoursFilter'),
-    globalHours: restaurantHoursFilter,
-    rows: activeRestaurants.map(r => ({
-      name:r.name,
-      openNow:r.openNow,
-      status:restaurantOpenStatus(r),
-      american:restaurantQuickCutMatches(r,'american')
-    }))
-  })));
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
