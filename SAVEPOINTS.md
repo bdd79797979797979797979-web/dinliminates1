@@ -60,6 +60,10 @@ Clean app split into root HTML, stylesheet, application script, and food data.
 Commits: `618a3f59249277ef8ec0153797c3303ee3642da1`, `6ff2362c137219c4e346285a26acab90b278a26a`
 Food Add button is wired and Random Cut One is available without adding first-page clutter.
 
+## CP15 — clean Pass Around
+Commits: `e07e0b3579330307ee1a783f0f6a3b5161fa1fec`, `a47c6a78cffb955644ba09540a411850d318c070`
+Added a self-contained social voting flow for Food and Restaurant with participant setup, keep/cut voting, handoff state, Back undo, survivor continuation, and winner handling.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
