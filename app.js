@@ -488,6 +488,7 @@ function hourStatus(row){
       '<div class="rest-card-extra"><div class="rest-meta">'+
       (row.address ? '<div>'+esc(row.address)+'</div>' : '')+
       (row.cuisine ? '<div>'+esc(row.cuisine)+'</div>' : '')+
+      (Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="menu-items"><b>Common</b> · '+esc(row.menuItems.slice(0,4).join(' · '))+'</div>' : '')+
       '<div style="margin-top:7px"><span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown Hours')+'</span></div></div>'+
       '<div class="card-actions"><button class="small" id="restDetails">Details</button><button class="small" id="restWebsite">Website</button></div></div>'+
       '<div class="actions"><button class="secondary" id="restBack">Back</button><button class="maybe" id="restMaybe">Maybe</button><button class="cut" id="restCut">Cut</button><button class="secondary" id="restHide">Hide</button></div>';
