@@ -1,4 +1,4 @@
-const CLEAN_VERSION = "p706-restaurant-launch-fix";
+const CLEAN_VERSION = "p712-restaurant-hours-complete";
 
 function transform(html) {
   return html
