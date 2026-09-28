@@ -245,10 +245,50 @@
     return 'American';
   }
 
-  function explicitClosed(row) {
-    const h = String(row?.opening_hours || '').trim().toLowerCase();
-    return h === 'closed' || h === 'off';
+  
+/* CP29: lightweight opening-hours interpreter */
+const DAY_NAMES=['Su','Mo','Tu','We','Th','Fr','Sa'];
+function dayMatches(spec,day){
+  const want=DAY_NAMES[day];
+  return String(spec||'').split(',').some(part=>{
+    const p=part.trim();
+    if(!p)return false;
+    if(p===want)return true;
+    const m=p.match(/^(Su|Mo|Tu|We|Th|Fr|Sa)-(Su|Mo|Tu|We|Th|Fr|Sa)$/);
+    if(!m)return false;
+    const a=DAY_NAMES.indexOf(m[1]),b=DAY_NAMES.indexOf(m[2]);
+    return a<=b ? day>=a&&day<=b : day>=a||day<=b;
+  });
+}
+function parseTime(t){
+  const m=String(t||'').match(/^(\d{1,2}):?(\d{2})$/);if(!m)return NaN;
+  const h=Number(m[1]),min=Number(m[2]);return (h>=0&&h<24&&min>=0&&min<60)?h*60+min:NaN;
+}
+function hourStatus(row){
+  const raw=String(row?.opening_hours||'').trim();
+  if(!raw)return 'unknown';
+  const low=raw.toLowerCase();
+  if(low==='24/7'||low==='open')return 'open';
+  if(low==='closed'||low==='off')return 'closed';
+  const now=new Date(),day=now.getDay(),minute=now.getHours()*60+now.getMinutes();
+  let matched=false;
+  for(const block of raw.split(';')){
+    const part=block.trim();if(!part)continue;
+    const dm=part.match(/^((?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?(?:,(?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?)*)\s+(.+)$/i);
+    const daySpec=dm?dm[1]:null,timeSpec=dm?dm[2]:part;
+    if(daySpec&&!dayMatches(daySpec,day))continue;
+    const ranges=[...timeSpec.matchAll(/(\d{1,2}:?\d{2})-(\d{1,2}:?\d{2})/g)];
+    if(!ranges.length)continue;
+    matched=true;
+    for(const r of ranges){
+      const a=parseTime(r[1]),b=parseTime(r[2]);if(!Number.isFinite(a)||!Number.isFinite(b))continue;
+      if(b>=a ? (minute>=a&&minute<=b) : (minute>=a||minute<=b))return 'open';
+    }
   }
+  return matched ? 'closed' : 'unknown';
+}
+
+  function explicitClosed(row) { return hourStatus(row) === 'closed'; }
 
   function restaurantMatchesQuery(row) {
     const q = S.restaurantQuery.trim().toLowerCase();
@@ -420,7 +460,7 @@
       '<div class="rest-card-extra"><div class="rest-meta">'+
       (row.address ? '<div>'+esc(row.address)+'</div>' : '')+
       (row.cuisine ? '<div>'+esc(row.cuisine)+'</div>' : '')+
-      '<div style="margin-top:7px"><span class="status-badge">'+(row.opening_hours ? 'Hours listed' : 'Open/Unknown Hours')+'</span></div></div>'+
+      '<div style="margin-top:7px"><span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown Hours')+'</span></div></div>'+
       '<div class="card-actions"><button class="small" id="restDetails">Details</button><button class="small" id="restWebsite">Website</button></div></div>'+
       '<div class="actions"><button class="secondary" id="restBack">Back</button><button class="maybe" id="restMaybe">Maybe</button><button class="cut" id="restCut">Cut</button><button class="secondary" id="restHide">Hide</button></div>';
     const current = rows[S.restaurantIndex];
