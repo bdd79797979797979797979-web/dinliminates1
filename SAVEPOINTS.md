@@ -251,6 +251,10 @@ Removed the duplicate global Playwright dialog handler so the Restaurant Hide co
 ## CP63 — resume checkpoint
 Current recovery point after CP62. Browser QA is in progress; no production merge or Vercel promotion has been performed.
 
+## CP64 — Restaurant Hide blocker diagnostic
+Commit: `329a38fc76a16f7e6bd90964900c1d28f25490a6`
+Browser QA now inspects modal backdrops and the element under the Hide button before tapping it.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
