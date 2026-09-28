@@ -1546,7 +1546,7 @@ test('food and restaurant winners are instant, clearly themed, and image-safe', 
   });
   expect(restMs).toBeLessThan(100);
   await expect(page.locator('#winnerPanel')).toHaveClass(/winner-theme-restaurant/);
-  const restColor=await page.locator('#winnerQuickActions .winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
+  const restColor=await page.locator('#winnerQuickActions [data-winner-details].winner-v240-action.primary').evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(restColor).toBe('rgb(103, 196, 155)');
   const restImgState=await page.locator('#winnerImage').evaluate(el=>({src:el.getAttribute('src'),visibility:getComputedStyle(el).visibility,naturalWidth:el.naturalWidth}));
   expect(restImgState.visibility==='hidden' || restImgState.naturalWidth>0).toBeTruthy();
