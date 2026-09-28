@@ -533,8 +533,9 @@
       setupRestaurantTools();renderRestaurantQuickCuts();
       const q=String(restaurantFilters.query||'').trim();
       if(q&&!filterRestaurants().length){
-        $('restaurantStage').innerHTML=`<div class="restaurant-empty-v240 restaurant-search-empty"><div class="restaurant-empty-icon">⌕</div><strong>No restaurants match “${html(q)}”.</strong><p>Try another name, brand, address, or clear Search.</p><div class="restaurant-empty-actions"><button class="restaurant-empty-btn" type="button" id="restaurantSearchEmptyClear">Clear search</button></div></div>`;
-        $('restaurantSearchEmptyClear').onclick=()=>{$('restaurantInlineQuery').value='';restaurantFilters.query='';renderRestaurantStage();syncRestaurantTools();};
+        // Empty filtered results use the same Hungry end-state as the main
+        // restaurant round, rather than a second incompatible empty card.
+        showRestaurantHungryState('filters');
       }
       syncRestaurantTools();cleanRestaurantLabels();if(pass?.mode==='restaurant')renderPassStatus();
     };
