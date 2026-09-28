@@ -1770,7 +1770,7 @@ test('P781 food categories, Mexican Stir Fry photo, and exact primary Quick Cut 
 
   await page.evaluate((wanted) => {
     const chosen = homeMeals.filter(x => wanted.includes(x.name));
-    activeItems = [...chosen];
+    activeItems = [...homeMeals];
     holdingItems = [];
     undoStack = [];
     finalistMode = false;
@@ -1804,6 +1804,9 @@ test('P781 food categories, Mexican Stir Fry photo, and exact primary Quick Cut 
   }
 
   const before = await page.evaluate(() => activeItems.length);
+  expect(before).toBeGreaterThan(wanted.length);
+  const mexPhoto = await page.evaluate(() => photoFor(homeMeals.find(x => x.name === 'Mexican Stir Fry')));
+  expect(mexPhoto).toContain('4924603');
   await page.locator('#quickCutsBar button[data-launch-quick="mexican"]').click();
   await expect(page.locator('#quickCutsBar button[data-launch-quick="mexican"]')).toHaveAttribute('aria-pressed','true');
   await expect.poll(async () => page.evaluate(() => activeItems.some(x => x.name === 'Mexican Stir Fry'))).toBe(false);
