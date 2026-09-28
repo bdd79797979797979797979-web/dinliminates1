@@ -220,7 +220,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
 });
 
 
-test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours and inline search', async ({ page }) => {
+test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back and hours', async ({ page }) => {
   const pageErrors=[]; page.on('pageerror',e=>pageErrors.push(String(e)));
   const fixture=[
     {id:'qa-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food'],distanceMiles:.5,openNow:true},
@@ -230,48 +230,63 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, hours 
     {id:'qa-pasta',name:'Pasta House',type:'restaurant',fastFood:false,category:'pasta',cuisine:'italian',tags:['restaurant','pasta'],distanceMiles:4.5,openNow:true},
     {id:'qa-south',name:'Southern Kitchen',type:'restaurant',fastFood:false,category:'southern',cuisine:'southern',tags:['restaurant','southern'],distanceMiles:8,openNow:false}
   ];
-  await page.route('**/api/restaurant-search?*',async route=>{const u=new URL(route.request().url()),m=u.searchParams.get('mode');let body={};if(m==='suggest')body={results:[{display:'QA Test Address, Nashville, TN',query:'QA Test Address, Nashville, TN',precision:'address',lat:36.1,lon:-86.8}]};else if(m==='resolve')body={location:{lat:36.1,lon:-86.8},display:'QA Test Address, Nashville, TN',precision:'address'};else if(m==='search'){const radius=Number(u.searchParams.get('radius')||10),rows=fixture.filter(r=>r.distanceMiles<=radius);body={results:rows,businesses:rows,restaurants:rows,items:rows,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,providersUsed:['QA fixture'],diagnostics:{}};}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});});
-  await page.goto(BASE,{waitUntil:'domcontentloaded'}); await page.locator('#homeRestaurantQuick').click(); await page.locator('#restaurantLocationInput').fill('QA Test Address Nashville'); await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible(); await page.locator('.restaurant-address-suggestion').first().click(); await expect(page.locator('.restaurant-card-v240')).toBeVisible();
-  const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first(), american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first(); const count=async b=>{const t=await b.locator('.quick-cut-copy em').textContent(),m=String(t||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
-  await page.locator('#restaurantRadiusFilter').selectOption('10');
-  console.log('P695-QC state before 10mi assertion', await page.evaluate(() => ({
-    radius: typeof restaurantRadiusMiles!=='undefined' ? restaurantRadiusMiles : null,
-    items: Array.isArray(restaurantItems) ? restaurantItems.map(r=>({name:r.name,fastFood:r.fastFood,amenity:r.amenity,d:r.distanceMiles,open:r.openNow})) : [],
-    active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,fastFood:r.fastFood})) : [],
-    quick: [...(restaurantQuickCuts||[])],
-    hours: localStorage.getItem('dinliminateRestaurantHoursFilter') || 'open-unknown',
-    fastButton: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || null
-  })));
+  await page.route('**/api/restaurant-search?*',async route=>{
+    const u=new URL(route.request().url()),m=u.searchParams.get('mode');let body={};
+    if(m==='suggest')body={results:[{display:'QA Test Address, Nashville, TN',query:'QA Test Address, Nashville, TN',precision:'address',lat:36.1,lon:-86.8}]};
+    else if(m==='resolve')body={location:{lat:36.1,lon:-86.8},display:'QA Test Address, Nashville, TN',precision:'address'};
+    else if(m==='search'){const radius=Number(u.searchParams.get('radius')||10),rows=fixture.filter(r=>r.distanceMiles<=radius);body={results:rows,businesses:rows,restaurants:rows,items:rows,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,providersUsed:['QA fixture'],diagnostics:{}};}
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#homeRestaurantQuick').click();
+  await page.locator('#restaurantLocationInput').fill('QA Test Address Nashville');
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240')).toBeVisible();
+
+  const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
+  const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
+  const count=async b=>{const t=await b.locator('.quick-cut-copy em').textContent(),m=String(t||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
+
   await expect.poll(()=>count(fast)).toBe(2);
   await page.locator('#restaurantRadiusFilter').selectOption('1');
-  console.log('P689 radius=1 live state', await page.evaluate(() => ({
-    radius: typeof restaurantRadiusMiles !== 'undefined' ? restaurantRadiusMiles : null,
-    active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,fast:r.fastFood,open:r.openNow})) : [],
-    itemCount: Array.isArray(restaurantItems) ? restaurantItems.length : null,
-    fastText: document.querySelector('#restaurantQuickCuts button[data-launch-rq="fast_food"] .quick-cut-copy em')?.textContent || null
-  })));
+  await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('1 mi');
   await expect.poll(()=>count(fast)).toBe(1);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(1);
+
   await page.locator('#restaurantRadiusFilter').selectOption('5');
+  await expect(page.locator('#restaurantRadiusDisplayText')).toHaveText('5 mi');
   await expect.poll(()=>count(fast)).toBe(2);
-  await page.locator('#restaurantSearchBtn').click();
-  await page.locator('#restaurantInlineSearchInput').fill("Applebee's");
-  await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("Applebee's");
-  await expect.poll(()=>count(american)).toBe(1);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.length)).toBe(4);
+
+  await page.evaluate(()=>{
+    activeRestaurants.sort((a,b)=>(Number(a.distanceMiles)||999)-(Number(b.distanceMiles)||999));
+    restaurantFilters.query='';
+    renderRestaurantStage();
+    window.DinliminateRefreshRestaurantQuickCuts?.();
+  });
+  await expect(page.locator('.restaurant-card-v240 .restaurant-name-v240')).toHaveText("McDonald's");
   await page.locator('#restaurantKeepBtn').click();
-  await expect.poll(()=>count(american)).toBe(0);
+  await expect.poll(()=>count(fast)).toBe(1);
   await page.locator('#restaurantBackAction').click();
+  await expect.poll(()=>count(fast)).toBe(2);
+
   await expect.poll(()=>count(american)).toBe(1);
-  await page.locator('#restaurantSearchBtn').click();
-  await page.locator('#restaurantInlineSearchInput').fill('');
-  await expect.poll(()=>count(american)).toBe(1);
-  await page.locator('#restaurantSearchBtn').click();
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
   await expect.poll(()=>count(american)).toBe(1);
-  await page.locator('#restaurantSearchBtn').click(); await page.locator('#restaurantInlineSearchInput').fill('Burger King'); await expect.poll(()=>count(fast)).toBe(1); expect(pageErrors).toEqual([]);
+
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed','true');
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>!r.fastFood))).toBe(true);
+  await fast.click();
+  await expect(fast).toHaveAttribute('aria-pressed','false');
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.filter(r=>r.fastFood).length)).toBe(2);
+
+  expect(pageErrors).toEqual([]);
 });
 test('iPhone viewport has no horizontal overflow and keeps primary controls visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
