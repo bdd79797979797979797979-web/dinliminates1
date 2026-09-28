@@ -136,6 +136,30 @@ Add Food accepts optional photo and recipe/notes fields; Details displays saved 
 Commit: `d730ef7b70870003f8b5e3079673e94b38b907ae`
 Static QA now enforces the custom recipe/photo contracts.
 
+## CP34 — Photon-primary restaurant search
+Commit: `f1cabd38963b51ddb88022a99e0319a1b82523cd`
+Photon is the primary restaurant provider; bounded Overpass fallback is used only when Photon returns no results.
+
+## CP35 — QA state hook
+Commit: `3a8d646430ae4fe1df0336025ff749a7d9b443f0`
+Added QA-only state inspection behind `?qa=1`.
+
+## CP36 — expanded QA state
+Commit: `19471862f73565ef7da63a9979a5c0e65fb2b4e3`
+QA state exposes custom foods and full restaurant IDs without affecting normal builds.
+
+## CP37 — Chromium smoke suite
+Commits: `56d7c32`, `9ad5d01`
+Added a browser smoke suite and CI workflow covering the core Food/Restaurant interactions.
+
+## CP38 — search race + dedupe + hours normalization
+Commits: `8a04318`, `e5cc883`, `8124a85`
+Autocomplete ignores stale responses, restaurant duplicates merge more reliably, and opening-hours day matching is case-normalized.
+
+## CP39 — static QA sync
+Commit: `5bb79ad2df62739b05df851a6ee7ecf2510bbfd8`
+Static QA now expects the current `clean-r6` service.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
