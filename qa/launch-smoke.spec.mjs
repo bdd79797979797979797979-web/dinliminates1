@@ -124,6 +124,13 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
   await page.locator('.restaurant-address-suggestion').first().click();
   await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({ timeout: 70000 });
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-name-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-meta-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-address-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-status-pill')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-distance-pill')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-detail-btn-v240')).toBeVisible();
+  await expect(page.locator('.restaurant-card-v240.active .restaurant-order-btn-v240')).toBeVisible();
 
   const hours = page.locator('#restaurantOpenUnknownBtn');
   await expect(hours).toHaveText(/Open \/ Unknown/);
@@ -275,6 +282,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)===false))).toBe(true);
   console.log('P690 hours=closed state', await page.evaluate(() => ({
     hours: localStorage.getItem('dinliminateRestaurantHoursFilter'),
     active: Array.isArray(activeRestaurants) ? activeRestaurants.map(r=>({name:r.name,d:r.distanceMiles,open:r.openNow,cat:r.category})) : [],
@@ -283,6 +291,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)!==false))).toBe(true);
   await expect.poll(()=>count(american)).toBe(1);
 
   await fast.click();
