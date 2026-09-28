@@ -28,9 +28,13 @@ global.fetch = async (url) => {
     ]});
     if (q === 'fast food') return response({features:[]});
   }
-  if (u.hostname === 'nominatim.openstreetmap.org') return response([
-    {osm_type:'node',osm_id:1,lat:'36.4427',lon:'-87.1784',name:"McDonald's",type:'fast_food',class:'amenity',display_name:"McDonald's, Clarksville, Tennessee",extratags:{opening_hours:'Mo-Su 06:00-23:00',website:'https://www.mcdonalds.com',phone:'+1 555 0100'}}
-  ]);
+  if (u.hostname === 'nominatim.openstreetmap.org') {
+    assert.equal(u.searchParams.get('extratags'),'1');
+    assert.equal(u.searchParams.get('limit'),'40');
+    return response([
+      {osm_type:'node',osm_id:1,lat:'36.4427',lon:'-87.1784',name:"McDonald's",type:'fast_food',class:'amenity',display_name:"McDonald's, Clarksville, Tennessee",extratags:{opening_hours:'Mo-Su 06:00-23:00',website:'https://www.mcdonalds.com',phone:'+1 555 0100'}}
+    ]);
+  }
   throw new Error('Unexpected URL '+url);
 };
 
@@ -40,7 +44,7 @@ function res(){
 
 (async()=>{
   let r=res(); await handler({method:'GET',query:{mode:'health'},headers:{}},r);
-  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v716-launch-candidate');
+  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v733-hours-metadata');
 
   r=res(); await handler({method:'GET',query:{mode:'suggest',q:'801 Iron Workers Rd, Clarksville, TN'},headers:{}},r);
   assert.equal(r.statusCode,200); assert(r.body.results.length>=1);
