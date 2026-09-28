@@ -8036,7 +8036,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       if(!rows.length)throw Object.assign(new Error(`No restaurants were found within ${clamp(restaurantRadiusMiles)} miles.`),{code:'NO_RESULTS'});
       if(restaurantLocationMode==='area')userCity=text(label||restaurantAreaCoords?.display||'Selected location');
       applyRestaurantData({businesses:rows},text(label||userCity||'Selected location'));
-      renderRestaurantQuickCuts();setRadiusUi();
+      window.DinliminateRefreshRestaurantQuickCuts?.();setRadiusUi();
       const ff=Number(d.fastFoodCount)||fastCount(rows);
       const providers=Array.isArray(d.providersUsed)&&d.providersUsed.length?d.providersUsed.join(' + '):'multi-source';
       const osmDiag=d.diagnostics||{};
@@ -8099,11 +8099,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       restaurantFinalistMode=false;
       restaurantEliminationExhausted=false;
       restaurantFilters.query='';
-      renderRestaurantQuickCuts();
+      window.DinliminateRefreshRestaurantQuickCuts?.();
       renderRestaurantStage();
       syncRestaurantActionLabels();
-      window.DinliminateSyncRestaurantQuickCutScope?.();
-      window.renderRestaurantQuickCuts?.();
       setStatus(`${activeRestaurants.length} restaurant${activeRestaurants.length===1?'':'s'} within ${next} mi`,'live');
       return true;
     }
