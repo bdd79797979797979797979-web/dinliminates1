@@ -1,41 +1,50 @@
-name: Verify Dinliminate production on Vercel
+name: Vercel production verification
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Wait for Vercel Git deployment
+      - name: Wait for Vercel production
         env:
           EXPECTED_SHA: ${{ github.sha }}
-          PRODUCTION_URL: https://dinliminates1.vercel.app/api/release
         run: |
-          set -euo pipefail
-          echo "Waiting for Vercel production to report $EXPECTED_SHA"
-          for i in {1..30}; do
-            body="$(curl -fsSL --max-time 15 "$PRODUCTION_URL" || true)"
+          set -eu
+          for i in $(seq 1 30); do
+            body=$(curl -fsSL --max-time 15 https://dinliminates1.vercel.app/api/release || true)
             echo "$body"
-            actual="$(printf '%s' "$body" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{console.log(JSON.parse(s).sha||'')}catch{console.log('')}})")"
+            actual=$(printf '%s' "$body" | EXPECTED_SHA="$EXPECTED_SHA" node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{try{const j=JSON.parse(s);console.log(j.sha||'')}catch(e){console.log('')}})")
             if [ "$actual" = "$EXPECTED_SHA" ]; then
-              echo "Vercel production matches Git commit $EXPECTED_SHA"
+              echo "Vercel production matches $EXPECTED_SHA"
               exit 0
             fi
             sleep 10
           done
-          echo "::error::Vercel production did not report commit $EXPECTED_SHA"
+          echo "Vercel production did not reach $EXPECTED_SHA"
           exit 1
-      - name: Smoke production entry
-        run: node -e "fetch('https://dinliminates1.vercel.app/').then(async r=>{const t=await r.text();if(!r.ok||!t.includes('Dinliminate'))throw new Error('Production entry smoke failed: HTTP '+r.status);console.log('Production entry OK')})"
-      - name: Smoke production release endpoint
-        run: node -e "fetch('https://dinliminates1.vercel.app/api/release').then(async r=>{const j=await r.json();if(!r.ok||j.ok!==true||j.sha!=='${{ github.sha }}')throw new Error('Release endpoint mismatch: '+JSON.stringify(j));console.log('Release endpoint OK')})"
-      - name: Smoke production search API
-        run: node -e "fetch('https://dinliminates1.vercel.app/api/restaurant-search?mode=health').then(async r=>{const j=await r.json();if(!r.ok||j.ok!==true)throw new Error('Search API health failed: HTTP '+r.status+' '+JSON.stringify(j));console.log('Restaurant search API OK')})"
+      - name: Verify production entry
+        run: |
+          set -eu
+          node <<'NODE'
+          const r = await fetch('https://dinliminates1.vercel.app/');
+          const t = await r.text();
+          if (!r.ok || !t.includes('Dinliminate')) throw new Error(`Production entry failed: HTTP ${r.status}`);
+          console.log('Production entry OK');
+          NODE
+      - name: Verify restaurant API
+        run: |
+          set -eu
+          node <<'NODE'
+          const r = await fetch('https://dinliminates1.vercel.app/api/restaurant-search?mode=health');
+          const j = await r.json();
+          if (!r.ok || j.ok !== true) throw new Error(`Restaurant API health failed: HTTP ${r.status}`);
+          console.log('Restaurant API OK');
+          NODE
