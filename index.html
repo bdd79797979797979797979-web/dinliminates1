@@ -7795,12 +7795,39 @@ function currentRestaurant(){return filteredRestaurants()[0]||null;}
 function bindRestaurantSwipe(card){
   if(!card)return;
   card.addEventListener('pointerdown',e=>{
-    if(restaurantTransitioning||!currentRestaurant()||e.target.closest('button,a,[data-rest-action]'))return;
-    card.setPointerCapture?.(e.pointerId);restaurantPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,card,moved:false};card.classList.add('dragging');
+    if(restaurantTransitioning)return;
+    if(!currentRestaurant())return;
+    if(e.target.closest('button,a,[data-rest-action]'))return;
+    card.setPointerCapture?.(e.pointerId);
+    restaurantPointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,card,moved:false};
+    card.classList.add('dragging');
   });
-  card.addEventListener('pointermove',e=>{if(!restaurantPointer||e.pointerId!==restaurantPointer.id)return;const dx=e.clientX-restaurantPointer.startX,dy=e.clientY-restaurantPointer.startY;if(Math.abs(dx)>12)restaurantPointer.moved=true;card.style.transform=`translate(${dx}px,${dy*.14}px) rotate(${dx*.055}deg)`;card.classList.toggle('show-cut',dx<-55);card.classList.toggle('show-hold',dx>55);});
-  const end=e=>{if(!restaurantPointer||e.pointerId!==restaurantPointer.id)return;const dx=e.clientX-restaurantPointer.startX;restaurantPointer=null;card.classList.remove('dragging','show-cut','show-hold');if(Math.abs(dx)>95){card.style.transform='';if(dx<0)window.restaurantCut?.(card);else window.restaurantKeep?.(card);}else card.style.transform='';};
-  card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end);
+  card.addEventListener('pointermove',e=>{
+    if(!restaurantPointer||restaurantPointer.id!==e.pointerId)return;
+    const dx=e.clientX-restaurantPointer.startX;
+    const dy=e.clientY-restaurantPointer.startY;
+    if(Math.abs(dx)<4)return;
+    if(Math.abs(dx)>12)restaurantPointer.moved=true;
+    const rotate=dx*.055;
+    card.style.transform=`translate(${dx}px,${dy*.14}px) rotate(${rotate}deg)`;
+    card.classList.toggle('show-cut',dx<-55);
+    card.classList.toggle('show-hold',dx>55);
+  });
+  const end=e=>{
+    if(!restaurantPointer||restaurantPointer.id!==e.pointerId)return;
+    const dx=e.clientX-restaurantPointer.startX;
+    restaurantPointer=null;
+    card.classList.remove('dragging','show-cut','show-hold');
+    if(Math.abs(dx)>95){
+      card.style.transform='';
+      if(dx<0)window.restaurantCut?.(card);
+      else window.restaurantKeep?.(card);
+    }else{
+      card.style.transform='';
+    }
+  };
+  card.addEventListener('pointerup',end);
+  card.addEventListener('pointercancel',end);
 }
 function syncRestaurantActionLabels(){
   const hold=$('restaurantKeepBtn');
