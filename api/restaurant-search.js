@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v732-launch-qa';
+const VERSION = 'restaurant-v733-hours-metadata';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -332,7 +332,7 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
   const q=kind==='fast_food'?'fast food':'restaurant';
   try{
     const data=await fetchJson('https://nominatim.openstreetmap.org/search?'+new URLSearchParams({
-      q,format:'jsonv2',limit:kind==='fast_food'?'60':'80',bounded:'1',viewbox,countrycodes:'us',dedupe:'1',addressdetails:'1'
+      q,format:'jsonv2',limit:'40',bounded:'1',viewbox,countrycodes:'us',dedupe:'1',addressdetails:'1',extratags:'1'
     }).toString(),{headers:{'User-Agent':'Dinliminate/1.0 restaurant search; contact via app'}},5000);
     const rows=[];
     for(const hit of Array.isArray(data)?data:[]){
@@ -344,7 +344,17 @@ async function nominatimPoiProvider(lat,lon,radiusMi,kind){
       const osmId=hit?.osm_id, osmType=String(hit?.osm_type||'').toUpperCase(), mapType={N:'node',W:'way',R:'relation'};
       let address=String(hit?.display_name||'').trim();
       if(address.startsWith(name+','))address=address.slice(name.length+1).trim();
-      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(type==='cafe'?'Cafe':'Restaurant'),cuisine:'',tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand:'',operator:'',address,phone:'',website:'',opening_hours:'',lat:la,lon:lo,photo:'',rating:0,priceLevel:'',menuItems:[],menuUrl:'',timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
+      const extra=hit?.extratags||{};
+      const cuisine=String(extra.cuisine||'').trim();
+      let website=String(extra.website||extra['contact:website']||'').trim();
+      if(website&&!/^https?:\/\//i.test(website))website='https://'+website;
+      const phone=String(extra.phone||extra['contact:phone']||'').trim();
+      const openingHours=String(extra.opening_hours||'').trim();
+      const photo=String(extra.image||extra.image_url||'').trim();
+      const menuUrl=String(extra.menu||extra['contact:menu']||'').trim();
+      const brand=String(extra.brand||'').trim();
+      const operator=String(extra.operator||'').trim();
+      rows.push({id:osmId?'osm-'+(mapType[osmType]||'place')+'-'+osmId:'nominatim-'+slugStable(name+'|'+la.toFixed(6)+'|'+lo.toFixed(6)),name,type:'restaurant',amenity:fast?'fast_food':(type||'restaurant'),fastFood:fast,category:fast?'Fast Food':(cuisine||type==='cafe'?'Cafe':'Restaurant'),cuisine,tags:fast?['restaurant','fast_food','fast food']:['restaurant'],brand,operator,address,phone,website,opening_hours:openingHours,lat:la,lon:lo,photo,rating:0,priceLevel:'',menuItems:[],menuUrl,timeZone:'',source:'Nominatim POI',distanceMiles:miles(lat,lon,la,lo)});
     }
     return {endpoint:'Nominatim POI',rows:dedupeRestaurantRows(rows.filter(x=>x.distanceMiles<=radius)),ms:Date.now()-started,errors:[]};
   }catch(e){return {endpoint:'Nominatim POI',rows:[],ms:Date.now()-started,errors:[errorText(e)]};}
