@@ -170,6 +170,7 @@
     $('foodName').textContent = item.name;
     $('foodCat').textContent = item.category;
     $('foodCount').textContent = S.pool.length + (S.pool.length === 1 ? ' choice' : ' choices');
+    bindFoodSwipe();
   }
 
   function foodCommit(type, item) {
@@ -212,6 +213,17 @@
     foodQuick();
     drawFood();
     save();
+  }
+
+  function bindFoodSwipe() {
+    const card = $('foodCard');
+    if (!card) return;
+    let downX = 0;
+    card.onpointerdown = e => { downX = e.clientX; try { card.setPointerCapture(e.pointerId); } catch {} };
+    card.onpointerup = e => {
+      const dx = e.clientX - downX;
+      if (Math.abs(dx) > 90) dx < 0 ? $('foodCut').click() : $('foodMaybe').click();
+    };
   }
 
   function foodHide() {
