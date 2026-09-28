@@ -7611,7 +7611,6 @@ function renderRestaurantStage(){
   if(restaurantEliminationExhausted && activeRestaurants.length===0 && holdingRestaurants.length===0){ showRestaurantHungryState(); return; }
   const list=filteredRestaurants();
   if($('restaurantTopCount'))$('restaurantTopCount').textContent=list.length;
-  const first=list[0]||null;
   const note=$('restaurantFilterNote');
   const anyFilter=String(restaurantFilters.query||'').trim();
   if(note){
@@ -7619,27 +7618,50 @@ function renderRestaurantStage(){
     note.textContent = anyFilter ? hoursLabel + ' · Search: ' + anyFilter : hoursLabel;
   }
   renderRestaurantQuickCuts();
-  // Show only the current restaurant selected by the active filters.
-  // Once a restaurant deck has been loaded, zero matches is terminal: go straight to HUNGRY.
   $('restaurantStatus').textContent=list.length ? '' : (restaurantItems.length ? '' : 'Enter a city or ZIP to find restaurants.');
-  if(!first){
+  if(!list.length){
     if(activeRestaurants.length===0 && holdingRestaurants.length===0){ showRestaurantHungryState(); return; }
     if(restaurantItems.length && activeRestaurants.length){
       restaurantEliminationExhausted=false;
       showRestaurantHungryState('filters');
       return;
     }
-    $('restaurantStage').innerHTML=`<div class="restaurant-empty-v240"><div class="restaurant-empty-icon">⌖</div><strong>Ready to find dinner?</strong><p>Give Dinliminate a city or ZIP; we will do the browsing.</p><div class="restaurant-empty-actions"><button class="restaurant-empty-btn" data-restaurant-empty-action="find" type="button">Find restaurants</button><button class="restaurant-empty-secondary" data-restaurant-empty-action="location" type="button">Use My Location</button></div></div>`;
-    $('restaurantEmptyFind')?.addEventListener('click',()=>{
-      const area=$('restaurantLocationInput')?.value.trim();area?window.loadRestaurantsForArea?.(area):window.locateRestaurants?.();
-    });
-    $('restaurantEmptyLocation')?.addEventListener('click',()=>window.locateRestaurants?.());
+    $('restaurantStage').innerHTML='<div class="restaurant-empty-v240"><div class="restaurant-empty-icon">⌖</div><strong>Ready to find dinner?</strong><p>Give Dinliminate a city or ZIP; we will do the browsing.</p><div class="restaurant-empty-actions"><button class="restaurant-empty-btn" data-restaurant-empty-action="find" type="button">Find restaurants</button><button class="restaurant-empty-secondary" data-restaurant-empty-action="location" type="button">Use My Location</button></div></div>';
     syncRestaurantActionLabels();return;
   }
-  const open=restaurantOpenStatus(first);const website=safeExternalUrl(first.website);const distance=Number.isFinite(first.distanceMiles)?`${first.distanceMiles.toFixed(1)} mi`:'Distance unavailable';const photoSrc=restaurantPhotoUrl(first);const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';const menuItems=restaurantMenuItems(first);const menuBox=menuItems.length?`<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>${menuItems.map(x=>escapeHtml(x)).join(' · ')}</strong></div>`:'';
-  $('restaurantStage').innerHTML=`<article class="restaurant-card restaurant-card-v240 active" data-restaurant-id="${escapeHtml(String(first.id||first.name))}"><div class="restaurant-photo-v240"><img src="${escapeHtml(photoSrc||'about:blank')}" alt="${escapeHtml(first.name)}" loading="eager" decoding="async" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('no-image')"><div class="restaurant-photo-placeholder">🍽️<span>${escapeHtml(first.category||'Restaurant')}</span></div><div class="restaurant-photo-gradient"></div><div class="restaurant-top-pills"><span class="restaurant-status-pill ${open===true?'open':''}">${openLabel}</span><span class="restaurant-distance-pill">${escapeHtml(distance)}</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">${escapeHtml(first.name)}</div><div class="restaurant-meta-v240">${escapeHtml(first.category&&/^restaurant$/i.test(String(first.category).trim())?(restaurantCuisineLabel(first)||'Restaurant'):(restaurantCuisineLabel(first)||first.category||'Restaurant'))}</div></div></div><div class="restaurant-address-v240">${escapeHtml(first.address||'Address unavailable')}</div>${menuBox}<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">${website?'Website':'Search'}</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div></div></article>`;
-  const card=$('restaurantStage').querySelector('.active');bindRestaurantSwipe(card);
-  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const a=btn.dataset.restAction;if(a==='choose'){chooseRestaurantCurrent();return;}if(a==='details')openDetails(first);if(a==='order'){if(website)window.open(website,'_blank','noopener,noreferrer');else window.open(`https://www.google.com/search?q=${encodeURIComponent(first.name)}`,'_blank','noopener,noreferrer');}}));
+
+  // Restaurant now uses the same three-card Tinder stack as Food:
+  // active card on top, two previews underneath, with the next card visible
+  // immediately as the current card swipes away.
+  const cards=list.slice(0,3);
+  $('restaurantStage').innerHTML=cards.map((item,i)=>{
+    const website=safeExternalUrl(item.website);
+    const open=restaurantOpenStatus(item);
+    const distance=Number.isFinite(item.distanceMiles)?`${item.distanceMiles.toFixed(1)} mi`:'Distance unavailable';
+    const photoSrc=restaurantPhotoUrl(item);
+    const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';
+    const menuItems=restaurantMenuItems(item);
+    const menuBox=menuItems.length?'<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>'+menuItems.map(x=>escapeHtml(x)).join(' · ')+'</strong></div>':'';
+    const cls=i===0?'restaurant-card restaurant-card-v240 active':i===1?'restaurant-card restaurant-card-v240 back-one':'restaurant-card restaurant-card-v240 back-two';
+    const actions=i===0
+      ? '<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">'+(website?'Website':'Search')+'</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>'
+      : '<div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>';
+    return '<article class="'+cls+'" data-restaurant-id="'+escapeHtml(String(item.id||item.name))+'"><div class="restaurant-photo-v240"><img src="'+escapeHtml(photoSrc||'about:blank')+'" alt="'+escapeHtml(item.name)+'" loading="'+(i===0?'eager':'lazy')+'" decoding="async" onerror="this.onerror=null;this.style.display=\'none\';this.parentElement.classList.add(\'no-image\')"><div class="restaurant-photo-placeholder">🍽️<span>'+escapeHtml(item.category||'Restaurant')+'</span></div><div class="restaurant-photo-gradient"></div><div class="swipe-badge cut">CUT</div><div class="swipe-badge hold">MAYBE</div><div class="restaurant-top-pills"><span class="restaurant-status-pill '+(open===true?'open':'')+'">'+openLabel+'</span><span class="restaurant-distance-pill">'+escapeHtml(distance)+'</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">'+escapeHtml(item.name)+'</div><div class="restaurant-meta-v240">'+escapeHtml(item.category&&/^restaurant$/i.test(String(item.category).trim())?(restaurantCuisineLabel(item)||'Restaurant'):(restaurantCuisineLabel(item)||item.category||'Restaurant'))+'</div></div></div><div class="restaurant-address-v240">'+escapeHtml(item.address||'Address unavailable')+'</div>'+menuBox+actions+'</div></article>';
+  }).join('');
+
+  const card=$('restaurantStage').querySelector('.active');
+  bindRestaurantSwipe(card);
+  card?.querySelectorAll('[data-rest-action]').forEach(btn=>btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const a=btn.dataset.restAction;
+    if(a==='choose'){chooseRestaurantCurrent();return;}
+    if(a==='details')openDetails(list[0]);
+    if(a==='order'){
+      const website=safeExternalUrl(list[0]?.website);
+      if(website)window.open(website,'_blank','noopener,noreferrer');
+      else window.open(`https://www.google.com/search?q=${encodeURIComponent(list[0]?.name||'restaurant')}`,'_blank','noopener,noreferrer');
+    }
+  }));
   syncRestaurantActionLabels();
 }
 function currentRestaurant(){return filteredRestaurants()[0]||null;}
@@ -8878,6 +8900,27 @@ body.game-mode #addDuringBtn{
   background:#dff2ff!important;
   color:#2d6787!important;
 }
+</style>
+<style id="dinliminate-p705-unified-swipe-stack">
+/* P705: Restaurant uses the same visible three-card swipe stack as Food. */
+body.restaurant-mode .restaurant-stage{position:relative!important;display:grid!important;place-items:center!important;overflow:hidden!important;}
+body.restaurant-mode .restaurant-card-v240{
+  position:absolute!important;
+  inset:6px auto 6px!important;
+  width:95%!important;
+  height:calc(100% - 12px)!important;
+  margin:0!important;
+  z-index:3;
+  transform-origin:center bottom!important;
+  transition:transform .24s ease,opacity .20s ease!important;
+  will-change:transform,opacity;
+  pointer-events:none;
+}
+body.restaurant-mode .restaurant-card-v240.active{z-index:3!important;transform:none!important;opacity:1!important;pointer-events:auto!important;}
+body.restaurant-mode .restaurant-card-v240.back-one{z-index:2!important;transform:translateY(12px) scale(.972)!important;opacity:.68!important;}
+body.restaurant-mode .restaurant-card-v240.back-two{z-index:1!important;transform:translateY(24px) scale(.945)!important;opacity:.42!important;}
+body.restaurant-mode .restaurant-card-v240.dragging{transition:none!important;}
+body.restaurant-mode .restaurant-card-v240 .swipe-badge{z-index:5!important;}
 </style>
 </html>
 
