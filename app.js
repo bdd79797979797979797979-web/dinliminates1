@@ -476,3 +476,35 @@ function historyView(){
   render();
 }
 const cp20style=document.createElement('style');cp20style.textContent='.cal-nav{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;text-align:center;margin-bottom:8px}.cal-grid-20{gap:5px}.cal-cell{position:relative;min-height:47px}.cal-cell .cal-day{width:100%;height:47px}.cal-x{position:absolute;top:2px;right:2px;width:17px;height:17px;border:0;border-radius:50%;background:#090909dd;color:#fff;font-size:11px;line-height:17px;padding:0;z-index:3}.history-open{width:100%;background:none;color:#eee;border-left:0;border-right:0;border-bottom:0;text-align:left}.history-detail-photo{width:100%;max-height:260px;object-fit:cover;border-radius:14px;margin-top:9px}';document.head.appendChild(cp20style);
+
+
+/* CP21: persistent restaurant hide registry */
+S.hiddenRestaurants=S.hiddenRestaurants||{};
+const cp21OldPersist=persist;
+persist=function(){
+  S.hiddenRestaurants=S.hiddenRestaurants||{};
+  cp21OldPersist();
+};
+const cp21OldDraw=cleanDrawRestaurants;
+cleanDrawRestaurants=function(){
+  cp21OldDraw();
+  const p=restaurantFiltered();
+  const btn=$('restHide');
+  if(btn&&p.length){
+    const r=p[Math.min(S.restaurantIndex||0,p.length-1)];
+    btn.onclick=()=>{if(confirm('Hide '+r.name+' until you restore it in Settings?')){const key='restaurant:'+r.id;S.hidden.add(key);S.hiddenRestaurants[r.id]={id:r.id,name:r.name,photo:r.photo||r.image||'',category:restCategory(r),address:r.address||'',website:r.website||''};r._hidden=true;r._cut=true;cleanDrawRestaurants();persist()}};
+  }
+};
+window.drawRestaurants=cleanDrawRestaurants;
+const cp21OldSettings=settingsView;
+settingsView=function(){
+  const all=[...F,...S.custom],hiddenFoods=all.filter(x=>S.hidden.has(x.id)),records=Object.values(S.hiddenRestaurants||{});
+  const currentHidden=(S.restaurantPool||[]).filter(x=>S.hidden.has('restaurant:'+x.id)&&!records.some(r=>r.id===x.id));
+  const restaurants=[...records,...currentHidden.map(x=>({id:x.id,name:x.name,photo:x.photo||'',category:restCategory(x)}))];
+  const body='<div class="settings-stack"><h4>Hidden Choices</h4><div id="hiddenRows">'+(hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+x.name+'</span><span class="food-row-actions"><button class="restore" data-restore="'+x.id+'">Restore</button>'+(S.custom.some(c=>c.id===x.id)?'<button class="restore danger-lite" data-delete-hidden="'+x.id+'">Delete</button>':'')+'</span></div>').join(''):'<p class="status">No hidden foods.</p>')+'</div><h4>Hidden Restaurants</h4><div id="hiddenRestaurantRows">'+(restaurants.length?restaurants.map(x=>'<div class="food-row"><span>'+x.name+'</span><button class="restore" data-rrest="'+x.id+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the clean default food list and clears saved round changes.</p></div>';
+  const m=addOverlay('settingsModal','Settings',body);showOverlay('settingsModal');
+  m.querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>{S.hidden.delete(b.dataset.restore);persist();settingsView()});
+  m.querySelectorAll('[data-delete-hidden]').forEach(b=>b.onclick=()=>{const id=b.dataset.deleteHidden;if(confirm('Delete this custom food permanently?')){S.hidden.delete(id);S.custom=S.custom.filter(x=>x.id!==id);persist();settingsView()}});
+  m.querySelectorAll('[data-rrest]').forEach(b=>b.onclick=()=>{const id=b.dataset.rrest;S.hidden.delete('restaurant:'+id);delete S.hiddenRestaurants[id];const r=(S.restaurantPool||[]).find(x=>x.id===id);if(r){r._hidden=false;r._cut=false}persist();settingsView()});
+  m.querySelector('#systemRestore').onclick=()=>{if(confirm('Restore the default Dinliminate setup and clear this saved round?')){S.hidden.clear();S.hiddenRestaurants={};S.custom=[];S.cutCats.clear();S.cutPrimary.clear();S.maybe.clear();S.pool=[];S.restaurantPool=[];S.restaurantCuts.clear();S.restaurantActions=[];S.index=0;S.restaurantIndex=0;localStorage.removeItem(KEY);persist();settingsView();home()}};
+};
