@@ -2,7 +2,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION='p700-restaurant-search-launch';
+  const VERSION='p702-restaurant-launch-fix';
   const $=id=>document.getElementById(id);
   const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -315,7 +315,7 @@
 
   function lockPassControls(){
     const selectors=pass?.mode==='restaurant'
-      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
+      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','#restaurantOpenUnknownBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
       : ['#backBtn','#hideBtn','#chooseBtn','#randomBtn','#addDuringBtn','#menuBtn','#homeMenuTopBtn','#foodPassAroundBtn','.card-choose-btn','.choice-utilities button'];
     document.querySelectorAll(selectors.join(',')).forEach(el=>{
       if(el.id==='passEndBtn'||el.id==='cutBtn'||el.id==='holdBtn'||el.id==='restaurantCutBtn'||el.id==='restaurantKeepBtn')return;
