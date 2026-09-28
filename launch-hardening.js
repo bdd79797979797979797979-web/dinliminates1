@@ -179,7 +179,7 @@
     const l=$('restaurantLocationLabel'); if(l){const loc=restaurantLocationMode==='device'&&userCoords?'Using your device location':(userCity?`Near ${userCity}`:'Pick an area');const filt=[restaurantFilters.sort==='closest'?'nearest first':''].filter(Boolean);l.textContent=`${loc}${filt.length?' · '+filt.join(' · '):''} · cut until one is left`;}
   }
   function applyRestaurantHoursFilterToLivePool(nextValue){
-    const next=nextValue==='closed'?'closed':'open-unknown';
+    const next=nextValue==='all'?'all':'open-unknown';
     try{
       restaurantHoursFilter=next;
       safeWrite('dinliminateRestaurantHoursFilter',next);
@@ -203,7 +203,7 @@
         const d=Number(r?.distanceMiles);
         if(Number.isFinite(d)&&d>radius)return false;
         if([...quick].some(k=>restQuickMatch(r,k)))return false;
-        return next==='closed' ? restaurantOpenStatus(r)===false : restaurantOpenStatus(r)!==false;
+        return next==='all' ? true : restaurantOpenStatus(r)!==false;
       });
       restaurantUndoStack=[];
       restaurantFinalistMode=false;
@@ -685,11 +685,11 @@
     try { window.syncRestaurantHoursControl?.(); } catch {}
     const b = q('#restaurantOpenUnknownBtn');
     if (!b) return;
-    const closed = read('dinliminateRestaurantHoursFilter','open-unknown') === 'closed';
-    b.textContent = closed ? 'Closed' : 'Open / Unknown';
-    b.setAttribute('aria-label', closed ? 'Showing closed restaurants. Tap to show open or unknown-hour restaurants.' : 'Showing open or unknown-hour restaurants. Tap to show closed restaurants.');
-    b.setAttribute('aria-pressed', String(closed));
-    b.dataset.hoursFilter = closed ? 'closed' : 'open-unknown';
+    const all = read('dinliminateRestaurantHoursFilter','open-unknown') === 'all';
+    b.textContent = all ? 'All' : 'Open / Unknown';
+    b.setAttribute('aria-label', all ? 'Showing all restaurants regardless of hours. Tap to show open or unknown-hour restaurants.' : 'Showing open or unknown-hour restaurants. Tap to show all restaurants.');
+    b.setAttribute('aria-pressed', String(all));
+    b.dataset.hoursFilter = all ? 'all' : 'open-unknown';
   }
   function installHoursFilter() {
     const b = q('#restaurantOpenUnknownBtn');
