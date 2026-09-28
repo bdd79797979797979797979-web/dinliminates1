@@ -8718,7 +8718,8 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
             return;
           }
           commitArea(ST.selected,ST.selected.query);
-          setStatus('Address selected · tap Find to search within '+clamp(restaurantRadiusMiles)+' miles.','live');
+          setStatus('Address selected · searching within '+clamp(restaurantRadiusMiles)+' miles…','live');
+          void find(text(row.display));
         });
       });
     }catch(e){
