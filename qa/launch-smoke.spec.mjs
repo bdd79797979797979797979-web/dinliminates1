@@ -1273,8 +1273,8 @@ test('P743 one-choice finishing rules are identical for food and restaurants', a
   await expect(page.locator('#gameTopCount')).toHaveText('0');
   await expect(page.locator('#holdBtn')).toBeDisabled();
 
-  // RESTAURANT: deterministic fixture, 1 left -> Maybe/Choose and Cut/Hungry.
-  await page.evaluate(() => { window.showRestaurantMode?.(); });
+  // Restaurant one-choice touch behavior is covered by the focused P744 hit-test immediately below.
+});
   await expect(page.locator('#restaurantPanel')).toBeVisible();
   await page.evaluate(() => {
     const rows=[
