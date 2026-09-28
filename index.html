@@ -7245,9 +7245,13 @@ function setRestaurantRadius(miles, refresh=true){
 }
 function restaurantQuickCutMatches(item,key){
   if(key==='fast_food' && (item?.fastFood===true || String(item?.amenity||'').toLowerCase()==='fast_food')) return true;
-  const source=[item?.cuisine,item?.category,item?.subcategory,item?.name,item?.brand,item?.operator,...(Array.isArray(item?.tags)?item.tags:[])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,"'");
+  const menu=[item?.menuItems,item?.menu_items,item?.popularItems,item?.popular_items,item?.commonMenuItems,item?.common_menu_items]
+    .flatMap(v=>Array.isArray(v)?v:[v])
+    .flatMap(v=>v&&typeof v==='object'?[(v.name||v.title||v.item||v.dish||v.label||'')]:[v])
+    .filter(Boolean);
+  const source=[item?.cuisine,item?.category,item?.subcategory,item?.name,item?.brand,item?.operator,...(Array.isArray(item?.tags)?item.tags:[]),...menu].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,"'");
   const terms={
-    fast_food:[/\bfast[ -]?food\b/,/\bfast_food\b/,/\bmcdonald'?s\b/,/\btaco bell\b/,/\bwendy'?s\b/,/\bburger king\b/,/\bkfc\b/,/\bchick[- ]?fil[- ]?a\b/,/\bpopeyes\b/,/\bsubway\b/,/\bsonic\b/,/\barby'?s\b/,/\bwhataburger\b/,/\bfive guys\b/,/\bculver'?s\b/,/\braising cane'?s\b/,/\bwingstop\b/,/\bbojangles\b/,/\bcook out\b/],
+    fast_food:[/\bfast[ -]?food\b/,/\bfast_food\b/,/\bmcdonald'?s\b/,/\btaco bell\b/,/\bwendy'?s\b/,/\bburger king\b/,/\bkfc\b/,/\bchick[- ]?fil[- ]?a\b/,/\bpopeyes\b/,/\bsubway\b/,/\bsonic\b/,/\barby'?s\b/,/\bwhataburger\b/,/\bfive guys\b/,/\bculver'?s\b/,/\braising cane'?s\b/,/\bwingstop\b/,/\bbojangles\b/,/\bcook out\b/,/\bdairy queen\b/,/\bjack in the box\b/,/\bhardee'?s\b/,/\bcarl'?s jr\b/,/\bdel taco\b/,/\bjimmy john'?s\b/,/\bjersey mike'?s\b/,/\bfirehouse subs?\b/,/\bpanda express\b/,/\bchipotle\b/,/\bshake shack\b/,/\bdomino'?s\b/,/\blittle caesars\b/,/\bpa(pa)? john'?s\b/,/\blong john silver'?s\b/,/\bcheckers\b/,/\brally'?s\b/,/\bin[- ]n[- ]out\b/,/\bzaxby'?s\b/,/\bwhite castle\b/],
     burger:[/\bburger(?:s)?\b/],
     pizza:[/\bpizza\b/,/\bpizzeria\b/],
     mexican:[/\bmexican\b/,/\btex[- ]mex\b/,/\btacos?\b/,/\bburritos?\b/,/\benchiladas?\b/,/\bquesadillas?\b/],
