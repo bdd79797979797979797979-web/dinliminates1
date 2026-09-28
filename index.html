@@ -8093,8 +8093,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
       // Preserve manual/Quick Cut exclusions, but never allow a restaurant
       // outside the newly selected radius to re-enter through Quick Cuts.
       const narrowed=restaurantItems.filter(r=>Number.isFinite(Number(r.distanceMiles)) && Number(r.distanceMiles)<=next);
-      activeRestaurants=narrowed.filter(r=>!restaurantManual.has(restKey(r))&&!Array.from(restaurantQuickCuts||[]).some(k=>restaurantQuickCutMatches(r,k)));
-      holdingRestaurants=[];
+      const inRadius=new Set(narrowed.map(r=>String(r.id||r.name||'').trim().toLowerCase()));
+      activeRestaurants=(activeRestaurants||[]).filter(r=>inRadius.has(String(r.id||r.name||'').trim().toLowerCase()));
+      holdingRestaurants=(holdingRestaurants||[]).filter(r=>inRadius.has(String(r.id||r.name||'').trim().toLowerCase()));
       restaurantUndoStack=[];
       restaurantFinalistMode=false;
       restaurantEliminationExhausted=false;
