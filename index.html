@@ -6576,7 +6576,7 @@ const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIC
 const FOOD_FALLBACK_PHOTO = 'https://images.pexels.com/photos/17477762/pexels-photo-17477762.jpeg?auto=compress&cs=tinysrgb&w=1400';
 const HUNGRY_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#efe7d7"/><ellipse cx="600" cy="470" rx="270" ry="120" fill="#d8d0c0"/><ellipse cx="600" cy="450" rx="220" ry="85" fill="#fbfaf7"/><path d="M700 250c70-42 146-5 150 52 5 73-79 96-130 51" fill="none" stroke="#20362d" stroke-width="18" stroke-linecap="round"/><path d="M520 285h-70m10 0v120m15-120v120m15-120v120m15-120v120" fill="none" stroke="#20362d" stroke-width="12" stroke-linecap="round"/><circle cx="530" cy="390" r="9" fill="#20362d"/><circle cx="670" cy="390" r="9" fill="#20362d"/><path d="M550 450c30 28 70 28 100 0" fill="none" stroke="#20362d" stroke-width="11" stroke-linecap="round"/><text x="600" y="690" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="800" fill="#20362d">THE PLATE IS EMPTY.</text><text x="600" y="742" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#62756b">Dinliminate has been defeated.</text></svg>');
 let restaurantRadiusMiles = Math.min(Math.max(Number(safeRead('dinliminateRestaurantRadius','10') || 10), 1), RESTAURANT_MAX_MILES);
-let restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
+let restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'all' ? 'all' : 'open-unknown';
 let restaurantHoursDeferred=[];
 let userCoords = null;
 let userLocationAccuracyMeters = null;
@@ -7897,14 +7897,13 @@ function restaurantSortValue(item){
 }
 function filteredRestaurants(){
   let list=[...activeRestaurants];
-  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'all' ? 'all' : 'open-unknown';
   const q=String(restaurantFilters.query||'').trim().toLowerCase();
   if(q)list=list.filter(r=>[r.name||'',r.cuisine||'',r.category||'',r.address||'',(r.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
   // Pass Around owns its complete restaurant pool; the normal hours filter
   // must not hide a restaurant that a participant still needs to vote on.
   if(document.body.classList.contains('pass-voting') && document.body.classList.contains('restaurant-mode')) return list;
-  if(restaurantHoursFilter==='closed') list=list.filter(r=>restaurantOpenStatus(r)===false);
-  else list=list.filter(r=>restaurantOpenStatus(r)!==false);
+  if(restaurantHoursFilter==='open-unknown') list=list.filter(r=>restaurantOpenStatus(r)!==false);
   return list;
 }
 function restaurantQuickCutCount(key){ const pool=typeof filteredRestaurants==='function'?filteredRestaurants():[...activeRestaurants]; const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10)); return pool.filter(r=>{const d=Number(r?.distanceMiles);return !Number.isFinite(d)||d<=radius;}).filter(r=>restaurantQuickCutMatches(r,key)).length; }
@@ -7934,74 +7933,30 @@ function saveRestaurantFilters(){
   window.renderRestaurantQuickCuts?.();
 }
 function syncRestaurantHoursControl(){
-  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'closed' ? 'closed' : 'open-unknown';
+  restaurantHoursFilter = safeRead('dinliminateRestaurantHoursFilter','open-unknown') === 'all' ? 'all' : 'open-unknown';
   const b=$('restaurantOpenUnknownBtn');
   if(!b)return restaurantHoursFilter;
-  const closed=restaurantHoursFilter==='closed';
-  b.textContent=closed?'Closed':'Open / Unknown';
-  b.setAttribute('aria-pressed',String(closed));
-  b.setAttribute('data-hours-filter',closed?'closed':'open-unknown');
-  b.setAttribute('aria-label',closed?'Showing closed restaurants. Tap to show open or unknown hours.':'Showing open or unknown-hour restaurants. Tap to show closed restaurants.');
-  b.title=closed?'Show open or unknown-hour restaurants':'Show closed restaurants';
-  b.classList.toggle('is-hours-closed',closed);
+  const all=restaurantHoursFilter==='all';
+  b.textContent=all?'All':'Open / Unknown';
+  b.setAttribute('aria-pressed',String(all));
+  b.setAttribute('data-hours-filter',all?'all':'open-unknown');
+  b.setAttribute('aria-label',all?'Showing all restaurants regardless of hours. Tap to show open or unknown-hour restaurants.':'Showing open or unknown-hour restaurants. Tap to show all restaurants.');
+  b.title=all?'Show open or unknown-hour restaurants':'Show all restaurants';
+  b.classList.toggle('is-hours-all',all);
   return restaurantHoursFilter;
 }
 function setRestaurantHoursFilter(value){
-  const next=String(value)==='closed'?'closed':'open-unknown';
-  const previous=restaurantHoursFilter;
+  const next=String(value)==='all'?'all':'open-unknown';
   restaurantHoursFilter=next;
   safeWrite('dinliminateRestaurantHoursFilter',next);
   safeWrite('dinliminateRestaurantFilters',JSON.stringify({...restaurantFilters,hours:next}));
   syncRestaurantHoursControl();
-
-  // Hours is a reversible filter, not a destructive elimination. Park the
-  // currently eligible open/unknown cards while Closed is active, then bring
-  // them back when the user returns to Open / Unknown. Items already removed
-  // by Quick Cuts, manual cuts, or Maybe never enter the parked set.
-  try{
-    const radius=Math.min(Number(RESTAURANT_MAX_MILES)||100,Math.max(1,Number(restaurantRadiusMiles)||10));
-    const keyOf=r=>String(r?.id||r?.name||'').trim().toLowerCase();
-    const withinRadius=r=>{
-      const d=Number(r?.distanceMiles);
-      return !Number.isFinite(d)||d<=radius;
-    };
-    const heldKeys=new Set((holdingRestaurants||[]).map(keyOf));
-    const activeQuick=[...(restaurantQuickCuts||new Set())];
-
-    if(next==='closed'){
-      if(previous!=='closed'){
-        restaurantHoursDeferred=[...(activeRestaurants||[])].filter(r=>{
-          const k=keyOf(r);
-          return k&&!heldKeys.has(k)&&withinRadius(r)&&restaurantOpenStatus(r)!==false;
-        });
-      }
-      activeRestaurants=[...(activeRestaurants||[])].filter(r=>withinRadius(r)&&restaurantOpenStatus(r)===false);
-    }else{
-      const merged=dedupe([...(activeRestaurants||[]),...(restaurantHoursDeferred||[])]);
-      activeRestaurants=merged.filter(r=>{
-        const k=keyOf(r);
-        if(!k||heldKeys.has(k)||!withinRadius(r))return false;
-        if(activeQuick.some(q=>restaurantQuickCutMatches(r,q)))return false;
-        return restaurantOpenStatus(r)!==false;
-      });
-      restaurantHoursDeferred=[];
-    }
-    restaurantUndoStack=[];
-    restaurantFinalistMode=false;
-    restaurantEliminationExhausted=false;
-  }catch(e){
-    console.warn('Restaurant hours reversible pool sync skipped',e);
-  }
-
   try{renderRestaurantStage();}catch{}
   try{window.renderRestaurantQuickCuts?.();}catch{}
   try{syncRestaurantActionLabels?.();}catch{}
   try{window.saveRestaurantRoundState?.();}catch{}
   return next;
 }
-window.DinliminateResetRestaurantHoursDeferred=()=>{restaurantHoursDeferred=[];};
-window.syncRestaurantHoursControl=syncRestaurantHoursControl;
-window.setRestaurantHoursFilter=setRestaurantHoursFilter;
 function clearRestaurantQuickCuts(){
   // Retained only for backwards compatibility with older builds. Quick Cuts are destructive actions,
   // exactly like Food mode; there is intentionally no restaurant Quick Cuts Clear control.
@@ -8117,7 +8072,7 @@ function renderRestaurantStage(){
   const note=$('restaurantFilterNote');
   const anyFilter=String(restaurantFilters.query||'').trim();
   if(note){
-    const hoursLabel = restaurantHoursFilter==='closed' ? 'Closed only' : 'Open + unknown hours';
+    const hoursLabel = restaurantHoursFilter==='all' ? 'All hours' : 'Open + unknown hours';
     note.textContent = anyFilter ? hoursLabel + ' · Search: ' + anyFilter : hoursLabel;
   }
   renderRestaurantQuickCuts();
@@ -8474,9 +8429,9 @@ bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');co
 bind('restaurantOpenUnknownBtn','click',(e)=>{
   e?.preventDefault?.();
   e?.stopPropagation?.();
-  const current=safeRead('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
-  setRestaurantHoursFilter(current==='closed'?'open-unknown':'closed');
-  toast(current==='closed'?'Showing open / unknown-hour restaurants.':'Showing closed restaurants.');
+  const current=safeRead('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
+  setRestaurantHoursFilter(current==='all'?'open-unknown':'all');
+  toast(current==='all'?'Showing open / unknown-hour restaurants.':'Showing all restaurants.');
 });
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
 
