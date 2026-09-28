@@ -144,7 +144,7 @@ await click('#restBack'); await settle(); s=await qa(); assert.equal(s.restauran
 
 await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); await page.locator('#detailDone').click(); await settle();
 
-await click('#restHide'); await settle(); s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true);
+const hideDialog=page.waitForEvent('dialog'); await click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await click('#menu'); await settle(); await click('#settings'); await settle();
 assert.equal(await page.locator('#settingsModal').innerText().then(t=>t.includes('Hidden Restaurants')),true);
 const restore=page.locator('[data-setting-rest]').first(); assert.equal(await restore.count(),1);
