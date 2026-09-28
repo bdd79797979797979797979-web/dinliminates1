@@ -764,6 +764,10 @@ function hourStatus(row){
 
   function foodEditor(item=null) {
     const isEdit=!!item;
+    // Manage Foods is a parent modal; remove it before opening the editor so save/close
+    // can never leave a live backdrop sitting over the Food swipe deck.
+    const managerWasOpen = !!$('manageFoodsModal');
+    if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
     const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack'];
     const body='<form class="add" id="foodEditorForm">'+
       '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
