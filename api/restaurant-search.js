@@ -1,7 +1,7 @@
 const MAX_RADIUS_MI = 100;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v715-photon-nominatim-fallback';
+const VERSION = 'restaurant-v716-launch-candidate';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
