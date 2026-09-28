@@ -5594,7 +5594,7 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
   gap:0!important;
   color:#fff!important;
   font-family:var(--display-face)!important;
-  font-size:1.18rem!important;
+  font-size:1.34rem!important;
   line-height:1!important;
   font-weight:500!important;
   letter-spacing:-.045em!important;
@@ -5606,7 +5606,7 @@ body:not(.game-mode):not(.restaurant-mode) header .brand{
   display:inline-block!important;
   margin-right:.01em!important;
   color:#8fe0ba!important;
-  font-size:1.42rem!important;
+  font-size:1.58rem!important;
   font-weight:650!important;
   letter-spacing:-.055em!important;
 }
@@ -6197,7 +6197,6 @@ const FOOD_RECIPES = {
   "chili":"Brown beef with onion. Add beans, tomatoes and chili seasonings and simmer until thick.",
   "chili cheese baked potato":"Bake a potato until tender. Split it open, top with chili and shredded cheese and return to heat until melted.",
   "loaded baked potato":"Bake a potato until fluffy. Top with butter, cheese, sour cream, bacon and green onion.",
-  "mashed potatoes & gravy":"Boil potatoes until tender, mash with butter and milk. Serve with hot brown gravy.",
   "biscuits & gravy":"Bake or warm biscuits. Make sausage gravy with browned sausage, flour and milk and spoon over biscuits.",
   "buttermilk & cornbread":"Serve cold buttermilk with a warm slice of cornbread. For cornbread, mix cornmeal, egg, buttermilk, butter and salt and bake until browned.",
   "sausage & peppers":"Brown sausage, then sauté sliced peppers and onions. Combine and simmer with a little tomato sauce if desired.",
@@ -6546,6 +6545,8 @@ function restaurantHoursDisplay(item){ return formatHoursDisplay(item?.openingHo
 
 function openDetails(item){
   if(!item) return;
+  $('detailBackdrop').classList.remove('hidden');
+  focusOverlay('detailBackdrop');
   $('detailKicker').textContent = item.type === 'restaurant' ? 'RESTAURANT DETAILS' : 'FOOD DETAILS';
   $('detailTitle').textContent = item.name;
   $('detailMeta').textContent = item.type === 'restaurant' ? (item.address || 'Nearby restaurant') : `${(item.tags||[]).filter(t=>!['home','restaurant'].includes(t)).slice(0,4).map(prettyTag).join(' · ') || 'Dinner option'} · ${item.category || (item.type === 'home' ? 'Homemade' : 'Food')}${item.prep ? ` · ${item.prep}` : ''}${item.budget ? ` · ${item.budget}` : ''}`;
@@ -6587,7 +6588,6 @@ function openDetails(item){
     toast('Thanks — this restaurant is marked for data review.');
   });
   $('deleteCardBtn')?.addEventListener('click',()=>openDeleteCustomConfirm(item));
-  $('detailBackdrop').classList.remove('hidden'); focusOverlay('detailBackdrop');
 }
 function closeDetails(){ if(!$('detailBackdrop')?.classList.contains('hidden'))restoreFocus(); $('detailBackdrop').classList.add('hidden'); }
 function unhideItem(item){ const key=hiddenKey(item); hiddenItems=hiddenItems.filter(x=>x!==key&&x!==String(item.name||'').trim().toLowerCase()); saveHiddenItems(); closeDetails(); refreshFromCatalog(); openSettings(); toast(`${item.name} is visible again.`); }
@@ -7196,6 +7196,11 @@ function chooseCurrent(){
 }
 function transitionCard(card, direction, done) {
   transitioning = true;
+  if(activeItems.length===1){
+    $('countNumber').textContent='0';
+    if($('gameTopCount'))$('gameTopCount').textContent='0';
+    card?.querySelector('.choice-count strong')?.replaceChildren(document.createTextNode('0'));
+  }
   if(card){
     card.style.setProperty('transition','transform .24s cubic-bezier(.2,.8,.2,1), opacity .20s ease','important');
     card.style.setProperty('transform','translate3d('+(direction*125)+'%,0,0) rotate('+(direction*18)+'deg)','important');
@@ -7216,8 +7221,8 @@ function eliminateCategory(key) {
   const rule = QUICK_CUT_RULES[key];
   if (!rule) return;
   const keep = activeItems.filter(i => !quickCutMatches(i, rule));
-  if (!keep.length) { toast('Keep at least one option. 😄'); return; }
   const removed = activeItems.length - keep.length;
+  if (!removed) { toast('No matching options in this round.'); return; }
   pushUndo();
   activeItems = keep;
   toast(`${removed} option${removed === 1 ? '' : 's'} cut from ${rule.label}.`);
@@ -9453,6 +9458,40 @@ body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
   border-color:#b0a6ff!important;
   background:linear-gradient(135deg,#8d7df5,#6856d6)!important;
   color:#fff!important;
+}
+
+/* P732 — final launch QA: restaurant card fit + fast detail touch response. */
+body.restaurant-mode .restaurant-stage .restaurant-menu-card strong{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+body.restaurant-mode .restaurant-detail-btn-v240,
+body.restaurant-mode .restaurant-order-btn-v240,
+.detail-action,
+.choice-utility.details{
+  touch-action:manipulation!important;
+}
+@media(max-width:430px){
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex-basis:50%!important;height:50%!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:50%!important;height:50%!important;padding:9px 11px 8px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:clamp(1.52rem,7.1vw,2.05rem)!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-meta-v240{font-size:.53rem!important;line-height:1.15!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-address-v240{margin-top:4px!important;font-size:.52rem!important;line-height:1.18!important;-webkit-line-clamp:2!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-card-choice-row{margin-top:4px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-v240-actions{gap:5px!important;padding-top:5px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+  body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{height:35px!important;min-height:35px!important;font-size:.54rem!important;}
+}
+@media(max-width:390px){
+  body.restaurant-mode .restaurant-stage .restaurant-photo-v240{flex-basis:46%!important;height:46%!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-body-v240{flex-basis:54%!important;height:54%!important;padding:8px 10px 7px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-name-v240{font-size:1.43rem!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-menu-card strong{font-size:.54rem!important;line-height:1.2!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-card-choice-row{margin-top:3px!important;}
+  body.restaurant-mode .restaurant-stage .restaurant-detail-btn-v240,
+  body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{height:34px!important;min-height:34px!important;}
 }
 </style>
 
