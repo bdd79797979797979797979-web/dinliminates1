@@ -1743,3 +1743,218 @@ test('Food Quick Cuts use primary category and every Quick Cut can restore', asy
 
   expect(errors).toEqual([]);
 });
+
+
+test('P781 food categories, Mexican Stir Fry photo, and exact primary Quick Cut mapping', async ({ page }) => {
+  test.setTimeout(60000);
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.locator('#startBtn').click();
+  await expect(page.locator('#gamePanel')).toBeVisible();
+
+  const wanted = [
+    'Mexican Stir Fry',
+    'Meatloaf & Mashed Potatoes',
+    'Beef Stroganoff',
+    'Fried Rice',
+    'Pot Roast',
+    'Pork Chops',
+    'Potato Soup',
+    'Gyro',
+    'Stouffer’s Frozen Dinner',
+    'Pork Tenderloin',
+    'BBQ Pulled Pork',
+    'BBQ Ribs',
+    'Steak & Potato'
+  ];
+
+  await page.evaluate((wanted) => {
+    const chosen = homeMeals.filter(x => wanted.includes(x.name));
+    activeItems = [...chosen];
+    holdingItems = [];
+    undoStack = [];
+    finalistMode = false;
+    searchQuery = '';
+    originalCount = activeItems.length;
+    foodBase = [...chosen];
+    foodManual = new Set();
+    foodQuickHidden = new Set();
+    foodInProgress = true;
+    renderStage();
+    renderFoodQuickCuts();
+  }, wanted);
+
+  const mapping = {
+    mexican:['Mexican Stir Fry'],
+    southern:['Meatloaf & Mashed Potatoes','Pot Roast'],
+    pasta:['Beef Stroganoff'],
+    asian:['Fried Rice'],
+    pork:['Pork Chops','Pork Tenderloin','BBQ Pulled Pork','BBQ Ribs'],
+    potato:['Potato Soup'],
+    greek:['Gyro'],
+    frozen:['Stouffer’s Frozen Dinner']
+  };
+
+  for (const [key, names] of Object.entries(mapping)) {
+    const btn = page.locator('#quickCutsBar button[data-launch-quick="'+key+'"]');
+    await expect(btn).toBeVisible();
+    await expect(btn).not.toBeDisabled();
+    for (const name of names) {
+      expect(await page.evaluate(name => foodPrimaryQuickCut(homeMeals.find(x => x.name === name)) || '', name)).toBe(key);
+    }
+    if (key === 'mexican') {
+      const stirCard = page.locator('#stage .stack-card.active .card-photo img');
+      await expect(stirCard).toHaveAttribute('src', /4924603/);
+    }
+  }
+
+  const before = await page.evaluate(() => activeItems.length);
+  await page.locator('#quickCutsBar button[data-launch-quick="mexican"]').click();
+  await expect(page.locator('#quickCutsBar button[data-launch-quick="mexican"]')).toHaveAttribute('aria-pressed','true');
+  await expect.poll(async () => page.evaluate(() => activeItems.some(x => x.name === 'Mexican Stir Fry'))).toBe(false);
+  await page.locator('#quickCutsBar button[data-launch-quick="mexican"]').click();
+  await expect(page.locator('#quickCutsBar button[data-launch-quick="mexican"]')).toHaveAttribute('aria-pressed','false');
+  await expect.poll(async () => page.evaluate(() => activeItems.length)).toBe(before);
+  expect(errors).toEqual([]);
+});
+
+
+test('P781 food Quick Cut overlap restore never cuts secondary items', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.locator('#startBtn').click();
+
+  await page.evaluate(() => {
+    const names = ['Steak & Potato','Meatloaf & Mashed Potatoes','Potato Soup','Beef Stew','Chicken Noodle Soup','Southern Vegetable Beef Soup','Chili','Loaded Baked Potato','Mashed Potatoes'];
+    const chosen = homeMeals.filter(x => names.includes(x.name));
+    activeItems=[...chosen]; holdingItems=[]; undoStack=[]; finalistMode=false; searchQuery='';
+    originalCount=activeItems.length; foodBase=[...chosen]; foodManual=new Set(); foodQuickHidden=new Set(); foodInProgress=true;
+    renderStage(); renderFoodQuickCuts();
+  });
+
+  const potato=page.locator('#quickCutsBar button[data-launch-quick="potato"]');
+  const soup=page.locator('#quickCutsBar button[data-launch-quick="soupstew"]');
+  await expect(potato).toBeVisible();
+  await expect(soup).toBeVisible();
+
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#quickCutsBar button[data-launch-quick="potato"]')).not.toBeDisabled();
+  const afterPotato = await page.evaluate(() => activeItems.map(x => x.name));
+  expect(afterPotato).toContain('Steak & Potato');
+  expect(afterPotato).toContain('Meatloaf & Mashed Potatoes');
+  expect(afterPotato).not.toContain('Potato Soup');
+  expect(afterPotato).not.toContain('Loaded Baked Potato');
+  expect(afterPotato).not.toContain('Mashed Potatoes');
+
+  await soup.click();
+  await expect(soup).toHaveAttribute('aria-pressed','true');
+  await expect(soup).not.toBeDisabled();
+
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','false');
+  await expect(potato).not.toBeDisabled();
+  const mid = await page.evaluate(() => activeItems.map(x => x.name));
+  expect(mid).toContain('Steak & Potato');
+  expect(mid).toContain('Meatloaf & Mashed Potatoes');
+  expect(mid).toContain('Potato Soup');
+  expect(mid).not.toContain('Beef Stew');
+  expect(mid).not.toContain('Chicken Noodle Soup');
+
+  await soup.click();
+  await expect(soup).toHaveAttribute('aria-pressed','false');
+  await expect(soup).not.toBeDisabled();
+  const restored = await page.evaluate(() => activeItems.map(x => x.name));
+  for (const name of ['Steak & Potato','Meatloaf & Mashed Potatoes','Potato Soup','Beef Stew','Chicken Noodle Soup','Southern Vegetable Beef Soup','Chili','Loaded Baked Potato','Mashed Potatoes']) {
+    expect(restored).toContain(name);
+  }
+});
+
+
+test('P781 restaurant Potato and Soup Quick Cuts restore cleanly with overlap', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.locator('#homeRestaurantQuick').click();
+  await expect(page.locator('#restaurantPanel')).toBeVisible();
+
+  await page.evaluate(() => {
+    const fixture = [
+      {id:'qa-potato',name:'Potato House',type:'restaurant',category:'Potato',distanceMiles:1,openNow:true,menuItems:['Fries','Baked Potato']},
+      {id:'qa-potatosoup',name:'Potato Soup Cafe',type:'restaurant',category:'Soup',distanceMiles:2,openNow:true,menuItems:['Potato Soup']},
+      {id:'qa-soup',name:'Soup House',type:'restaurant',category:'Soup',distanceMiles:3,openNow:true,menuItems:['Tomato Soup']},
+      {id:'qa-pork',name:'Pork Grill',type:'restaurant',category:'Pork',distanceMiles:4,openNow:true,menuItems:['Pulled Pork']},
+      {id:'qa-burger',name:'Burger King',type:'restaurant',category:'Fast Food',fastFood:true,distanceMiles:.5,openNow:true}
+    ];
+    restaurantItems=[...fixture];
+    restaurantBase=[...fixture];
+    activeRestaurants=[...fixture];
+    holdingRestaurants=[];
+    restaurantManual=new Set();
+    restaurantQuickCuts=new Set();
+    restaurantRoundInProgress=true;
+    restaurantFilters={query:'',sort:'shuffle'};
+    restaurantHoursFilter='all';
+    safeWrite('dinliminateRestaurantHoursFilter','all');
+    renderRestaurantStage();
+    renderRestaurantQuickCuts();
+  });
+
+  const potato=page.locator('#restaurantQuickCuts button[data-launch-rq="potato"]');
+  const soup=page.locator('#restaurantQuickCuts button[data-launch-rq="soupstew"]');
+  await expect(potato).toBeVisible();
+  await expect(soup).toBeVisible();
+
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','true');
+  await expect(potato).not.toBeDisabled();
+
+  await soup.click();
+  await expect(soup).toHaveAttribute('aria-pressed','true');
+  await expect(soup).not.toBeDisabled();
+
+  await potato.click();
+  await expect(potato).toHaveAttribute('aria-pressed','false');
+  await expect(potato).not.toBeDisabled();
+  const mid=await page.evaluate(() => activeRestaurants.map(x=>x.name));
+  expect(mid).toContain('Potato House');
+  expect(mid).not.toContain('Potato Soup Cafe');
+
+  await soup.click();
+  await expect(soup).toHaveAttribute('aria-pressed','false');
+  await expect(soup).not.toBeDisabled();
+  const restored=await page.evaluate(() => activeRestaurants.map(x=>x.name));
+  for (const name of ['Potato House','Potato Soup Cafe','Soup House','Pork Grill','Burger King']) expect(restored).toContain(name);
+});
+
+
+test('P781 winner shells are dark and home has one unboxed menu', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+
+  await expect(page.locator('#homePanel .home-topbar-menu')).toHaveCount(1);
+  await expect(page.locator('body:not(.game-mode):not(.restaurant-mode) header .brand')).toBeHidden();
+  const homeBrand=page.locator('#homePanel .home-topbar-brand');
+  await expect(homeBrand).toBeVisible();
+  expect(await homeBrand.evaluate(el => {
+    const s=getComputedStyle(el);
+    return {bg:s.backgroundColor,border:s.borderStyle,shadow:s.boxShadow,text:el.textContent};
+  })).toMatchObject({bg:'rgba(0, 0, 0, 0)',border:'none',text:'Dinliminate'});
+
+  for (const theme of ['winner-theme-food','winner-theme-restaurant']) {
+    await page.evaluate(theme => {
+      const p=document.querySelector('#winnerPanel');
+      p.classList.remove('hidden','winner-theme-food','winner-theme-restaurant');
+      p.classList.add(theme);
+      document.body.classList.remove('game-mode','restaurant-mode','finalist-mode');
+    }, theme);
+    const shell=page.locator('#winnerPanel .winner-v240-shell');
+    await expect(shell).toBeVisible();
+    const bg=await shell.evaluate(el => {
+      const s=getComputedStyle(el);
+      return {bg:s.backgroundColor,image:s.backgroundImage,color:s.color};
+    });
+    expect(bg.color).toMatch(/rgb\(255, 255, 255\)|rgba\(255, 255, 255,/);
+    expect(bg.image).not.toContain('rgba(255,255,255,.985)');
+  }
+});
