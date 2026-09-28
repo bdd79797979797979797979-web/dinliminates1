@@ -334,6 +334,16 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await page.locator('#restaurantBackAction').click();
   await expect.poll(()=>count(fast)).toBe(2);
 
+  console.log('american/open diagnostic', await page.evaluate(() => ({
+    hoursFilter: localStorage.getItem('dinliminateRestaurantHoursFilter'),
+    globalHours: restaurantHoursFilter,
+    rows: activeRestaurants.map(r => ({
+      name:r.name,
+      openNow:r.openNow,
+      status:restaurantOpenStatus(r),
+      american:restaurantQuickCutMatches(r,'american')
+    }))
+  })));
   await expect.poll(()=>count(american)).toBe(1);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Closed');
