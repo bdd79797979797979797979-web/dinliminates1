@@ -2,7 +2,7 @@
 (() => {
   'use strict';
 
-  const F = Array.isArray(window.DINLIMINATE_FOODS) ? window.DINLIMINATE_FOODS : [];
+  const getDefaultFoods = () => Array.isArray(window.DINLIMINATE_FOODS) ? window.DINLIMINATE_FOODS : [];
   const $ = (id) => document.getElementById(id);
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
@@ -53,7 +53,7 @@
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
-  const allFoods = () => [...F, ...S.custom];
+  const allFoods = () => [...getDefaultFoods(), ...S.custom];
 
   function save() {
     const data = {
