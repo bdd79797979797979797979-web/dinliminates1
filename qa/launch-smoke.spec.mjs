@@ -330,8 +330,8 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect.poll(()=>count(american)).toBe(2);
   await page.locator('#restaurantOpenUnknownBtn').click();
   await expect(page.locator('#restaurantOpenUnknownBtn')).toHaveText('Open / Unknown');
-  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.every(r=>restaurantOpenStatus(r)!==false))).toBe(true);
-  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Southern Kitchen' && restaurantOpenStatus(r)===null))).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>filteredRestaurants().every(r=>restaurantOpenStatus(r)!==false))).toBe(true);
+  await expect.poll(async()=>page.evaluate(()=>filteredRestaurants().some(r=>r.name==='Southern Kitchen' && restaurantOpenStatus(r)===null))).toBe(true);
   await expect.poll(()=>count(american)).toBe(1);
 
   await fast.click();
