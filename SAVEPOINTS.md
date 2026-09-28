@@ -361,3 +361,23 @@ Added:
 - Browser QA now verifies the visual swipe state.
 
 Recovery point: CP79.
+
+## CP80 — Feature-complete release checkpoint
+Source commits:
+- data/foods.js: 16a3442da098048e222bdafbb160e70aede576b6
+- app.js: 82b4406b4a967ef1aba95e9d1a03ef6d991a13e1
+- index.html: ae1cc34c72fdb4df0d6b1733b6db1a1248253dc4
+- QA: 3f4047c0d848838b29c7c6d4bf3eeb2d8026f3f2
+
+Feature completion:
+- Food All Cut and hungry/no-choice ending.
+- Food Pass Around beside Add Food.
+- Device photo upload with image resizing.
+- Custom food edit, hide/restore, and permanent delete.
+- Built-in food delete with restore and System Restore recovery.
+- Built-in food recipe/detail notes.
+- Hidden-food Settings Delete beside Restore.
+- Restaurant chain-specific safe photo fallbacks.
+- Provider menu/dish metadata surfaced on restaurant cards and Details.
+- Compact "My Location" control.
+- Tinder-style drag/tilt/stamp swipe for Food and Restaurant.
