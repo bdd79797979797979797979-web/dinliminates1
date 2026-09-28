@@ -9182,8 +9182,23 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     if(ST.searching){ST.seq++;ST.searching=false;busy('find',false);}
 
     const origin=currentSearchOrigin();
-    if(!origin)return true;
     const query=String(restaurantFilters?.query||'').trim();
+    if(!origin){
+      // Some restored/fixture states have a populated deck but no search origin.
+      // In that case a radius change must still immediately apply to the current
+      // in-memory universe rather than leaving the old wider deck on screen.
+      const within=r=>{
+        const d=Number(r?.distanceMiles);
+        return !Number.isFinite(d)||d<=next;
+      };
+      activeRestaurants=(activeRestaurants||[]).filter(within);
+      holdingRestaurants=(holdingRestaurants||[]).filter(within);
+      restaurantItems=(restaurantItems||[]).filter(within);
+      try{window.DinliminateRefreshRestaurantQuickCuts?.();}catch{}
+      try{renderRestaurantQuickCuts();renderRestaurantStage();syncRestaurantActionLabels?.();}catch{}
+      setStatus((activeRestaurants||[]).length+' restaurants within '+next+' mi','live');
+      return true;
+    }
     try{window.DinliminatePreserveRestaurantQuickCutsOnRefresh?.();}catch{}
     // The current search origin owns the loaded universe. Narrower radii derive
     // locally; wider radii fetch and merge into that same universe.
