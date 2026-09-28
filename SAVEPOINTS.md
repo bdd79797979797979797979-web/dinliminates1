@@ -283,6 +283,10 @@ GitHub Actions now checks out `${{ github.sha }}` explicitly so each run tests t
 Commit: `02ac1b40a6f8c65210f13ba4d143fa09397e31cf`
 Updated the clean static API contract check from the retired `clean-r6` response version to `clean-r7` after the fast-food fallback release.
 
+## CP72 — live fast-food fallback + regression gate
+Commits: `d5f153fd27494f1002591e4a64b7087ef2f82c5e`, `ae74c4ed73c5226befc94a6dd401a057a754879e`
+Broadened the fast-food Overpass fallback to search `amenity=fast_food` plus major chain names and brands. Live API smoke now requires at least one fast-food result instead of allowing a zero-fast-food search to pass.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
