@@ -214,6 +214,58 @@ cleanDrawRestaurants=function(){oldCleanDraw();enrichRestaurantStage()};
 window.drawRestaurants=cleanDrawRestaurants;
 drawQuick();
 
+
+/* CP4: persistence polish — Potato/Soup semantics, History, Settings */
+cats.splice(Math.max(0,cats.indexOf('Soup')),1,'Soup/Stew');cats.push('Potato');
+const oldBuild=build;
+build=function(){
+  S.pool=active().filter(x=>{
+    if(S.maybe.has(x.id))return false;
+    if(S.cutPrimary.has(x.primary))return false;
+    if(S.cutCats.has(x.category))return false;
+    if(S.cutCats.has('Soup/Stew') && (x.category==='Soup'||x.primary==='soup'||x.primary==='stew'))return false;
+    if(S.cutCats.has('Potato') && x.primary==='potato')return false;
+    return true;
+  });
+  S.index=Math.max(0,Math.min(S.index,S.pool.length-1));
+};
+const potato=F.find(x=>x.id==='potato-soup');if(potato)potato.primary='potato';
+const HISTORY_KEY='dinliminate.clean.history',SETTINGS_KEY='dinliminate.clean.settings';
+function readHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch{return[]}}
+function writeHistory(x){localStorage.setItem(HISTORY_KEY,JSON.stringify(x.slice(0,120)))}
+function recordHistory(item,type){const h=readHistory(),day=new Date().toISOString().slice(0,10);h.unshift({id:Date.now()+Math.random(),date:day,type,name:item.name,image:item.image||item.photo||''});writeHistory(h)}
+const baseWinner=winner;
+winner=function(x){recordHistory(x,S.screen==='restaurant'?'restaurant':'food');baseWinner(x)};
+function addOverlay(id,title,body){
+  let bg=$(id+'Bg');if(bg)return;
+  bg=document.createElement('div');bg.id=id+'Bg';bg.className='modal-bg hidden';document.body.appendChild(bg);
+  const m=document.createElement('section');m.id=id;m.className='modal hidden';m.innerHTML='<div class="modal-head"><h3>'+title+'</h3><button class="menu" data-close="'+id+'">×</button></div><div id="'+id+'Body">'+body+'</div>';document.body.appendChild(m);
+  bg.onclick=()=>{m.classList.add('hidden');bg.classList.add('hidden')};m.querySelector('[data-close]').onclick=()=>{m.classList.add('hidden');bg.classList.add('hidden')};
+  return m;
+}
+function showOverlay(id){$(id).classList.remove('hidden');$(id+'Bg').classList.remove('hidden')}
+function historyView(){
+  const h=readHistory(),today=new Date(),y=today.getFullYear(),mo=today.getMonth(),last=new Date(y,mo+1,0).getDate(),first=new Date(y,mo,1).getDay();
+  let html='<div class="calendar"><div class="cal-head"><b>'+today.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b></div><div class="cal-grid">';
+  ['S','M','T','W','T','F','S'].forEach(d=>html+='<span class="cal-d">'+d+'</span>');
+  for(let i=0;i<first;i++)html+='<span></span>';
+  for(let d=1;d<=last;d++){const key=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),entry=h.find(x=>x.date===key);html+='<button class="cal-day '+(entry?'has':'')+'" data-date="'+key+'"><b>'+d+'</b>'+(entry?'<img src="'+entry.image+'" alt="">':'')+'</button>'}
+  html+='</div></div><div class="history-list">'+(h.length?h.slice(0,20).map(x=>'<div class="history-row"><img src="'+x.image+'" alt=""><div><b>'+x.name+'</b><small>'+x.date+' · '+x.type+'</small></div></div>').join(''):'<p class="status">No history yet.</p>')+'</div>';
+  const m=addOverlay('historyModal','History',html);showOverlay('historyModal');
+  m.querySelectorAll('.cal-day.has').forEach(b=>b.onclick=()=>{const e=h.find(x=>x.date===b.dataset.date);if(e)alert(e.name+'\\n'+e.date)});
+}
+function settingsView(){
+  const all=[...F,...S.custom],hidden=all.filter(x=>S.hidden.has(x.id));
+  const body='<div class="settings-stack"><h4>Hidden Choices</h4><div id="hiddenRows">'+(hidden.length?hidden.map(x=>'<div class="food-row"><span>'+x.name+'</span><button class="restore" data-restore="'+x.id+'">Restore</button></div>').join(''):'<p class="status">Nothing hidden.</p>')+'</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the clean default food list and clears saved round changes.</p></div>';
+  const m=addOverlay('settingsModal','Settings',body);showOverlay('settingsModal');
+  m.querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>{S.hidden.delete(b.dataset.restore);persist();settingsView()});
+  m.querySelector('#systemRestore').onclick=()=>{if(confirm('Restore the default Dinliminate setup and clear this saved round?')){S.hidden.clear();S.custom=[];S.cutCats.clear();S.cutPrimary.clear();S.maybe.clear();S.pool=[];S.index=0;localStorage.removeItem(KEY);persist();settingsView();home()}};
+}
+$('settings').onclick=()=>{openDrawer(false);settingsView()};
+const historyButton=document.createElement('button');historyButton.className='drawer-row';historyButton.id='historyDynamic';historyButton.innerHTML='History <span>›</span>';$('settings').insertAdjacentElement('beforebegin',historyButton);historyButton.onclick=()=>{openDrawer(false);historyView()};
+$('details').onclick=()=>alert('Details will use the saved item record in the next cleanup pass.');
+const cp4=document.createElement('style');cp4.textContent='.calendar{margin-bottom:15px}.cal-head{padding:4px 0 12px;color:#eee}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal-d{font-size:9px;color:#666;text-align:center;padding:3px}.cal-day{position:relative;min-height:47px;border-radius:9px;background:#1b1b1b;color:#ddd;text-align:left;padding:5px;border:1px solid #282828;overflow:hidden}.cal-day.has{border-color:#555}.cal-day b{position:relative;z-index:2;font-size:10px}.cal-day img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5}.cal-day img~b{color:#fff;text-shadow:0 1px 3px #000}.history-row{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;border-top:1px solid #292929;padding:9px 0}.history-row img{width:48px;height:48px;object-fit:cover;border-radius:10px}.history-row b{display:block;font-size:13px}.history-row small{display:block;color:#666;margin-top:2px}.settings-stack h4{margin:16px 0 7px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.1em}';document.head.appendChild(cp4);
+
 </script>
 </main>
 </body>
