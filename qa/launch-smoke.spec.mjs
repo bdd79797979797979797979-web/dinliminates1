@@ -123,7 +123,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await location.fill(TEST_ADDRESS);
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
   await page.locator('.restaurant-address-suggestion').first().click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({ timeout: 70000 });
 
   const hours = page.locator('#restaurantOpenUnknownBtn');
   await expect(hours).toHaveText(/Open \/ Unknown/);
@@ -164,7 +164,7 @@ test('restaurant Quick Cuts stay synced to the active radius and inline restaura
   await page.locator('#restaurantLocationInput').fill(TEST_ADDRESS);
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible({ timeout: 20000 });
   await page.locator('.restaurant-address-suggestion').first().click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible({ timeout: 70000 });
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({ timeout: 70000 });
 
   const area = await page.evaluate(() => {
     const s = window.DinliminateRestaurantSearchV3?.state?.();
@@ -243,7 +243,7 @@ test('deterministic live restaurant Quick Cut scope tracks radius, Maybe, Back a
   await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
   await page.locator('.restaurant-address-suggestion').first().click();
   await page.locator('#restaurantLoadBtn').click();
-  await expect(page.locator('.restaurant-card-v240')).toBeVisible({timeout:10000});
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
 
   const fast=page.locator('#restaurantQuickCuts button[data-launch-rq="fast_food"]').first();
   const american=page.locator('#restaurantQuickCuts button[data-launch-rq="american"]').first();
