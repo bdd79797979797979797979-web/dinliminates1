@@ -168,6 +168,10 @@ Added a non-runtime release gate marker and kept Vercel/Netlify preview verifica
 Commit: `98d25db3e19a39559d062175f2d45c6f189ad116`
 Restored the full clean application after a bad matcher patch truncated `app.js`, then safely reapplied the case-normalized hours matcher. Syntax checks pass.
 
+## CP42 — align static QA with clean app architecture
+Commit: `464451389ed053d5c9d064737e25c74216e988cc`
+Static QA now checks the actual single-source app function names rather than retired prototype names.
+
 ## Recovery
 Branch: `clean-rebuild` (deployable app at repository root)
 Legacy production app remains on `main`.
