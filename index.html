@@ -8077,7 +8077,14 @@ bind('homePhoneHelpBtn','click',()=>openPhoneHelp());
 bind('searchBtn','click',startSearch);
 
 bind('restaurantSearchBtn','click',()=>{const box=$('restaurantInlineSearch');const btn=$('restaurantSearchBtn');if(!box||!btn)return;const open=!box.classList.contains('hidden');box.classList.toggle('hidden',open);btn.setAttribute('aria-expanded',String(!open));if(!open)$('restaurantInlineSearchInput')?.focus();});
-/* Open/Closed is owned by launch-hardening.js; keep exactly one click handler. */
+/* P724 — the hours control owns a real click path; it toggles Open / Unknown ↔ Closed. */
+bind('restaurantOpenUnknownBtn','click',(e)=>{
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  const current=safeRead('dinliminateRestaurantHoursFilter','open-unknown')==='closed'?'closed':'open-unknown';
+  setRestaurantHoursFilter(current==='closed'?'open-unknown':'closed');
+  toast(current==='closed'?'Showing open / unknown-hour restaurants.':'Showing closed restaurants.');
+});
 bind('restaurantInlineSearchInput','input',e=>{restaurantFilters.query=String(e.target.value||'');saveRestaurantFilters();renderRestaurantQuickCuts();renderRestaurantStage();window.renderRestaurantQuickCuts?.();});
 
 bind('cutBtn','click',(e)=>{e?.preventDefault?.();window.cutCurrent?.($('stage')?.querySelector('.active'));});
@@ -9376,4 +9383,4 @@ body.restaurant-mode .restaurant-stage .restaurant-order-btn-v240{
 }
 </style>
 
-<!-- P723 Tinder swipe parity: Food + Restaurant gestures now use important live transforms and throw transitions. -->
+<!-- P724 hours-toggle fix + Tinder swipe parity. -->
