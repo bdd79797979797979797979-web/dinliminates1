@@ -126,3 +126,43 @@ test('P730 final-state virtual user regression', async ({ page }) => {
 
   expect(errors).toEqual([]);
 });
+
+
+test('Menu navigation exposes Saved and keeps Winner out', async ({ page }) => {
+  test.setTimeout(30000);
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+
+  await page.goto(BASE, { waitUntil:'domcontentloaded' });
+  await page.setViewportSize({width:390,height:844});
+
+  await page.locator('#homeMenuTopBtn').click();
+  await expect(page.locator('#drawer')).toBeVisible();
+
+  await expect(page.locator('#drawer .drawer-title')).toHaveText('Menu');
+  await expect(page.locator('#savedMenuBtn')).toBeVisible();
+  await expect(page.locator('#historyMenuBtn')).toBeVisible();
+  await expect(page.locator('#restaurantsMenuBtn')).toBeVisible();
+  await expect(page.locator('#addMenuBtn')).toBeVisible();
+  await expect(page.locator('#settingsBtn')).toBeVisible();
+  await expect(page.locator('#aboutMenuBtn')).toBeVisible();
+  await expect(page.locator('#winnerMenuBtn')).toHaveCount(0);
+
+  await page.locator('#savedMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('[data-library-tab="saved"]')).toHaveClass(/active/);
+  await expect(page.locator('#libraryTitle')).toHaveText('Your picks');
+
+  await page.locator('#closeLibraryBtn').click();
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#historyMenuBtn').click();
+  await expect(page.locator('#libraryBackdrop')).toBeVisible();
+  await expect(page.locator('[data-library-tab="history"]')).toHaveClass(/active/);
+
+  await page.locator('#closeLibraryBtn').click();
+  await page.locator('#homeMenuTopBtn').click();
+  await page.locator('#aboutMenuBtn').click();
+  await expect(page.locator('#infoBody')).toContainText('Made by Brian Dunn for Devona Dunn.');
+
+  expect(errors).toEqual([]);
+});
