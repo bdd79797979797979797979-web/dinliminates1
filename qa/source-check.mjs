@@ -32,7 +32,7 @@ for (const rel of files) {
       if (required === 'reportBtn') continue;
       if (!html.includes('id="' + required + '"')) failures.push('missing required id #' + required);
     }
-    if (!html.includes('p716-launch-candidate')) failures.push('P716 release marker missing');
+    if (!html.includes('p733-launch-lock')) failures.push('P733 launch marker missing');
   }
 }
 
