@@ -10,7 +10,9 @@ global.fetch = async (url) => {
   if (u.hostname === 'geocode.arcgis.com' && u.pathname.endsWith('/findAddressCandidates')) {
     const q = u.searchParams.get('SingleLine') || '';
     return response({candidates:[{
-      address: q.toLowerCase().startsWith('801')
+      address: q === 'Cla'
+        ? 'Cla'
+        : q.toLowerCase().startsWith('801')
         ? '801 Iron Workers Rd, Clarksville, Tennessee, 37043'
         : 'Clarksville, Tennessee',
       score: 100,
@@ -44,10 +46,14 @@ function res(){
 
 (async()=>{
   let r=res(); await handler({method:'GET',query:{mode:'health'},headers:{}},r);
-  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v733-hours-metadata');
+  assert.equal(r.statusCode,200); assert.equal(r.body.maxRadiusMiles,100); assert.equal(r.body.version,'restaurant-v739-search-quality');
 
   r=res(); await handler({method:'GET',query:{mode:'suggest',q:'801 Iron Workers Rd, Clarksville, TN'},headers:{}},r);
   assert.equal(r.statusCode,200); assert(r.body.results.length>=1);
+  assert(r.body.results[0].precision==='address');
+
+  r=res(); await handler({method:'GET',query:{mode:'suggest',q:'Cla'},headers:{}},r);
+  assert.equal(r.statusCode,200); assert.equal(r.body.results.length,0);
 
   r=res(); await handler({method:'GET',query:{mode:'resolve',q:'801 Iron Workers Rd, Clarksville, TN'},headers:{}},r);
   assert.equal(r.statusCode,200); assert.equal(r.body.precision,'address');
