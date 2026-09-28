@@ -1307,3 +1307,64 @@ test('P743 one-choice finishing rules are identical for food and restaurants', a
   await expect(page.locator('.restaurant-hungry-state')).toBeVisible();
   await expect(page.locator('#restaurantTopCount')).toHaveText('0');
 });
+
+
+
+test('P744 focused touch hit-test and Pasta Quick Cut restore regression', async ({ page }) => {
+  test.setTimeout(30000);
+  page.setDefaultTimeout(5000);
+  const fixture=[
+    {id:'tap-mcd',name:"McDonald's",type:'restaurant',fastFood:true,category:'Fast Food',tags:['restaurant','fast_food','burger'],distanceMiles:1,openNow:true,address:'1 Main St, Nashville, TN',lat:36.1,lon:-86.1},
+    {id:'tap-pasta',name:'Pasta House',type:'restaurant',fastFood:false,category:'Pasta',cuisine:'italian',tags:['restaurant','pasta','italian'],distanceMiles:2,openNow:true,address:'2 Main St, Nashville, TN',lat:36.2,lon:-86.2},
+    {id:'tap-other',name:'Southern Kitchen',type:'restaurant',fastFood:false,category:'Southern',cuisine:'southern',tags:['restaurant','southern'],distanceMiles:3,openNow:true,address:'3 Main St, Nashville, TN',lat:36.3,lon:-86.3}
+  ];
+  await page.route('**/api/restaurant-search?*',async route=>{
+    const u=new URL(route.request().url()),m=u.searchParams.get('mode');
+    let body={};
+    if(m==='suggest')body={results:[{display:'QA Tap Address, Nashville, TN',query:'QA Tap Address, Nashville, TN',precision:'address',lat:36.1,lon:-86.1}]};
+    else if(m==='resolve')body={location:{lat:36.1,lon:-86.1},display:'QA Tap Address, Nashville, TN',precision:'address'};
+    else if(m==='search'){body={results:fixture,businesses:fixture,restaurants:fixture,items:fixture,total:fixture.length,fastFoodCount:1,providersUsed:['QA tap fixture'],diagnostics:{}};}
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  });
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#homeRestaurantQuick').click();
+  await page.locator('#restaurantLocationInput').fill('QA Tap Address');
+  await expect(page.locator('.restaurant-address-suggestion').first()).toBeVisible();
+  await page.locator('.restaurant-address-suggestion').first().click();
+  await expect(page.locator('.restaurant-card-v240.active')).toBeVisible({timeout:10000});
+
+  const pasta=page.locator('#restaurantQuickCuts button[data-launch-rq="pasta"]');
+  await expect(pasta).toHaveAttribute('aria-pressed','false');
+  await pasta.click();
+  await expect(pasta).toHaveAttribute('aria-pressed','true');
+  await expect.poll(async()=>page.evaluate(()=>restaurantQuickCuts.has('pasta'))).toBe(true);
+  const stateAfterHide=await page.evaluate(()=>({active:activeRestaurants.map(r=>r.name), quick:[...restaurantQuickCuts]}));
+  expect(stateAfterHide.active).not.toContain('Pasta House');
+
+  await page.locator('#restaurantQuickCuts button[data-launch-rq="pasta"]').click();
+  await expect.poll(async()=>page.evaluate(()=>restaurantQuickCuts.has('pasta'))).toBe(false);
+  await expect.poll(async()=>page.evaluate(()=>activeRestaurants.some(r=>r.name==='Pasta House'))).toBe(true);
+
+  await page.evaluate(() => {
+    restaurantFilters.query='';
+    restaurantQuickCuts=new Set();
+    activeRestaurants=[restaurantItems.find(r=>r.name==='Pasta House')];
+    holdingRestaurants=[];
+    restaurantFinalistMode=false;
+    restaurantEliminationExhausted=false;
+    renderRestaurantStage();
+    syncRestaurantActionLabels();
+  });
+  const keep=page.locator('#restaurantKeepBtn');
+  await expect(keep).toHaveText('Choose');
+  const hit=await keep.evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
+    return {button:{x:r.x,y:r.y,w:r.width,h:r.height},hitId:top?.id||'',hitClass:String(top?.className||'')};
+  });
+  console.log('P744 restaurant choose hit-test',JSON.stringify(hit));
+  expect(hit.hitId).toBe('restaurantKeepBtn');
+  await keep.click();
+  await expect(page.locator('#winnerPanel')).toBeVisible();
+  await expect(page.locator('#winnerName')).toHaveText('Pasta House');
+});
