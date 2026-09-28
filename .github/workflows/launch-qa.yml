@@ -35,6 +35,10 @@ jobs:
         env:
           DINLIMINATE_BASE_URL: http://127.0.0.1:4173
         run: npx playwright test qa/launch-smoke.spec.mjs --reporter=line
+      - name: Install Python Playwright for deep browser audit
+        run: python3 -m pip install --disable-pip-version-check playwright
+      - name: Run deep browser audit
+        run: python3 qa/final_browser_audit.py
 
   restaurant_quickcut_focus:
     runs-on: ubuntu-latest
