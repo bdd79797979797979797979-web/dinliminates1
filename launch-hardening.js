@@ -222,8 +222,10 @@
 
   function filterRestaurants(){
     let a=[...(activeRestaurants||[])];
-    const q=String(restaurantFilters.query||'').trim().toLowerCase();
-    if(q)a=a.filter(r=>`${r.name||''} ${r.address||''} ${r.brand||''} ${r.operator||''} ${r.category||''}`.toLowerCase().includes(q));
+    const q=String(restaurantFilters.query||'').trim().toLowerCase().replace(/[\u2019']/g,'');
+    if(q)a=a.filter(r=>[r?.name,r?.brand,r?.operator,r?.category,r?.cuisine,...(Array.isArray(r?.tags)?r.tags:[r?.tags]),...(Array.isArray(r?.menuItems)?r.menuItems:[r?.menuItems])].filter(Boolean).join(' ').toLowerCase().replace(/[\u2019']/g,'').includes(q));
+    const hours=read('dinliminateRestaurantHoursFilter','open-unknown')==='all'?'all':'open-unknown';
+    if(hours==='open-unknown')a=a.filter(r=>restaurantOpenStatus?.(r)!==false);
     if(restaurantFilters.sort==='closest')a.sort((x,y)=>(Number(x.distanceMiles)||Infinity)-(Number(y.distanceMiles)||Infinity));
     return a;
   }
