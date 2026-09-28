@@ -50,7 +50,7 @@ markers={
 'fast food in search': 'fast_food' in api and 'FAST_FOOD_BRANDS' in api,
 'pwa sw registration': 'serviceWorker.register' not in html and 'RECOVERY' in sw,
 'pwa manifest icons': 'dinliminate-icon-180.png' in (base/'dinliminate.webmanifest').read_text() and 'dinliminate-icon-512.png' in (base/'dinliminate.webmanifest').read_text(),
-'version consistency core': 'p715-photon-nominatim-fallback' in (html+hard+api+clean) and 'DINLIMINATE' in sw,
+'version consistency core': 'p716-launch-candidate' in (html+hard+api+clean) and 'DINLIMINATE' in sw,
 'dynamic winner ids removed': 'id="winnerSaveBtn"' not in html and 'id="winnerDetailsBtn"' not in html,
 'dynamic restaurant empty ids removed': 'id="restaurantEmptyFind"' not in html and 'id="restaurantEmptyLocation"' not in html,
 }
