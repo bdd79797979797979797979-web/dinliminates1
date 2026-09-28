@@ -9593,8 +9593,9 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
     };
   }
 
+  function cancel(){ ST.seq++; ST.autoSeq++; ST.searching=false; clearTimeout(ST.queryTimer); ST.queryTimer=0; clearTimeout(ST.autoTimer); ST.autoTimer=0; clearSuggestions(); busy('find',false); }
   const controller={
-    version:V,find,locate,setRadius,refresh,setQuery,diagnose,
+    version:V,find,locate,setRadius,refresh,setQuery,diagnose,cancel,
     state:()=>({...ST,radius:clamp(restaurantRadiusMiles),mode:restaurantLocationMode,area:restaurantAreaCoords,device:userCoords})
   };
 
