@@ -381,3 +381,7 @@ Feature completion:
 - Provider menu/dish metadata surfaced on restaurant cards and Details.
 - Compact "My Location" control.
 - Tinder-style drag/tilt/stamp swipe for Food and Restaurant.
+
+## CP81 — pre-hardening recovery point
+Branch head before the next feature-hardening pass: `4827c8c08979574afc6d13f009f454f523617b33`.
+CP80 contains the requested feature set through premium Tinder-style swipe behavior. Any subsequent edits should be reversible to this point.
