@@ -7495,6 +7495,9 @@ function afterEliminate(action) {
   }
   if (activeItems.length === 0) { showHungryState(); return; }
   renderStage();
+  // Recompute the visible action state after every elimination. At one choice,
+  // Maybe becomes Choose immediately instead of leaving stale "Maybe" chrome.
+  syncDecisionActionLabels();
   setStatus(activeItems.length <= 5 ? 'Narrow it down…' : 'Keep swiping.', 'live');
 }
 
