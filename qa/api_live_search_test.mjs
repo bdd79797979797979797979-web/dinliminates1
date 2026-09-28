@@ -29,12 +29,27 @@ const burger = await call({mode:'search', ...center, q:'burger'});
 assert.equal(burger.statusCode,200,JSON.stringify(burger.data));
 assert.equal(burger.data.ok,true);
 const bRows = burger.data.results || [];
+assert.ok(bRows.length >= 2, 'Burger search should return multiple burger restaurants when the provider data supports them; got '+bRows.length);
 assert.ok(bRows.length > 0, 'Burger search returned no restaurants');
 const burgerBrands = /\b(?:mcdonalds?|wendys?|burger king|five guys|whataburger|culvers?|sonic|steak n shake|shake shack|hardees?|carls jr|checkers|rallys|white castle|jack in the box|freddys?)\b/i;
 for (const r of bRows) {
   const hay=[r.name,r.brand,r.operator,r.category,r.cuisine,...(r.tags||[]),...(r.menuItems||[])].filter(Boolean).join(' ');
   assert.ok(/burger|hamburger/i.test(hay)||burgerBrands.test(hay),
     'Burger search returned non-burger result: '+r.name+' ['+hay+']');
+}
+
+
+const radiusChecks=[];
+for(const radius of [15,25,50,75,100]){
+  const out=await call({mode:'search',lat:center.lat,lon:center.lon,radius});
+  assert.equal(out.statusCode,200,JSON.stringify(out.data));
+  const rows=out.data.results||[];
+  assert.ok(rows.every(r=>Number(r.distanceMiles)<=radius+0.001),'Radius '+radius+' returned an out-of-radius result.');
+  radiusChecks.push({radius,count:rows.length});
+}
+for(let i=1;i<radiusChecks.length;i++){
+  assert.ok(radiusChecks[i].count>=radiusChecks[i-1].count,
+    'Radius count shrank: '+radiusChecks[i-1].radius+'mi='+radiusChecks[i-1].count+' -> '+radiusChecks[i].radius+'mi='+radiusChecks[i].count);
 }
 
 const pasta = await call({mode:'search', ...center, q:'pasta'});
@@ -52,5 +67,6 @@ console.log(JSON.stringify({
   burgerCount:bRows.length,
   burgerNames:bRows.slice(0,12).map(r=>r.name),
   pastaCount:pRows.length,
+  radiusChecks,
   elapsed:{wendys:wendy.data?.diagnostics?.elapsedMs,burger:burger.data?.diagnostics?.elapsedMs,pasta:pasta.data?.diagnostics?.elapsedMs}
 },null,2));
