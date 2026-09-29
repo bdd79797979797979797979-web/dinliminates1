@@ -295,7 +295,7 @@ assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https:
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .website-action').innerText(),'Website ↗','Restaurant Website action should be professional');
-assert.equal(await page.locator('#restDetails').innerText(),'ⓘ','Restaurant Details action should use an info symbol');
+assert.equal(await page.locator('#restDetails').innerText(),'Details','Restaurant Details action should use a professional label');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
@@ -437,7 +437,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+117/i);
+assert.match(aboutText,/Build\s+118/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
