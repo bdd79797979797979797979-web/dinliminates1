@@ -443,7 +443,7 @@ function hourStatus(row){
     $('status').textContent = 'Finding your location…';
     navigator.geolocation.getCurrentPosition(async pos => {
       try {
-        const r = await fetch('./api/restaurants?mode=reverse&lat='+encodeURIComponent(pos.coords.latitude)+'&lon='+encodeURIComponent(pos.coords.longitude));
+        const r = await fetch('/api/restaurant-search?mode=reverse&lat='+encodeURIComponent(pos.coords.latitude)+'&lon='+encodeURIComponent(pos.coords.longitude));
         const d = await r.json();
         setLocation(pos.coords.latitude, pos.coords.longitude, d.display || 'Current location');
         $('status').textContent = 'Location ready.';
@@ -467,7 +467,7 @@ function hourStatus(row){
     clearTimeout(suggestTimer);
     suggestTimer = setTimeout(async () => {
       try {
-        const r = await fetch('./api/restaurants?mode=suggest&q='+encodeURIComponent(q));
+        const r = await fetch('/api/restaurant-search?mode=suggest&q='+encodeURIComponent(q));
         const d = await r.json();
         if (seq !== suggestSeq) return;
         renderSuggestions(d.results || []);
@@ -515,7 +515,7 @@ function hourStatus(row){
       if (!loc) {
         const q = $('address').value.trim();
         if (!q) { $('status').textContent = 'Enter an address or use your location.'; return; }
-        const rr = await fetch('./api/restaurants?mode=resolve&q='+encodeURIComponent(q));
+        const rr = await fetch('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q));
         const rd = await rr.json();
         if (searchSeq !== restaurantSearchSeq) return;
         if (!rr.ok || !rd.ok) throw new Error(rd.message || 'Could not locate that address.');
@@ -524,7 +524,7 @@ function hourStatus(row){
         $('address').value = rd.display;
       }
       const radius = Number($('radius').value) || 10;
-      const rr = await fetch('./api/restaurants?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius);
+      const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius);
       const d = await rr.json();
       if (searchSeq !== restaurantSearchSeq) return;
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
