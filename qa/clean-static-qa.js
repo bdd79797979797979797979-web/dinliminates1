@@ -71,3 +71,6 @@ assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
 
 assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
+
+assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
+assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
