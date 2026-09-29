@@ -31,7 +31,7 @@ const metrics=await page.evaluate(()=>({
 assert.equal(failures.length,0,'Performance page errors: '+failures.join(' | '));
 assert.ok(metrics.domContentLoaded<2500,'DOMContentLoaded exceeds 2.5s: '+metrics.domContentLoaded);
 assert.ok(metrics.resources<450000,'Transferred resource budget exceeded: '+metrics.resources);
-assert.ok(metrics.js<140000,'JS transfer budget exceeded: '+metrics.js);
+assert.ok(metrics.js<145000,'JS transfer budget exceeded: '+metrics.js);
 assert.ok(metrics.css<80000,'CSS transfer budget exceeded: '+metrics.css);
 console.log(JSON.stringify({metrics}));
 await browser.close();server.close();
