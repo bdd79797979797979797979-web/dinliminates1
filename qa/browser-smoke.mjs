@@ -98,7 +98,7 @@ assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),1
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the verified live Mexican stir-fry photo');
+assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry should use the verified live Mexican stir-fry photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected updated 65-food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
