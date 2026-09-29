@@ -6,23 +6,38 @@
   const $ = (id) => document.getElementById(id);
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
-  const HUNGRY_IMAGE = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85';
+  const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#efe7d7"/><ellipse cx="600" cy="470" rx="270" ry="120" fill="#d8d0c0"/><ellipse cx="600" cy="450" rx="220" ry="85" fill="#fbfaf7"/><path d="M700 250c70-42 146-5 150 52 5 73-79 96-130 51" fill="none" stroke="#20362d" stroke-width="18" stroke-linecap="round"/><path d="M520 285h-70m10 0v120m15-120v120m15-120v120m15-120v120" fill="none" stroke="#20362d" stroke-width="12" stroke-linecap="round"/><circle cx="530" cy="390" r="9" fill="#20362d"/><circle cx="670" cy="390" r="9" fill="#20362d"/><path d="M550 450c30 28 70 28 100 0" fill="none" stroke="#20362d" stroke-width="11" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
 
   const QUICK_IMAGES = {
-    Southern:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=500&q=80',
-    Pasta:'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=500&q=80',
-    Asian:'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80',
-    Mexican:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=500&q=80',
-    Pork:'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=500&q=80',
-    'Soup/Stew':'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=500&q=80',
-    Healthy:'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=500&q=80',
-    Breakfast:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80',
-    American:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80',
-    Greek:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=500&q=80',
-    Snack:'https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=500&q=80',
-    Potato:'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=500&q=80'
+    Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
+    Pasta:'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=700', // Spaghetti
+    Asian:'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg?auto=compress&cs=tinysrgb&w=700', // Fried Rice
+    Mexican:'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=700', // Tacos / Mexican Stir Fry family
+    Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700', // Pork Chops
+    'Soup/Stew':'https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg', // Potato Soup
+    Healthy:'https://images.pexels.com/photos/11906476/pexels-photo-11906476.jpeg?auto=compress&cs=tinysrgb&w=700', // Salad Bowl
+    Breakfast:'https://commons.wikimedia.org/wiki/Special:FilePath/Eggs%20and%20bacon.jpg?width=700', // Bacon & Eggs
+    American:'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=700', // Burger
+    Greek:'https://images.pexels.com/photos/6941006/pexels-photo-6941006.jpeg?auto=compress&cs=tinysrgb&w=700', // Gyro
+    Snack:'https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=700&q=85', // Popcorn
+    Potato:'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/loaded_baked_potato.jpg' // Loaded Baked Potato
+  };
+
+  const REST_QUICK_IMAGES = {
+    American:'https://images.pexels.com/photos/262047/pexels-photo-262047.jpeg?auto=compress&cs=tinysrgb&w=700',
+    'Fast Food':'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Mexican:'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Asian:'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Pasta:'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Healthy:'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg?auto=compress&cs=tinysrgb&w=700',
+    'Soup/Stew':'https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg',
+    Potato:'https://images.pexels.com/photos/1442066/pexels-photo-1442066.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Greek:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
+    Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700',
+    BBQ:'https://images.pexels.com/photos/6672037/pexels-photo-6672037.jpeg?auto=compress&cs=tinysrgb&w=700'
   };
 
   const S = {
@@ -149,7 +164,7 @@
   function foodQuick() {
     $('foodQuick').innerHTML = FOOD_QUICK.map(label => {
       const cut = S.cutCats.has(label);
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(QUICK_IMAGES[label] || QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
     }).join('');
     document.querySelectorAll('[data-food-quick]').forEach(btn => {
       btn.onclick = () => {
@@ -715,7 +730,8 @@ function hourStatus(row){
     S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
     if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
     show('winner');
-    $('winName').textContent = item.name;
+    const hungry = item?.category === 'Hungry';
+    $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
     $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
     $('winImg').alt = item.name;
     save();
