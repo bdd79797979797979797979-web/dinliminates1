@@ -2,10 +2,22 @@ const MAX_RADIUS=100;
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food|cafe|pub|food_court';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
-const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle|ruby tuesday|applebee|chili.?s|olive garden|longhorn steakhouse|outback steakhouse|cracker barrel|texas roadhouse|o charley|logans road|red lobster|panera bread)\b/i;
-const cache=new Map(),buckets=new Map();
+const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle)\b/i;
+const CHAIN_FALLBACK=['Ruby Tuesday','Chipotle','The Thirsty Goat','Applebee\'s','Chili\'s','Olive Garden','LongHorn Steakhouse','Outback Steakhouse','Cracker Barrel','Texas Roadhouse','O\'Charley\'s','Logan\'s Roadhouse','Red Lobster','Panera Bread'];
+const timezoneCache=new Map(),cache=new Map(),buckets=new Map();
 function n(v,d=NaN){const x=Number(v);return Number.isFinite(x)?x:d}
 function clamp(v){return Math.min(MAX_RADIUS,Math.max(1,n(v,DEFAULT_RADIUS)))}
+function validCoords(lat,lon){return Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180}
+async function timezone(lat,lon){
+ const key=lat.toFixed(2)+':'+lon.toFixed(2),hit=timezoneCache.get(key);
+ if(hit&&Date.now()-hit.t<21600000)return hit.zone;
+ try{
+  const d=await json('https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({latitude:String(lat),longitude:String(lon),current:'temperature_2m',timezone:'auto'}).toString(),{},4500);
+  const zone=String(d?.timezone||'').trim();
+  if(zone){timezoneCache.set(key,{t:Date.now(),zone});return zone}
+ }catch{}
+ return '';
+}
 function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
 async function json(url,opt={},timeout=9000){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),timeout);try{const r=await fetch(url,{...opt,signal:ctl.signal,headers:{Accept:'application/json',...(opt.headers||{})}});const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}if(!r.ok)throw new Error('HTTP '+r.status);return data}finally{clearTimeout(t)}}
@@ -112,14 +124,52 @@ function image(r){
   return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
 }
 async function geocode(q){const clean=String(q||'').trim().slice(0,180);if(!clean)throw Object.assign(new Error('Enter a location.'),{code:'EMPTY_LOCATION'});let rows=[];try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'6',outFields:'*',forStorage:'false',countryCode:'USA'}),{},8000);for(const c of d?.candidates||[]){const lat=n(c?.location?.y),lon=n(c?.location?.x);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:String(c.address||c.attributes?.Match_addr||clean),score:n(c.score,0)+500})}}catch{}if(!rows.length){try{const d=await json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'6',lang:'en',countrycode:'US'}),{},8000);for(const f of d?.features||[]){const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:[f?.properties?.name,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean,score:100})}}catch{}}if(!rows.length)throw Object.assign(new Error('That address or area could not be located.'),{code:'NOT_FOUND'});rows.sort((a,b)=>b.score-a.score);return rows[0]}
-async function suggest(q){const clean=String(q||'').trim().slice(0,180);if(clean.length<2)return[];const rows=[];try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'7',outFields:'*',forStorage:'false',countryCode:'USA'}),{},7000);for(const c of d?.candidates||[]){const lat=n(c?.location?.y),lon=n(c?.location?.x);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:String(c.address||c.attributes?.Match_addr||clean),source:'ArcGIS'})}}catch{}try{const d=await json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'7',lang:'en',countrycode:'US'}),{},7000);for(const f of d?.features||[]){const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:[f?.properties?.name,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean,source:'Photon'})}}catch{}const seen=new Set();return rows.filter(x=>{const k=norm(x.display);if(seen.has(k))return false;seen.add(k);return true}).slice(0,7)}
+async function suggest(q){
+ const clean=String(q||'').trim().slice(0,180);if(clean.length<2)return[];
+ const rows=[];
+ const [arc,pho]=await Promise.allSettled([
+  json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'7',outFields:'*',forStorage:'false',countryCode:'USA'}),{},6000),
+  json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'7',lang:'en',countrycode:'US'}),{},6000)
+ ]);
+ if(arc.status==='fulfilled')for(const c of arc.value?.candidates||[]){const lat=n(c?.location?.y),lon=n(c?.location?.x);if(validCoords(lat,lon))rows.push({lat,lon,display:String(c.address||c.attributes?.Match_addr||clean),source:'ArcGIS'})}
+ if(pho.status==='fulfilled')for(const f of pho.value?.features||[]){const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);if(validCoords(lat,lon))rows.push({lat,lon,display:[f?.properties?.name,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean,source:'Photon'})}
+ const seen=new Set();return rows.filter(x=>{const k=norm(x.display);if(seen.has(k))return false;seen.add(k);return true}).slice(0,7)
+}
 async function reverse(lat,lon){try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?'+new URLSearchParams({location:lon+','+lat,f:'json'}),{},7000);return String(d?.address?.Match_addr||'Current location')}catch{return'Current location'}}
 async function handler(req,res){const mode=String(req?.query?.mode||'health').toLowerCase();if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Too many requests. Try again shortly.'});try{
-if(mode==='health')return res.status(200).json({ok:true,version:'r12',maxRadiusMiles:MAX_RADIUS,providers:['OpenStreetMap Overpass','ArcGIS','Photon']});
+if(mode==='health')return res.status(200).json({ok:true,version:'r12',maxRadiusMiles:MAX_RADIUS,providers:['OpenStreetMap Overpass','ArcGIS','Photon','Open-Meteo timezone']});
 if(mode==='suggest')return res.status(200).json({ok:true,results:await suggest(req.query.q)});
 if(mode==='resolve'){const x=await geocode(req.query.q);return res.status(200).json({ok:true,...x})}
-if(mode==='reverse'){const lat=n(req.query.lat),lon=n(req.query.lon);if(!Number.isFinite(lat)||!Number.isFinite(lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
-if(mode==='search'){const lat=n(req.query.lat),lon=n(req.query.lon),radius=clamp(req.query.radius);if(!Number.isFinite(lat)||!Number.isFinite(lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});const key=lat.toFixed(3)+':'+lon.toFixed(3)+':'+radius,hit=cache.get(key);if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);const photonPromise=photonPlaces(lat,lon,radius);const arcgisPromise=arcgisPlaces(lat,lon,radius);const fallbackRadius=Math.min(radius,50);const fallbackPromise=radius<=50?Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food|cafe|pub|food_court'),overpass(lat,lon,fallbackRadius,'fast_food')]):Promise.resolve([]);const [photonResult,arcgisResult,fallbackResult]=await Promise.allSettled([photonPromise,arcgisPromise,fallbackPromise]);const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};let osmOut={rows:[],errors:[]};if(fallbackResult.status==='fulfilled'){for(const x of fallbackResult.value||[])if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'))}else osmOut.errors.push(String(fallbackResult.reason?.message||fallbackResult.reason||'Overpass unavailable'));if(!photonOut.rows.length&&radius>50){const extra=await overpass(lat,lon,radius,DINING_AMENITIES);osmOut.rows.push(...(extra.rows||[]));osmOut.errors.push(...(extra.errors||[]))}const rows=dedupe([...(photonOut.rows||[]),...(arcgisOut.rows||[]),...(osmOut.rows||[])]).map(r=>({...r,photo:image(r)}));if(!rows.length&&photonOut.errors.length&&arcgisOut.errors.length&&osmOut.errors.length)throw Object.assign(new Error('Restaurant providers are temporarily unavailable. Please try again.'),{code:'PROVIDER_UNAVAILABLE'});const data={ok:true,version:'r12',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors].slice(0,8),results:rows};cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
+if(mode==='reverse'){const lat=n(req.query.lat),lon=n(req.query.lon);if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
+if(mode==='search'){
+ const lat=n(req.query.lat),lon=n(req.query.lon),radius=clamp(req.query.radius);
+ if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});
+ const key=lat.toFixed(3)+':'+lon.toFixed(3)+':'+radius,hit=cache.get(key);
+ if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);
+ const [photonResult,arcgisResult]=await Promise.allSettled([photonPlaces(lat,lon,radius),arcgisPlaces(lat,lon,radius)]);
+ const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};
+ const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};
+ const preliminary=dedupe([...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
+ const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
+ let osmOut={rows:[],errors:[]};
+ const needsFallback=!preliminary.length||preliminaryFast===0||(radius<=25&&preliminaryFast<2);
+ if(needsFallback){
+  const fallbackRadius=Math.min(radius,50);
+  const got=await Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food|cafe|pub|food_court'),overpass(lat,lon,fallbackRadius,'fast_food')]);
+  for(const x of got){
+   if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}
+   else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'));
+  }
+ }
+ if(radius>50&&(!preliminary.length||preliminaryFast===0)){
+  const extra=await overpass(lat,lon,radius,DINING_AMENITIES);
+  osmOut.rows.push(...(extra.rows||[]));osmOut.errors.push(...(extra.errors||[]));
+ }
+ const rows=dedupe([...preliminary,...osmOut.rows]).map(r=>({...r,photo:image(r)}));
+ if(!rows.length&&photonOut.errors.length&&arcgisOut.errors.length&&osmOut.errors.length)throw Object.assign(new Error('Restaurant providers are temporarily unavailable. Please try again.'),{code:'PROVIDER_UNAVAILABLE'});
+ const zone=await timezone(lat,lon);
+ const data={ok:true,version:'r13',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors].slice(0,8),results:rows};
+ cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
-}catch(e){console.error('dinliminate-r10',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
+}catch(e){console.error('dinliminate-r13',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
 module.exports=handler;
