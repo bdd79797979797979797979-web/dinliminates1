@@ -44,13 +44,13 @@ await page.route('**/*', async route => {
   }
   if (u.includes('/api/restaurant-search?mode=search')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:10,total:7,fastFoodCount:2,results:[
-      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',opening_hours:'24/7'},
-      {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7'},
-      {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7'},
-      {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7'},
-      {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7'},
-      {id:'asian-1',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:5.8,address:'600 Madison St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7'},
-      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'closed'}
+      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
+      {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
+      {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
+      {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
+      {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'},
+      {id:'asian-1',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:5.8,address:'600 Madison St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=85'},
+      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'closed',photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
     ]})});
   }
   if (u.startsWith('https://images.unsplash.com/') || u.startsWith('https://images.pexels.com/')) {
@@ -325,6 +325,8 @@ while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle();
 assert.equal((await qa()).foodPool.length,1);
 await click('#foodCut'); await settle(); assert.equal(await visible('winner'),true);
 await click('#restart'); await settle();
+await click('#menu'); await settle();
+await click('#backToStart'); await settle(); assert.equal((await qa()).screen,'home','Back to Start should return to the front page');
 await click('#menu'); await settle(); await click('#about'); await settle();
 assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
@@ -335,7 +337,22 @@ const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{mont
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About test build label should be gold');
 await page.locator('[data-close]').click(); await settle();
-await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open');
+await click('#menu'); await settle(); await click('#settings'); await settle();
+const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.doesNotMatch(settingsFoodText,/Deleted Foods/i); await page.locator('#settingsModal [data-close]').click(); await settle();
+await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
+
+// History calendar X deletion must remove the saved entry, not just persist it behind a stale render.
+await page.evaluate(() => {
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
+  const key=y+'-'+String(m).padStart(2,'0')+'-02';
+  localStorage.setItem('dinliminate.clean.history', JSON.stringify([{id:'hist-test',date:key,type:'food',name:'Calendar Test',image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',category:'Healthy'}]));
+});
+await click('#menu'); await settle(); await click('#history'); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),1,'History calendar should show an X delete control');
+await page.locator('[data-history-delete]').first().click(); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),0,'Calendar X should remove the entry from the calendar');
+assert.equal(await page.locator('.history-open').count(),0,'Calendar X should remove the deleted history row too');
+
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
