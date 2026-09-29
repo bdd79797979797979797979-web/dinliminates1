@@ -295,7 +295,7 @@ while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle();
 assert.equal(await visible('winner'),true,'Food elimination should produce winner');
 const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
 assert.equal(bg,'rgb(9, 9, 9)','winner should use the black winner window');
-await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); assert.match(await page.locator('#detailsModal').innerText(),/Recipe \/ notes/i,'Built-in food Details should include recipe notes'); await page.locator('#detailDone').click(); await settle();
+await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); assert.match(await page.locator('#detailsModal').innerText(),/Recipe \/ notes/i,'Built-in food Details should include recipe notes'); await page.locator('#detailsModal [data-close]').click(); await settle();
 
 await click('#restart'); await settle();
 await click('#menu'); await settle(); await click('#about'); await settle(); assert.equal(await visible('aboutModal'),true,'About should open'); await page.locator('[data-close]').click(); await settle();
