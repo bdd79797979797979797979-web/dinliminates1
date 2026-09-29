@@ -48,7 +48,7 @@ assert.match(byId.get('vegetable-lasagna')?.image||'',/29050589/,'Vegetable Lasa
 assert.match(byId.get('stuffed-peppers')?.image||'',/19359972/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
 
 const imageExpectations={
- tacos:/3264572/,
+ tacos:/33614195/,
  "stir-fry":/31673757/,
  meatloaf:/2397401/,
  "buttermilk-cornbread":/9704174/,
