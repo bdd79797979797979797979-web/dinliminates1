@@ -663,3 +663,14 @@
 .card-copy>.icon-action .details-icon{width:18px!important;height:18px!important}
 .card-card-action.icon-action{width:35px!important;min-width:35px!important;height:35px!important;min-height:35px!important;border-radius:10px!important}
 .card-card-action.icon-action .details-icon{width:18px!important;height:18px!important}
+
+/* CP243 — tighter card Details control and distinct Diagnosis action */
+.card-card-action.icon-action{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important;border-radius:9px!important;padding:0!important;margin-top:5px!important}
+.card-card-action.icon-action .details-icon{width:17px!important;height:17px!important}
+.card-copy>.icon-action{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important;border-radius:9px!important;margin-top:6px!important}
+.card-copy>.icon-action .details-icon{width:17px!important;height:17px!important}
+.settings-system-action.diagnosis-action{background:#194e6b;color:#fff;border-color:#2d7197;box-shadow:0 8px 20px #194e6b3a}
+.diagnosis-refresh.selected{background:#bfa16b!important;color:#111!important;border-color:#e1c98f!important}
+.diagnosis-refresh.complete{background:#171717;color:#d8c39b;border-color:#5a4c34}
+.diagnosis-run-status{font-size:10px;color:#777;letter-spacing:.02em}
+.diagnosis-run-status.running{color:#d7bf8e}
