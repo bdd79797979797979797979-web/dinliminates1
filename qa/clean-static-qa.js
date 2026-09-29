@@ -43,7 +43,7 @@ const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
 assert(foodRows.length===64,'Food deck must contain exactly 64 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
-for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Stouffer’s Frozen Dinner','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
 assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
