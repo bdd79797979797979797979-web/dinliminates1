@@ -7,7 +7,7 @@ const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
 const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '122';
+let APP_BUILD = '123';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
@@ -1248,7 +1248,7 @@ async function appDiagnosisView(){
     const healthShakeReady=!!byId.get('health-shake')?.ingredients?.length&&!!byId.get('health-shake')?.nutrition&&!!byId.get('health-shake')?.recipe&&byId.get('health-shake')?.quickCuts?.includes('Healthy');
    missing.length||wrongCuts.length||frozen||!cerealRename||!healthShakeReady?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':'',!healthShakeReady?'Health Shake details/Healthy Quick Cut data is incomplete.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
    const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
-    const imageIdsExpected={'tacos':'27626524','stir-fry':'4924603','meatloaf':'2397401','buttermilk-cornbread':'tastingtable.com/img/gallery/the-traditional-southern-dish-of-milk-soaked-cornbread/intro-1693250086.jpg','potato-soup':'5794/soup-leek-potato.jpg','stuffed-peppers':'31953510','stroganoff':'20234576','health-shake':'7683770'};
+    const imageIdsExpected={'tacos':'3264572','stir-fry':'31673757','meatloaf':'2397401','buttermilk-cornbread':'tastingtable.com/img/gallery/the-traditional-southern-dish-of-milk-soaked-cornbread/intro-1693250086.jpg','potato-soup':'5794/soup-leek-potato.jpg','stuffed-peppers':'22698511','stroganoff':'28503619','health-shake':'1098758','lasagna':'5949900','vegetable-lasagna':'29050589','salisbury-steak':'commons.wikimedia.org/wiki/Special:FilePath/Salisbury'};
     const staleImages=Object.entries(imageIdsExpected).filter(([id,photoId])=>!String(byId.get(id)?.image||'').includes(photoId)).map(([id])=>id);
    imageMissing.length||staleImages.length?fail('Food image catalog',[imageMissing.length?'Missing/invalid image URL: '+imageMissing.join(', '):'',staleImages.length?'Stale/unexpected photo mapping: '+staleImages.join(', '):''].filter(Boolean).join(' ')):pass('Food image catalog','All requested food photo mappings are present and current.');
    const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
@@ -1261,7 +1261,7 @@ async function appDiagnosisView(){
    try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal});clearTimeout(tm);const d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','Healthy · provider runtime '+String(d.version||'unknown')+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','HTTP '+rr.status+'.'));}catch{(location.hostname==='localhost'||location.hostname==='127.0.0.1')?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','Health check failed or timed out.');}
    pass('Decision model','Cut lowers the active count; Maybe/Keep stays in the count and is recycled into the narrowing pass.');
    pass('Final choice model','With one choice left: Cut opens Hungry; Maybe/Keep selects the winner and enables Share.');
-   pass('Details controls','Food and restaurant Details use a compact 32px crisp icon-only control with an accessible label.');
+   pass('Details controls','Food and restaurant Details use a compact 30px crisp icon-only control with an accessible label.');
    S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
    pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
    pass('Persistence','History, hidden choices, custom foods, and settings persist locally.');
