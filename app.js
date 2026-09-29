@@ -772,7 +772,7 @@ const signal=restaurantSearchController.signal;
 let timedOut=false;
 const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},20000);
 clearSuggestions(); setFindBusy(true); $('status').textContent = 'Searching restaurants…';
-$('restStage').innerHTML='<div class="restaurant-searching" aria-live="polite">Finding nearby restaurants…</div>';
+$('restStage').innerHTML='';
 try {
 let loc = S.location;
 if (!loc) {
