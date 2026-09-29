@@ -104,7 +104,8 @@ window.DINLIMINATE_FOODS=[
       "sodium": 290
     },
     "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
-    "recipe": "Pop kernels in oil or an air popper, then season with butter and salt while warm."
+    "recipe": "Pop kernels in oil or an air popper, then season with butter and salt while warm.",
+    "image": "https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=1200&q=85"
   },
   {
     "id": "fruit-bowl",
