@@ -299,10 +299,13 @@ await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 
 
+await page.locator('#restaurantSearch').fill ? null : null;
+if(!(await page.locator('#restaurantQuery').isVisible())){await click('#restaurantSearch');await settle();}
+await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
 assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restaurant card should show phone number when supplied');
 assert.equal(await page.locator('#restaurantCard .card-phone').getAttribute('href'),'tel:+19315550101','Restaurant phone should be a tappable tel link');
-assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https://mcdonalds.com"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
+assert.equal(await page.locator('#restaurantCard .website-action[href^="https://mcdonalds.com"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .website-action').innerText(),'Website ↗','Restaurant Website action should be professional');
