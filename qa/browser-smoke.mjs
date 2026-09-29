@@ -146,9 +146,13 @@ await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should restore exact cut choice');
 
 await click('#foodMaybe'); await settle();
-s=await qa(); assert.equal(s.maybe.length,1,'Maybe should move the current choice out');
+s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling');
+assert.equal(s.foodPool.length,61,'Maybe should move the current card to the recycle queue for this pass');
+while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
+assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
+assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.maybe.length,0,'Back should restore Maybe');
+s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
@@ -258,9 +262,12 @@ await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
 await click('#restMaybe'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action');
-assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card out');
+assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card into the recycle queue for this pass');
+while(!restAfterButtons.restaurantMaybeRound && restAfterButtons.restaurantPool.length>0){ await click('#restCut'); await settle(); restAfterButtons=await qa(); }
+assert.equal(restAfterButtons.restaurantMaybeRound,true,'Restaurant Maybe choices should recycle into a second narrowing pass');
+assert.equal(restAfterButtons.restaurantPool.some(x=>x===restFirstId),true,'The kept restaurant should return when the first pass is exhausted');
 await click('#restBack'); await settle();
-restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore Maybe');
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
 
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
