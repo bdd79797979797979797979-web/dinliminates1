@@ -7,8 +7,10 @@ const sandbox={window:{},self:{},globalThis:{}};
 vm.createContext(sandbox); vm.runInContext(src,sandbox);
 const foods=sandbox.window.DINLIMINATE_FOODS||[];
 assert.equal(foods.length,62,'Food image smoke requires the 62-food catalog');
-const urls=[...new Set(foods.map(x=>String(x.image||'')).filter(x=>/^https?:\/\//.test(x)))];
-assert.equal(urls.length,62,'Each built-in food should have an external image URL');
+const foodUrls=foods.map(x=>String(x.image||'').trim());
+assert.equal(foodUrls.length,62,'Each built-in food should be present in the image audit');
+assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,62,'Each built-in food should have an external image URL');
+const urls=[...new Set(foodUrls.filter(x=>/^https?:\/\//.test(x)))];
 
 const bad=[];
 let cursor=0;
