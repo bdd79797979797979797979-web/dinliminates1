@@ -185,9 +185,10 @@ let restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.in
 await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
 await click('#restMaybe'); await settle();
-restAfterButtons=await qa(); assert.equal(restAfterButtons.maybe.length,1,'Restaurant Maybe should move the current card out');
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action');
+assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card out');
 await click('#restBack'); await settle();
-restAfterButtons=await qa(); assert.equal(restAfterButtons.maybe.length,0,'Restaurant Back should restore Maybe');
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore Maybe');
 
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
