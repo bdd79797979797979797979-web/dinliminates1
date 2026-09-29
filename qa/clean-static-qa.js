@@ -78,7 +78,7 @@ assert(app.includes('function appConfirm'),'professional confirmation modal cont
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
 assert(app.includes('restaurantSearchDegraded'),'degraded-search state is required');
-assert(app.includes('resetRound') && app.includes('systemRestoreFlow'),'round reset and system restore flows are separated');
+assert(app.includes('resetRound') && app.includes('systemRestoreFlow') && app.includes('resetAppDataFlow'),'round reset, System Restore, and full app-data reset must be separated');
 assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protocol-validated');
 assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
