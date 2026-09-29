@@ -452,3 +452,11 @@ Commit: `a67fee420963f057e98f1e8f6ef1e50c1861c58d`
 - Shared drag animation promotes the next card while the current card moves.
 - Added direct Restaurant API smoke coverage and browser stack assertions.
 - Permanent recovery branch: `savepoint-cp102-premium-swipe-ui-2026-09-28`.
+
+
+## CP103 — launch candidate
+Commit: `8e15ffdb67f98e73eb35e392bc41bd82f6e77314`
+- Migrates legacy primary-wide Food Cut state to exact choice IDs for saved rounds.
+- Adds final static regression guards for removed All Cut and legacy bottom navigation.
+- Cumulative preview: PR #28 Netlify deploy-preview-28.
+- Permanent recovery branch: `savepoint-cp103-launch-candidate-2026-09-28`.
