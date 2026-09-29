@@ -308,7 +308,7 @@
   }
 
   function randomCutOne() {
-    if (S.pool.length < 2) return;
+    if (!S.pool.length) return;
     const item = S.pool[Math.floor(Math.random() * S.pool.length)];
     foodCut(item);
   }
@@ -408,7 +408,7 @@ function hourStatus(row){
       if ([...S.restaurantCuts].some(label => restaurantQuickMatches(row, label))) return false;
       if (row._maybe || row._cut || row._hidden) return false;
       if (S.hiddenRestaurants[row.id]) return false;
-      if (S.hoursMode === 'closed' ? !explicitClosed(row) : explicitClosed(row)) return false;
+      if (S.hoursMode === 'openUnknown' && explicitClosed(row)) return false;
       return restaurantMatchesQuery(row);
     });
   }
@@ -685,7 +685,7 @@ function hourStatus(row){
 
   function renderHours() {
     const btn = $('hoursToggle');
-    if (btn) btn.textContent = S.hoursMode === 'openUnknown' ? 'Open/Unknown Hours' : 'Closed';
+    if (btn) btn.textContent = S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All';
   }
 
   function bindRestaurantTools() {
@@ -702,7 +702,7 @@ function hourStatus(row){
       save();
     };
     $('hoursToggle').onclick = () => {
-      S.hoursMode = S.hoursMode === 'openUnknown' ? 'closed' : 'openUnknown';
+      S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown';
       renderHours();
       S.restaurantIndex = 0;
       drawRestaurants();
