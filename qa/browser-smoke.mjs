@@ -151,13 +151,20 @@ await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
 await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
-assert.ok((await qa()).allRestaurantIds.length===7,'selecting an address suggestion should immediately load restaurants');
+let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
+await page.locator('#address').fill('456');
+await page.waitForSelector('#suggestionsBox button',{state:'visible'});
+await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
+locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
 s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false); assert.equal(s.restaurantPool.includes('taco-1'),false); assert.equal(s.restaurantPool.includes('waffle-1'),true);
 await click('[data-rest-quick="Fast Food"]'); await settle();
+await click('[data-rest-quick="Potato"]'); await settle();
+s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false,'Potato Quick Cut should remove fries-bearing restaurants'); assert.equal(s.restaurantPool.includes('ital-1'),true,'Potato Quick Cut should not remove unrelated restaurants');
+await click('[data-rest-quick="Potato"]'); await settle();
 
 await click('#restaurantSearch'); await settle();
 await page.locator('#restaurantQuery').fill('Pasta');
