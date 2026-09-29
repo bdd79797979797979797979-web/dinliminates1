@@ -35,7 +35,7 @@ await Promise.all(Array.from({length:8},()=>worker()));
 assert.equal(bad.length,0,'Broken food image URLs: '+JSON.stringify(bad.slice(0,12)));
 console.log(JSON.stringify({foodCount:foods.length,checked:urls.length,broken:bad.length}));
 
-const expected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/36863862/, 'potato-soup':/29653177\//, 'stuffed-peppers':/31953510/, stroganoff:/28503619/, 'health-shake':/7974814/, lasagna:/5949900/, 'vegetable-lasagna':/5864352/, 'salisbury-steak':/Salisbury/};
+const expected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/36863862/, 'potato-soup':/29653177\//, 'stuffed-peppers':/31953510/, stroganoff:/28503619/, 'health-shake':/7974814/, lasagna:/29174061/, 'vegetable-lasagna':/5864352/, 'salisbury-steak':/Salisbury/};
 for(const [id,re] of Object.entries(expected))assert.match(String((foods.find(x=>x.id===id)||{}).image||''),re,id+' should use its requested image');
 assert.equal((foods.find(x=>x.id==='cheerios')||{}).name,'Cereal','Cheerios should be renamed Cereal');
 assert.equal(foods.some(x=>x.id==='frozen'||/stouffer/i.test(x.name||'')),false,'Stouffer frozen dinner must be absent');
