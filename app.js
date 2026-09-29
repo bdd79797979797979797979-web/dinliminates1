@@ -1244,10 +1244,9 @@ function hourStatus(row){
   }
   async function systemRestoreFlow(){
     if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
-    S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.restaurantCuts.clear();
+    S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.restaurantCuts.clear();
     S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
     try{localStorage.removeItem(KEY);}catch{}
-    try{const db=await openPhotoDB(); await new Promise((resolve)=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
     home();
   }
 
