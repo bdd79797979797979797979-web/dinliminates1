@@ -852,9 +852,9 @@ function hourStatus(row){
   }
 
   function historyView() {
-    const history = readHistory();
     let cursor = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const render = () => {
+      const history = readHistory();
       const y = cursor.getFullYear(), m = cursor.getMonth();
       const first = new Date(y,m,1).getDay(), last = new Date(y,m+1,0).getDate();
       let body = '<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext">›</button></div><div class="cal-grid cal-grid-20">';
