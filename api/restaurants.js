@@ -64,19 +64,22 @@ async function photonPlaces(lat,lon,radius){
 async function arcgisPlaces(lat,lon,radius){
  const r=Math.min(MAX_RADIUS,Math.max(1,radius)),latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
+ const categories=['Restaurant','Fast Food'];
  const rows=[],errors=[];
- for(const category of ['Restaurant','Fast Food']){
-   try{
-     const params=new URLSearchParams({SingleLine:'',category,location:lon+','+lat,searchExtent:extent,maxLocations:'50',outFields:'PlaceName,Type,Place_addr,City,Region,Country',forStorage:'false',f:'json'});
-     const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},7000);
-     for(const cand of d?.candidates||[]){
-       const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},name=String(attrs.PlaceName||cand.address||'').trim();
-       if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
-       const fast=category==='Fast Food'||isFastFoodName(name,String(attrs.Type||''));
-       const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',address:String(attrs.Place_addr||cand.address||''),phone:'',website:'',opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS POI'};
-       if(row.distance<=r)rows.push(row);
-     }
-   }catch(e){errors.push(String(e?.message||e))}
+ const results=await Promise.allSettled(categories.map(async category=>{
+   const params=new URLSearchParams({SingleLine:'',category,location:lon+','+lat,searchExtent:extent,maxLocations:'50',outFields:'PlaceName,Type,Place_addr,City,Region,Country',forStorage:'false',f:'json'});
+   return {category,data:await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},7000)};
+ }));
+ for(const result of results){
+   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));continue}
+   const category=result.value.category;
+   for(const cand of result.value.data?.candidates||[]){
+     const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},name=String(attrs.PlaceName||cand.address||'').trim();
+     if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
+     const fast=category==='Fast Food'||isFastFoodName(name,String(attrs.Type||''));
+     const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',address:String(attrs.Place_addr||cand.address||''),phone:'',website:'',opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS POI'};
+     if(row.distance<=r)rows.push(row);
+   }
  }
  return {rows,errors};
 }
