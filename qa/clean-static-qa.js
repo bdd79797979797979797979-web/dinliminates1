@@ -21,3 +21,6 @@ assert(app.includes('next-card'),'App must implement shared next-card swipe pres
 
 assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the clean rebuild');
 assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
+
+assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
+assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
