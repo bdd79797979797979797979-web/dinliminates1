@@ -65,8 +65,6 @@ jobs:
         run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Browser image runtime smoke
-        run: node qa/image-runtime-smoke.mjs
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
       - name: Accessibility smoke

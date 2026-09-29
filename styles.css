@@ -674,3 +674,12 @@
 .diagnosis-refresh.complete{background:#171717;color:#d8c39b;border-color:#5a4c34}
 .diagnosis-run-status{font-size:10px;color:#777;letter-spacing:.02em}
 .diagnosis-run-status.running{color:#d7bf8e}
+
+/* CP242 compact Details icon and Diagnosis state polish */
+.card-card-action.icon-action,.card-copy>.icon-action{width:30px!important;min-width:30px!important;height:30px!important;min-height:30px!important;border-radius:9px!important;padding:0!important;margin-top:4px!important}
+.card-card-action.icon-action .details-icon,.card-copy>.icon-action .details-icon{width:16px!important;height:16px!important}
+.card-card-action.icon-action{background:linear-gradient(180deg,#1b1b1b,#101010)!important;border-color:#665538!important;color:#d8bf8d!important;box-shadow:0 4px 12px #0008,inset 0 1px 0 #ffffff0f!important}
+.card-card-action.icon-action:hover{background:linear-gradient(180deg,#25221e,#141310)!important;border-color:#a08351!important;color:#fff!important}
+.diagnosis-action::after{content:'CHECK';position:absolute;top:5px;right:7px;font-size:7px;letter-spacing:.08em;opacity:.55}
+.diagnosis-refresh.selected{box-shadow:0 0 0 2px #bfa16b66,0 8px 20px #173f4755,inset 0 1px 0 #ffffff15!important}
+.diagnosis-refresh.complete::after{content:'READY';font-size:7px;letter-spacing:.08em;margin-left:6px;opacity:.7}
