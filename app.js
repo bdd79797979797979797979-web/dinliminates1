@@ -753,7 +753,6 @@ function hourStatus(row){
       '<div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>' : '';
     const ingredientsBlock = type === 'food' && Array.isArray(item.ingredients) && item.ingredients.length ? '<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>' : '';
     const providerMenu = item.menuItems || item.commonMenuItems || item.common_menu_items || [];
-    if (location.search.includes('qa=1')) window.__DINLIMINATE_DETAIL_DEBUG__ = {type,id:item?.id,name:item?.name,menuItems:providerMenu};
     const menuItems = Array.isArray(providerMenu) ? providerMenu.filter(Boolean) : String(providerMenu||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
     const menuBlock = type === 'restaurant' && menuItems.length ? '<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menuItems.slice(0,8).join(' · '))+'</p></div>' : '';
     const recipeBlock = item.recipe ? '<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>' : '';
