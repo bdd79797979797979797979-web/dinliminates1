@@ -671,7 +671,7 @@ function hourStatus(row){
   function winner(item) {
     S.winnerItem = item;
     S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
-    recordHistory(item, S.winnerType);
+    if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
     show('winner');
     $('winName').textContent = item.name;
     $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
@@ -939,7 +939,7 @@ function hourStatus(row){
 
   function startOver() {
     S.pass = null; S.winnerItem = null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
-    S.maybe.clear(); S.cutCats.clear(); S.cutPrimary.clear(); S.restaurantCuts.clear();
+    S.maybe.clear(); S.cutCats.clear(); S.cutPrimary.clear(); S.foodCuts.clear(); S.restaurantCuts.clear();
     S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
     try { localStorage.removeItem(KEY); } catch {}
     home();
