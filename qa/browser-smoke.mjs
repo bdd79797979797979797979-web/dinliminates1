@@ -319,6 +319,7 @@ console.log('Restaurant gesture probe before',JSON.stringify(await page.evaluate
 await page.mouse.move(restBox.x+55,restBox.y+restBox.height/2);
 await page.mouse.down();
 await page.mouse.move(restBox.x+restBox.width-18,restBox.y+restBox.height/2,{steps:5});
+console.log('Restaurant gesture during drag',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#restaurantCard');return {swipe:c?.dataset.swipe,transform:c?.style.transform,opacity:c?.style.opacity};})));
 await page.mouse.up(); await page.waitForTimeout(180); console.log('Restaurant gesture probe after',JSON.stringify(await qa()));
 s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
 await click('#restBack'); await settle();
