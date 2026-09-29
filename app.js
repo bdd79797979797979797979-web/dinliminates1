@@ -7,7 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '112';
+  const APP_BUILD = '114';
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -67,7 +67,9 @@
     winnerType:'food',
     pass:null,
     passDraftCount:2,
-    passDraftNames:[]
+    passDraftNames:[],
+    schemaVersion:3,
+    restaurantTimezone:''
   };
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -76,16 +78,71 @@
   const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
   const allFoods = () => [...getDefaultFoods(), ...S.custom];
 
+
+  const STORAGE_VERSION = 3;
+  const PHOTO_DB_NAME = 'dinliminate.photos';
+  const PHOTO_STORE = 'images';
+  let photoDbPromise = null;
+
+  function openPhotoDB() {
+    if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB unavailable'));
+    if (photoDbPromise) return photoDbPromise;
+    photoDbPromise = new Promise((resolve,reject) => {
+      const req = indexedDB.open(PHOTO_DB_NAME,1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains(PHOTO_STORE)) req.result.createObjectStore(PHOTO_STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('Could not open photo storage'));
+    });
+    return photoDbPromise;
+  }
+
+  async function putStoredPhoto(id,data) {
+    try {
+      const db=await openPhotoDB();
+      await new Promise((resolve,reject)=>{const tx=db.transaction(PHOTO_STORE,'readwrite');tx.objectStore(PHOTO_STORE).put(data,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not save photo'));});
+      return true;
+    } catch { return false; }
+  }
+
+  async function getStoredPhoto(id) {
+    try {
+      const db=await openPhotoDB();
+      return await new Promise((resolve,reject)=>{const tx=db.transaction(PHOTO_STORE,'readonly');const req=tx.objectStore(PHOTO_STORE).get(id);req.onsuccess=()=>resolve(req.result||'');req.onerror=()=>reject(req.error||new Error('Could not read photo'));});
+    } catch { return ''; }
+  }
+
+  async function deleteStoredPhoto(id) {
+    try {
+      const db=await openPhotoDB();
+      await new Promise((resolve,reject)=>{const tx=db.transaction(PHOTO_STORE,'readwrite');tx.objectStore(PHOTO_STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not delete photo'));});
+    } catch {}
+  }
+
+  async function hydrateCustomPhotos() {
+    let changed=false;
+    for (const item of S.custom) {
+      if (String(item.image||'').startsWith('idb:')) {
+        const data=await getStoredPhoto(item.id);
+        if (data) { item.image=data; changed=true; }
+        else item.image=HUNGRY_IMAGE;
+      }
+    }
+    if(changed && S.screen==='food'){ buildFood(); foodQuick(); drawFood(); }
+  }
+
   function save() {
     const data = {
       screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
       cutCats:[...S.cutCats], cutPrimary:[...S.cutPrimary], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
-      custom:S.custom, pool:S.pool, index:S.index, foodActions:S.foodActions,
+      pool:S.pool, index:S.index, foodActions:S.foodActions,
       restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
       restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
       restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location,
-      saved:S.saved, winnerItem:S.winnerItem, pass:S.pass,
-      passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames
+      saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
+      passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
+      restaurantTimezone:S.restaurantTimezone||'', custom:S.custom.map(x=>({...x,image:String(x.image||'').startsWith('data:image/')?'idb:'+x.id:x.image}))
     };
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
     S.saved = true;
@@ -114,6 +171,8 @@
       S.custom = Array.isArray(d.custom) ? d.custom : [];
       S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
       S.winnerType = d.winnerType || 'food';
+      S.restaurantTimezone = String(d.restaurantTimezone||'');
+      S.schemaVersion = STORAGE_VERSION;
       return true;
     } catch { return false; }
   }
@@ -262,70 +321,16 @@
     save();
   }
 
-  function bindFoodSwipe() {
-    const card = $('foodCard');
-    if (!card) return;
-    let downX = 0, active = false;
-    const next=$('foodNextCard');
+  function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
+    const card=$(cardId); if(!card)return;
+    let downX=0,active=false; const next=$(nextId);
     const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    card.onpointerdown = e => {
-      if (e.target.closest('button,a,input,select')) return;
-      downX = e.clientX; active = true;
-      try { card.setPointerCapture(e.pointerId); } catch {}
-    };
-    card.onpointermove = e => {
-      if(!active) return;
-      const dx=e.clientX-downX;
-      if(Math.abs(dx)>8){
-        card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
-        card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
-        card.dataset.swipe=dx<0?'cut':'maybe';
-        if(next) next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
-        if(next) next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
-      }
-    };
-    card.onpointerup = e => {
-      if(!active)return;
-      active=false;
-      const dx=e.clientX-downX;
-      if(Math.abs(dx)>90) {
-        card.style.transition='transform .16s ease,opacity .16s ease';
-        card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-        setTimeout(()=>{reset();dx<0 ? $('foodCut').click() : $('foodMaybe').click();},110);
-      } else { reset(); }
-    };
+    card.onpointerdown=e=>{if(e.target.closest('button,a,input,select'))return;downX=e.clientX;active=true;try{card.setPointerCapture(e.pointerId)}catch{}};
+    card.onpointermove=e=>{if(!active)return;const dx=e.clientX-downX;if(Math.abs(dx)>8){card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}};
+    card.onpointerup=e=>{if(!active)return;active=false;const dx=e.clientX-downX;if(Math.abs(dx)>90){card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';setTimeout(()=>{reset();dx<0?onCut():onMaybe()},110)}else reset();};
     card.onpointercancel=()=>{active=false;reset();};
   }
-
-
-  function appConfirm(title, message, confirmLabel='Confirm') {
-    return new Promise(resolve => {
-      document.querySelector('#appConfirmModal')?.remove();
-      document.querySelector('#appConfirmModalBg')?.remove();
-      const bg = document.createElement('div');
-      bg.id = 'appConfirmModalBg';
-      bg.className = 'modal-bg';
-      const modal = document.createElement('section');
-      modal.id = 'appConfirmModal';
-      modal.className = 'modal confirm-modal';
-      modal.setAttribute('role','dialog');
-      modal.setAttribute('aria-modal','true');
-      modal.setAttribute('aria-labelledby','appConfirmTitle');
-      modal.innerHTML =
-        '<div class="modal-head"><h3 id="appConfirmTitle">'+esc(title)+'</h3><button class="menu" type="button" id="appConfirmClose" aria-label="Close">×</button></div>'+
-        '<div class="confirm-copy">'+esc(message)+'</div>'+
-        '<div class="confirm-actions"><button type="button" class="secondary" id="appConfirmCancel">Cancel</button><button type="button" class="danger-action" id="appConfirmOk">'+esc(confirmLabel)+'</button></div>';
-      document.body.append(bg,modal);
-      let settled=false;
-      const finish=value=>{ if(settled)return; settled=true; modal.remove(); bg.remove(); resolve(value); };
-      $('appConfirmCancel').onclick=()=>finish(false);
-      $('appConfirmClose').onclick=()=>finish(false);
-      $('appConfirmOk').onclick=()=>finish(true);
-      bg.onclick=()=>finish(false);
-      modal.addEventListener('keydown',e=>{if(e.key==='Escape')finish(false);});
-      $('appConfirmOk').focus();
-    });
-  }
+  function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>$('foodCut').click(),()=>$('foodMaybe').click())}
 
   async function foodHideItem(item) {
     if (!item) return false;
@@ -418,7 +423,7 @@ function hourStatus(row){
   const low=raw.toLowerCase();
   if(low==='24/7'||low==='open')return 'open';
   if(low==='closed'||low==='off')return 'closed';
-  const now=new Date(),day=now.getDay(),minute=now.getHours()*60+now.getMinutes();
+  const clock=localClockForZone(S.restaurantTimezone),day=clock.day,minute=clock.minute;
   let matched=false;
   for(const block of raw.split(';')){
     const part=block.trim();if(!part)continue;
@@ -481,6 +486,14 @@ function hourStatus(row){
     save();
   }
 
+  let suggestController = null;
+  let restaurantSearchController = null;
+
+  function setFindBusy(busy) {
+    const btn=$('find'); if(!btn)return;
+    btn.disabled=busy; btn.setAttribute('aria-busy',String(busy)); btn.textContent=busy?'Searching…':'Find';
+  }
+
   async function useLocation() {
     if (!navigator.geolocation) {
       $('status').textContent = 'Location is not available in this browser.';
@@ -512,16 +525,18 @@ function hourStatus(row){
     $('status').textContent = 'Searching addresses…';
     clearTimeout(suggestTimer);
     suggestTimer = setTimeout(async () => {
+      suggestController?.abort();
+      suggestController = new AbortController();
       try {
-        const r = await fetch('/api/restaurant-search?mode=suggest&q='+encodeURIComponent(q));
+        const r = await fetch('/api/restaurant-search?mode=suggest&q='+encodeURIComponent(q),{signal:suggestController.signal});
         const d = await r.json();
         if (seq !== suggestSeq) return;
         renderSuggestions(d.results || []);
-      } catch {
-        clearSuggestions();
-        $('status').textContent = 'Address lookup is temporarily unavailable.';
+      } catch(e) {
+        if(e?.name==='AbortError') return;
+        clearSuggestions(); $('status').textContent = 'Address lookup is temporarily unavailable.';
       }
-    }, 250);
+    }, 320);
   }
 
   function renderSuggestions(rows) {
@@ -554,46 +569,42 @@ function hourStatus(row){
   let restaurantSearchSeq = 0;
   async function searchRestaurants() {
     const searchSeq = ++restaurantSearchSeq;
-    clearSuggestions();
-    $('status').textContent = 'Searching restaurants…';
+    restaurantSearchController?.abort();
+    restaurantSearchController = new AbortController();
+    const signal=restaurantSearchController.signal;
+    clearSuggestions(); setFindBusy(true); $('status').textContent = 'Searching restaurants…';
     try {
       let loc = S.location;
       if (!loc) {
         const q = $('address').value.trim();
         if (!q) { $('status').textContent = 'Enter an address or use your location.'; return; }
-        const rr = await fetch('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q));
+        const rr = await fetch('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q),{signal});
         const rd = await rr.json();
         if (searchSeq !== restaurantSearchSeq) return;
         if (!rr.ok || !rd.ok) throw new Error(rd.message || 'Could not locate that address.');
-        loc = {lat:rd.lat, lon:rd.lon, label:rd.display};
-        S.location = loc;
-        $('address').value = rd.display;
+        loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; $('address').value = rd.display;
       }
       const radius = Number($('radius').value) || 10;
-      const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius);
+      const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius,{signal});
       const d = await rr.json();
       if (searchSeq !== restaurantSearchSeq) return;
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
+      S.restaurantTimezone = String(d.timezone||'');
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, _maybe:false, _cut:false, _hidden:false})));
-      S.restaurantIndex = 0;
-      S.restaurantActions = [];
-      S.restaurantCuts.clear();
-      S.restaurantQuery = '';
-      S.hoursMode = 'openUnknown';
-      renderHours();
-      S.winnerItem = null;
-      $('status').textContent = d.total ? (d.total+' restaurants found'+(d.fastFoodCount ? ' · '+d.fastFoodCount+' fast food' : '')) : 'No restaurants found in this radius.';
-      restaurantQuick();
-      drawRestaurants();
-      save();
+      S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
+      renderHours(); S.winnerItem = null;
+      if(d.total) {
+        $('status').textContent = d.total+' restaurants found'+(d.fastFoodCount ? ' · '+d.fastFoodCount+' fast food' : '')+(d.providerErrors?.length ? ' · some sources unavailable' : '');
+      } else {
+        $('status').textContent = d.providerErrors?.length ? 'Restaurant sources are unavailable. Try again.' : 'No restaurants found in this radius.';
+      }
+      restaurantQuick(); drawRestaurants(); save();
     } catch (err) {
-      if (searchSeq !== restaurantSearchSeq) return;
-      S.restaurantPool = [];
-      S.restaurantIndex = 0;
-      S.restaurantActions = [];
-      S.restaurantCuts.clear();
-      drawRestaurants();
+      if (err?.name==='AbortError' || searchSeq !== restaurantSearchSeq) return;
+      S.restaurantPool=[]; S.restaurantIndex=0; S.restaurantActions=[]; S.restaurantCuts.clear(); drawRestaurants();
       $('status').textContent = err?.message || 'Could not complete the search.';
+    } finally {
+      if(searchSeq===restaurantSearchSeq) setFindBusy(false);
     }
   }
 
@@ -716,37 +727,7 @@ function hourStatus(row){
     return true;
   }
 
-  function bindRestaurantSwipe() {
-    const card = $('restaurantCard');
-    if (!card) return;
-    let downX = 0, active = false;
-    const next=$('restaurantNextCard');
-    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    card.onpointerdown = e => {
-      downX = e.clientX; active = true;
-      try { card.setPointerCapture(e.pointerId); } catch {}
-    };
-    card.onpointermove = e => {
-      if(!active) return;
-      const dx=e.clientX-downX;
-      if(Math.abs(dx)>8){
-        card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
-        card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
-        card.dataset.swipe=dx<0?'cut':'maybe';
-      }
-    };
-    card.onpointerup = e => {
-      if(!active)return;
-      active=false;
-      const dx=e.clientX-downX;
-      if(Math.abs(dx)>90) {
-        card.style.transition='transform .16s ease,opacity .16s ease';
-        card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-        setTimeout(()=>{reset();dx<0 ? $('restCut').click() : $('restMaybe').click();},110);
-      } else { reset(); }
-    };
-    card.onpointercancel=()=>{active=false;reset();};
-  }
+  function bindRestaurantSwipe(){bindSwipeCard('restaurantCard','restaurantNextCard',()=>$('restCut').click(),()=>$('restMaybe').click())}
 
   function renderHours() {
     const btn = $('hoursToggle');
@@ -811,6 +792,7 @@ function hourStatus(row){
   }
 
   function openModal(id, title, body) {
+    const opener=document.activeElement;
     $(id)?.remove();
     $(id+'Bg')?.remove();
     const bg = document.createElement('div');
@@ -818,16 +800,27 @@ function hourStatus(row){
     bg.className = 'modal-bg';
     const modal = document.createElement('section');
     modal.id = id;
-    modal.className = 'modal';
-    modal.innerHTML = '<div class="modal-head"><h3>'+esc(title)+'</h3><button class="menu" data-close>×</button></div>'+body;
+    modal.className = 'modal'; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3>'+esc(title)+'</h3><button class="menu" data-close>×</button></div>'+body;
     document.body.append(bg, modal);
     const close = () => {
       modal.remove(); bg.remove();
+      if(opener&&typeof opener.focus==='function') queueMicrotask(()=>opener.focus());
       if (id === 'settingsModal') removeFoodOverlays();
       if (S.screen && $(S.screen)) show(S.screen);
     };
     bg.onclick = close;
     modal.querySelector('[data-close]').onclick = close;
+    modal.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){e.preventDefault();close();return;}
+      if(e.key==='Tab'){
+        const f=[...modal.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled);
+        if(!f.length)return;
+        const first=f[0],last=f[f.length-1];
+        if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+        else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+      }
+    });
+    queueMicrotask(()=>modal.focus());
     return modal;
   }
 
@@ -899,9 +892,11 @@ function hourStatus(row){
       for(let i=0;i<first;i++) body += '<span></span>';
       for(let day=1;day<=last;day++) {
         const key = y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-        const entry = history.find(x => x.date === key);
+        const entries = history.filter(x => x.date === key);
+        const entry = entries[0];
+        const more = entries.length>1 ? '<span class="cal-more">+'+(entries.length-1)+'</span>' : '';
         body += '<div class="cal-cell">'+
-          (entry ? '<button class="cal-day has" data-history-date="'+key+'"><b>'+day+'</b><img src="'+esc(entry.image)+'" alt=""></button><button class="cal-x" data-history-delete="'+key+'" aria-label="Remove history for '+key+'">×</button>' :
+          (entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(entry.image)+'" alt="">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
             '<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
       }
       body += '</div></div><div class="history-list">';
@@ -915,13 +910,13 @@ function hourStatus(row){
         if (row) detailsSheet(row, row.type);
       });
       modal.querySelectorAll('[data-history-date]').forEach(btn => btn.onclick = () => {
-        const row = history.find(x => x.date === btn.dataset.historyDate);
+        const row = history.find(x => x.id === btn.dataset.historyDate);
         if (row) detailsSheet(row, row.type);
       });
       modal.querySelectorAll('[data-history-delete]').forEach(btn => {
         const remove = (e) => {
           e.preventDefault(); e.stopPropagation();
-          writeHistory(history.filter(x => x.date !== btn.dataset.historyDelete));
+          writeHistory(history.filter(x => x.id !== btn.dataset.historyDelete));
           modal.remove(); $('historyModalBg')?.remove(); render();
         };
         btn.onclick = remove;
@@ -976,21 +971,25 @@ function hourStatus(row){
         if(data) $('editFoodPhoto').value=data;
       } catch(e) { alert(e.message); }
     };
-    $('foodEditorForm').onsubmit=e=>{
+    $('foodEditorForm').onsubmit=async e=>{
       e.preventDefault();
       const name=$('editFoodName').value.trim(), cat=$('editFoodCat').value;
-      const photo=$('editFoodPhoto').value.trim()||HUNGRY_IMAGE, recipe=$('editFoodRecipe').value.trim();
+      let photo=$('editFoodPhoto').value.trim()||HUNGRY_IMAGE, recipe=$('editFoodRecipe').value.trim();
       if(!name)return;
       if(isEdit){
         const idx=S.custom.findIndex(x=>x.id===item.id);
         if(idx<0)return;
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
         if(id!==item.id && allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        const savedPhoto = photo.startsWith('data:image/') ? await putStoredPhoto(id,photo) : false;
+        if(photo.startsWith('data:image/') && savedPhoto) photo = photo;
         S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,image:photo,recipe};
+        if(id!==item.id) await deleteStoredPhoto(item.id);
         S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
       } else {
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
         if(allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
         S.custom.push({id,name,primary:id,category:cat,image:photo,recipe});
       }
       buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
@@ -1034,7 +1033,7 @@ function hourStatus(row){
       const row=allFoods().find(x=>x.id===btn.dataset.foodDelete);
       if(!row)return;
       if(!confirm((S.custom.some(x=>x.id===row.id)?'Delete custom food permanently? ':'Remove '+row.name+' from choices? ')+'You can restore deleted built-in foods here.'))return;
-      if(S.custom.some(x=>x.id===row.id))S.custom=S.custom.filter(x=>x.id!==row.id);
+      if(S.custom.some(x=>x.id===row.id)){ S.custom=S.custom.filter(x=>x.id!==row.id); deleteStoredPhoto(row.id); }
       else S.deleted.add(row.id);
       S.hidden.delete(row.id); S.maybe.delete(row.id); buildFood(); save();
       modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
@@ -1261,6 +1260,7 @@ function hourStatus(row){
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 
   load();
+  hydrateCustomPhotos();
   if (S.saved && S.screen === 'food' && S.pool.length) {
     show('food'); foodQuick(); drawFood();
   } else if (S.saved && S.screen === 'restaurant' && S.restaurantPool.length) {
