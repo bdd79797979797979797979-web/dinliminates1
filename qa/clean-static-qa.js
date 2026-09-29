@@ -81,6 +81,7 @@ assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protoco
 assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
+const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon-512.png'") && sw.includes("'./apple-touch-icon.png'"),'Offline shell must cache both PWA raster icons');
 assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
 assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
 assert((html.match(/id="restaurantPassAround"/g)||[]).length===1,'Restaurant Pass Around must have one compact tool-row control');
