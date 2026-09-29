@@ -106,7 +106,9 @@ assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food De
 assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
-assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
+assert(app.includes('foodMaybeRound') && app.includes('S.foodMaybeRound=true'),'Food Maybe choices must recycle into a second narrowing pass');
+assert(app.includes('restaurantMaybeRound') && app.includes('S.restaurantMaybeRound=true'),'Restaurant Maybe choices must recycle into a second narrowing pass');
+assert(app.includes('right to Keep'),'Right swipe must communicate Keep semantics');
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
 
 const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
