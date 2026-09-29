@@ -102,11 +102,11 @@ assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,64,'expected updated food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,64,'Food data should expose 62 image-backed choices');
+assert.equal(foodImageSources.length,64,'Food data should expose 64 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,59,'Potato Quick Cut should remove only Potato-mapped foods');
+assert.equal(s.foodPool.length,61,'Potato Quick Cut should remove only the three Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
