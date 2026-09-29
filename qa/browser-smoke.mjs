@@ -232,7 +232,6 @@ assert.match(await page.locator('#diagnosisModal').innerText(),/Current restaura
 assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
 await page.locator('#settingsModal [data-close]').click(); await settle();
-await click('#foodMenu'); await settle();
 const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
 await click('#hoursToggle'); await settle();
