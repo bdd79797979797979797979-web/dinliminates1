@@ -48,3 +48,18 @@ assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 console.log('Dinliminate CP108 static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
+
+assert(html.includes('food-choice') && html.includes('restaurant-choice'),'Home choices must be photo-backed');
+assert(!html.includes('home-photo-rail'),'Standalone Home food photo rail must stay removed');
+assert(css.includes('.luxury-home h1{font-size:clamp(2rem'),'Home headline must stay compact on iPhone');
+assert(css.includes('.luxury-home .home-card-photo{'),'Home choice cards must use dedicated photo backgrounds');
+assert(html.includes('Made by Brian Dunn for Devona Dunn'),'Gold attribution text must be present');
+assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
+assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
+assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
+assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
+assert(app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
+for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) assert(app.includes(label+':\''),'Food Quick Cut photo mapping must include '+label);
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) assert(app.includes(label+':\''),'Restaurant Quick Cut photo mapping must include '+label);
+assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
+assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
