@@ -1,4 +1,4 @@
-/* Dinliminate clean app — single-source implementation. */
+/* Dinliminate app — single-source implementation. */
 (() => {
   'use strict';
 
@@ -6,7 +6,9 @@
   const $ = (id) => document.getElementById(id);
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
-  const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#efe7d7"/><ellipse cx="600" cy="470" rx="270" ry="120" fill="#d8d0c0"/><ellipse cx="600" cy="450" rx="220" ry="85" fill="#fbfaf7"/><path d="M700 250c70-42 146-5 150 52 5 73-79 96-130 51" fill="none" stroke="#20362d" stroke-width="18" stroke-linecap="round"/><path d="M520 285h-70m10 0v120m15-120v120m15-120v120m15-120v120" fill="none" stroke="#20362d" stroke-width="12" stroke-linecap="round"/><circle cx="530" cy="390" r="9" fill="#20362d"/><circle cx="670" cy="390" r="9" fill="#20362d"/><path d="M550 450c30 28 70 28 100 0" fill="none" stroke="#20362d" stroke-width="11" stroke-linecap="round"/></svg>');
+  const APP_VERSION = '1.0';
+  const APP_BUILD = '110';
+  const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
 
@@ -737,8 +739,9 @@ function hourStatus(row){
     show('winner');
     const hungry = item?.category === 'Hungry';
     $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
+    $('winImg').classList.toggle('hungry-image', hungry);
     $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
-    $('winImg').alt = item.name;
+    $('winImg').alt = item.name || 'Hungry';
     save();
   }
 
@@ -1010,7 +1013,9 @@ function hourStatus(row){
   }
 
   function aboutView() {
-    openModal('aboutModal','About Dinliminate','<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><p class="status">Made by Brian Dunn for Devona Dunn.</p></div>');
+    const date = new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
+    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><p class="about-test">TEST BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+    openModal('aboutModal','About Dinliminate',body);
   }
 
   function iphoneHelp() {
