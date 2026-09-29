@@ -407,3 +407,17 @@
 .history-row img{width:44px;height:44px;border-radius:10px;object-fit:cover}
 .history-row b{color:#eee0cd}
 .history-row small{color:#777169}
+
+
+/* CP108 — luxury Dinliminate wordmark */
+.app-topbar .brand{
+  background:linear-gradient(115deg,#fff8e8 8%,#e7c98f 42%,#e28a4f 70%,#fff2d5 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 22px #d5a25b18;
+}
+.luxury-home .home-card:first-of-type .home-icon{box-shadow:0 0 0 1px #b99a631f,0 12px 28px #0008}
+.luxury-home .home-card:nth-of-type(2) .home-icon{box-shadow:0 0 0 1px #b99a631f,0 12px 28px #0008}
+.decision-brand{
+  background:linear-gradient(115deg,#fff 5%,#ecd6a8 48%,#db8c55 78%,#fff1d8 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
