@@ -588,11 +588,18 @@ function hourStatus(row){
       '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+'<div class="card-status">'+cardHours+'</div><button class="card-details" id="restDetails" type="button" aria-label="Details">i</button></div></article></div>'+
       '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
     const current = rows[S.restaurantIndex];
-    $('restBack').onclick = restaurantBack;
-    $('restMaybe').onclick = () => restaurantMaybe(current);
-    $('restCut').onclick = () => restaurantCut(current);
-    $('restHide').onclick = () => restaurantHide(current);
-    $('restDetails').onclick = () => detailsSheet(current, 'restaurant');
+    const bindCardButton = (id, handler) => {
+      const el = $(id);
+      if (!el) return;
+      el.onclick = null;
+      el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); handler(); }, {once:true});
+      el.addEventListener('pointerdown', e => e.stopPropagation(), {once:true});
+    };
+    bindCardButton('restBack', restaurantBack);
+    bindCardButton('restMaybe', () => restaurantMaybe(current));
+    bindCardButton('restCut', () => restaurantCut(current));
+    bindCardButton('restHide', () => restaurantHide(current));
+    bindCardButton('restDetails', () => detailsSheet(current, 'restaurant'));
     bindRestaurantSwipe();
   }
 
