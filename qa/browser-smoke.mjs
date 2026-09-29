@@ -532,6 +532,9 @@ await page.evaluate(() => { localStorage.removeItem('dinliminate.clean.cp1'); })
 await page.goto('http://127.0.0.1:4173/?qa=1&restore-test=1'); await page.waitForLoadState('domcontentloaded'); await settle();
 await click('#foodStart'); await settle();
 await click('#addFood'); await settle();
+assert.equal(await visible('manageFoodsModal'),true,'Add Food should open Manage Foods');
+await click('#openFoodEditor'); await settle();
+assert.equal(await visible('foodEditorModal'),true,'Manage Foods Add Food should open the editor');
 await page.locator('#editFoodName').fill('Restore Proof Food');
 await click('#foodEditorForm button.cut'); await settle();
 assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'custom food should exist before System Restore');
@@ -552,7 +555,7 @@ await click('#appConfirmOk'); await settle();
 assert.equal(await visible('home'),true,'Reset App Data should return Home');
 const wiped=await qa(); assert.equal(wiped.custom.length,0,'Reset App Data should wipe custom foods');
 
-await page.locator('#manageFoodsModal [data-food-delete="restore-proof-food"]').click(); await settle(); if(await visible('appConfirmModal')) await click('#appConfirmOk'); await settle();
+assert.equal(await page.locator('#manageFoodsModal').count(),0,'Reset App Data should close Manage Foods after wiping custom data');
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
