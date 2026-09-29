@@ -318,7 +318,7 @@ assert.equal((await page.locator('#winner').getAttribute('class')).includes('hid
 const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
 assert.equal(bg,'rgb(9, 9, 9)','winner should use the black Hungry/winner window');
 assert.equal(await page.locator('#winImg').getAttribute('class'),'hungry-image','Hungry winner should use the dedicated black hungry artwork');
-assert.match(await page.locator('#winImg').getAttribute('src')||'','^data:image/svg','Hungry winner should use the built-in frown artwork');
+assert.ok((await page.locator('#winImg').getAttribute('src')||'').startsWith('data:image/svg'),'Hungry winner should use the built-in frown artwork');
 await click('#restart'); await settle();
 await click('#foodStart'); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
