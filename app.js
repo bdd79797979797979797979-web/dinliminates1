@@ -78,7 +78,7 @@
   function safeExternalUrl(raw){
     try{
       const u=new URL(String(raw||''),location.origin);
-      return (u.protocol==='https:'||u.protocol==='http:') ? u.href : '';
+      return u.protocol==='https:' ? u.href : '';
     }catch{return '';}
   }
 
