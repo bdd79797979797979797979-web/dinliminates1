@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,64,'Updated 64-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,65,'Updated 64-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
@@ -98,20 +98,20 @@ assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),1
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use an accurate Mexican stir-fry photo');
+assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry should use the refreshed accurate Mexican stir-fry photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
-let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,64,'expected updated food catalog');
+let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected updated 65-food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,64,'Food data should expose 64 image-backed choices');
+assert.equal(foodImageSources.length,65,'Food data should expose 64 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,61,'Potato Quick Cut should remove only the three Potato-mapped foods');
+assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only the three Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,64,'Quick Cut should restore');
+s=await qa(); assert.equal(s.foodPool.length,65,'Quick Cut should restore');
 
 const foodBox=await page.locator('#foodCard').boundingBox();
 if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
@@ -125,7 +125,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,64,'Food Back should restore left swipe');
+s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore left swipe');
 
 const foodBox2=await page.locator('#foodCard').boundingBox();
 if(!foodBox2) throw new Error('Food card bounding box missing for right swipe QA');
@@ -136,7 +136,8 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should Maybe');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,64,'Food Back should restore right swipe');
+s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore right swipe');
+assert.equal((await page.locator('[data-food-quick="Healthy"]').count()),1,'Healthy Quick Cut must be available for Health Shake');
 const beforeCut=s.foodPool.length;
 await click('#foodCut'); await settle();
 let afterCut=await qa(); assert.equal(afterCut.foodPool.length < beforeCut,true);
@@ -153,7 +154,7 @@ assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a sec
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
-await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle(); assert.equal((await qa()).foodPool.length,64,'Starting a new food round should reset the Maybe recycle cycle');
+await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle(); assert.equal((await qa()).foodPool.length,65,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
