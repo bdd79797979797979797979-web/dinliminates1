@@ -26,7 +26,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 22,
       "sodium": 980
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook spaghetti until tender. Brown ground beef with onion and garlic, add tomato sauce, simmer 10–15 minutes, then toss with pasta and Parmesan."
   },
   {
     "id": "grilled-chicken-rice",
@@ -52,7 +53,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 19,
       "sodium": 620
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season chicken and grill or pan-sear until cooked through. Serve over hot rice with vegetables or a simple side salad."
   },
   {
     "id": "tacos",
@@ -78,7 +80,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 25,
       "sodium": 1050
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown seasoned ground beef or chicken. Warm tortillas and fill with meat, lettuce, tomato, cheese and salsa."
   },
   {
     "id": "popcorn",
@@ -100,7 +103,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 13,
       "sodium": 290
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": ""
   },
   {
     "id": "fruit-bowl",
@@ -125,7 +129,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 1,
       "sodium": 10
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cut mixed berries, melon, grapes, banana, and apple into bite-size pieces and serve chilled."
   },
   {
     "id": "stir-fry",
@@ -151,7 +156,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 18,
       "sodium": 1200
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook sliced chicken or beef in a hot skillet. Add vegetables, garlic and ginger; toss with soy-based sauce and serve over rice."
   },
   {
     "id": "homemade-pizza",
@@ -176,7 +182,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 28,
       "sodium": 1320
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Top prepared pizza dough with sauce, mozzarella and favorite toppings. Bake in a very hot oven until the crust is browned and cheese is bubbling."
   },
   {
     "id": "burgers",
@@ -202,7 +209,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 39,
       "sodium": 1180
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season ground beef, form patties and cook to your preferred doneness. Toast buns and add lettuce, tomato, pickles, cheese and sauce."
   },
   {
     "id": "eggs-toast",
@@ -227,7 +235,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 24,
       "sodium": 610
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Fry or scramble two eggs. Toast bread and serve with butter, salt and pepper."
   },
   {
     "id": "soup-sandwich",
@@ -251,7 +260,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 24,
       "sodium": 1280
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Heat your favorite soup. Build a hot sandwich with bread, cheese or meat and vegetables; toast until crisp."
   },
   {
     "id": "pasta-alfredo",
@@ -277,7 +287,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 42,
       "sodium": 920
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook pasta. Warm butter, garlic and cream, then stir in Parmesan until smooth; toss with pasta."
   },
   {
     "id": "salad-bowl",
@@ -303,7 +314,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 21,
       "sodium": 540
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Combine greens, vegetables and your choice of protein. Add dressing just before serving."
   },
   {
     "id": "mac-cheese",
@@ -328,7 +340,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 25,
       "sodium": 980
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook macaroni. Make a simple cheese sauce with butter, flour, milk and shredded cheese; combine and bake or serve creamy."
   },
   {
     "id": "fried-rice",
@@ -354,7 +367,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 15,
       "sodium": 1120
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Chill cooked rice. Stir-fry rice with oil, egg, vegetables and soy sauce; add cooked chicken or shrimp if desired."
   },
   {
     "id": "grilled-cheese",
@@ -377,7 +391,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 28,
       "sodium": 840
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Butter bread, add cheese and cook in a skillet over medium-low heat until golden and melted."
   },
   {
     "id": "burrito-bowl",
@@ -403,7 +418,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 22,
       "sodium": 1180
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Layer cooked rice, beans, seasoned protein, salsa and vegetables. Finish with cheese, avocado or sour cream."
   },
   {
     "id": "southern-vegetable-plate",
@@ -428,7 +444,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 23,
       "sodium": 1080
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook corn, green beans, cabbage or other vegetables until tender. Add potatoes or another starch and season with butter, salt and pepper."
   },
   {
     "id": "meatloaf",
@@ -454,7 +471,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 34,
       "sodium": 1320
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Mix ground beef, egg, breadcrumbs and onion. Shape and bake until cooked through; serve with mashed potatoes and gravy."
   },
   {
     "id": "stroganoff",
@@ -480,7 +498,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 33,
       "sodium": 1170
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown beef and onions. Add mushrooms and broth, then finish with sour cream; serve over egg noodles."
   },
   {
     "id": "grilled-salmon",
@@ -506,7 +525,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 34,
       "sodium": 420
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season salmon with salt, pepper and lemon. Pan-sear or grill until flaky and serve with vegetables or rice."
   },
   {
     "id": "lasagna",
@@ -532,7 +552,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 38,
       "sodium": 1360
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Layer noodles, meat sauce, ricotta and mozzarella in a baking dish. Cover and bake until hot and bubbling."
   },
   {
     "id": "chicken-parmesan",
@@ -558,7 +579,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 31,
       "sodium": 1260
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bread chicken cutlets and brown them. Top with tomato sauce and mozzarella; bake until cheese melts and chicken is cooked through."
   },
   {
     "id": "goulash",
@@ -584,7 +606,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 22,
       "sodium": 1140
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown ground beef and onion. Add tomato sauce and diced tomatoes, then simmer and stir in cooked elbow macaroni."
   },
   {
     "id": "santa-fe-soup",
@@ -611,7 +634,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 14,
       "sodium": 1090
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Simmer beans, tomatoes, corn, chiles and chicken or beef with broth and Southwestern seasonings."
   },
   {
     "id": "southern-vegetable-beef-soup",
@@ -638,7 +662,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 15,
       "sodium": 980
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": ""
   },
   {
     "id": "chicken-fried-steak",
@@ -664,7 +689,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 49,
       "sodium": 1610
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Tenderize cubed steak, bread it and fry until golden. Serve with cream gravy and a potato or vegetable."
   },
   {
     "id": "country-fried-chicken",
@@ -690,7 +716,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 41,
       "sodium": 1420
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season and bread chicken, then fry until crisp and cooked through. Serve with gravy and Southern sides."
   },
   {
     "id": "pot-roast",
@@ -716,7 +743,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 38,
       "sodium": 1170
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown a chuck roast. Slow-cook with onion, carrots, potatoes and broth until fork-tender."
   },
   {
     "id": "chicken-dumplings",
@@ -743,7 +771,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 26,
       "sodium": 1260
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Simmer chicken with onion and broth until tender. Drop biscuit-style dumplings into the simmering broth and cook until fluffy."
   },
   {
     "id": "bbq-pulled-pork",
@@ -769,7 +798,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 28,
       "sodium": 1180
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season pork shoulder and cook low and slow until tender. Shred and toss with barbecue sauce."
   },
   {
     "id": "bbq-ribs",
@@ -795,7 +825,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 48,
       "sodium": 1160
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season ribs and cook low and slow until tender. Finish with barbecue sauce under high heat."
   },
   {
     "id": "pork-chops",
@@ -821,7 +852,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 34,
       "sodium": 490
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season pork chops and pan-sear or grill until cooked through. Rest briefly before serving."
   },
   {
     "id": "fried-catfish",
@@ -847,7 +879,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 39,
       "sodium": 950
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season catfish fillets, coat with seasoned cornmeal and fry until crisp and flaky."
   },
   {
     "id": "shrimp-grits",
@@ -873,7 +906,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 34,
       "sodium": 1110
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook creamy grits. Sauté seasoned shrimp with garlic and butter, then spoon over grits."
   },
   {
     "id": "chili",
@@ -899,7 +933,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 21,
       "sodium": 1120
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown beef with onion. Add beans, tomatoes and chili seasonings and simmer until thick."
   },
   {
     "id": "chili-cheese-baked-potato",
@@ -924,7 +959,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 25,
       "sodium": 1160
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bake a potato until tender. Split it open, top with chili and shredded cheese and return to heat until melted."
   },
   {
     "id": "loaded-baked-potato",
@@ -950,7 +986,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 30,
       "sodium": 1060
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bake a potato until fluffy. Top with butter, cheese, sour cream, bacon and green onion."
   },
   {
     "id": "mashed-potatoes-gravy",
@@ -976,7 +1013,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 22,
       "sodium": 880
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Boil potatoes until tender, mash with butter and milk. Serve with hot brown gravy."
   },
   {
     "id": "biscuits-gravy",
@@ -1003,7 +1041,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 38,
       "sodium": 1240
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bake or warm biscuits. Make sausage gravy with browned sausage, flour and milk and spoon over biscuits."
   },
   {
     "id": "buttermilk-cornbread",
@@ -1029,7 +1068,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 18,
       "sodium": 520
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Serve cold buttermilk with a warm slice of cornbread. For cornbread, mix cornmeal, egg, buttermilk, butter and salt and bake until browned."
   },
   {
     "id": "sausage-peppers",
@@ -1054,7 +1094,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 40,
       "sodium": 1180
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown sausage, then sauté sliced peppers and onions. Combine and simmer with a little tomato sauce if desired."
   },
   {
     "id": "bacon-eggs",
@@ -1079,7 +1120,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 34,
       "sodium": 920
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook bacon until crisp. Fry or scramble eggs in the same skillet and season to taste."
   },
   {
     "id": "chicken-waffles",
@@ -1105,7 +1147,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 37,
       "sodium": 1230
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook crisp fried chicken tenders or chicken pieces. Serve over waffles with syrup or hot honey."
   },
   {
     "id": "tenders",
@@ -1130,7 +1173,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 42,
       "sodium": 1550
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bread chicken strips and fry or air-fry until crisp. Serve with hot fries and dipping sauce."
   },
   {
     "id": "sloppy-joes",
@@ -1156,7 +1200,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 33,
       "sodium": 1460
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown ground beef and simmer with tomato sauce, ketchup, mustard and seasoning. Serve on buns with fries."
   },
   {
     "id": "cabbage",
@@ -1182,7 +1227,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 33,
       "sodium": 1040
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown sliced sausage. Add chopped cabbage and onion and cook until tender and lightly browned."
   },
   {
     "id": "steak-potato",
@@ -1208,7 +1254,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 38,
       "sodium": 560
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season steak and sear or grill to your preferred doneness. Serve with a baked or roasted potato."
   },
   {
     "id": "potato-soup",
@@ -1234,7 +1281,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 21,
       "sodium": 930
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Cook diced potatoes, onion and celery in broth until tender. Finish with milk or cream and season to taste."
   },
   {
     "id": "beef-stew",
@@ -1260,7 +1308,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 25,
       "sodium": 1020
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Brown beef, then slow-cook with potatoes, carrots, onion and broth until tender and rich."
   },
   {
     "id": "chicken-noodle",
@@ -1286,7 +1335,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 11,
       "sodium": 980
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Simmer chicken, onion, carrots and celery in broth. Add noodles near the end and cook until tender."
   },
   {
     "id": "wings",
@@ -1311,7 +1361,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 53,
       "sodium": 1320
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Season wings and bake, air-fry or fry until crisp and cooked through. Toss with buffalo sauce, barbecue sauce or seasoning."
   },
   {
     "id": "meatball-subs",
@@ -1336,7 +1387,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 36,
       "sodium": 1530
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bake or simmer meatballs in marinara. Fill toasted rolls with meatballs and mozzarella and broil until melted."
   },
   {
     "id": "tuna-melt",
@@ -1361,7 +1413,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 30,
       "sodium": 950
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Mix tuna with mayo and seasonings. Spread on bread with cheese and cook until hot and crisp."
   },
   {
     "id": "philly-cheesesteak",
@@ -1386,7 +1439,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 45,
       "sodium": 1320
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Sauté thin-sliced beef and onions. Pile onto a toasted hoagie roll and melt cheese over the top."
   },
   {
     "id": "pbj",
@@ -1410,7 +1464,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 31,
       "sodium": 690
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Spread peanut butter and jelly on bread and serve with potato chips."
   },
   {
     "id": "ham-sandwich",
@@ -1436,7 +1491,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 26,
       "sodium": 1470
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Layer ham, cheese, lettuce and condiments on bread or a roll. Serve with potato chips."
   },
   {
     "id": "parfait",
@@ -1461,7 +1517,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 9,
       "sodium": 180
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Layer Greek yogurt, fruit and granola. Add honey if desired."
   },
   {
     "id": "smoothie",
@@ -1486,7 +1543,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 7,
       "sodium": 110
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Blend fruit with yogurt or milk and ice until smooth."
   },
   {
     "id": "gyro",
@@ -1512,7 +1570,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 32,
       "sodium": 1130
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Warm the pita and fill with sliced gyro meat, lettuce, tomato, onion and tzatziki."
   },
   {
     "id": "cheerios",
@@ -1535,7 +1594,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 8,
       "sodium": 410
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Pour cereal into a bowl and add cold milk. Top with banana or berries if desired."
   },
   {
     "id": "frozen",
@@ -1558,7 +1618,8 @@ window.DINLIMINATE_FOODS=[
       "fat": 25,
       "sodium": 1260
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Heat the frozen entrée according to its package instructions until hot throughout."
   },
   {
     "id": "fish-sticks",
@@ -1583,6 +1644,7 @@ window.DINLIMINATE_FOODS=[
       "fat": 23,
       "sodium": 840
     },
-    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
+    "recipe": "Bake or air-fry frozen fish sticks until crisp and hot. Serve with tartar sauce and a side."
   }
 ];
