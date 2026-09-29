@@ -49,8 +49,8 @@ assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato 
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/4924603/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
-const requestedPhotoIds={tacos:'12261167','stir-fry':'4924603',meatloaf:'2397401','buttermilk-cornbread':'ourstate.s3.amazonaws.com','potato-soup':'5794','stuffed-peppers':'22698511',stroganoff:'28503619','health-shake':'7937490'};
+assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
+const requestedPhotoIds={tacos:'12261167','stir-fry':'31673757',meatloaf:'2397401','buttermilk-cornbread':'ourstate.s3.amazonaws.com','potato-soup':'29653177','stuffed-peppers':'22698511',stroganoff:'28503619','health-shake':'7937490'};
 for(const [id,photoId] of Object.entries(requestedPhotoIds)) assert(foodRows.find(x=>x.id===id)?.image?.includes(photoId),id+' must use refreshed photo '+photoId);
 assert(foodRows.find(x=>x.id==='cheerios')?.name==='Cereal','Cheerios Cereal must be renamed to Cereal');
 assert.deepEqual(foodRows.find(x=>x.id==='health-shake')?.quickCuts,['Healthy'],'Health Shake must map to Healthy Quick Cut');
