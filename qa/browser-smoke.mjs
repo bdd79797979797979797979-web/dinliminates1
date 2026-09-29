@@ -110,7 +110,7 @@ const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>(
 assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
-const refreshedExpected={tacos:/3264572/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/tastingtable\.com\//, 'potato-soup':/5794\//, 'stuffed-peppers':/22698511/, stroganoff:/28503619/, 'health-shake':/1098758/};
+const refreshedExpected={tacos:/33614203/, 'stir-fry':/4924603/, meatloaf:/2397401/, 'buttermilk-cornbread':/9704174/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/20234576/, 'health-shake':/775032/};
 for(const [id,re] of Object.entries(refreshedExpected))assert.match(refreshedImageChecks[id]||'',re,id+' should use its refreshed image mapping');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
@@ -187,7 +187,7 @@ assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis
 assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
 assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
-await click('#diagnosisRefresh'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
+await click('#diagnosisRefresh'); assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'true','Run again should visibly enter a selected/running state'); assert.equal(await page.locator('#diagnosisRefresh').isDisabled(),true,'Run again should disable while diagnostics are running'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
 assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
 assert.ok((await page.locator('#diagnosisRunStatus').innerText()).includes('complete'),'Diagnosis should show which run just completed');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
