@@ -57,5 +57,5 @@ const imageExpectations={
 };
 for(const [id,re] of Object.entries(imageExpectations)) assert.match(byId.get(id)?.image||'',re,id+' should use its refreshed accurate image');
 assert.equal(byId.get('cheerios')?.name,'Cereal','Cheerios Cereal should be renamed to Cereal');
-assert.deepEqual(byId.get('health-shake')?.quickCuts,['Healthy'],'Health Shake should be associated with Healthy Quick Cut');
+assert.ok(Array.isArray(byId.get('health-shake')?.quickCuts)&&byId.get('health-shake').quickCuts.length===1&&byId.get('health-shake').quickCuts[0]==='Healthy','Health Shake should be associated with Healthy Quick Cut');
 assert.ok(byId.get('health-shake')?.ingredients?.length&&byId.get('health-shake')?.nutrition&&byId.get('health-shake')?.recipe,'Health Shake should have Details-ready nutrition, ingredients, and recipe data');
