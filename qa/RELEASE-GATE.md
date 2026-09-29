@@ -2,7 +2,7 @@
 
 Current source branch: release-hardening-2026-09-29
 Current release candidate: PR #40 (draft)
-Current build: 1.0 / 115
+Current build: 1.0 / 116
 
 Required gates before production:
 - Static JS syntax and DOM contract checks
@@ -16,3 +16,10 @@ Required gates before production:
 
 Current recovery:
 - checkpoint-build114-pre-complete-hardening-2026-09-29
+
+## Latest recovery chain
+- checkpoint-cp157-accessibility-2026-09-29
+- checkpoint-cp156-accessible-search-controls-2026-09-29
+- checkpoint-cp155-qa-contract-cleanup-2026-09-29
+- checkpoint-cp153-accessibility-smoke-2026-09-29
+- checkpoint-cp149-ci-concurrency-2026-09-29
