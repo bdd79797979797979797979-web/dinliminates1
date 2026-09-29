@@ -543,3 +543,10 @@
 /* CP134 — compact location-source indicator */
 .location-source-label{display:block;margin-top:3px;color:#68625a;font-size:8px;text-align:right;letter-spacing:.04em}
 .location-source-label.is-ready{color:#bfa16b}
+
+/* CP173 — custom-food Quick Cut selection */
+.quick-cut-editor{border:1px solid #332f2a;border-radius:16px;padding:10px;margin:2px 0 10px;background:#11100f}
+.quick-cut-editor legend{padding:0 6px;color:#9f978c;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.quick-cut-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.quick-cut-editor-grid label{display:flex;align-items:center;gap:7px;min-height:34px;padding:7px 8px;border:1px solid #302c27;border-radius:10px;color:#d4ccc1;font-size:9px;font-weight:800}
+.quick-cut-editor-grid input{accent-color:#bfa16b}
