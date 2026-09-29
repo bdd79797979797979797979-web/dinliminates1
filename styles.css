@@ -338,3 +338,72 @@
   .card-copy h3{font-size:30px}
   .card-detail-line{font-size:9px}
 }
+
+
+/* CP108 — luxury home */
+.luxury-home{position:relative;overflow:hidden;text-align:center;background:
+  radial-gradient(circle at 10% 10%,#6d3d1322,transparent 28%),
+  radial-gradient(circle at 90% 20%,#8e6b2b1e,transparent 25%),
+  linear-gradient(180deg,#0c0c0c,#11100e 66%,#0c0c0c)}
+.luxury-home::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,#ffffff05,transparent 35%,#e2a75d09 78%,transparent)}
+.luxury-orb{position:absolute;border-radius:50%;filter:blur(18px);pointer-events:none}
+.orb-one{width:190px;height:190px;right:-90px;top:80px;background:#d49b4e10}
+.orb-two{width:150px;height:150px;left:-80px;bottom:80px;background:#ef704e0d}
+.luxury-home .eyebrow{color:#bfa16b;letter-spacing:.24em}
+.luxury-home h1{max-width:760px;margin:16px auto 0;font-size:clamp(3rem,9vw,6.2rem);background:linear-gradient(120deg,#fff 12%,#e8d5ae 44%,#d98f54 70%,#fff 94%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.luxury-home .sub{color:#aaa39a;max-width:620px}
+.home-photo-rail{height:215px;max-width:700px;margin:25px auto 26px;display:flex;align-items:center;justify-content:center;gap:12px}
+.home-photo{width:27%;height:174px;border-radius:24px;overflow:hidden;border:1px solid #ffffff1a;box-shadow:0 20px 55px #000b;background:#161616}
+.home-photo.hero{width:41%;height:210px;box-shadow:0 30px 70px #000d}
+.home-photo.tilt-left{transform:translateY(10px) rotate(-7deg)}
+.home-photo.tilt-right{transform:translateY(8px) rotate(7deg)}
+.home-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.luxury-home .home-actions{position:relative;z-index:2;gap:11px}
+.luxury-home .home-card{min-height:73px;background:linear-gradient(145deg,#171615,#11100f);border:1px solid #3b3428;color:#eee;box-shadow:0 16px 40px #0008}
+.luxury-home .home-icon{background:#201d18;border:1px solid #4b4132}
+.luxury-home .home-card strong{color:#f6ead4}
+.luxury-home .home-card span span{color:#8e877d}
+.luxury-home .home-card .arrow{color:#bfa16b}
+.luxury-home .home-foot{position:relative;z-index:2}
+.luxury-home .home-foot .tiny{color:#5e574e}
+
+/* CP108 — fuller Details sheet */
+#detailsModal{background:#111;border-color:#302a23}
+#detailsModal .modal-head{background:#111}
+#detailsModal .modal-head h3{color:#ead9b8;letter-spacing:-.03em}
+#detailsModal .history-detail-photo{height:250px;max-height:none;object-fit:cover;border-radius:20px}
+.detail-section{margin-top:13px;padding:12px 13px;border-radius:15px;background:#181716;border:1px solid #2c2925}
+.detail-section-title{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#a18a61;font-weight:850;margin-bottom:7px}
+.detail-body-copy{font-size:11px;line-height:1.5;color:#d5d0c8;margin:0}
+.nutrition-card{margin-top:13px;padding:13px;border-radius:15px;background:linear-gradient(145deg,#1c1a17,#151413);border:1px solid #3a3327}
+.nutrition-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.nutrition-grid>div{padding:8px 4px;border-radius:10px;background:#211f1c;text-align:center}
+.nutrition-grid b{display:block;color:#f0e4cf;font-size:11px}
+.nutrition-grid span{display:block;color:#817b72;font-size:8px;margin-top:2px}
+.detail-note{font-size:8px;line-height:1.4;color:#6f6a62;margin:8px 0 0}
+.detail-actions-row{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.detail-hide-action,.detail-web-action{height:40px;padding:0 16px;border-radius:999px;font-size:10px;font-weight:850;border:1px solid #38322a}
+.detail-hide-action{background:#211613;color:#ff9380;border-color:#593027}
+.detail-web-action{background:#eee5d6;color:#111;border-color:#eee5d6}
+
+/* CP108 — real calendar appearance */
+#historyModal{background:#10100f}
+#historyModal .modal-head h3{font-size:20px;color:#ead9b8}
+.history-calendar{margin:0;padding:2px 0 11px}
+.cal-nav{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:5px 0 12px}
+.cal-nav b{font-size:15px;letter-spacing:-.02em;color:#eee7dc}
+.cal-nav .text-btn{width:40px;height:40px;border-radius:50%;background:#191817;border:1px solid #2d2923;color:#bfa16b}
+.cal-grid-20{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-d{text-align:center;color:#756f66;font-size:8px;font-weight:800;letter-spacing:.12em;padding-bottom:3px}
+.cal-cell{min-height:49px;position:relative}
+.cal-day{min-height:49px;border-radius:12px;background:#171615;border:1px solid #26231f;display:flex;align-items:flex-start;justify-content:center;padding-top:7px}
+.cal-day>b{font-size:10px;color:#9b968d}
+.cal-day.has{display:block;padding:0;overflow:hidden;border-color:#4c402e}
+.cal-day.has b{position:absolute;z-index:2;top:5px;left:6px;padding:2px 5px;border-radius:999px;background:#000b;color:#fff;font-size:8px}
+.cal-day.has img{width:100%;height:100%;object-fit:cover;display:block;opacity:.9}
+.cal-x{top:-3px;right:-3px;width:16px;height:16px;font-size:9px;line-height:16px;background:#0b0b0b;color:#f2e8d7;border:1px solid #3a342b}
+.history-list{border-top:1px solid #24211e;padding-top:9px}
+.history-row{min-height:54px;padding:8px 0}
+.history-row img{width:44px;height:44px;border-radius:10px;object-fit:cover}
+.history-row b{color:#eee0cd}
+.history-row small{color:#777169}
