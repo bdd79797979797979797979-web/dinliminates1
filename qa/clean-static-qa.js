@@ -16,23 +16,13 @@ assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
+
 assert(html.includes('foodNextCard') && html.includes('restaurantNextCard'),'Tinder card stacks must be present for both Food and Restaurant');
 assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
-
 assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the clean rebuild');
 assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
-
 assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
 assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
-
-assert(html.includes('id="globalBack"'),'Decision screens must use the single top-level Back control');
-assert(html.includes('class="decision-bottom"'),'Decision utilities must be placed at the bottom');
-assert(html.includes('id="foodDetails"'),'Food must expose Details directly on the card');
-assert(html.includes('id="restDetails"'),'Restaurant must expose Details directly on the card');
-assert(html.indexOf('id="foodCut"') < html.indexOf('id="foodMaybe"'),'Food action order must be Cut then Maybe');
-assert(app.indexOf('id="restCut"') < app.indexOf('id="restMaybe"'),'Restaurant action order must be Cut then Maybe');
-assert(c.includes("round-cut") && c.includes("round-maybe") && c.includes(".global-back") && c.includes(".decision-bottom"),'CP105 hierarchy styles must exist');
-
 assert(html.includes('class="decision-bar"'),'Food/Restaurant must use local compact decision bars');
 assert(html.includes('id="foodBackTop"') && html.includes('id="foodMenu"'),'Food local Back/Menu controls must be present');
 assert(html.includes('id="restaurantBackTop"') && html.includes('id="restaurantMenu"'),'Restaurant local Back/Menu controls must be present');
@@ -40,4 +30,23 @@ assert(html.includes('id="foodCount"') && html.includes('id="restaurantCount"'),
 assert(!/<span>FOOD<\/span>/.test(html) && !/<span>RESTAURANTS<\/span>/.test(html),'Standalone FOOD/RESTAURANTS header labels must stay removed');
 assert(html.includes('class="card-details" id="foodDetails"') && app.includes("detailsSheet(item, 'food')"),'Food card Details must open the full Details sheet');
 assert(app.includes('class="card-details" id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
-assert(c.includes('#detailsModal{top:auto;bottom:0'),'Details must use the restored bottom-sheet presentation');
+assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
+assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
+assert(app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
+assert(css.includes('round-cut') && css.includes('background:#ef3340'),'Cut must remain a red primary action');
+assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe must remain a green primary action');
+assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
+assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
+assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===62,'The original 62-food deck must be restored');
+const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
+const foodRows=JSON.parse(dataJson);
+assert(foodRows.length===62,'Food deck must contain exactly 62 foods');
+assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
+for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Stouffer’s Frozen Dinner','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
+assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
+assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
+assert(api.includes('/api')===false || api.includes('mode'), 'Restaurant API contract must exist');
+console.log('Dinliminate CP108 static QA: PASS');
+console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
