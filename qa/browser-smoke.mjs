@@ -429,6 +429,17 @@ assert.equal(await page.locator('#storageIndicator').isVisible(),true,'Storage f
 assert.match(await page.locator('#storageIndicator').innerText(),/could not save|storage/i);
 await page.evaluate(()=>{ window.location.reload(); });
 await page.waitForLoadState('domcontentloaded'); await settle();
+await page.goto('http://127.0.0.1:4173/?qa=1&timezone-test=1'); await page.waitForLoadState('domcontentloaded'); await settle();
+const tz=await page.evaluate(()=>{
+  const h=window.__DINLIMINATE_TEST__?.hourStatus;
+  return {
+    nyOpen:h({opening_hours:'Mo 08:00-17:00'},'2026-09-28T13:00:00Z','America/New_York'),
+    laClosed:h({opening_hours:'Mo 08:00-17:00'},'2026-09-28T13:00:00Z','America/Los_Angeles'),
+    overnightOpen:h({opening_hours:'Mo 22:00-02:00'},'2026-09-29T01:00:00Z','America/Chicago'),
+    unknown:h({opening_hours:'Mo whenever'},'2026-09-28T13:00:00Z','America/New_York')
+  };
+});
+assert.deepEqual(tz,{nyOpen:'open',laClosed:'closed',overnightOpen:'open',unknown:'unknown'},'timezone-aware Open/Closed regression should be deterministic');
 await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await page.waitForLoadState('domcontentloaded'); await settle();
 assert.ok(fs.existsSync(path.join(root,'sw.js')),'service worker file should exist');
 assert.ok(fs.existsSync(path.join(root,'manifest.webmanifest')),'manifest should exist');
