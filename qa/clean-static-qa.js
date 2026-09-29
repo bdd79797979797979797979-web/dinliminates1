@@ -5,7 +5,7 @@ for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant',
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r12'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r13'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
@@ -68,7 +68,13 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '111'"),'About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '112'"),'About must expose the current app version/build');
+assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
+assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
+assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
+assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
+assert((html.match(/id="restaurantPassAround"/g)||[]).length===1,'Restaurant Pass Around must have one compact tool-row control');
+assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
