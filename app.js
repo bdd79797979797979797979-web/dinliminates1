@@ -1439,17 +1439,24 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     document.addEventListener('pointermove',pm,true);
     document.addEventListener('pointerup',pu,true);
     document.addEventListener('pointercancel',pc,true);
-    document.addEventListener('mousemove',e=>{if(active)pm(e)},true);
-    document.addEventListener('mouseup',e=>{if(active)pu(e)},true);
-    document.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)},{passive:false,capture:true});
-    document.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)},{passive:true,capture:true});
+    const mm=e=>{if(active)pm(e)};
+    const mu=e=>{if(active)pu(e)};
+    document.addEventListener('mousemove',mm,true);
+    document.addEventListener('mouseup',mu,true);
+    const tm=e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)};
+    const te=e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)};
+    document.addEventListener('touchmove',tm,{passive:false,capture:true});
+    document.addEventListener('touchend',te,{passive:true,capture:true});
     document.addEventListener('touchcancel',pc,{passive:true,capture:true});
     surface._passSwipeCleanup=()=>{
       document.removeEventListener('pointermove',pm,true);
       document.removeEventListener('pointerup',pu,true);
       document.removeEventListener('pointercancel',pc,true);
-      document.removeEventListener('mousemove',e=>{if(active)pm(e)},true);
-      document.removeEventListener('mouseup',e=>{if(active)pu(e)},true);
+      document.removeEventListener('mousemove',mm,true);
+      document.removeEventListener('mouseup',mu,true);
+      document.removeEventListener('touchmove',tm,true);
+      document.removeEventListener('touchend',te,true);
+      document.removeEventListener('touchcancel',pc,true);
     };
   }
 
