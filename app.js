@@ -835,8 +835,8 @@ bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
 $('restDetails').onclick = e => { e.preventDefault(); e.stopPropagation(); detailsSheet(current, 'restaurant'); };
 bindRestaurantSwipe();
-}
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
+}
 function restaurantCut(row){
  if(!row)return;
  S.restaurantActions.push({type:'cut',id:row.id,index:S.restaurantIndex,maybeRound:!!S.restaurantMaybeRound,hadMaybe:!!row._maybe});row._cut=true;
