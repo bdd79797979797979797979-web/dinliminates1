@@ -1383,6 +1383,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       const warn=(label,detail)=>checks.push({state:'warn',label,detail});
       const fail=(label,detail)=>checks.push({state:'fail',label,detail});
       const builtins=getDefaultFoods();
+      const builtInImageHosts=[...new Set(builtins.map(x=>{try{return new URL(String(x?.image||'')).hostname}catch{return ''}}).filter(Boolean))];
+      const imageReviewHosts=builtInImageHosts.filter(host=>!['images.pexels.com','images.unsplash.com'].includes(host));
       const foodCount=builtins.length;
       const foodSources=builtins.filter(x=>typeof x?.image==='string'&&x.image.trim()).length;
       const foodQuickCount=FOOD_QUICK.length,restQuickCount=REST_QUICK.length;
@@ -1433,6 +1435,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
 
       if(foodCount===62)pass('Food catalog','62 built-in food choices loaded.');else fail('Food catalog',foodCount+' built-in food choices loaded; expected 62.');
       if(foodSources===foodCount)pass('Food photos',foodSources+'/'+foodCount+' built-in food image sources are present.');else warn('Food photos',foodSources+'/'+foodCount+' built-in foods have image sources.');
+      imageReviewHosts.length?warn('Image-source review',imageReviewHosts.length+' third-party food-image hosts are inventoried for rights/usage review in IMAGE-SOURCES.md: '+imageReviewHosts.join(', ')):pass('Image-source review','All built-in food images use approved Pexels/Unsplash hosts.');
       foodQuickCount===12?pass('Food Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Food Quick Cuts',foodQuickCount+' categories configured.');
       restQuickCount===12?pass('Restaurant Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Restaurant Quick Cuts',restQuickCount+' categories configured.');
       typeof passCandidates==='function'&&typeof passVote==='function'?pass('Pass Around','Full-page Pass Around flow is installed with shared vote logic.'):fail('Pass Around','Pass Around handlers are missing.');
