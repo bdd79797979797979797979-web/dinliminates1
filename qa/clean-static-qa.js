@@ -68,9 +68,11 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '111'"),'About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '112'"),'About must expose the current app version/build');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
-assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
+assert(!app.includes('TEST BUILD'),'About should not show TEST BUILD');
+assert(app.includes('Made by Brian Dunn for Devonda Dunn'),'About should include requested attribution');
+assert(css.includes('#aboutModal .about-credit') && css.includes('color:#bfa16b'),'About attribution should be gold');
 assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
 for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
