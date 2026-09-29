@@ -223,7 +223,7 @@ await click('#restBack'); await settle();
 s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should undo Maybe swipe');
 
 await assert.ok((await page.locator('#restStage').innerText()).includes('Common'),'restaurant card should show provider-supplied common menu items');
-await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); await page.locator('#detailDone').click(); await settle();
+await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); await page.locator('#detailsModal [data-close]').click(); await settle();
 
 const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await page.locator('#menu').click({force:true});
@@ -241,7 +241,7 @@ assert.equal(await page.locator('#manageFoodsModal').count(),0,'Settings close s
 assert.equal(await page.locator('#foodEditorModal').count(),0,'Settings close should leave no stale Food editor modal');
 assert.equal(await page.locator('#settingsModal').count(),0,'Settings close should remove the modal');
 assert.equal(await page.locator('#drawer').evaluate(el=>el.classList.contains('hidden')),true,'Settings close should leave the drawer closed');
-await click('#restaurant [data-home]'); await settle(); await click('#foodStart'); await settle();
+await click('#restaurantBackTop'); await settle(); await click('#foodStart'); await settle();
 await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 await click('[data-food-hide="popcorn"]'); await settle();
 s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
