@@ -124,3 +124,13 @@ assert(!globalHeaders.some(x=>x.key==='Cache-Control'&&x.value==='no-store'),'Gl
 assert(!app.includes('s.wsj.net') && !app.includes('photos.zillowstatic.com') && !app.includes('pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev'),'unstable restaurant image hosts must not be used for production fallbacks');
 
 assert.equal(vercelConfig.functions['api/restaurants.js'].maxDuration,30,'Restaurant API maxDuration should be 30 seconds');
+
+assert(!html.includes('id="privacy"'),'Privacy must not remain a top-level drawer item');
+assert(html.includes('id="privacyFromAbout"'),'Privacy must be reachable from the About modal');
+assert(html.includes('CURRENT BUILD'),'About must label the build as Current Build');
+assert(app.includes("S.pool.length === 1") && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
+assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
+assert(app.includes("id=\"restDetails\"") && app.includes("ⓘ"),'Restaurant Details must be a working info-symbol control');
+assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
+assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
+assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
