@@ -1,0 +1,31 @@
+name: Dinliminate Fast Browser QA
+
+on:
+  push:
+    branches: [release-hardening-2026-09-29]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dinliminate-fast-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke
+        run: node qa/browser-smoke.mjs
