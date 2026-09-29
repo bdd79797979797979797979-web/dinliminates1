@@ -2,7 +2,7 @@
 /* Dinliminate P636 FINAL — launch interaction layer. */
 (function(){
   'use strict';
-  const VERSION = 'p781-launch-ready';
+  const VERSION = 'p900-launch-complete-2026-09-29';
   const $=id=>document.getElementById(id);
   const read=(k,fallback='')=>{try{return localStorage.getItem(k)??fallback;}catch{return fallback;}};
   const html=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13,9 +13,10 @@
   const FOOD_ROUND_KEY='dinliminateFoodRound';
   const FOOD_ROUND_MAX_AGE=7*24*60*60*1000;
   const RESTAURANT_ROUND_KEY='dinliminateRestaurantRound';
+  const RESTAURANT_ROUND_SCHEMA=3;
   const RESTAURANT_ROUND_MAX_AGE=7*24*60*60*1000;
   async function idbGet(key,store='records'){try{const db=await openDinliminateIDB?.();if(!db)return null;return await new Promise((resolve,reject)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(key);req.onsuccess=()=>resolve(req.result||null);req.onerror=reject;});}catch{return null;}}
-  function roundSnapshot(){return {version:VERSION,savedAt:Date.now(),base:foodBase,active:activeItems||[],holding:holdingItems||[],finalist:!!finalistMode,originalCount,searchQuery:String(searchQuery||''),quick:[...foodQuickHidden],manual:[...foodManual]};}
+  function roundSnapshot(){return {schema:3,version:VERSION,savedAt:Date.now(),base:foodBase,active:activeItems||[],holding:holdingItems||[],finalist:!!finalistMode,originalCount,searchQuery:String(searchQuery||''),quick:[...foodQuickHidden],manual:[...foodManual]};}
   function saveFoodRoundState(){if(!foodInProgress){safeWrite(FOOD_ROUND_KEY,'');idbDelete?.('foodRound');return;}const state=roundSnapshot();safeWrite(FOOD_ROUND_KEY,JSON.stringify(state));idbPut?.('foodRound',state);}
   async function hydrateFoodRound(){
     let state=null;
@@ -78,7 +79,7 @@
   let legacyShowGame,legacyResetList,legacyRenderStage,legacyUndo,legacyCut,legacyHold,legacyShowRestaurant,legacyApplyRestaurant,legacyRenderRestaurant,legacyRestaurantCut,legacyRestaurantKeep,legacyRestaurantUndo,legacyRenderLibrary,legacyShowWinner;
 
   function restaurantRoundSnapshot(){
-    return {version:VERSION,savedAt:Date.now(),items:uniq([...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey),active:[...(activeRestaurants||[])],holding:[...(holdingRestaurants||[])],finalist:!!restaurantFinalistMode,exhausted:!!restaurantEliminationExhausted,quick:[...(restaurantQuickCuts||new Set())],filters:{...(restaurantFilters||{}),query:String(restaurantFilters?.query||'')},radius:Number(restaurantRadiusMiles)||10,locationMode:restaurantLocationMode,area:restaurantAreaCoords,userCity:String(userCity||'')};
+    return {schema:RESTAURANT_ROUND_SCHEMA,version:VERSION,savedAt:Date.now(),items:uniq([...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey),active:[...(activeRestaurants||[])],holding:[...(holdingRestaurants||[])],finalist:!!restaurantFinalistMode,exhausted:!!restaurantEliminationExhausted,quick:[...(restaurantQuickCuts||new Set())],filters:{...(restaurantFilters||{}),query:String(restaurantFilters?.query||'')},radius:Number(restaurantRadiusMiles)||10,locationMode:restaurantLocationMode,area:restaurantAreaCoords,userCity:String(userCity||'')};
   }
   function saveRestaurantRoundState(){
     if(!restaurantRoundInProgress||!(restaurantItems||[]).length){try{localStorage.removeItem(RESTAURANT_ROUND_KEY);}catch{};return;}
@@ -87,8 +88,8 @@
   function clearRestaurantRoundState(){restaurantRoundInProgress=false;try{localStorage.removeItem(RESTAURANT_ROUND_KEY);}catch{};}
   async function hydrateRestaurantRound(){
     let state=null;try{const raw=safeRead(RESTAURANT_ROUND_KEY,'');if(raw)state=JSON.parse(raw);}catch{}
-    if(!state||!['p633','p634','p636-launch','p636-final','p636-clean-final','p702-restaurant-launch-fix','p704-restaurant-launch-fix','p705-restaurant-launch-fix','p706-restaurant-launch-fix','p705-launch-complete','p706-launch-complete','p719-launch-candidate','p726-launch-candidate'].includes(state.version)||!Number.isFinite(state.savedAt)||Date.now()-state.savedAt>RESTAURANT_ROUND_MAX_AGE||!Array.isArray(state.items)||!state.items.length)return false;
-    restaurantItems=uniq(state.items,restKey);activeRestaurants=uniq(state.active||[],restKey);holdingRestaurants=uniq(state.holding||[],restKey);restaurantFinalistMode=!!state.finalist;restaurantEliminationExhausted=!!state.exhausted;restaurantQuickCuts=new Set((Array.isArray(state.quick)?state.quick:[]).map(k=>k==='bbq'?'pork':k==='mediterranean'?'greek':k));restaurantFilters={query:String(state.filters?.query||''),sort:state.filters?.sort==='closest'?'closest':'shuffle'};restaurantRadiusMiles=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(state.radius)||10));restaurantLocationMode=state.locationMode==='device'?'device':'area';restaurantAreaCoords=state.area&&Number.isFinite(Number(state.area.lat))&&Number.isFinite(Number(state.area.lon))?state.area:null;userCity=String(state.userCity||'');restaurantBase=uniq([...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);restaurantManual=new Set();restaurantRoundInProgress=true;return !!activeRestaurants.length||!!holdingRestaurants.length;
+    if(!state||Number(state.schema||1)>RESTAURANT_ROUND_SCHEMA||!Number.isFinite(state.savedAt)||Date.now()-state.savedAt>RESTAURANT_ROUND_MAX_AGE||!Array.isArray(state.items)||!state.items.length)return false;
+    restaurantItems=uniq(state.items,restKey);activeRestaurants=uniq(state.active||[],restKey);holdingRestaurants=uniq(state.holding||[],restKey);restaurantFinalistMode=!!state.finalist;restaurantEliminationExhausted=!!state.exhausted;restaurantQuickCuts=new Set((Array.isArray(state.quick)?state.quick:[]).map(k=>k==='bbq'?'pork':k==='mediterranean'?'greek':k));restaurantFilters={query:String(state.filters?.query||''),sort:state.filters?.sort==='closest'?'closest':'shuffle'};restaurantRadiusMiles=Math.min(RESTAURANT_MAX_MILES,Math.max(1,Number(state.radius)||10));restaurantLocationMode=state.locationMode==='device'?'device':'area';restaurantAreaCoords=state.area&&Number.isFinite(Number(state.area.lat))&&Number.isFinite(Number(state.area.lon))?state.area:null;userCity=String(state.userCity||'');restaurantBase=uniq([...(restaurantItems||[]),...(activeRestaurants||[]),...(holdingRestaurants||[])],restKey);restaurantManual=new Set();restaurantRoundInProgress=true;saveRestaurantRoundState();return !!activeRestaurants.length||!!holdingRestaurants.length;
   }
   function foodQuickMatch(item,k){return typeof quickCutMatches==='function'&&QUICK_CUT_RULES?.[k]&&quickCutMatches(item,QUICK_CUT_RULES[k]);}
   function restQuickMatch(item,k){return typeof restaurantQuickCutMatches==='function'&&restaurantQuickCutMatches(item,k);}
@@ -129,7 +130,7 @@
     activeItems=foodVisible();
     holdingItems=held;
     if(!activeItems.length&&holdingItems.length){activeItems=[...holdingItems];holdingItems=[];}
-    searchQuery=''; saveFoodRoundState(); renderStage(); renderFoodQuickCuts(); setStatus(`${activeItems.length} options left`,'live');
+    saveFoodRoundState(); renderStage(); renderFoodQuickCuts(); setStatus(`${activeItems.length} options left`,'live');
     toast(`${QUICK_CUT_RULES[k].label} ${foodQuickHidden.has(k)?'hidden':'brought back'}.`);
   }
 
@@ -415,7 +416,6 @@
         return ![...activeQuick].some(other=>restQuickMatch(r,other));
       });
     }
-    restaurantFilters.query='';
     restaurantRoundInProgress=!!activeRestaurants.length||!!holdingRestaurants.length;
     saveRestaurantRoundState();
     renderRestaurantQuickCuts();
@@ -426,7 +426,7 @@
   }
   function lockPassControls(){
     const selectors=pass?.mode==='restaurant'
-      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','#restaurantOpenUnknownBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-order-btn-v240']
+      ? ['#restaurantBackAction','#restaurantHideBtn','#restaurantChooseBtn','#restaurantSearchBtn','#restaurantInlineSearchInput','#restaurantUseLocationBtn','#restaurantLoadBtn','#restaurantRadiusFilter','#restaurantRadiusDisplay','#restaurantMenuBtn','#restaurantPassAroundBtn','#restaurantOpenUnknownBtn','.restaurant-card-choose-btn','.restaurant-detail-btn-v240','.restaurant-website-btn-v240']
       : ['#backBtn','#hideBtn','#chooseBtn','#randomBtn','#addDuringBtn','#menuBtn','#homeMenuTopBtn','#foodPassAroundBtn','.card-choose-btn','.choice-utilities button'];
     document.querySelectorAll(selectors.join(',')).forEach(el=>{
       if(el.id==='passEndBtn'||el.id==='cutBtn'||el.id==='holdBtn'||el.id==='restaurantCutBtn'||el.id==='restaurantKeepBtn')return;
