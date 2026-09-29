@@ -1260,6 +1260,7 @@ async function appDiagnosisView(){
    pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
    info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
    info('Image licensing','Photo availability is testable here; third-party licensing/usage still requires human review.');
+   info('Browser certification','Automated CI checks app/runtime behavior; real iPhone Safari certification remains a separate release gate.');
   }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
   const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW RECOMMENDED':'HEALTHY';
