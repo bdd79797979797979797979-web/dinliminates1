@@ -2,6 +2,8 @@ const fs=require('fs');
 const vm=require('vm');
 const assert=require('assert/strict');
 
+(async()=>{
+
 const source=fs.readFileSync('api/restaurants.js','utf8');
 
 function loadWithFetch(fetchImpl){
@@ -89,3 +91,5 @@ assert.equal(res.statusCode,502);
 assert.equal(res.body.code,'PROVIDER_UNAVAILABLE');
 
 console.log('Dinliminate API smoke: PASS');
+
+})().catch(err=>{console.error(err);process.exitCode=1});
