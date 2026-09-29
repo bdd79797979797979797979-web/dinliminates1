@@ -75,6 +75,36 @@
     restaurantTimezone:''
   };
 
+  function foodPhoto(item){
+    if(!item)return HUNGRY_IMAGE;
+    const src=String(item.image||'');
+    if(src && !src.startsWith('idb:'))return src;
+    const groups=Array.isArray(item.quickCuts)&&item.quickCuts.length?item.quickCuts:[item.category];
+    for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
+    return QUICK_IMAGES.American;
+  }
+  function foodPhotoFallback(item){
+    const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCuts:[item?.category];
+    for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
+    return QUICK_IMAGES.American;
+  }
+  function restaurantWebsiteUrl(row){
+    const direct=safeExternalUrl(row?.website);
+    if(direct)return direct;
+    const q=[row?.name,row?.address].filter(Boolean).join(' ');
+    return 'https://www.google.com/search?q='+encodeURIComponent(q||'restaurant');
+  }
+
+  function bindImageFallbackAttrs(selector){
+    document.querySelectorAll(selector).forEach(img=>{
+      img.addEventListener('error',()=>{
+        img.onerror=null;
+        const fb=img.dataset.fallback||HUNGRY_IMAGE;
+        if(img.src!==fb)img.src=fb;
+      },{once:true});
+    });
+  }
+
   function phoneHref(raw){
     const digits=String(raw||'').replace(/[^+0-9]/g,'');
     if(/^\+/.test(digits))return 'tel:'+digits;
@@ -280,8 +310,10 @@
   function foodQuick() {
     $('foodQuick').innerHTML = FOOD_QUICK.map(label => {
       const cut = S.cutCats.has(label);
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(QUICK_IMAGES[label] || QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
+      const src=QUICK_IMAGES[label] || QUICK_IMAGES.American;
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt=""><span>'+esc(label)+'</span></button>';
     }).join('');
+    bindImageFallbackAttrs('[data-food-quick] img');
     document.querySelectorAll('[data-food-quick]').forEach(btn => {
       btn.onclick = () => {
         const label = btn.dataset.foodQuick;
@@ -324,7 +356,9 @@
       return;
     }
     const item = S.pool[S.index];
-    $('foodImg').src = String(item.image||'').startsWith('idb:') ? HUNGRY_IMAGE : (item.image||HUNGRY_IMAGE);
+    $('foodImg').src = foodPhoto(item);
+    $('foodImg').dataset.fallback = foodPhotoFallback(item);
+    $('foodImg').onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
     $('foodImg').alt = item.name;
     $('foodName').textContent = item.name;
     $('foodCat').textContent = item.category;
@@ -334,7 +368,9 @@
     if (nextCard) {
       nextCard.classList.toggle('hidden', !next);
       if (next) {
-        $('foodNextImg').src = next.image;
+        $('foodNextImg').src = foodPhoto(next);
+        $('foodNextImg').dataset.fallback = foodPhotoFallback(next);
+        $('foodNextImg').onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
         $('foodNextImg').alt = next.name;
         nextCard.style.transform = 'scale(.96)';
       }
@@ -357,6 +393,11 @@
 
   function foodMaybe(item = S.pool[S.index]) {
     if (!item) return;
+    if (S.pool.length === 1) {
+      foodCommit('maybe', item);
+      winner(item);
+      return;
+    }
     foodCommit('maybe', item);
     S.maybe.add(item.id);
     buildFood();
@@ -609,8 +650,10 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   function restaurantQuick() {
     $('restQuick').innerHTML = REST_QUICK.map(label => {
       const cut = S.restaurantCuts.has(label);
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
+      const src=REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American;
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt=""><span>'+esc(label)+'</span></button>';
     }).join('');
+    bindImageFallbackAttrs('[data-rest-quick] img');
     document.querySelectorAll('[data-rest-quick]').forEach(btn => {
       btn.onclick = () => {
         const label = btn.dataset.restQuick;
@@ -731,7 +774,13 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   let restaurantSearchSeq = 0;
-  async function searchRestaurants() {
+  async async function responseJson(response, message){
+    let body=null;
+    try{body=await response.json();}catch{throw new Error(message||'The restaurant search returned an invalid response.');}
+    return body;
+  }
+
+  function searchRestaurants() {
     const searchSeq = ++restaurantSearchSeq;
     restaurantSearchController?.abort();
     restaurantSearchController = new AbortController();
@@ -746,16 +795,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         const q = $('address').value.trim();
         if (!q) { $('status').textContent = 'Enter an address or use your location.'; return; }
         const rr = await fetch('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q),{signal});
-        const rd = await rr.json();
+        const rd = await responseJson(rr,'Could not locate that address. Please try another address.');
         if (searchSeq !== restaurantSearchSeq) return;
-        if (!rr.ok || !rd.ok) throw new Error(rd.message || 'Could not locate that address.');
+        if (!rr.ok || !rd.ok) throw new Error(rr.status===429 ? 'Address lookup is temporarily busy. Please try again.' : (rd.message || 'Could not locate that address.'));
         loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = rd.display;
       }
       const radius = Number($('radius').value) || 10;
       const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius,{signal});
-      const d = await rr.json();
+      const d = await responseJson(rr,'Restaurant search returned an invalid response. Please try again.');
       if (searchSeq !== restaurantSearchSeq) return;
-      if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
+      if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
       S.restaurantTimezone = String(d.timezone||'');
       S.restaurantSearchDegraded = !!(d.providerErrors?.length);
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
@@ -822,7 +871,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
     const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '';
     const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
-    const websiteUrl=safeExternalUrl(row.website); const cardWebsite = websiteUrl ? '<a class="card-card-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer">Website</a>' : '';
+    const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(safeExternalUrl(row.website)?'Open restaurant website':'Search restaurant on Google')+'" title="'+(safeExternalUrl(row.website)?'Website':'Search on Google')+'">↗</a>';
     $('restStage').innerHTML =
       '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action" id="restDetails" type="button" aria-label="Details">Details</button></div></div></article></div>'+
       '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
@@ -838,7 +887,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     bindCardButton('restMaybe', () => restaurantMaybe(current));
     bindCardButton('restCut', () => restaurantCut(current));
     bindCardButton('restHide', async () => { await restaurantHide(current); });
-    bindCardButton('restDetails', () => detailsSheet(current, 'restaurant'));
+    $('restDetails').onclick = e => { e.preventDefault(); e.stopPropagation(); detailsSheet(current, 'restaurant'); };
     bindRestaurantSwipe();
   }
 
@@ -1028,7 +1077,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       (type === 'restaurant' ? '' : '<p class="status">'+esc(item.category || '')+'</p>')+
       nutritionBlock+ingredientsBlock+menuBlock+recipeBlock+
       '<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+
-      (item.website ? '<button class="detail-web-action" id="detailWeb">Website</button>' : '')+'</div></div>';
+      '<button class="detail-web-action" id="detailWeb" aria-label="'+(safeExternalUrl(item.website)?'Open restaurant website':'Search restaurant on Google')+'" title="'+(safeExternalUrl(item.website)?'Website':'Search on Google')+'">↗</button>'+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
     $('detailHide').onclick = async () => {
       const hidden = type === 'restaurant' ? await restaurantHide(item) : await foodHideItem(item);
@@ -1036,7 +1085,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         modal.remove(); $('detailsModalBg')?.remove();
       }
     };
-    if ($('detailWeb')) $('detailWeb').onclick = () => { const u=safeExternalUrl(item.website); if(u)window.open(u,'_blank','noopener,noreferrer'); };
+    if ($('detailWeb')) $('detailWeb').onclick = e => { e.preventDefault(); e.stopPropagation(); const u=restaurantWebsiteUrl(item); window.open(u,'_blank','noopener,noreferrer'); };
   }
 
   function recordHistory(item, type) {
@@ -1268,8 +1317,9 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
 
   function aboutView() {
     const date = new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
-    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Made for Devona Dunn by Brian Dunn.</p><p>Cut the dinner choices until one survives.</p><p class="about-test">TEST BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
-    openModal('aboutModal','About Dinliminate',body);
+    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Made for Devona Dunn by Brian Dunn.</p><p>Cut the dinner choices until one survives.</p><p class="about-test">CURRENT BUILD</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:8px 0 4px">Privacy & Data</button><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+    const modal=openModal('aboutModal','About Dinliminate',body);
+    $('privacyFromAbout').onclick=()=>privacyView();
   }
 
   function iphoneHelp() {
@@ -1312,100 +1362,111 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     return S.screen === 'restaurant' ? restaurantPoolFiltered() : S.pool;
   }
 
+  function removePassSurface(){
+    document.querySelector('#passSurface')?.remove();
+  }
+
+  function openPassSurface(inner){
+    removePassSurface();
+    const surface=document.createElement('section');
+    surface.id='passSurface';
+    surface.className='pass-surface';
+    surface.innerHTML=inner;
+    document.body.appendChild(surface);
+    return surface;
+  }
+
   function passSetup() {
-    const counts = [2,3,4,5,6,7,8];
-    const body = '<div class="pass-setup"><p class="status">Each person gets a turn on every choice. One Cut removes the choice; only choices everyone keeps survive the pass.</p><label class="pass-label">People</label><div class="pass-counts">'+counts.map(n => '<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:12px;min-height:48px;border-radius:14px">Start Pass Around</button></div>';
-    const modal = openModal('passSetup','Pass Around',body);
-    const renderNames = () => {
-      $('passNames').innerHTML = '<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join('')+'</div>';
-      document.querySelectorAll('[data-pass-name]').forEach((x,i) => x.value = S.passDraftNames[i] || '');
-      document.querySelectorAll('[data-pass-count]').forEach(x => x.classList.toggle('selected', Number(x.dataset.passCount)===S.passDraftCount));
+    const counts=[2,3,4,5,6,7,8];
+    const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Everyone gets a turn. Cut removes a choice. A choice everyone keeps survives.</p><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start Pass Around</button></div>');
+    $('passClose').onclick=()=>removePassSurface();
+    const renderNames=()=>{
+      $('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join('')+'</div>';
+      document.querySelectorAll('[data-pass-name]').forEach((x,i)=>x.value=S.passDraftNames[i]||'');
+      document.querySelectorAll('[data-pass-count]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.passCount)===S.passDraftCount));
     };
     renderNames();
-    document.querySelectorAll('[data-pass-count]').forEach(btn => btn.onclick = () => { S.passDraftCount=Number(btn.dataset.passCount); renderNames(); });
-    $('passBegin').onclick = () => {
-      S.passDraftNames = [...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim() || 'Person '+(i+1));
-      const pool = passCandidates();
-      if (!pool.length) { modal.remove(); $('passSetupBg')?.remove(); appToast('There are no choices left to pass around.'); return; }
-      S.pass = {type:S.screen==='restaurant'?'restaurant':'food', players:S.passDraftNames, choiceIndex:0, voterIndex:0, history:[], poolIds:pool.map(x=>x.id)};
-      modal.remove(); $('passSetupBg')?.remove();
+    document.querySelectorAll('[data-pass-count]').forEach(btn=>btn.onclick=()=>{S.passDraftCount=Number(btn.dataset.passCount);renderNames();});
+    $('passBegin').onclick=()=>{
+      S.passDraftNames=[...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim()||'Person '+(i+1));
+      const pool=passCandidates();
+      if(!pool.length){removePassSurface();appToast('There are no choices left to pass around.');return;}
+      S.pass={type:S.screen==='restaurant'?'restaurant':'food',players:S.passDraftNames,choiceIndex:0,voterIndex:0,history:[],poolIds:pool.map(x=>x.id)};
       drawPass();
     };
   }
 
-  function currentPassItem() {
-    const id = S.pass?.poolIds?.[S.pass.choiceIndex];
-    return passCandidates().find(x => x.id === id);
+  function currentPassItem(){
+    const id=S.pass?.poolIds?.[S.pass.choiceIndex];
+    return passCandidates().find(x=>x.id===id);
   }
 
-  function drawPass() {
-    const p = S.pass;
-    if (!p) return;
-    if (p.choiceIndex >= p.poolIds.length) return finishPass();
-    const item = currentPassItem();
-    if (!item) { p.choiceIndex++; p.voterIndex=0; return drawPass(); }
-    const voter = p.players[p.voterIndex] || 'Next person';
-    const body = '<div class="pass-view"><div class="pass-progress"><span>Choice '+(p.choiceIndex+1)+' of '+p.poolIds.length+'</span><span>'+(p.voterIndex+1)+' / '+p.players.length+'</span></div><img class="pass-photo" src="'+esc(item.image||item.photo||HUNGRY_IMAGE)+'" alt="'+esc(item.name)+'"><h2>'+esc(item.name)+'</h2><p class="status">Pass to <strong style="color:#eee">'+esc(voter)+'</strong>. Keep or cut this choice.</p><div class="pass-actions"><button class="secondary" id="passBack">Back</button><button class="maybe" id="passKeep">Keep</button><button class="cut" id="passCut">Cut</button></div><button class="text-btn" id="passEnd">End Pass & keep survivors</button></div>';
-    const modal = openModal('passModal','Pass Around',body);
-    $('passBack').onclick = passUndo;
-    $('passKeep').onclick = () => passVote(true);
-    $('passCut').onclick = () => passVote(false);
-    $('passEnd').onclick = () => endPass();
-    modal.querySelector('[data-close]').onclick = () => endPass();
+  function drawPass(){
+    const p=S.pass;
+    if(!p)return;
+    if(p.choiceIndex>=p.poolIds.length)return finishPass();
+    const item=currentPassItem();
+    if(!item){p.choiceIndex++;p.voterIndex=0;return drawPass();}
+    const voter=p.players[p.voterIndex]||'Next person';
+    const img=foodPhoto(item);
+    const fallback=foodPhotoFallback(item);
+    const image= S.screen==='restaurant' ? (item.photo||item.image||'') : img;
+    const imageFallback= S.screen==='restaurant' ? (item.photo||item.image||REST_QUICK_IMAGES.American) : fallback;
+    const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
+    $('passClose').onclick=()=>endPass();
+    $('passBack').onclick=passUndo;
+    $('passCut').onclick=()=>passVote(false);
+    $('passKeep').onclick=()=>passVote(true);
+    const next=p.poolIds[p.choiceIndex+1] ? passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]) : null;
+    if(next){
+      const nsrc=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhoto(next);
+      $('passNextCard').classList.remove('hidden');
+      $('passNextCard img').src=nsrc;
+      $('passNextCard img').dataset.fallback=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhotoFallback(next);
+      $('passNextCard img').onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
+    }
+    $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
+    bindSwipeCard('passCard','passNextCard',()=>passVote(false),()=>passVote(true));
   }
 
-  function passVote(keep) {
-    const p = S.pass, item = currentPassItem();
-    if (!p || !item) return;
+  function passVote(keep){
+    const p=S.pass,item=currentPassItem();
+    if(!p||!item)return;
     p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,choiceId:item.id,keep});
-    if (!keep) {
-      p.poolIds = p.poolIds.filter(id => id !== item.id);
-      if (p.poolIds.length === 1) return finishPass();
-      p.choiceIndex = Math.min(p.choiceIndex, Math.max(0,p.poolIds.length-1));
-      p.voterIndex=0;
-      drawPass();
-      return;
+    if(!keep){
+      p.poolIds=p.poolIds.filter(id=>id!==item.id);
+      if(p.poolIds.length===1)return finishPass();
+      p.choiceIndex=Math.min(p.choiceIndex,Math.max(0,p.poolIds.length-1));
+      p.voterIndex=0; drawPass(); return;
     }
-    if (p.voterIndex < p.players.length-1) { p.voterIndex++; drawPass(); return; }
-    p.choiceIndex++; p.voterIndex=0; drawPass();
+    if(p.voterIndex<p.players.length-1){p.voterIndex++;drawPass();return;}
+    p.choiceIndex++;p.voterIndex=0;drawPass();
   }
 
-  function passUndo() {
-    const p = S.pass;
-    if (!p?.history?.length) return;
-    const last = p.history.pop();
-    if (!last.keep && last.choiceId && !p.poolIds.includes(last.choiceId)) p.poolIds.splice(Math.min(last.choiceIndex,p.poolIds.length),0,last.choiceId);
-    p.choiceIndex=last.choiceIndex;
-    p.voterIndex=last.voterIndex;
-    drawPass();
+  function passUndo(){
+    const p=S.pass;if(!p?.history?.length)return;
+    const last=p.history.pop();
+    if(!last.keep&&last.choiceId&&!p.poolIds.includes(last.choiceId))p.poolIds.splice(Math.min(last.choiceIndex,p.poolIds.length),0,last.choiceId);
+    p.choiceIndex=last.choiceIndex;p.voterIndex=last.voterIndex;drawPass();
   }
 
-  function finishPass() {
-    const p = S.pass;
-    if (!p) return;
-    const rows = p.poolIds.map(id => passCandidates().find(x=>x.id===id)).filter(Boolean);
-    S.pass=null;
-    $('passModal')?.remove(); $('passModalBg')?.remove();
-    if (rows.length === 1) { winner(rows[0]); return; }
-    if (!rows.length) { winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'}); return; }
-    if (S.screen === 'restaurant') {
-      S.restaurantPool = S.restaurantPool.filter(x => rows.some(r=>r.id===x.id));
-      S.restaurantIndex=0;
-      drawRestaurants();
-    } else {
-      S.pool = rows; S.index=0; drawFood();
-    }
+  function finishPass(){
+    const p=S.pass;if(!p)return;
+    const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
+    S.pass=null;removePassSurface();
+    if(rows.length===1){winner(rows[0]);return;}
+    if(!rows.length){winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
+    if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
+    else {S.pool=rows;S.index=0;drawFood();}
     save();
   }
 
-  function endPass() {
-    const p=S.pass;
-    if (!p) return;
-    const rows=p.poolIds.map(id => passCandidates().find(x=>x.id===id)).filter(Boolean);
-    S.pass=null;
-    $('passModal')?.remove(); $('passModalBg')?.remove();
-    if (S.screen==='restaurant') { S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id)); S.restaurantIndex=0; drawRestaurants(); }
-    else { S.pool=rows; S.index=0; drawFood(); }
+  function endPass(){
+    const p=S.pass;if(!p)return;
+    const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
+    S.pass=null;removePassSurface();
+    if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
+    else {S.pool=rows;S.index=0;drawFood();}
     save();
   }
 
@@ -1432,7 +1493,6 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   $('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
   $('settings').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); settingsView(); };
   $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); aboutView(); };
-  $('privacy').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); privacyView(); };
   $('backToStart').onclick = () => home();
   $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
   $('iphoneHelp').onclick = iphoneHelp;
