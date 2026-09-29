@@ -816,6 +816,10 @@ S.restaurantActions = [];
 S.restaurantMaybeRound = false;
 S.restaurantQuery = '';
 S.restaurantCuts.clear();
+for (const row of S.restaurantPool || []) {
+row._cut = false;
+row._maybe = false;
+}
 S.hoursMode = 'openUnknown';
 S.winnerItem = null;
 show('restaurant');
