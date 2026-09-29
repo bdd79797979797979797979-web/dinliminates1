@@ -164,3 +164,8 @@ assert(css.includes('.diagnosis-action{')&&css.includes('.diagnosis-refresh.sele
 assert(css.includes('.card-copy>.icon-action{width:35px')&&css.includes('.card-card-action.icon-action{width:35px'),'Details card icon must be compact and keep breathing room from card text');
 assert(app.includes("setAttribute('aria-pressed','true')")&&app.includes('diagnosisRunStatus'),'Diagnosis Run Again must expose a visible selected/run status');
 assert(html.includes('<rect x="4.75"')&&app.includes('<rect x="4.75"'),'Details icon must use the crisp outlined info mark');
+
+assert(app.includes('health-shake')&&app.includes('Health Shake'),'Health Shake must be covered by static catalog validation');
+assert(app.includes("imageIdsExpected={'tacos':'27626524'"),'Diagnosis must validate the refreshed taco image');
+assert(css.includes('.settings-system-action.diagnosis-action{background:#194e6b'),'App Diagnosis must have a distinct button color');
+assert(css.includes('.card-card-action.icon-action{width:32px'),'Details icon button must stay compact');
