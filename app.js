@@ -1391,9 +1391,10 @@ if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.som
 else {S.pool=rows;S.index=0;drawFood();}
 save();
 }
-$('foodStart').onclick = null;
-$('restStart').onclick = null;
-document.addEventListener('click', e => { const target=e.target.closest?.('#foodStart,#restStart'); if(!target) return; e.preventDefault(); e.stopPropagation(); target.id==='foodStart'?startFood():openRestaurant(); }, true);
+$('foodStart').onclick = startFood;
+$('restStart').onclick = openRestaurant;
+['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
+['#restStart .home-card-overlay','#restStart .home-card-copy','#restStart .arrow','#restStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();openRestaurant();},{capture:true});});
 $('foodCut').onclick = () => foodCut();
 $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
