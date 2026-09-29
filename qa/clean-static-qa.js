@@ -116,3 +116,5 @@ assert(globalHeaders.some(x=>x.key==='Permissions-Policy'&&String(x.value).inclu
 assert(!globalHeaders.some(x=>x.key==='Cache-Control'&&x.value==='no-store'),'Global no-store must not disable API edge caching');
 
 assert(!app.includes('s.wsj.net') && !app.includes('photos.zillowstatic.com') && !app.includes('pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev'),'unstable restaurant image hosts must not be used for production fallbacks');
+
+const vercelConfig=JSON.parse(fs.readFileSync('vercel.json','utf8')); assert.equal(vercelConfig.functions['api/restaurants.js'].maxDuration,30,'Restaurant API maxDuration should be 30 seconds');
