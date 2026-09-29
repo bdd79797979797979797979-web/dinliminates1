@@ -49,7 +49,7 @@ assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato 
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/4924603/'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
+assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
@@ -146,4 +146,4 @@ assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewp
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
 assert(app.includes("let APP_BUILD = '125'"),'CP250 build should be 125');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
-assert(foods.includes('33614203')&&foods.includes('4924603')&&foods.includes('2397401')&&foods.includes('9704174')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('20234576')&&foods.includes('Strawberry_Smoothie_with_yogurt'),'CP246 stabilized food photo mappings should be present');
+assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('36863862')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('28503619')&&foods.includes('7974814'),'CP246 stabilized food photo mappings should be present');
