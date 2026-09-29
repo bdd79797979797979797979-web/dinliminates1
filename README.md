@@ -1,16 +1,15 @@
-# Dinliminate Clean Rebuild
+# Dinliminate
 
-The clean rebuild is isolated on the `clean-rebuild` branch and under `clean-rebuild/` so the existing `main` application remains untouched.
+Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-This build intentionally starts from product behavior instead of the legacy patch layers.
+Current build: Version 1.0, Build 110.
+
+The deployable app lives at the repository root.
 
 Milestones:
-1. Home + Food engine + persistent saved rounds + reversible Quick Cuts
+1. Home + Food decision engine
 2. Live restaurant location/search pipeline
 3. Restaurant elimination + details
 4. History/settings
 5. Pass Around
 6. Launch QA
-
-
-The deployable clean app is at repository root on this branch.
