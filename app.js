@@ -1054,7 +1054,14 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
   }
   function writeHistory(rows) {
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify((rows||[]).slice(0,120))); } catch {}
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify((rows||[]).slice(0,120)));
+      S.storageWarning=false; updateStorageIndicator();
+      return true;
+    } catch {
+      S.storageWarning=true; updateStorageIndicator();
+      return false;
+    }
   }
 
   function historyView() {
