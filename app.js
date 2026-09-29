@@ -286,13 +286,14 @@
   }
 
   function foodHideItem(item) {
-    if (!item) return;
-    if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return;
+    if (!item) return false;
+    if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return false;
     S.hidden.add(item.id);
     buildFood();
     S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
     drawFood();
     save();
+    return true;
   }
 
   function foodHide() {
@@ -631,7 +632,8 @@ function hourStatus(row){
   }
 
   function restaurantHide(row) {
-    if (!confirm('Hide '+row.name+' until you restore it in Settings?')) return;
+    if (!row) return false;
+    if (!confirm('Hide '+row.name+' until you restore it in Settings?')) return false;
     row._hidden = true;
     S.hiddenRestaurants[row.id] = {
       id:row.id,name:row.name,photo:row.photo||row.image||'',category:restaurantCategory(row),
@@ -639,6 +641,7 @@ function hourStatus(row){
     };
     drawRestaurants();
     save();
+    return true;
   }
 
   function bindRestaurantSwipe() {
@@ -754,9 +757,10 @@ function hourStatus(row){
       (item.website ? '<button class="detail-web-action" id="detailWeb">Website</button>' : '')+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
     $('detailHide').onclick = () => {
-      if (type === 'restaurant') restaurantHide(item);
-      else foodHideItem(item);
-      modal.remove(); $('detailsModalBg')?.remove();
+      const hidden = type === 'restaurant' ? restaurantHide(item) : foodHideItem(item);
+      if (hidden) {
+        modal.remove(); $('detailsModalBg')?.remove();
+      }
     };
     if ($('detailWeb')) $('detailWeb').onclick = () => window.open(item.website, '_blank', 'noopener');
   }
