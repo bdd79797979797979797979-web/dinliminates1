@@ -973,6 +973,8 @@ async function handler(req, res) {
         ok: true,
         version: VERSION,
         googleConfigured: !!GOOGLE_KEY,
+        apiSchema: 2,
+        searchContract: 'combined-restaurant-fast-food',
         maxRadiusMiles: MAX_RADIUS_MI,
         providers: { primary: 'OpenStreetMap Overpass (multi-endpoint)', optional: GOOGLE_KEY ? 'Google Places' : 'Google Places not configured', geocoding: 'Census + ArcGIS + Photon + Nominatim' }
       });
