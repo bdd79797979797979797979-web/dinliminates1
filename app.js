@@ -1265,7 +1265,7 @@ async function appDiagnosisView(){
   const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW RECOMMENDED':'HEALTHY';
   const bodyEl=$('diagnosisBody');
-  if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>'+overall+'</b><span>Run '+run+' · '+failures+' failed · '+warnings+' warnings · '+passing+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
+  if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis · '+overall+'</b><span>Run '+run+' · '+failures+' failed · '+warnings+' warnings · '+passing+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
   if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').textContent='↻ Run again';}
   running=false;
  };
