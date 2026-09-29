@@ -2,7 +2,7 @@ const MAX_RADIUS_MI = 100;
 const MIN_COVERAGE_RADIUS_MI = 25;
 const RESULT_LIMIT = 1000;
 const CACHE_TTL_MS = 90 * 1000;
-const VERSION = 'restaurant-v759-search-quality';
+const VERSION = 'restaurant-v900-launch-complete';
 
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
 
@@ -637,9 +637,11 @@ async function doSearch(lat, lon, radiusMi, query='') {
 
   const started = Date.now();
   const providerResults = [];
-  providerResults.push(await googleSearch(lat, lon, coverageRadiusMi));
-  const photon = await photonProvider(lat, lon, radiusMi);
-  providerResults.push(photon);
+  const [googleResult, photon] = await Promise.all([
+    googleSearch(lat, lon, coverageRadiusMi),
+    photonProvider(lat, lon, coverageRadiusMi)
+  ]);
+  providerResults.push(googleResult, photon);
 
   // Merge completed primary Overpass mirrors; never take the first responder.
   // Three mirrors for <=25 mi improves local coverage, two for larger tiled searches
@@ -683,6 +685,8 @@ async function doSearch(lat, lon, radiusMi, query='') {
     throw Object.assign(new Error('Restaurant data providers are unavailable. Please try again.'),{code:'PROVIDERS_UNAVAILABLE',providerSummary});
   }
   const data={
+    apiSchema:2,
+    searchContract:'combined-restaurant-fast-food',
     results:merged.slice(0,RESULT_LIMIT),restaurants:merged.slice(0,RESULT_LIMIT),items:merged.slice(0,RESULT_LIMIT),
     coverageResults:coverageMerged.slice(0,RESULT_LIMIT),coverageTotal:coverageMerged.length,
     total:merged.length,fastFoodCount:merged.filter(r=>r.fastFood).length,
