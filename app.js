@@ -1401,6 +1401,40 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     return passCandidates().find(x=>x.id===id);
   }
 
+  function bindPassSwipe(cardId,onCut,onKeep){
+    const surface=$('passSurface'),card=$(cardId),next=$('passNextCard');
+    if(!surface||!card)return;
+    let startX=0,startY=0,active=false;
+    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+    surface.addEventListener('pointerdown',e=>{
+      if(!card.contains(e.target)||e.target.closest('button,a,input,select'))return;
+      startX=e.clientX;startY=e.clientY;active=true;
+    },true);
+    surface.addEventListener('pointermove',e=>{
+      if(!active)return;
+      const dx=e.clientX-startX,dy=e.clientY-startY;
+      if(Math.abs(dy)>Math.abs(dx)*1.15){return;}
+      if(Math.abs(dx)>8){
+        e.preventDefault();
+        card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+        card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+        card.dataset.swipe=dx<0?'cut':'maybe';
+        if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
+      }
+    },true);
+    surface.addEventListener('pointerup',e=>{
+      if(!active)return;
+      active=false;
+      const dx=e.clientX-startX;
+      if(Math.abs(dx)>90){
+        card.style.transition='transform .16s ease,opacity .16s ease';
+        card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+        setTimeout(()=>{const dir=dx<0?onCut:onKeep;reset();dir();},110);
+      }else reset();
+    },true);
+    surface.addEventListener('pointercancel',()=>{active=false;reset();},true);
+  }
+
   function drawPass(){
     const p=S.pass;
     if(!p)return;
@@ -1426,7 +1460,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       $('passNextCard img').onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
     }
     $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
-    bindSwipeCard('passCard','passNextCard',()=>passVote(false),()=>passVote(true));
+    bindPassSwipe('passCard',()=>passVote(false),()=>passVote(true));
   }
 
   function passVote(keep){
