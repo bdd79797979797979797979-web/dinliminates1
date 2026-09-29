@@ -1408,11 +1408,13 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
     const allowed=(target)=>target===hit || (target instanceof Element && !!target.closest?.('#passGestureHit'));
     const begin=(e)=>{
+      if(window.__DINLIMINATE_TEST__) window.__DINLIMINATE_TEST__.passEvents=(window.__DINLIMINATE_TEST__.passEvents||0)+1;
       if(active||!allowed(e.target))return;
       startX=e.clientX;startY=e.clientY;pointerId=e.pointerId ?? null;active=true;
       try{if(pointerId!=null)hit.setPointerCapture(pointerId)}catch{}
     };
     const move=(e)=>{
+      if(window.__DINLIMINATE_TEST__) window.__DINLIMINATE_TEST__.passMoves=(window.__DINLIMINATE_TEST__.passMoves||0)+1;
       if(!active)return;
       const dx=e.clientX-startX,dy=e.clientY-startY;
       if(Math.abs(dy)>Math.abs(dx)*1.2)return;
@@ -1425,6 +1427,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       }
     };
     const end=(e)=>{
+      if(window.__DINLIMINATE_TEST__) window.__DINLIMINATE_TEST__.passEnds=(window.__DINLIMINATE_TEST__.passEnds||0)+1;
       if(!active)return;
       active=false;
       const dx=e.clientX-startX; pointerId=null;
