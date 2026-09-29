@@ -135,30 +135,31 @@ window.DINLIMINATE_FOODS=[
   },
   {
     "id": "stir-fry",
-    "name": "Stir Fry",
+    "name": "Mexican Stir Fry",
     "primary": "stir-fry",
-    "category": "Asian",
+    "category": "Mexican",
     "quickCuts": [
-      "Asian"
+      "Mexican"
     ],
-    "image": "https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "image": "https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=1400",
     "ingredients": [
       "chicken or beef",
-      "broccoli",
-      "bell pepper",
+      "bell peppers",
       "onion",
-      "soy sauce",
+      "corn",
+      "Mexican spices",
+      "lime",
       "rice"
     ],
     "nutrition": {
-      "calories": 520,
-      "protein": 30,
-      "carbs": 55,
-      "fat": 18,
-      "sodium": 1200
+      "calories": 540,
+      "protein": 31,
+      "carbs": 56,
+      "fat": 20,
+      "sodium": 1080
     },
     "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
-    "recipe": "Cook sliced chicken or beef in a hot skillet. Add vegetables, garlic and ginger; toss with soy-based sauce and serve over rice."
+    "recipe": "Cook sliced chicken or beef with peppers and onion. Add corn, Mexican spices and lime, then serve over rice."
   },
   {
     "id": "homemade-pizza",
