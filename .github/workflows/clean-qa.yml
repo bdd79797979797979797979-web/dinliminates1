@@ -47,3 +47,11 @@ jobs:
         run: node qa/browser-smoke.mjs
       - name: Performance budget
         run: node qa/performance-budget.mjs
+
+      - name: Upload visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dinliminate-visual-qa
+          path: qa-artifacts/
+          if-no-files-found: ignore
