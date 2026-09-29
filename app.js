@@ -32,6 +32,7 @@
     hiddenRestaurants:{},
     cutCats:new Set(),
     cutPrimary:new Set(),
+    foodCuts:new Set(),
     maybe:new Set(),
     custom:[],
     pool:[],
@@ -61,7 +62,7 @@
   function save() {
     const data = {
       screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
-      cutCats:[...S.cutCats], cutPrimary:[...S.cutPrimary], maybe:[...S.maybe],
+      cutCats:[...S.cutCats], cutPrimary:[...S.cutPrimary], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
       custom:S.custom, pool:S.pool, index:S.index, foodActions:S.foodActions,
       restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
       restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
@@ -85,6 +86,8 @@
       S.hiddenRestaurants = d.hiddenRestaurants || {};
       S.cutCats = new Set(d.cutCats || []);
       S.cutPrimary = new Set(d.cutPrimary || []);
+      S.foodCuts = new Set(d.foodCuts || []);
+      if (!S.foodCuts.size && Array.isArray(d.foodActions)) for (const a of d.foodActions) if (a?.type === 'cut' && a.id) S.foodCuts.add(a.id);
       S.maybe = new Set(d.maybe || []);
       S.restaurantCuts = new Set(d.restaurantCuts || []);
       S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
@@ -126,6 +129,8 @@
   function foodPool() {
     return allFoods().filter(item => {
       if (S.hidden.has(item.id) || S.deleted.has(item.id) || S.maybe.has(item.id)) return false;
+      if (S.foodCuts.has(item.id)) return false;
+      // Legacy rounds may still carry primary-based cuts; new rounds use exact item IDs.
       if (S.cutPrimary.has(item.primary)) return false;
       if (S.cutCats.has(item.category)) return false;
       if (S.cutCats.has('Soup/Stew') && (item.category === 'Soup' || item.category === 'Stew' || item.primary === 'soup' || item.primary === 'stew')) return false;
@@ -162,6 +167,7 @@
     S.maybe.clear();
     S.cutCats.clear();
     S.cutPrimary.clear();
+    S.foodCuts.clear();
     S.index = 0;
     S.winnerItem = null;
     buildFood();
@@ -192,7 +198,7 @@
   function foodCut(item = S.pool[S.index]) {
     if (!item) return;
     foodCommit('cut', item);
-    S.cutPrimary.add(item.primary);
+    S.foodCuts.add(item.id);
     buildFood();
     resolveFoodAfterDecision();
   }
@@ -218,7 +224,10 @@
   function foodBack() {
     const action = S.foodActions.pop();
     if (!action) { home(); return; }
-    if (action.type === 'cut') S.cutPrimary.delete(action.primary);
+    if (action.type === 'cut') {
+      S.foodCuts.delete(action.id);
+      S.cutPrimary.delete(action.primary); // legacy primary-based rounds
+    }
     if (action.type === 'maybe') S.maybe.delete(action.id);
     S.index = action.index || 0;
     buildFood();
@@ -449,7 +458,9 @@ function hourStatus(row){
     if (box) box.style.display = 'none';
   }
 
+  let restaurantSearchSeq = 0;
   async function searchRestaurants() {
+    const searchSeq = ++restaurantSearchSeq;
     clearSuggestions();
     $('status').textContent = 'Searching restaurants…';
     try {
@@ -459,6 +470,7 @@ function hourStatus(row){
         if (!q) { $('status').textContent = 'Enter an address or use your location.'; return; }
         const rr = await fetch('./api/restaurants?mode=resolve&q='+encodeURIComponent(q));
         const rd = await rr.json();
+        if (searchSeq !== restaurantSearchSeq) return;
         if (!rr.ok || !rd.ok) throw new Error(rd.message || 'Could not locate that address.');
         loc = {lat:rd.lat, lon:rd.lon, label:rd.display};
         S.location = loc;
@@ -467,17 +479,26 @@ function hourStatus(row){
       const radius = Number($('radius').value) || 10;
       const rr = await fetch('./api/restaurants?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius);
       const d = await rr.json();
+      if (searchSeq !== restaurantSearchSeq) return;
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0;
       S.restaurantActions = [];
+      S.restaurantCuts.clear();
+      S.restaurantQuery = '';
+      S.hoursMode = 'openUnknown';
+      renderHours();
       S.winnerItem = null;
       $('status').textContent = d.total ? (d.total+' restaurants found'+(d.fastFoodCount ? ' · '+d.fastFoodCount+' fast food' : '')) : 'No restaurants found in this radius.';
       restaurantQuick();
       drawRestaurants();
       save();
     } catch (err) {
+      if (searchSeq !== restaurantSearchSeq) return;
       S.restaurantPool = [];
+      S.restaurantIndex = 0;
+      S.restaurantActions = [];
+      S.restaurantCuts.clear();
       drawRestaurants();
       $('status').textContent = err?.message || 'Could not complete the search.';
     }
@@ -487,6 +508,8 @@ function hourStatus(row){
     S.screen = 'restaurant';
     S.restaurantActions = [];
     S.restaurantQuery = '';
+    S.restaurantCuts.clear();
+    S.hoursMode = 'openUnknown';
     S.winnerItem = null;
     show('restaurant');
     restaurantQuick();
