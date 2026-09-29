@@ -444,9 +444,10 @@
 
   function restaurantHidden(row){
     if(!row)return false;
-    if(S.hiddenRestaurants[row.id])return true;
-    const targetName=normKey(row.name),targetAddr=normKey(row.address);
+    if(S.hiddenRestaurants[row.id] || (row.canonicalId && S.hiddenRestaurants[row.canonicalId]))return true;
+    const targetName=normKey(row.name),targetAddr=normKey(row.address),targetCanonical=row.canonicalId||restaurantCanonicalId(row);
     return Object.values(S.hiddenRestaurants||{}).some(x=>{
+      if(x.canonicalId && x.canonicalId===targetCanonical)return true;
       if(normKey(x.name)!==targetName)return false;
       if(targetAddr&&normKey(x.address)===targetAddr)return true;
       if(x.lat!=null&&x.lon!=null&&row.lat!=null&&row.lon!=null){
@@ -722,7 +723,7 @@ function hourStatus(row){
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
       S.restaurantTimezone = String(d.timezone||'');
       S.restaurantSearchDegraded = !!(d.providerErrors?.length);
-      S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, id:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
+      S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
       renderHours(); S.winnerItem = null;
       if(d.total) {
@@ -857,7 +858,7 @@ function hourStatus(row){
     if (!await appConfirm('Hide this restaurant?', 'Hide '+row.name+' until you restore it in Settings.', 'Hide')) return false;
     row._hidden = true;
     S.hiddenRestaurants[row.id] = {
-      id:row.id,name:row.name,photo:row.photo||row.image||'',category:restaurantCategory(row),
+      id:row.id,canonicalId:row.canonicalId||restaurantCanonicalId(row),name:row.name,photo:row.photo||row.image||'',category:restaurantCategory(row),
       address:row.address||'',phone:row.phone||'',lat:row.lat,lon:row.lon,website:row.website||''
     };
     drawRestaurants();
