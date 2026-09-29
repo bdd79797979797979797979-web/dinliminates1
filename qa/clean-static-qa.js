@@ -1,0 +1,93 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8');
+new vm.Script(foods);new vm.Script(app);new vm.Script(api);
+for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne'])assert(html.includes(s),'missing HTML contract: '+s);
+assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
+assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
+for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
+for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r12'])assert(api.includes(s),'missing API contract: '+s);
+assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
+assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
+assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
+assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
+assert(app.includes('S.deleted'),'deleted-food persistence is required');
+console.log('Dinliminate clean static QA: PASS');
+console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
+
+assert(html.includes('foodNextCard'),'Food Tinder card stack must be present in the base DOM');
+assert(app.includes('restaurantNextCard') && app.includes('restaurant-card-stack'),'Restaurant Tinder card stack must be rendered dynamically');
+assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
+assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the current app');
+assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
+assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
+assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
+assert(html.includes('class="decision-bar"'),'Food/Restaurant must use local compact decision bars');
+assert(html.includes('id="foodBackTop"') && html.includes('id="foodMenu"'),'Food local Back/Menu controls must be present');
+assert(html.includes('id="restaurantBackTop"') && html.includes('id="restaurantMenu"'),'Restaurant local Back/Menu controls must be present');
+assert(html.includes('id="foodCount"') && html.includes('id="restaurantCount"'),'Choice counts must be present on the Quick Cuts rows');
+assert(!/<span>FOOD<\/span>/.test(html) && !/<span>RESTAURANTS<\/span>/.test(html),'Standalone FOOD/RESTAURANTS header labels must stay removed');
+assert(html.includes('class="card-details" id="foodDetails"') && app.includes("detailsSheet(item, 'food')"),'Food card Details must open the full Details sheet');
+assert(app.includes('class="card-details" id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
+assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
+assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
+assert(app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
+assert(css.includes('round-cut') && css.includes('background:#ef3340'),'Cut must remain a red primary action');
+assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe must remain a green primary action');
+assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
+assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
+assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===62,'The original 62-food deck must be restored');
+const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
+const foodRows=JSON.parse(dataJson);
+assert(foodRows.length===62,'Food deck must contain exactly 62 foods');
+assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
+for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Stouffer’s Frozen Dinner','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
+assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
+assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
+const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
+assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
+assert(stir?.image?.includes('pexels-photo-4924603.jpeg'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
+assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
+assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food') && api.includes('The Thirsty Goat'),'Restaurant search should use tagged Photon coverage plus targeted local discovery');
+assert(api.includes('Ruby Tuesday') && api.includes('Chipotle'),'Restaurant provider should cover the missing named Clarksville chains');
+console.log('Dinliminate CP108 static QA: PASS');
+console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
+
+assert(html.includes('food-choice') && html.includes('restaurant-choice'),'Home choices must be photo-backed');
+assert(!html.includes('home-photo-rail'),'Standalone Home food photo rail must stay removed');
+assert(css.includes('.luxury-home h1{max-width:calc(100% - 16px)'),'Home headline must stay inside the iPhone viewport');
+assert(css.includes('font-size:clamp(2rem,8.1vw'),'Home headline must stay compact on iPhone');
+assert(css.includes('.luxury-home .home-card-photo{'),'Home choice cards must use dedicated photo backgrounds');
+assert(!html.includes('Made by Brian Dunn for Devona Dunn'),'Front page should not show attribution text');
+assert(!html.includes('Continue saved round'),'Front page should not show a Continue saved round button');
+assert(html.includes('id="backToStart"'),'Menu must include Back to Start');
+assert(html.includes('id="celebration"'),'Winner must include celebration layer');
+assert(!html.toLowerCase().includes('clean rebuild'),'HTML should not mention build-internal wording');
+assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
+assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
+assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
+assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '112'"),'About must expose the current app version/build');
+assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
+assert(!app.includes('TEST BUILD'),'About should not show TEST BUILD');
+assert(app.includes('Made by Brian Dunn for Devonda Dunn'),'About should include requested attribution');
+assert(css.includes('#aboutModal .about-credit') && css.includes('color:#bfa16b'),'About attribution should be gold');
+assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
+assert(app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
+for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
+  const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
+  assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
+}
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
+  const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
+  assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
+}
+assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
+assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
+
+assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
+
+assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
+assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
+assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
