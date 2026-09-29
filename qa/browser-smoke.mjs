@@ -158,6 +158,18 @@ await click('#foodStart'); await settle();
 // Menu + Food Details + Hide must be clickable.
 await click('#foodMenu'); await settle();
 assert.equal(await visible('drawer'),true,'Food Menu should open the drawer');
+await click('#settings'); await settle();
+assert.equal(await visible('settingsModal'),true,'Settings should open');
+assert.equal(await page.locator('#appDiagnosis').count(),1,'Settings should include App Diagnosis');
+await click('#appDiagnosis'); await settle();
+assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Settings');
+assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
+assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
+assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
+await click('#diagnosisRefresh'); await settle();
+assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
+await page.locator('#diagnosisModal [data-close]').click(); await settle();
+
 await click('#drawerClose'); await settle();
 await page.locator('#foodDetails').click(); await settle();
 assert.equal(await visible('detailsModal'),true,'Food Details should open the Details sheet');
