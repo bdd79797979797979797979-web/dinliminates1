@@ -17,4 +17,6 @@ const merged=dedupe(fixture);
 assert.equal(merged.length,2,'Same-site provider name variants should merge without leaving duplicate cards');
 assert.equal(merged.some(x=>/heads bbq/i.test(x.name)),true,'Heads BBQ family should remain discoverable after dedupe');
 assert.equal(merged.filter(x=>/chris pizza/i.test(x.name)).length,1,'Chris Pizza variants should merge into one result');
+const separate=dedupe([{id:'e',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:0.1,source:'Photon'},{id:'f',name:'Robert Heads BBQ',address:'200 College St, Clarksville, TN 37040',lat:36.545,lon:-87.350,distance:1.1,source:'ArcGIS'}]);
+assert.equal(separate.length,2,'Same-named restaurant variants at different locations must remain separate');
 console.log('Restaurant duplicate regression: PASS');
