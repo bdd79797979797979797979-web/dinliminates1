@@ -244,7 +244,7 @@ window.DINLIMINATE_FOODS=[
     "id": "soup-sandwich",
     "name": "Soup & Sandwich",
     "primary": "soup",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Soup/Stew"
     ],
@@ -615,7 +615,7 @@ window.DINLIMINATE_FOODS=[
     "id": "santa-fe-soup",
     "name": "Santa Fe Soup",
     "primary": "soup",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Soup/Stew",
       "Mexican"
@@ -643,7 +643,7 @@ window.DINLIMINATE_FOODS=[
     "id": "southern-vegetable-beef-soup",
     "name": "Southern Vegetable Beef Soup",
     "primary": "soup",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Southern",
       "Soup/Stew"
@@ -915,7 +915,7 @@ window.DINLIMINATE_FOODS=[
     "id": "chili",
     "name": "Chili",
     "primary": "beef",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Soup/Stew"
     ],
@@ -1263,7 +1263,7 @@ window.DINLIMINATE_FOODS=[
     "id": "potato-soup",
     "name": "Potato Soup",
     "primary": "soup",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Soup/Stew"
     ],
@@ -1290,7 +1290,7 @@ window.DINLIMINATE_FOODS=[
     "id": "beef-stew",
     "name": "Beef Stew",
     "primary": "stew",
-    "category": "Soup",
+    "category": "Soup/Stew",
     "quickCuts": [
       "Soup/Stew"
     ],
