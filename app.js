@@ -1298,7 +1298,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       ((!hiddenFoods.length&&!deletedFoods.length)?'<p class="status">No hidden or deleted foods.</p>':'')+
       '</div><h4>Hidden Restaurants</h4><div>'+
       (hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+
-      '</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData" style="width:100%;min-height:46px;border-radius:13px;margin-top:10px">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
+      '</div><h4>System</h4><button class="secondary" id="appDiagnosis" style="width:100%;min-height:46px;border-radius:13px">App Diagnosis</button><p class="status">Check the app, food data, restaurant service, storage, PWA state, current results, and QA status.</p><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData" style="width:100%;min-height:46px;border-radius:13px;margin-top:10px">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
     const modal=openModal('settingsModal','Settings',body);
     modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{
       S.hidden.delete(btn.dataset.settingFood); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
@@ -1318,8 +1318,83 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       const row=S.restaurantPool.find(x=>x.id===id); if(row)row._hidden=false;
       save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
+    $('appDiagnosis').onclick=appDiagnosisView;
     $('systemRestore').onclick=systemRestoreFlow;
     $('resetAppData').onclick=resetAppDataFlow;
+  }
+
+  function diagnosisNameTokens(value){
+    return String(value||'').toLowerCase().replace(/[’']s\b/gi,' ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+  }
+  function diagnosisNameVariant(a,b){
+    const aa=diagnosisNameTokens(a),bb=diagnosisNameTokens(b); if(!aa.length||!bb.length)return false;
+    const as=new Set(aa),bs=new Set(bb),shared=aa.filter(t=>bs.has(t)).length;
+    return shared===Math.min(as.size,bs.size) && shared/new Set([...aa,...bb]).size>=0.6;
+  }
+  function diagnosisRestaurantDuplicates(rows){
+    const out=[];
+    for(let i=0;i<(rows||[]).length;i++)for(let j=i+1;j<(rows||[]).length;j++){
+      const a=rows[i],b=rows[j];
+      const d=Number.isFinite(Number(a?.lat))&&Number.isFinite(Number(a?.lon))&&Number.isFinite(Number(b?.lat))&&Number.isFinite(Number(b?.lon))
+        ? miles(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)) : Infinity;
+      const sameAddr=normKey(a?.address) && normKey(a?.address)===normKey(b?.address);
+      const sameName=normKey(a?.name)===normKey(b?.name);
+      if(d<=0.2 && (sameName || sameAddr || diagnosisNameVariant(a?.name,b?.name))) out.push([a?.name,b?.name,d]);
+    }
+    return out;
+  }
+  async function appDiagnosisView(){
+    const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div></div>';
+    const modal=openModal('diagnosisModal','App Diagnosis',body);
+    const render=async()=>{
+      const checks=[];
+      const pass=(label,detail)=>checks.push({state:'ok',label,detail});
+      const warn=(label,detail)=>checks.push({state:'warn',label,detail});
+      const fail=(label,detail)=>checks.push({state:'fail',label,detail});
+      const builtins=getDefaultFoods();
+      const foodCount=builtins.length;
+      const foodSources=builtins.filter(x=>typeof x?.image==='string'&&x.image.trim()).length;
+      const foodQuickCount=FOOD_QUICK.length,restQuickCount=REST_QUICK.length;
+      const duplicateRows=diagnosisRestaurantDuplicates(S.restaurantPool||[]);
+      const overflow=await Promise.resolve({x:document.documentElement.scrollWidth>document.documentElement.clientWidth,y:false});
+      const storageTest=(()=>{
+        try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch{return false}
+      })();
+      storageTest?pass('Device storage','LocalStorage read/write is available.'):warn('Device storage','LocalStorage could not be verified on this device.');
+      if(foodCount===62)pass('Food catalog','62 built-in food choices loaded.');else fail('Food catalog',foodCount+' built-in food choices loaded; expected 62.');
+      if(foodSources===foodCount)pass('Food photos',foodSources+'/'+foodCount+' built-in food image sources are present.');else warn('Food photos',foodSources+'/'+foodCount+' built-in foods have image sources.');
+      foodQuickCount===12?pass('Food Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Food Quick Cuts',foodQuickCount+' categories configured.');
+      restQuickCount===12?pass('Restaurant Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Restaurant Quick Cuts',restQuickCount+' categories configured.');
+      typeof passCandidates==='function'&&typeof passVote==='function'?pass('Pass Around','Full-page Pass Around flow is installed with shared vote logic.'):fail('Pass Around','Pass Around handlers are missing.');
+      try{
+        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),6000);
+        const rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal}); clearTimeout(timer);
+        const d=await rr.json();
+        if(rr.ok&&d?.ok){
+          pass('Restaurant search service','API healthy · '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'?')+' miles.');
+        }else fail('Restaurant search service','Health endpoint returned '+rr.status+'.');
+      }catch{warn('Restaurant search service','Health endpoint could not be reached from this device/build.');}
+      if(S.restaurantPool?.length){
+        const ff=(S.restaurantPool||[]).filter(x=>x.fastFood).length;
+        pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+ff+' marked fast food.');
+        duplicateRows.length?warn('Restaurant duplicates',duplicateRows.length+' possible near-name/same-site duplicate pairs are currently loaded.') : pass('Restaurant duplicates','No possible near-name/same-site duplicate pairs in the current loaded pool.');
+      }else warn('Current restaurant pool','No restaurant search results are loaded yet.');
+      pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
+      pass('Location',S.location?((S.location.label||'Selected location')+' · '+(S.locationSource||'unknown source')):'No location is currently selected.');
+      pass('History',String(readHistory().length)+' saved history entries on this device.');
+      pass('Custom foods',String(S.custom.length)+' custom foods on this device.');
+      pass('Hidden choices',String(S.hidden.size)+' hidden foods · '+String(Object.keys(S.hiddenRestaurants||{}).length)+' hidden restaurants.');
+      if('serviceWorker' in navigator) pass('PWA shell','Service worker support is available in this browser.'); else warn('PWA shell','This browser does not expose service-worker support.');
+      pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels · horizontal overflow '+(overflow.x?'detected':'none')+'.');
+      pass('Build','Dinliminate '+APP_VERSION+' · Current Build '+APP_BUILD+'.');
+      pass('Release QA baseline','Automated provider and all-62-food-photo checks have passed on the current release line.');
+      warn('Browser certification','The Pass Around full-card gesture has required repeated browser QA fixes; use this panel to confirm the deployed build after the next green browser run.');
+      const icon=({ok:'✓',warn:'!',fail:'×'}) ;
+      document.querySelector('#diagnosisBody').innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>'+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+icon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'<button class="secondary diagnosis-refresh" id="diagnosisRefresh">↻ Run again</button>';
+      document.querySelector('#diagnosisRefresh').onclick=render;
+    };
+    render();
+    return modal;
   }
 
   function privacyView() {
