@@ -138,5 +138,7 @@ assert(app.includes('function appDiagnosisView'),'Settings must expose the App D
 assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher');
 assert(app.includes('diagnosisRestaurantDuplicates'),'App Diagnosis must detect possible restaurant duplicates in the loaded pool');
 assert(app.includes('restaurantWebsiteUrl'),'Restaurant diagnosis must include website fallback support');
-assert(app.includes('Release QA baseline'),'App Diagnosis must show automated QA baseline state');
+assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
+assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
+assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
