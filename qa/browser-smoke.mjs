@@ -176,8 +176,12 @@ await names.nth(0).fill('Brian'); await names.nth(1).fill('Devona'); await names
 await click('#passBegin'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around voting should remain full page');
 let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
-const passBox=await page.locator('#passCard').boundingBox(); if(!passBox) throw new Error('Pass card missing');
-await page.mouse.move(passBox.x+55,passBox.y+passBox.height/2); await page.mouse.down(); await page.mouse.move(passBox.x+passBox.width-18,passBox.y+passBox.height/2,{steps:4}); assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should show the right-swipe Keep state while dragging'); await page.mouse.up(); await settle();
+assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
+const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
+await page.mouse.move(passBox.x+12,passBox.y+passBox.height/2); await page.mouse.down();
+await page.mouse.move(passBox.x+passBox.width-12,passBox.y+passBox.height/2,{steps:8});
+assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should show the right-swipe Keep state while dragging');
+await page.mouse.up(); await settle();
 pass=await qa(); assert.ok(pass.pass?.history?.length,'Pass Around right swipe should create a vote history entry'); assert.equal(pass.pass.history.at(-1)?.keep,true,'Pass Around right swipe should record Keep'); assert.equal(pass.pass.voterIndex,1,'Pass Around right swipe should Keep for the current voter');
 const passBox2=await page.locator('#passCard').boundingBox(); await page.mouse.move(passBox2.x+passBox2.width-55,passBox2.y+passBox2.height/2); await page.mouse.down(); await page.mouse.move(passBox2.x+18,passBox2.y+passBox2.height/2,{steps:4}); await page.mouse.up(); await settle();
 assert.ok(await qa(), 'Pass Around should remain active after swipe');
