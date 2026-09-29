@@ -294,7 +294,7 @@ assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https:
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .website-action').innerText(),'Website ↗','Restaurant Website action should be professional');
-assert.equal(await page.locator('#restDetails').innerText(),'Details','Restaurant Details action should use a professional label');
+assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details action should use the professional icon'); assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details icon should remain accessible');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
