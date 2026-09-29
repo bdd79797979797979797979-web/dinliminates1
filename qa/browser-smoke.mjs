@@ -180,7 +180,7 @@ await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
+await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants')); assert.equal(await page.locator('#locationSourceLabel').innerText(),'Using selected address','Selected address should expose its location source');
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
 let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
 await page.locator('#address').fill('456');
@@ -446,6 +446,26 @@ for(const width of widths){
   assert.ok(g.scrollHeight<=g.innerHeight+2,'Home should fit one viewport at '+width+'px');
 }
 await page.setViewportSize({width:393,height:852});
+
+// System Restore should restore built-in defaults without deleting custom foods.
+await page.evaluate(() => { localStorage.removeItem('dinliminate.clean.cp1'); });
+await page.goto('http://127.0.0.1:4173/?qa=1&restore-test=1'); await page.waitForLoadState('domcontentloaded'); await settle();
+await click('#foodStart'); await settle();
+await click('#addFood'); await settle();
+await page.locator('#editFoodName').fill('Restore Proof Food');
+await click('#foodEditorForm button.cut'); await settle();
+assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'custom food should exist before System Restore');
+await click('#foodMenu'); await settle(); await click('#settings'); await settle();
+await page.locator('#systemRestore').click(); await settle();
+assert.equal(await visible('appConfirmModal'),true,'System Restore should use branded confirmation');
+await click('#appConfirmOk'); await settle();
+assert.equal(await visible('home'),true,'System Restore should return to Home');
+await click('#foodStart'); await settle();
+assert.equal((await qa()).foodPool.includes('popcorn'),true,'System Restore should restore deleted built-in defaults');
+await click('#foodMenu'); await settle(); await click('#manage'); await settle();
+assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'System Restore should preserve custom foods');
+await page.locator('#manageFoodsModal [data-food-delete="restore-proof-food"]').click(); await settle(); if(await visible('appConfirmModal')) await click('#appConfirmOk'); await settle();
+
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
