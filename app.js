@@ -429,10 +429,9 @@
 
   function restaurantCanonicalId(row){
     const name=normKey(row?.name);
-    const phone=normKey(row?.phone);
     const address=normKey(row?.address);
     const geo=(Number.isFinite(Number(row?.lat))&&Number.isFinite(Number(row?.lon))) ? Number(row.lat).toFixed(4)+'-'+Number(row.lon).toFixed(4) : '';
-    return 'restaurant-'+(name+'|'+(phone||address||geo)).replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,150);
+    return 'restaurant-'+(name+'|'+(address||geo)).replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,150);
   }
 
   function restaurantHidden(row){
