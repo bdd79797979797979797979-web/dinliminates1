@@ -302,6 +302,8 @@ s=await qa(); assert.equal(s.foodPool.includes('popcorn'),false,'built-in delete
 assert.equal((await page.locator('[data-food-quick]').count())>0,true,'Quick Cuts should remain intact after food deletion');
 await click('[data-food-restore-deleted="popcorn"]'); await settle();
 s=await qa(); assert.equal(s.foodPool.includes('popcorn'),true,'deleted built-in restore should work');
+await page.locator('#manageFoodsModal [data-close]').click(); await settle();
+assert.equal(await visible('manageFoodsModal'),false,'Manage Foods must be closed before swipe decisions');
 
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal((await qa()).foodPool.length,1,'Food should be able to reach one remaining choice');
