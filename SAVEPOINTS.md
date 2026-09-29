@@ -469,3 +469,16 @@ Commit: `8accf12ee64d1aa172dac80ef9321cd8526af63a8`
 - Food and Restaurant retain the shared next-card stack.
 - Centered Dinliminate branding and upper-right menu preserve the clean top hierarchy.
 - Permanent recovery branch: `savepoint-cp104-tinder-structure-2026-09-28`.
+
+
+## CP105 — streamlined Tinder hierarchy
+Commit: `b7b7cd0ab0adb98a1c609eaecf428ef02c00bfa8`
+- Top of decision screens is reduced to Back, centered Dinliminate text, and Menu.
+- Quick Cuts sit directly underneath.
+- Cut is the prominent left circular action; Maybe is the prominent right circular action.
+- Cut is red, Maybe is green; Back and Hide are smaller circles.
+- Food Details is directly on the decision card.
+- Restaurant Details is directly on the decision card.
+- Food Pass Around and Add Food are streamlined into the bottom utility row.
+- Restaurant uses the same decision layout with a compact location strip at the top and Pass Around at the bottom.
+- Permanent recovery branch: `savepoint-cp105-streamlined-tinder-layout-2026-09-28`.
