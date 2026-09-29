@@ -113,3 +113,5 @@ const globalHeaders=vercelConfig.headers?.find(x=>x.source==='/(.*)')?.headers||
 assert(globalHeaders.some(x=>x.key==='Content-Security-Policy'),'Vercel CSP header is required');
 assert(globalHeaders.some(x=>x.key==='Permissions-Policy'&&String(x.value).includes('geolocation=(self)')),'Vercel geolocation Permissions-Policy is required');
 assert(!globalHeaders.some(x=>x.key==='Cache-Control'&&x.value==='no-store'),'Global no-store must not disable API edge caching');
+
+assert(!app.includes('s.wsj.net') && !app.includes('photos.zillowstatic.com') && !app.includes('pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev'),'unstable restaurant image hosts must not be used for production fallbacks');
