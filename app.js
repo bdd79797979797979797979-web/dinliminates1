@@ -7,7 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '114';
+  const APP_BUILD = '115';
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -48,7 +48,6 @@
     deleted:new Set(),
     hiddenRestaurants:{},
     cutCats:new Set(),
-    cutPrimary:new Set(),
     foodCuts:new Set(),
     maybe:new Set(),
     custom:[],
@@ -62,7 +61,10 @@
     restaurantQuery:'',
     hoursMode:'openUnknown',
     location:null,
+    locationSource:'none',
     saved:false,
+    storageWarning:false,
+    restaurantSearchDegraded:false,
     winnerItem:null,
     winnerType:'food',
     pass:null,
@@ -79,7 +81,7 @@
   const allFoods = () => [...getDefaultFoods(), ...S.custom];
 
 
-  const STORAGE_VERSION = 3;
+  const STORAGE_VERSION = 4;
   const PHOTO_DB_NAME = 'dinliminate.photos';
   const PHOTO_STORE = 'images';
   let photoDbPromise = null;
@@ -133,20 +135,47 @@
     if(changed && S.screen==='food'){ buildFood(); foodQuick(); drawFood(); }
   }
 
+  function updateStorageIndicator() {
+    const el=$('storageIndicator'); if(!el)return;
+    el.classList.toggle('hidden', !S.storageWarning);
+  }
+
+  async function migrateCustomPhotos() {
+    let changed=false;
+    for(const item of S.custom){
+      if(typeof item.image==='string' && item.image.startsWith('data:image/')){
+        const ok=await putStoredPhoto(item.id,item.image);
+        if(ok){ item.image='idb:'+item.id; changed=true; }
+      }
+    }
+    if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood(); } }
+  }
+
   function save() {
     const data = {
       screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
-      cutCats:[...S.cutCats], cutPrimary:[...S.cutPrimary], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
+      cutCats:[...S.cutCats], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
       pool:S.pool, index:S.index, foodActions:S.foodActions,
       restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
       restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
-      restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location,
+      restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
       saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
       passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
-      restaurantTimezone:S.restaurantTimezone||'', custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
+      restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded,
+      custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
     };
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
-    S.saved = true;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      S.storageWarning=false;
+      updateStorageIndicator();
+      S.saved=true;
+      return true;
+    } catch {
+      S.storageWarning=true;
+      updateStorageIndicator();
+      S.saved=true;
+      return false;
+    }
   }
 
   function load() {
@@ -154,15 +183,17 @@
       const raw = localStorage.getItem(KEY);
       if (!raw) return false;
       const d = JSON.parse(raw);
+      // Schema 1–3 migrations: exact Food Cut IDs replace retired primary-wide state.
+      if(!Array.isArray(d.foodCuts)) d.foodCuts=[];
+      if(!d.foodCuts.length && Array.isArray(d.foodActions))
+        for(const a of d.foodActions) if(a?.type==='cut'&&a.id) d.foodCuts.push(a.id);
+      delete d.cutPrimary;
       Object.assign(S, d);
       S.hidden = new Set(d.hidden || []);
       S.deleted = new Set(d.deleted || []);
       S.hiddenRestaurants = d.hiddenRestaurants || {};
       S.cutCats = new Set(d.cutCats || []);
       S.foodCuts = new Set(d.foodCuts || []);
-      if (!S.foodCuts.size && Array.isArray(d.foodActions)) for (const a of d.foodActions) if (a?.type === 'cut' && a.id) S.foodCuts.add(a.id);
-      // Retire the legacy primary-wide Cut state after migrating saved rounds to exact IDs.
-      S.cutPrimary = new Set();
       S.maybe = new Set(d.maybe || []);
       S.restaurantCuts = new Set(d.restaurantCuts || []);
       S.hoursMode = d.hoursMode === 'all' ? 'all' : 'openUnknown';
@@ -173,6 +204,8 @@
       S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
       S.winnerType = d.winnerType || 'food';
       S.restaurantTimezone = String(d.restaurantTimezone||'');
+      S.locationSource = String(d.locationSource||'none');
+      S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
       S.schemaVersion = STORAGE_VERSION;
       return true;
     } catch { return false; }
@@ -205,7 +238,6 @@
       if (S.hidden.has(item.id) || S.deleted.has(item.id) || S.maybe.has(item.id)) return false;
       if (S.foodCuts.has(item.id)) return false;
       // Legacy rounds may still carry primary-based cuts; new rounds use exact item IDs.
-      if (S.cutPrimary.has(item.primary)) return false;
       const cuts = Array.isArray(item.quickCuts) ? item.quickCuts : [item.category];
       if ([...S.cutCats].some(label => cuts.includes(label))) return false;
       return true;
@@ -239,7 +271,6 @@
     S.foodActions = [];
     S.maybe.clear();
     S.cutCats.clear();
-    S.cutPrimary.clear();
     S.foodCuts.clear();
     S.index = 0;
     S.winnerItem = null;
@@ -311,7 +342,6 @@
     if (!action) { home(); return; }
     if (action.type === 'cut') {
       S.foodCuts.delete(action.id);
-      S.cutPrimary.delete(action.primary); // legacy primary-based rounds
     }
     if (action.type === 'maybe') S.maybe.delete(action.id);
     buildFood();
@@ -334,6 +364,13 @@
   function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>$('foodCut').click(),()=>$('foodMaybe').click())}
 
 
+  function appToast(message){
+    document.querySelector('#appToast')?.remove();
+    const el=document.createElement('div'); el.id='appToast'; el.className='app-toast'; el.textContent=message;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2200);
+  }
+
   function appConfirm(title, message, confirmLabel='Confirm') {
     return new Promise(resolve => {
       document.querySelector('#appConfirmModal')?.remove();
@@ -354,7 +391,7 @@
 
   async function foodHideItem(item) {
     if (!item) return false;
-    if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return false;
+    if (!await appConfirm('Hide this food?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return false;
     S.hidden.add(item.id);
     buildFood();
     S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
@@ -433,6 +470,16 @@ function dayMatches(spec,day){
     });
   }
 
+function localClockForZone(zone){
+    const opts={timeZone:zone||undefined,hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'};
+    try{
+      const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',opts).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+      const dayIndex={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[parts.weekday];
+      let hour=Number(parts.hour); if(hour===24)hour=0;
+      return {day:Number.isFinite(dayIndex)?dayIndex:new Date().getDay(),minute:hour*60+Number(parts.minute||0)};
+    }catch{return {day:new Date().getDay(),minute:new Date().getHours()*60+new Date().getMinutes()};}
+  }
+
   function parseTime(t){
   const m=String(t||'').match(/^(\d{1,2}):?(\d{2})$/);if(!m)return NaN;
   const h=Number(m[1]),min=Number(m[2]);return (h>=0&&h<24&&min>=0&&min<60)?h*60+min:NaN;
@@ -500,8 +547,9 @@ function hourStatus(row){
     });
   }
 
-  function setLocation(lat, lon, label) {
+  function setLocation(lat, lon, label, source='address') {
     S.location = {lat, lon, label};
+    S.locationSource = source;
     $('address').value = label || 'Current location';
     save();
   }
@@ -538,25 +586,30 @@ function hourStatus(row){
 
   let suggestTimer = 0;
   let suggestSeq = 0;
+  const suggestCache = new Map();
   async function suggestAddresses() {
     const q = $('address').value.trim();
     const seq = ++suggestSeq;
-    if (q.length < 2) { clearSuggestions(); $('status').textContent = 'Enter an address or use your location.'; return; }
-    $('status').textContent = 'Searching addresses…';
+    if (q.length < 2) { clearSuggestions(); $('status').textContent='Enter an address or use your location.'; return; }
+    const cached=suggestCache.get(q.toLowerCase());
+    if(cached&&Date.now()-cached.t<300000){ renderSuggestions(cached.rows); return; }
+    $('status').textContent='Searching addresses…';
     clearTimeout(suggestTimer);
-    suggestTimer = setTimeout(async () => {
+    suggestTimer=setTimeout(async()=>{
       suggestController?.abort();
-      suggestController = new AbortController();
-      try {
-        const r = await fetch('/api/restaurant-search?mode=suggest&q='+encodeURIComponent(q),{signal:suggestController.signal});
-        const d = await r.json();
-        if (seq !== suggestSeq) return;
-        renderSuggestions(d.results || []);
-      } catch(e) {
-        if(e?.name==='AbortError') return;
-        clearSuggestions(); $('status').textContent = 'Address lookup is temporarily unavailable.';
+      suggestController=new AbortController();
+      try{
+        const r=await fetch('/api/restaurant-search?mode=suggest&q='+encodeURIComponent(q),{signal:suggestController.signal});
+        const d=await r.json();
+        if(seq!==suggestSeq)return;
+        const rows=Array.isArray(d.results)?d.results:[];
+        suggestCache.set(q.toLowerCase(),{t:Date.now(),rows});
+        renderSuggestions(rows);
+      }catch(e){
+        if(e?.name==='AbortError')return;
+        clearSuggestions();$('status').textContent='Address lookup is temporarily unavailable.';
       }
-    }, 320);
+    },380);
   }
 
   function renderSuggestions(rows) {
@@ -573,7 +626,7 @@ function hourStatus(row){
     box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
       btn.onclick = async () => {
         const row = rows[i];
-        setLocation(row.lat, row.lon, row.display);
+        setLocation(row.lat, row.lon, row.display,'address');
         clearSuggestions();
         $('status').textContent = 'Location selected. Searching restaurants…';
         await searchRestaurants();
@@ -592,7 +645,10 @@ function hourStatus(row){
     restaurantSearchController?.abort();
     restaurantSearchController = new AbortController();
     const signal=restaurantSearchController.signal;
+    let timedOut=false;
+    const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},20000);
     clearSuggestions(); setFindBusy(true); $('status').textContent = 'Searching restaurants…';
+    $('restStage').innerHTML='<div class="restaurant-loading" aria-live="polite"><span></span><span></span><span></span><b>Finding nearby restaurants…</b></div>';
     try {
       let loc = S.location;
       if (!loc) {
@@ -610,6 +666,7 @@ function hourStatus(row){
       if (searchSeq !== restaurantSearchSeq) return;
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
       S.restaurantTimezone = String(d.timezone||'');
+      S.restaurantSearchDegraded = !!(d.providerErrors?.length);
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
       renderHours(); S.winnerItem = null;
@@ -621,9 +678,10 @@ function hourStatus(row){
       restaurantQuick(); drawRestaurants(); save();
     } catch (err) {
       if (err?.name==='AbortError' || searchSeq !== restaurantSearchSeq) return;
-      S.restaurantPool=[]; S.restaurantIndex=0; S.restaurantActions=[]; S.restaurantCuts.clear(); drawRestaurants();
-      $('status').textContent = err?.message || 'Could not complete the search.';
+      S.restaurantPool=[]; S.restaurantIndex=0; S.restaurantActions=[]; S.restaurantCuts.clear(); S.restaurantSearchDegraded=true; drawRestaurants();
+      $('status').textContent = timedOut ? 'The restaurant search took too long. Please try again.' : (err?.message || 'Could not complete the search.');
     } finally {
+      clearTimeout(deadline);
       if(searchSeq===restaurantSearchSeq) setFindBusy(false);
     }
   }
@@ -647,7 +705,12 @@ function hourStatus(row){
     const countEl = $('restaurantCount');
     if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
     if (!rows.length) {
-      $('restStage').innerHTML = '<div class="empty"><b>Hungry.</b><span>'+esc(S.restaurantPool.length ? 'No restaurants match the current cuts.' : 'Set a location, then find restaurants.')+'</span></div>';
+      const hasResults=!!S.restaurantPool.length;
+      const message=hasResults ? 'No restaurants match the current cuts.' : (S.restaurantSearchDegraded ? 'Some restaurant sources are unavailable.' : (S.location ? 'No restaurants found in this radius.' : 'Set a location, then find restaurants.'));
+      const actions = (S.location || hasResults) ? '<div class="empty-actions">'+(hasResults?'<button class="secondary" id="clearRestaurantSearch">Clear filter</button>':'')+(S.location?'<button class="cut" id="retryRestaurantSearch">Retry Search</button>':'')+'</div>' : '';
+      $('restStage').innerHTML = '<div class="empty"><b>Hungry.</b><span>'+esc(message)+'</span>'+actions+'</div>';
+      if($('retryRestaurantSearch')) $('retryRestaurantSearch').onclick=searchRestaurants;
+      if($('clearRestaurantSearch')) $('clearRestaurantSearch').onclick=()=>{S.restaurantQuery=''; if($('restaurantQuery'))$('restaurantQuery').value=''; drawRestaurants(); save();};
       return;
     }
     S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
@@ -1094,7 +1157,7 @@ function hourStatus(row){
     });
     $('systemRestore').onclick=async()=>{
       if(!await appConfirm('Restore Dinliminate?', 'This restores the default foods and clears saved round changes, including custom foods.', 'Restore'))return;
-      S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.cutPrimary.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
+      S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
       try{localStorage.removeItem(KEY)}catch{}
       home();  modal.remove(); $('settingsModalBg')?.remove();
     };
@@ -1116,15 +1179,15 @@ function hourStatus(row){
   }
 
   function shareWinner() {
-    if (!S.winnerItem) return;
-    const text = 'Tonight: '+S.winnerItem.name;
-    if (navigator.share) navigator.share({title:'Dinliminate',text}).catch(()=>{});
-    else navigator.clipboard?.writeText(text).then(()=>alert('Decision copied to clipboard.')).catch(()=>{});
+    if (!S.winnerItem)return;
+    const text='Tonight: '+S.winnerItem.name;
+    if(navigator.share){navigator.share({title:'Dinliminate',text}).catch(()=>{});}
+    else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToast('Decision copied.')).catch(()=>{});
   }
 
   function startOver() {
     S.pass = null; S.winnerItem = null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
-    S.maybe.clear(); S.cutCats.clear(); S.cutPrimary.clear(); S.foodCuts.clear(); S.restaurantCuts.clear();
+    S.maybe.clear(); S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear();
     S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
     try { localStorage.removeItem(KEY); } catch {}
     home();
@@ -1261,7 +1324,7 @@ function hourStatus(row){
 
   $('locate').onclick = useLocation;
   $('find').onclick = searchRestaurants;
-  $('address').addEventListener('input', () => { S.location=null; clearSuggestions(); suggestAddresses(); });
+  $('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; clearSuggestions(); suggestAddresses(); });
   $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
   $('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();clearSuggestions();searchRestaurants();} if(e.key==='Escape') clearSuggestions(); });
 
@@ -1271,6 +1334,7 @@ function hourStatus(row){
   $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
   $('share').onclick = shareWinner;
   $('restart').onclick = startOver;
+  if($('privacy')) $('privacy').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); privacyView(); };
 
   const updateOffline = () => $('offlineIndicator')?.classList.toggle('hidden', navigator.onLine !== false);
   window.addEventListener('online', updateOffline);
@@ -1279,7 +1343,9 @@ function hourStatus(row){
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 
   load();
+  updateStorageIndicator();
   hydrateCustomPhotos();
+  migrateCustomPhotos();
   if (S.saved && S.screen === 'food' && S.pool.length) {
     show('food'); foodQuick(); drawFood();
   } else if (S.saved && S.screen === 'restaurant' && S.restaurantPool.length) {
@@ -1303,7 +1369,6 @@ function hourStatus(row){
         hiddenFoods:[...S.hidden],
         hiddenRestaurants:{...S.hiddenRestaurants},
         cutCats:[...S.cutCats],
-        cutPrimary:[...S.cutPrimary],
         maybe:[...S.maybe],
         restaurantCuts:[...S.restaurantCuts],
         winner:S.winnerItem ? {...S.winnerItem} : null,
