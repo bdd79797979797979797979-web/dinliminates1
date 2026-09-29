@@ -223,7 +223,7 @@ s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant 
 await click('#restBack'); await settle();
 s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should undo Maybe swipe');
 
-await page.locator('#restaurantSearch').click(); await settle();
+if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac · Fries'),true,'restaurant card should show provider-supplied common menu items');
 await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Big Mac'),true,'Restaurant Details should show the supplied menu items'); await page.locator('#detailsModal [data-close]').click(); await settle();
