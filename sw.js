@@ -1,5 +1,5 @@
-const CACHE='dinliminate-shell-v1';
-const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='dinliminate-shell-v2';
+const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./manifest.webmanifest','./release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
 });
