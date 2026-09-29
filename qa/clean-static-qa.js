@@ -170,4 +170,4 @@ assert(app.includes("imageIdsExpected={'tacos':'27626524'"),'Diagnosis must vali
 assert(css.includes('.settings-system-action.diagnosis-action{background:#194e6b'),'App Diagnosis must have a distinct button color');
 assert(css.includes('.card-card-action.icon-action{width:32px'),'Details icon button must stay compact');
 
-assert(!foodSource.includes('stouffer')&&!foodSource.includes('Stouffer'),'Stouffer’s Frozen Dinner must remain absent from the food source');
+assert(!foods.toLowerCase().includes('stouffer'),'Stouffer’s Frozen Dinner must remain absent from the food source');
