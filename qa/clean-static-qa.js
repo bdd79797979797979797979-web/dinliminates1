@@ -127,7 +127,7 @@ assert.equal(vercelConfig.functions['api/restaurants.js'].maxDuration,30,'Restau
 
 assert(!html.includes('id="privacy"'),'Privacy must not remain a top-level drawer item');
 assert(app.includes('privacyFromAbout') && app.includes("privacyView()"),'Privacy must be reachable from the About modal');
-assert(html.includes('CURRENT BUILD'),'About must label the build as Current Build');
+assert(app.includes('CURRENT BUILD'),'About must label the build as Current Build');
 assert(app.includes("S.pool.length === 1") && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
 assert(app.includes("id=\"restDetails\"") && app.includes("ⓘ"),'Restaurant Details must be a working info-symbol control');
