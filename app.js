@@ -7,7 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '111';
+  const APP_BUILD = '112';
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -1052,7 +1052,7 @@ function hourStatus(row){
 
   function aboutView() {
     const date = new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
-    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><p class="about-test">TEST BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devonda Dunn</p></div>';
     openModal('aboutModal','About Dinliminate',body);
   }
 
