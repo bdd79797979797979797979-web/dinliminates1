@@ -76,14 +76,19 @@ assert.equal(await page.locator('#home .home-card-photo').count(),2,'Home should
 assert.ok(homeGeom.scrollHeight <= homeGeom.innerHeight + 2,'Home should fit one iPhone viewport without vertical scrolling');
 assert.equal(await page.locator('#home .home-card-photo').count(),2,'Home should have one photo-backed Food choice and one photo-backed Restaurant choice');
 assert.equal((await page.locator('#home .home-card-photo').evaluateAll(els=>els.map(e=>e.getAttribute('style')||''))).every(s=>s.includes('--home-photo')),true,'Both Home choices should have dedicated food/restaurant photos');
-assert.match(await page.locator('#home .made-by').innerText(),/Made by Brian Dunn for Devona Dunn/);
-assert.match(await page.locator('#home .made-by').evaluate(el=>getComputedStyle(el).color),/rgb\(/,'Attribution should have a styled gold color');
+assert.equal(await page.locator('#home #continue').count(),0,'Continue saved round should not appear on the home screen');
+assert.equal(await page.locator('#home .made-by').count(),0,'Home attribution should not appear on the front page');
+const homeHeading=await page.locator('#home h1').boundingBox();
+assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 
 await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
 assert.equal((await page.locator('[data-food-quick]').evaluateAll(btns=>btns.map(b=>getComputedStyle(b).backgroundImage))).every(v=>v!=='none'&&v.includes('url(')),true,'Every Food Quick Cut should have its own photo');
+const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
+assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
+assert.match(imageCatalog['stir-fry']||'',/pexels-photo-4924603\.jpeg/,'Mexican Stir Fry should use an accurate Mexican stir-fry photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,62,'expected restored food catalog');
 await click('[data-food-quick="Potato"]'); await settle();
@@ -312,13 +317,24 @@ assert.match(await page.locator('#winName').innerText(),/HUNGRY/,'Hungry state s
 assert.equal((await page.locator('#winner').getAttribute('class')).includes('hidden'),false);
 const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
 assert.equal(bg,'rgb(9, 9, 9)','winner should use the black Hungry/winner window');
+assert.equal(await page.locator('#winImg').getAttribute('class'),'hungry-image','Hungry winner should use the dedicated black hungry artwork');
+assert.match(await page.locator('#winImg').getAttribute('src')||'','^data:image/svg','Hungry winner should use the built-in frown artwork');
 await click('#restart'); await settle();
 await click('#foodStart'); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal((await qa()).foodPool.length,1);
 await click('#foodCut'); await settle(); assert.equal(await visible('winner'),true);
 await click('#restart'); await settle();
-await click('#menu'); await settle(); await click('#about'); await settle(); assert.equal(await visible('aboutModal'),true,'About should open'); await page.locator('[data-close]').click(); await settle();
+await click('#menu'); await settle(); await click('#about'); await settle();
+assert.equal(await visible('aboutModal'),true,'About should open');
+const aboutText=await page.locator('#aboutModal').innerText();
+assert.match(aboutText,/TEST BUILD/);
+assert.match(aboutText,/Version\s+1\.0/);
+assert.match(aboutText,/Build\s+110/);
+const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
+assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
+assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About test build label should be gold');
+await page.locator('[data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open');
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
