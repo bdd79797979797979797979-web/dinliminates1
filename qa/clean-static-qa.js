@@ -70,9 +70,13 @@ assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice C
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
 assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '114'"),'About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
+assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
+assert(app.includes('restaurantSearchDegraded'),'degraded-search state is required');
+assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
 assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
+assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
 assert((html.match(/id="restaurantPassAround"/g)||[]).length===1,'Restaurant Pass Around must have one compact tool-row control');
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
