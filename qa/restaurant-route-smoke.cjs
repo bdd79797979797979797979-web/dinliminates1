@@ -3,7 +3,7 @@ const assert=require('assert/strict');
 async function callVercel(){
   const handler=require('../api/restaurant-search');
   let status=200, body=null;
-  await handler({url:'/?mode=health',headers:{'x-forwarded-for':'qa-route-vercel'}},{
+  await handler({query:{mode:'health'},headers:{'x-forwarded-for':'qa-route-vercel'}},{
     status(code){status=code;return this;},
     json(payload){body=payload;return payload;}
   });

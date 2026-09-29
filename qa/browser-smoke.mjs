@@ -145,9 +145,9 @@ const cutId=afterCut.foodActions[0].id;
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should restore exact cut choice');
 
-await click('#foodMaybe'); await settle();
-s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling');
-assert.equal(s.foodPool.length,61,'Maybe should move the current card to the recycle queue for this pass');
+const foodKeepCount=(await qa()).foodPool.length; await click('#foodMaybe'); await settle();
+s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling'); assert.equal(s.foodPool.length,foodKeepCount,'Maybe/Keep should leave the food count unchanged');
+assert.equal(s.foodPool.length,62,'Maybe/Keep should leave the food count unchanged');
 while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
 assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
@@ -178,8 +178,7 @@ assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open fro
 assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
-await click('#diagnosisRefresh'); await settle();
-assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
+const diagnosisRun1=await page.locator('#diagnosisModal .diagnosis-summary').innerText(); await click('#diagnosisRefresh'); await page.waitForFunction(()=>document.querySelector('#diagnosisModal .diagnosis-summary')?.innerText.includes('Run 2')); assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again'); assert.notEqual(await page.locator('#diagnosisModal .diagnosis-summary').innerText(),diagnosisRun1,'Run again should execute a new diagnostic pass');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
 await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#foodMenu'); await settle();
@@ -244,14 +243,14 @@ assert.match(await page.locator('#diagnosisModal').innerText(),/Current restaura
 assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
 await page.locator('#settingsModal [data-close]').click(); await settle();
-const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
+const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode'); assert.equal(await page.locator('#hoursToggle').getAttribute('aria-pressed'),'true','Open/Unknown should be active');
 const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
 assert.equal(restaurantCountStyle.background,'rgba(0, 0, 0, 0)','Restaurant count should not render as a colored pill');
 assert.equal(restaurantCountStyle.border,'0px','Restaurant count should not render a capsule border');
 assert.equal(restaurantCountStyle.padding,'0px','Restaurant count should not render capsule padding');
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
 await click('#hoursToggle'); await settle();
-assert.equal(await page.locator('#hoursToggle').innerText(),'All','Hours filter should switch to All');
+assert.equal(await page.locator('#hoursToggle').innerText(),'All','Hours filter should switch to All'); assert.equal(await page.locator('#hoursToggle').getAttribute('aria-pressed'),'false','All should be active');
 assert.ok((await qa()).restaurantPool.includes('closed-1'),'Closed restaurant should return in All mode');
 await click('#hoursToggle'); await settle();
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should toggle back to Open/Unknown');
@@ -266,8 +265,8 @@ await click('#restCut'); await settle();
 let restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Cut should remove the current card');
 await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
-await click('#restMaybe'); await settle();
-restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action');
+const restKeepCount=(await qa()).restaurantPool.length; await click('#restMaybe'); await settle();
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action'); assert.equal(restAfterButtons.restaurantPool.length,restKeepCount,'Restaurant Maybe/Keep should leave the count unchanged');
 assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card into the recycle queue for this pass');
 while(!restAfterButtons.restaurantMaybeRound && restAfterButtons.restaurantPool.length>0){ await click('#restCut'); await settle(); restAfterButtons=await qa(); }
 assert.equal(restAfterButtons.restaurantMaybeRound,true,'Restaurant Maybe choices should recycle into a second narrowing pass');
@@ -295,7 +294,7 @@ assert.equal(await page.locator('#restaurantCard .card-phone').getAttribute('hre
 assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https://mcdonalds.com"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
-assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).count(),1,'Restaurant Website action should use a symbol');
+assert.equal(await page.locator('#restaurantCard .website-action').innerText(),'Website ↗','Restaurant Website action should be professional');
 assert.equal(await page.locator('#restDetails').innerText(),'ⓘ','Restaurant Details action should use an info symbol');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
@@ -328,9 +327,9 @@ if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('
 await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac · Fries'),true,'restaurant card should show provider-supplied common menu items');
 await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.match(await page.locator('#detailsModal').innerText(),/COMMON MENU ITEMS/i,'Restaurant Details should show common menu items when supplied'); assert.equal(await page.locator('#detailsModal #detailWeb').count(),1,'Restaurant Details should expose the Website/Google action'); await page.locator('#detailsModal #detailWeb').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
-const directWebsite=await page.locator('#restaurantCard .card-card-action[aria-label="Open restaurant website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
+const directWebsite=await page.locator('#restaurantCard .website-action[aria-label="Open restaurant website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
-await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
+await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .website-action').getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
 await click('#restHide'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal'); assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i); await click('#appConfirmOk'); await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');

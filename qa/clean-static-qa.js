@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='117','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='118','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -144,3 +144,8 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
+assert(app.includes('FINAL_FOOD_IMAGE')&&app.includes('FINAL_RESTAURANT_IMAGE'),'Resilient local image fallbacks are required');
+assert(app.includes('restaurantChoiceIndex')&&app.includes('foodChoiceIndex'),'Maybe choices must remain in the count while card progression uses separate eligibility');
+assert(css.includes('.settings-system-action.restore-action{background:#5b3fb3'),'System Restore must use a unique color');
+assert(css.includes('.home-card-photo .home-photo-img{'),'Home images must render as image elements');
+assert(app.includes('diagnosisRefresh')&&app.includes('Run again'),'App Diagnosis must have a stable rerunnable control');
