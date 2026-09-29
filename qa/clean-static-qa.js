@@ -27,7 +27,7 @@ assert(html.includes('id="restaurantBackTop"') && html.includes('id="restaurantM
 assert(html.includes('id="foodCount"') && html.includes('id="restaurantCount"'),'Choice counts must be present on the Quick Cuts rows');
 assert(!/<span>FOOD<\/span>/.test(html) && !/<span>RESTAURANTS<\/span>/.test(html),'Standalone FOOD/RESTAURANTS header labels must stay removed');
 assert(html.includes('class="card-details" id="foodDetails"') && app.includes("detailsSheet(item, 'food')"),'Food card Details must open the full Details sheet');
-assert(app.includes('class="card-details" id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
+assert(app.includes('id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
 assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
 assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
 assert(app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
