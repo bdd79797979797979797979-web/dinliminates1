@@ -24,3 +24,16 @@
 .card[data-swipe="cut"]::after{content:"CUT";left:18px;color:#ff7a1a;transform:rotate(-10deg)}
 .card[data-swipe="maybe"]::after{content:"MAYBE";right:18px;color:#f2ebe3;transform:rotate(10deg)}
 .card:active{cursor:grabbing}
+
+/* CP98 — stable restaurant search geometry */
+.address-wrap{position:relative;min-width:0}
+.address-wrap #address{display:block;width:100%}
+.address-wrap #suggestionsBox{position:absolute;left:0;right:0;top:45px;margin-top:0}
+.rest-stage{flex-direction:column;align-items:stretch;justify-content:center;gap:0}
+.rest-stage>#restaurantCard{width:min(100%,435px);margin:0 auto}
+.rest-stage>.rest-card-extra{width:min(100%,435px);margin:0 auto}
+.rest-stage>.actions{width:min(100%,435px);margin-left:auto;margin-right:auto}
+@media(max-width:390px){
+  .address-wrap #suggestionsBox{top:44px}
+  .loc-row{grid-template-columns:minmax(0,1fr) auto}
+}
