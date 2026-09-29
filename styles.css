@@ -46,3 +46,22 @@
 .history-calendar{padding-top:3px}
 .history-list{padding-bottom:8px}
 .settings-stack{padding-bottom:8px}
+
+
+/* CP102 — shared Tinder-style visual system */
+.swipe-card-stack,.restaurant-card-stack{position:relative;width:min(100%,435px);aspect-ratio:4/5;margin:0 auto}
+.swipe-card-stack>.card,.restaurant-card-stack>.card{position:absolute;inset:0;width:100%;height:100%;max-height:none}
+.swipe-card-stack>.card:first-child,.restaurant-card-stack>.card:first-child{z-index:1}
+.swipe-card-stack>#foodCard,.restaurant-card-stack>#restaurantCard{z-index:2}
+.next-card{transform:scale(.96);opacity:.62;filter:saturate(.82) brightness(.76);transition:transform .16s ease,opacity .16s ease}
+.next-card img{transform:scale(1.02)}
+.restaurant-card-stack{margin-bottom:0}
+.rest-stage>.rest-card-extra,.rest-stage>.actions{position:relative;z-index:3}
+.pass-head{height:38px;padding:0 10px;font-size:10px;background:#6554d8;border-color:#806eff}
+.home-card{background:linear-gradient(145deg,#171717,#121212);box-shadow:0 12px 32px #0006}
+.home-icon{background:#202020;border:1px solid #2b2b2b}
+.home h1{max-width:8em}
+@media(max-width:390px){
+  .swipe-card-stack,.restaurant-card-stack{aspect-ratio:4/5}
+  .swipe-card-stack>.card,.restaurant-card-stack>.card{border-radius:21px}
+}
