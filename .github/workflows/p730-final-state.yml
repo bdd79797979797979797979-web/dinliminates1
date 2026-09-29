@@ -6,7 +6,22 @@ on:
       - 'launch-hardening.js'
       - 'qa/p730-final-state.spec.mjs'
       - '.github/workflows/p730-final-state.yml'
+      - 'qa/p900-launch-complete.spec.mjs'
 jobs:
+  release_contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test qa/p900-launch-complete.spec.mjs --reporter=line
+        env:
+          DINLIMINATE_BASE_URL: https://dinliminates1.vercel.app
+
   final_state:
     runs-on: ubuntu-latest
     timeout-minutes: 5
