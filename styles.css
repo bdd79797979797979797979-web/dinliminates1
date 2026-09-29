@@ -533,3 +533,7 @@
 .card-card-actions .card-card-action{min-height:32px}
 .cal-more{position:absolute;right:5px;bottom:5px;padding:2px 5px;border-radius:999px;background:#000b;color:#fff;font-size:8px;font-weight:850}
 .swipe-hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:35;padding:8px 12px;border-radius:999px;background:#161513eF;border:1px solid #4a402f;color:#ded2bd;font-size:9px;font-weight:800;box-shadow:0 10px 25px #0009;pointer-events:none}
+
+/* CP134 — compact location-source indicator */
+.location-source-label{display:block;margin-top:3px;color:#68625a;font-size:8px;text-align:right;letter-spacing:.04em}
+.location-source-label.is-ready{color:#bfa16b}
