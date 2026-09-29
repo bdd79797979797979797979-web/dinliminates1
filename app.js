@@ -64,6 +64,7 @@
     hoursMode:'openUnknown',
     location:null,
     locationSource:'none',
+    restaurantSearchLatencyMs:0,
     saved:false,
     storageWarning:false,
     restaurantSearchDegraded:false,
@@ -731,6 +732,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
 
   let suggestTimer = 0;
   let suggestSeq = 0;
+  let suggestionIndex = -1;
   const suggestCache = new Map();
   async function suggestAddresses() {
     const q = $('address').value.trim();
@@ -758,6 +760,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function renderSuggestions(rows) {
+    suggestionIndex = -1;
     let box = $('suggestionsBox');
     if (!box) {
       box = document.createElement('div');
@@ -765,12 +768,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       $('address').insertAdjacentElement('afterend', box);
     }
     box.innerHTML = (rows || []).map((row, i) =>
-      '<button type="button" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
+      '<button type="button" role="option" aria-selected="false" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
     ).join('');
-    box.style.display = rows?.length ? 'grid' : 'none';
+    const hasRows=!!rows?.length;
+    box.hidden=!hasRows;
+    box.style.display=hasRows ? 'grid' : 'none';
+    $('address')?.setAttribute('aria-expanded',String(hasRows));
     box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
       btn.onclick = async () => {
         const row = rows[i];
+        suggestionIndex = -1;
         setLocation(row.lat, row.lon, row.display,'address');
         clearSuggestions();
         $('status').textContent = 'Location selected. Searching restaurants…';
@@ -780,8 +787,19 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function clearSuggestions() {
+    suggestionIndex = -1;
     const box = $('suggestionsBox');
-    if (box) box.style.display = 'none';
+    if (box) { box.style.display = 'none'; box.hidden=true; }
+    $('address')?.setAttribute('aria-expanded','false');
+  }
+
+  function moveSuggestion(delta){
+    const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+    if(!opts.length)return false;
+    suggestionIndex=(suggestionIndex+delta+opts.length)%opts.length;
+    opts.forEach((el,i)=>el.setAttribute('aria-selected',String(i===suggestionIndex)));
+    opts[suggestionIndex].scrollIntoView?.({block:'nearest'});
+    return true;
   }
 
   let restaurantSearchSeq = 0;
@@ -818,6 +836,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
       S.restaurantTimezone = String(d.timezone||'');
       S.restaurantSearchDegraded = !!(d.providerErrors?.length);
+      S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
+      S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||18000;
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
       renderHours(); S.winnerItem = null;
@@ -1418,6 +1438,11 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
           pass('Restaurant search service','API healthy · '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'?')+' miles.');
         }else fail('Restaurant search service','Health endpoint returned '+rr.status+'.');
       }catch{warn('Restaurant search service','Health endpoint could not be reached from this device/build.');}
+      if(Number(S.restaurantSearchLatencyMs)>0){
+        const latency=Number(S.restaurantSearchLatencyMs);
+        const budget=Number(S.restaurantSearchBudgetMs)||18000;
+        latency>budget?warn('Last restaurant search latency',''+latency+' ms exceeded the '+budget+' ms service budget.') : pass('Last restaurant search latency',''+latency+' ms within the '+budget+' ms service budget.');
+      }else warn('Last restaurant search latency','No completed restaurant search latency is available on this device yet.');
       if(S.restaurantPool?.length){
         const ff=(S.restaurantPool||[]).filter(x=>x.fastFood).length;
         pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+ff+' marked fast food.');
@@ -1668,7 +1693,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   $('find').onclick = searchRestaurants;
   $('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
   $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
-  $('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();clearSuggestions();searchRestaurants();} if(e.key==='Escape') clearSuggestions(); });
+  $('address').addEventListener('keydown', e => {
+    if(e.key==='ArrowDown'){ if(moveSuggestion(1)){e.preventDefault();return;} }
+    if(e.key==='ArrowUp'){ if(moveSuggestion(-1)){e.preventDefault();return;} }
+    if(e.key==='Enter'){
+      const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+      if(suggestionIndex>=0&&opts[suggestionIndex]){e.preventDefault();opts[suggestionIndex].click();return;}
+      e.preventDefault();clearSuggestions();searchRestaurants();
+    }
+    if(e.key==='Escape') clearSuggestions();
+  });
 
   bindRestaurantTools();
   renderHours();
