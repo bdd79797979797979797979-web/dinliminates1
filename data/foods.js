@@ -1604,7 +1604,7 @@ window.DINLIMINATE_FOODS=[
     "quickCuts": [
       "American"
     ],
-    "image": "https://www.goodnes.com/sites/g/files/jgfbjl321/files/styles/gdn_hero_pdp_product_image/public/gdn_product/field_product_images/stouffers-v978fpjmtmeos1u73ry3.jpg.webp?itok=-H2wBe3a",
+    "image": "https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=1400",
     "ingredients": [
       "frozen entree",
       "sauce or gravy",
