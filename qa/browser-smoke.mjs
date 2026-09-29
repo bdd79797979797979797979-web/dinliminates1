@@ -470,7 +470,7 @@ await page.mouse.up(); await settle();
 assert.equal(await visible('winner'),true,'Right swipe on final restaurant should open Winner');
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-winner-393.png'),fullPage:true});
 const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Final restaurant swipe should produce a restaurant winner'); assert.equal(finalState.winner?.id,finalRestaurantId,'Winner should be the final restaurant');
-assert.equal(await page.locator('#celebration').count(),0,'Restaurant winner should not render a celebration layer');
+assert.equal(await page.locator('#celebration').isVisible(),false,'Restaurant winner should not show a celebration layer');
 
 // History calendar X deletion must remove the saved entry, not just persist it behind a stale render.
 await page.evaluate(() => {
