@@ -241,9 +241,10 @@
   }
 
   function resolveFoodAfterDecision() {
-    if (S.pool.length === 1) winner(S.pool[0]);
-    else if (!S.pool.length) winner({name:'Nothing left — hungry mode', image:HUNGRY_IMAGE, category:'Hungry'});
-    else {
+    if (!S.pool.length) {
+      winner({name:'Nothing left — hungry mode', image:HUNGRY_IMAGE, category:'Hungry'});
+    } else {
+      // Keep the final choice on-screen so the user can still Cut it.
       S.index = Math.min(S.index, S.pool.length - 1);
       drawFood();
     }
