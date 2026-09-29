@@ -126,7 +126,7 @@ assert(!app.includes('s.wsj.net') && !app.includes('photos.zillowstatic.com') &&
 assert.equal(vercelConfig.functions['api/restaurants.js'].maxDuration,30,'Restaurant API maxDuration should be 30 seconds');
 
 assert(!html.includes('id="privacy"'),'Privacy must not remain a top-level drawer item');
-assert(html.includes('id="privacyFromAbout"'),'Privacy must be reachable from the About modal');
+assert(app.includes('privacyFromAbout') && app.includes("privacyView()"),'Privacy must be reachable from the About modal');
 assert(html.includes('CURRENT BUILD'),'About must label the build as Current Build');
 assert(app.includes("S.pool.length === 1") && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
