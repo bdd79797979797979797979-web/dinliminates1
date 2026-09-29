@@ -258,6 +258,7 @@
     const next=$('foodNextCard');
     const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
     card.onpointerdown = e => {
+      if (e.target.closest('button,a,input,select')) return;
       downX = e.clientX; active = true;
       try { card.setPointerCapture(e.pointerId); } catch {}
     };
@@ -558,23 +559,12 @@ function hourStatus(row){
   function drawRestaurants() {
     const rows = restaurantPoolFiltered();
     if (!rows.length) {
-      $('restStage').innerHTML = '<div class="empty"><b>Hungry.</b><span>'+esc(S.restaurantPool.length ? 'No restaurants match the current cuts.' : 'Set a location, then find restaurants.')+'</span></div>';
-      return;
-    }
-    S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
-    const row = rows[S.restaurantIndex];
-    const category = restaurantCategory(row);
-    const image = row.photo || row.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
-    const nextRow = rows[S.restaurantIndex + 1];
-    const nextImage = nextRow?.photo || nextRow?.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+      const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
+    const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
+    const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
+    const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
     $('restStage').innerHTML =
-      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3><button class="card-details" id="restDetails" type="button">Details</button></div></article></div>'+
-      '<div class="rest-card-extra"><div class="rest-meta">'+
-      (row.address ? '<div>'+esc(row.address)+'</div>' : '')+
-      (row.cuisine ? '<div>'+esc(row.cuisine)+'</div>' : '')+
-      (Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="menu-items"><b>Common</b> · '+esc(row.menuItems.slice(0,4).join(' · '))+'</div>' : '')+
-      '<div style="margin-top:7px"><span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown Hours')+'</span></div></div>'+
-      '<div class="card-actions"><button class="small" id="restWebsite">Website</button></div></div>'+
+      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+'<div class="card-status">'+cardHours+'</div><button class="card-details" id="restDetails" type="button" aria-label="Details">i</button></div></article></div>'+
       '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
     const current = rows[S.restaurantIndex];
     $('restBack').onclick = restaurantBack;
@@ -582,7 +572,6 @@ function hourStatus(row){
     $('restCut').onclick = () => restaurantCut(current);
     $('restHide').onclick = () => restaurantHide(current);
     $('restDetails').onclick = () => detailsSheet(current, 'restaurant');
-    $('restWebsite').onclick = () => current.website ? window.open(current.website, '_blank', 'noopener') : alert('No website is listed for this restaurant.');
     bindRestaurantSwipe();
   }
 
