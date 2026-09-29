@@ -103,6 +103,14 @@ let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
 assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
+const catalogProbe=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios','frozen'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,hasDetails:Boolean(x.ingredients?.length&&x.nutrition&&x.recipe),image:x.image}])));
+assert.equal(catalogProbe['lasagna']?.quickCuts?.includes('Pasta'),true,'Lasagna should use Pasta Quick Cut');
+assert.deepEqual(catalogProbe['vegetable-lasagna']?.quickCuts,['Pasta','Healthy'],'Vegetable Lasagna should use Pasta + Healthy Quick Cuts');
+assert.deepEqual(catalogProbe['salisbury-steak']?.quickCuts,['Southern','American'],'Salisbury Steak should use Southern + American Quick Cuts');
+assert.deepEqual(catalogProbe['stuffed-peppers']?.quickCuts,['Healthy','American'],'Stuffed Peppers should use Healthy + American Quick Cuts');
+assert.deepEqual(catalogProbe['health-shake']?.quickCuts,['Healthy'],'Health Shake should use Healthy Quick Cut');
+assert.equal(catalogProbe['health-shake']?.name,'Health Shake'); assert.equal(catalogProbe['health-shake']?.hasDetails,true,'Health Shake should have Details-ready content');
+assert.equal(catalogProbe['cheerios']?.name,'Cereal','Cheerios should display as Cereal'); assert.equal(catalogProbe['frozen'],undefined,'Stouffer frozen dinner should be absent');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
 assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only the three Potato-mapped foods');
