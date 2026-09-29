@@ -24,3 +24,11 @@ assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy 
 
 assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
 assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
+
+assert(html.includes('id="globalBack"'),'Decision screens must use the single top-level Back control');
+assert(html.includes('class="decision-bottom"'),'Decision utilities must be placed at the bottom');
+assert(html.includes('id="foodDetails"'),'Food must expose Details directly on the card');
+assert(html.includes('id="restDetails"'),'Restaurant must expose Details directly on the card');
+assert(html.indexOf('id="foodCut"') < html.indexOf('id="foodMaybe"'),'Food action order must be Cut then Maybe');
+assert(html.indexOf('id="restCut"') < html.indexOf('id="restMaybe"'),'Restaurant action order must be Cut then Maybe');
+assert(c.includes("round-cut") && c.includes("round-maybe") && c.includes(".global-back") && c.includes(".decision-bottom"),'CP105 hierarchy styles must exist');
