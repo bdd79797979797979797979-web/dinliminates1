@@ -558,8 +558,19 @@ function hourStatus(row){
 
   function drawRestaurants() {
     const rows = restaurantPoolFiltered();
+    const countEl = $('restaurantCount');
+    if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
     if (!rows.length) {
-      const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
+      $('restStage').innerHTML = '<div class="empty"><b>Hungry.</b><span>'+esc(S.restaurantPool.length ? 'No restaurants match the current cuts.' : 'Set a location, then find restaurants.')+'</span></div>';
+      return;
+    }
+    S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
+    const row = rows[S.restaurantIndex];
+    const category = restaurantCategory(row);
+    const image = row.photo || row.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    const nextRow = rows[S.restaurantIndex + 1];
+    const nextImage = nextRow?.photo || nextRow?.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
     const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
     const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
