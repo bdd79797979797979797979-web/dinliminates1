@@ -138,7 +138,8 @@
 
 .winner{padding-top:9px}
 .winner h2{font-size:42px}
-.winner img{border-radius:24px;box-shadow:0 22px 65px #0009}
+.winner img{border-radius:24px;box-shadow:0 22px 65px #0009;background:#090909}
+.winner img.hungry-image{object-fit:cover}
 .winner-actions button{border-radius:999px}
 
 .home .brand-mark{margin-left:0}
@@ -350,7 +351,7 @@
 .orb-one{width:190px;height:190px;right:-90px;top:80px;background:#d49b4e10}
 .orb-two{width:150px;height:150px;left:-80px;bottom:80px;background:#ef704e0d}
 .luxury-home .eyebrow{color:#bfa16b;letter-spacing:.24em}
-.luxury-home h1{max-width:760px;margin:16px auto 0;font-size:clamp(3rem,9vw,6.2rem);background:linear-gradient(120deg,#fff 12%,#e8d5ae 44%,#d98f54 70%,#fff 94%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.luxury-home h1{max-width:calc(100% - 16px);width:100%;margin:16px auto 0;padding:0 4px;box-sizing:border-box;font-size:clamp(2rem,8.1vw,6.2rem);letter-spacing:-.05em;line-height:.98;overflow:visible;background:linear-gradient(120deg,#fff 12%,#e8d5ae 44%,#d98f54 70%,#fff 94%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
 .luxury-home .sub{color:#aaa39a;max-width:620px}
 .home-photo-rail{height:215px;max-width:700px;margin:25px auto 26px;display:flex;align-items:center;justify-content:center;gap:12px}
 .home-photo{width:27%;height:174px;border-radius:24px;overflow:hidden;border:1px solid #ffffff1a;box-shadow:0 20px 55px #000b;background:#161616}
@@ -479,3 +480,10 @@
   .restaurant-detail-grid{gap:6px}
   .restaurant-detail-grid>div{padding:8px}
 }
+
+/* CP110 — About metadata */
+#aboutModal .about-test{margin:10px 0 12px;color:#bfa16b;font-size:10px;font-weight:900;letter-spacing:.18em}
+#aboutModal .about-meta{display:grid;gap:7px;margin-top:10px}
+#aboutModal .about-meta p{display:flex;justify-content:space-between;gap:18px;margin:0;padding:9px 11px;border-radius:11px;background:#1a1917;border:1px solid #302a23}
+#aboutModal .about-meta span{color:#777168;font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+#aboutModal .about-meta b{color:#ead9b8;font-size:10px}
