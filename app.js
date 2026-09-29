@@ -612,24 +612,31 @@ function hourStatus(row){
 
   async function useLocation() {
     if (!navigator.geolocation) {
-      $('status').textContent = 'Location is not available in this browser.';
+      $('status').textContent='Location is not available in this browser.';
       return;
     }
-    $('status').textContent = 'Finding your location…';
-    navigator.geolocation.getCurrentPosition(async pos => {
-      try {
-        const r = await fetch('/api/restaurant-search?mode=reverse&lat='+encodeURIComponent(pos.coords.latitude)+'&lon='+encodeURIComponent(pos.coords.longitude));
-        const d = await r.json();
-        setLocation(pos.coords.latitude, pos.coords.longitude, d.display || 'Current location');
-        $('status').textContent = 'Location ready.';
-        await searchRestaurants();
-      } catch {
-        setLocation(pos.coords.latitude, pos.coords.longitude, 'Current location');
-        $('status').textContent = 'Location ready. Tap Find to search.';
-      }
-    }, () => {
-      $('status').textContent = 'Could not access your location. Enter an address instead.';
-    }, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
+    $('status').textContent='Finding your location…';
+    const attempt=(highAccuracy,timeout,allowRetry)=>{
+      navigator.geolocation.getCurrentPosition(async pos=>{
+        try{
+          const r=await fetch('/api/restaurant-search?mode=reverse&lat='+encodeURIComponent(pos.coords.latitude)+'&lon='+encodeURIComponent(pos.coords.longitude));
+          const d=await r.json();
+          setLocation(pos.coords.latitude,pos.coords.longitude,d.display||'Current location','device');
+          $('status').textContent='Location ready.';
+          await searchRestaurants();
+        }catch{
+          setLocation(pos.coords.latitude,pos.coords.longitude,'Current location','device');
+          $('status').textContent='Location ready. Tap Find to search.';
+        }
+      },err=>{
+        if(err?.code===1){$('status').textContent='Location permission was denied. Enter an address instead.';return;}
+        if(allowRetry){$('status').textContent='Getting a more precise location…';attempt(true,10000,false);return;}
+        if(err?.code===3){$('status').textContent='Location timed out. Enter an address instead.';}
+        else if(err?.code===2){$('status').textContent='Location is temporarily unavailable. Enter an address instead.';}
+        else $('status').textContent='Could not access your location. Enter an address instead.';
+      },{enableHighAccuracy:highAccuracy,timeout,maximumAge:highAccuracy?30000:60000});
+    };
+    attempt(false,6000,true);
   }
 
   let suggestTimer = 0;
@@ -1204,12 +1211,7 @@ function hourStatus(row){
       const row=S.restaurantPool.find(x=>x.id===id); if(row)row._hidden=false;
       save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
-    $('systemRestore').onclick=async()=>{
-      if(!await appConfirm('Restore Dinliminate?', 'This restores the default foods and clears saved round changes, including custom foods.', 'Restore'))return;
-      S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
-      try{localStorage.removeItem(KEY)}catch{}
-      home();  modal.remove(); $('settingsModalBg')?.remove();
-    };
+    $('systemRestore').onclick=systemRestoreFlow;
   }
 
   function privacyView() {
@@ -1244,7 +1246,7 @@ function hourStatus(row){
   async function systemRestoreFlow(){
     if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
     S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.restaurantCuts.clear();
-    S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.saved=false;
+    S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
     try{localStorage.removeItem(KEY);}catch{}
     try{const db=await openPhotoDB(); await new Promise((resolve)=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
     home();
