@@ -780,7 +780,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     return body;
   }
 
-  function searchRestaurants() {
+  async function searchRestaurants() {
     const searchSeq = ++restaurantSearchSeq;
     restaurantSearchController?.abort();
     restaurantSearchController = new AbortController();
