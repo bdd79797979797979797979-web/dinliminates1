@@ -32,7 +32,7 @@ assert(html.includes('class="card-details" id="foodDetails"') && /detailsSheet\(
 assert(app.includes('id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
 assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
 assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
-assert(app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
+assert(app.includes("e.target.closest?.('button,a,input,select')") || app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
 assert(css.includes('round-cut') && css.includes('background:#ef3340'),'Cut must remain a red primary action');
 assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe must remain a green primary action');
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
