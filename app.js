@@ -110,7 +110,7 @@
     document.querySelectorAll('.screen').forEach(x => x.classList.add('hidden'));
     $(screen)?.classList.remove('hidden');
     S.screen = screen;
-    $('globalBack')?.classList.toggle('hidden', screen !== 'food' && screen !== 'restaurant');
+    $('globalBack')?.classList.add('hidden');
     window.scrollTo?.(0,0);
   }
 
@@ -1081,7 +1081,12 @@ function hourStatus(row){
   document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 
   $('globalBack').onclick = home;
-  $('menu').onclick = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
+  const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
+  $('menu').onclick = openDrawer;
+  $('foodMenu').onclick = openDrawer;
+  $('restaurantMenu').onclick = openDrawer;
+  $('foodBackTop').onclick = home;
+  $('restaurantBackTop').onclick = home;
   $('drawerClose').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
   $('drawerBg').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
   $('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
