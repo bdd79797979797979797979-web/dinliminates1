@@ -32,7 +32,7 @@ assert(html.includes('class="card-details" id="foodDetails"') && app.includes("d
 assert(app.includes('id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
 assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
 assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
-assert(app.includes("e.target.closest('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
+assert(app.includes("e.target.closest('button,a,input,select')") || app.includes("e.target.closest?.('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
 assert(css.includes('round-cut') && css.includes('background:#ef3340'),'Cut must remain a red primary action');
 assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe must remain a green primary action');
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
@@ -41,7 +41,7 @@ assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip
 assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===65,'The current 65-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===65,'Food deck must contain exactly 62 foods');
+assert(foodRows.length===65,'Food deck must contain exactly 65 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
 for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='123','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='123','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
