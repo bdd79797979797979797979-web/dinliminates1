@@ -64,7 +64,7 @@ for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Hea
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
 for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
-  const key = label === 'Soup/Stew' ? "'Soup/Stew':" : label+':';
+  const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
 assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
