@@ -19,7 +19,7 @@ console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foo
 assert(html.includes('foodNextCard'),'Food Tinder card stack must be present in the base DOM');
 assert(app.includes('restaurantNextCard') && app.includes('restaurant-card-stack'),'Restaurant Tinder card stack must be rendered dynamically');
 assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
-assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the current app');
+assert(!html.includes('allCut') && !html.includes('All Cut') && !/\ballCut\s*(?:=|onclick)/.test(app),'All Cut must stay removed from the current UI; legacy migration support may remain');
 assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
 assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
 assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
