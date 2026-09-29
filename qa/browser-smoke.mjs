@@ -218,6 +218,9 @@ await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Rest
 await page.locator('#restaurantQuery').fill(''); await settle();
 
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
+assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restaurant card should show phone number when supplied');
+assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
+assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),12,'Restaurant should have 12 Quick Cuts');
@@ -249,7 +252,7 @@ assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac ·
 await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); console.log('Restaurant Details modal debug',JSON.stringify({text:await page.locator('#detailsModal').innerText(),qa:await qa()})); assert.match(await page.locator('#detailsModal').innerText(),/COMMON MENU ITEMS/i,'Restaurant Details should show common menu items when supplied'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Big Mac'),true,'Restaurant Details should show the supplied menu items'); await page.locator('#detailsModal [data-close]').click(); await settle();
 await page.locator('#restaurantQuery').fill(''); await settle();
 
-const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
+await click('#restHide'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal'); assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i); await click('#appConfirmOk'); await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await page.locator('#restaurantMenu').click({force:true});
 await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
 await page.locator('#settings').click(); await settle();
@@ -273,7 +276,7 @@ await page.locator('#manageFoodsModal .modal-head [data-close]').click(); await 
 await page.locator('#foodMenu').click(); await settle(); await page.locator('#settings').click(); await settle();
 assert.equal((await page.locator('#settingsModal').innerText()).toLowerCase().includes('popcorn'),true,'Settings should list hidden built-in food');
 assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),1,'Settings should place Delete beside hidden-food Restore');
-const settingsDeleteDialog=page.waitForEvent('dialog'); const settingsDeleteClick=page.locator('[data-setting-food-delete="popcorn"]').click(); const settingsDeleteDlg=await settingsDeleteDialog; assert.equal(settingsDeleteDlg.type(),'confirm'); await settingsDeleteDlg.accept(); await settingsDeleteClick; await settle();
+await page.locator('[data-setting-food-delete="popcorn"]').click(); await settle(); assert.equal(await visible('appConfirmModal'),true,'Settings food removal should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),false,'Settings Delete should remove the hidden food');
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'closing Settings should leave no stale Manage Foods modal');
@@ -302,10 +305,10 @@ await page.locator('#editFoodRecipe').fill('Edited recipe');
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Edited recipe'),true,'custom Food edit should persist');
 
-const deleteDialog=page.waitForEvent('dialog'); const deleteClick=click('[data-food-delete="qa-special"]'); const deleteDlg=await deleteDialog; assert.equal(deleteDlg.type(),'confirm','custom delete should confirm'); await deleteDlg.accept(); await deleteClick; await settle();
+await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
 
-const builtInDialog=page.waitForEvent('dialog'); const builtInClick=click('[data-food-delete="popcorn"]'); const builtInDlg=await builtInDialog; assert.equal(builtInDlg.type(),'confirm'); await builtInDlg.accept(); await builtInClick; await settle();
+await click('[data-food-delete="popcorn"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Built-in delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(s.foodPool.includes('popcorn'),false,'built-in delete should remove the food from choices');
 assert.equal((await page.locator('[data-food-quick]').count())>0,true,'Quick Cuts should remain intact after food deletion');
 await click('[data-food-restore-deleted="popcorn"]'); await settle();
