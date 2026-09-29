@@ -1227,8 +1227,7 @@ function diagnosisRestaurantDuplicates(rows){
  return out;
 }
 async function appDiagnosisView(){
- const started=Date.now();
- const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-label="Run diagnostics again">↻ Run again</button></div>';
+  const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-label="Run diagnostics again">↻ Run again</button></div>';
  const modal=openModal('diagnosisModal','App Diagnosis',body);let running=false,run=0;
  const render=async()=>{
   if(running||!document.body.contains(modal))return;running=true;run++;
@@ -1247,10 +1246,6 @@ async function appDiagnosisView(){
    const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true'),surface=document.querySelector('.screen:not(.hidden)');
    const ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
    try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);pass('Device storage','LocalStorage read/write is available.');}catch{warn('Device storage','LocalStorage could not be written on this device.');}
-   pass('Food feature wiring','Food controls and handlers are present.');
-   pass('Restaurant feature wiring','Restaurant controls and handlers are present.');
-   pass('Persistence wiring','Persistence and restore handlers are present.');
-   pass('Accessibility wiring','Modal and control accessibility handlers are present.');
    ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
    try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.');}else info('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Hosted release metadata is not available in this runtime context.');}
    const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
@@ -1259,15 +1254,7 @@ async function appDiagnosisView(){
    pass('Details controls','Food, restaurant, and Winner Details controls use the professional icon treatment.');
    info('Restaurant search service','Live API health check is running or will report unavailable in this runtime context.');
    pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
-   S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
-   S.location?info('Location',(S.location.label||'Selected location')+' · '+(S.locationSource||'unknown source')):info('Location','No location selected yet.');
-   pass('History',String(readHistory().length)+' saved entries.');pass('Custom foods',String(S.custom.length)+' custom foods.');pass('Hidden choices',String(S.hidden.size)+' hidden foods · '+String(Object.keys(S.hiddenRestaurants||{}).length)+' hidden restaurants.');
-   'serviceWorker' in navigator?pass('PWA shell','Service worker support is available.'):warn('PWA shell','This browser does not expose service-worker support.');
-   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
-   info('Image-source review','Photo availability is checked here; third-party licensing/usage still requires human review.');
    info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
-   info('Diagnostic duration',String(Date.now()-started)+' ms.');
-   info('Browser certification','CI and real iPhone Safari certification remain separate release gates.');
   }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
   const bodyEl=$('diagnosisBody');
   if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>Run '+run+' · '+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
