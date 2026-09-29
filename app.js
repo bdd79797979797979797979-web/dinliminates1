@@ -83,6 +83,7 @@
   const PHOTO_DB_NAME = 'dinliminate.photos';
   const PHOTO_STORE = 'images';
   let photoDbPromise = null;
+  const storedPhotoIds = new Set();
 
   function openPhotoDB() {
     if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB unavailable'));
@@ -102,7 +103,7 @@
     try {
       const db=await openPhotoDB();
       await new Promise((resolve,reject)=>{const tx=db.transaction(PHOTO_STORE,'readwrite');tx.objectStore(PHOTO_STORE).put(data,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not save photo'));});
-      return true;
+      storedPhotoIds.add(id); return true;
     } catch { return false; }
   }
 
@@ -125,7 +126,7 @@
     for (const item of S.custom) {
       if (String(item.image||'').startsWith('idb:')) {
         const data=await getStoredPhoto(item.id);
-        if (data) { item.image=data; changed=true; }
+        if (data) { item.image=data; storedPhotoIds.add(item.id); changed=true; }
         else item.image=HUNGRY_IMAGE;
       }
     }
@@ -142,7 +143,7 @@
       restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location,
       saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
       passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
-      restaurantTimezone:S.restaurantTimezone||'', custom:S.custom.map(x=>({...x,image:String(x.image||'').startsWith('data:image/')?'idb:'+x.id:x.image}))
+      restaurantTimezone:S.restaurantTimezone||'', custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
     };
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
     S.saved = true;
@@ -255,7 +256,7 @@
       return;
     }
     const item = S.pool[S.index];
-    $('foodImg').src = item.image;
+    $('foodImg').src = String(item.image||'').startsWith('idb:') ? HUNGRY_IMAGE : (item.image||HUNGRY_IMAGE);
     $('foodImg').alt = item.name;
     $('foodName').textContent = item.name;
     $('foodCat').textContent = item.category;
@@ -981,8 +982,7 @@ function hourStatus(row){
         if(idx<0)return;
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
         if(id!==item.id && allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
-        const savedPhoto = photo.startsWith('data:image/') ? await putStoredPhoto(id,photo) : false;
-        if(photo.startsWith('data:image/') && savedPhoto) photo = photo;
+        if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
         S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,image:photo,recipe};
         if(id!==item.id) await deleteStoredPhoto(item.id);
         S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
