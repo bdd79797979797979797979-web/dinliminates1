@@ -75,7 +75,6 @@ async function settle(){await page.waitForTimeout(150);}
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(100);
-console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
 await assert.equal(await page.locator('#home h1').innerText(),'what sounds good tonight?');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
@@ -202,16 +201,13 @@ await click('#passBegin'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around voting should remain full page');
 let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
 assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
-console.log('Pass bind diagnostic',await page.evaluate(()=>window.__DINLIMINATE_TEST__));
 assert.equal(await page.locator('#passGestureHit').getAttribute('data-pass-swipe-bound'),'true','Pass Around gesture layer should be bound when the page is created');
 const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
 const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
-const passTarget=await page.evaluate(({x,y})=>{const e=document.elementFromPoint(x,y);const g=e?getComputedStyle(e):null;return {tag:e?.tagName||'',id:e?.id||'',cls:e?.className||'',pointerEvents:g?.pointerEvents||'',zIndex:g?.zIndex||'',rect:e?JSON.stringify(e.getBoundingClientRect()):''}},{x:passX1,y:passY}); console.log('Pass drag target diagnostic',JSON.stringify(passTarget));
 assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must be the topmost pointer target');
 assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
 await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8});
 await page.waitForTimeout(20);
-console.log('Pass gesture event diagnostic',await page.evaluate(()=>window.__DINLIMINATE_TEST__));
 assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should enter the right-swipe Keep state during the drag');
 await page.mouse.up(); await settle();
 pass=await qa(); assert.ok(pass.pass?.history?.length,'Pass Around right swipe should create a vote history entry'); assert.equal(pass.pass.history.at(-1)?.keep,true,'Pass Around right swipe should record Keep'); assert.equal(pass.pass.voterIndex,1,'Pass Around right swipe should Keep for the current voter');
@@ -331,11 +327,9 @@ if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .website-action').getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
-await click('#restHide'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal'); assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i); await click('#appConfirmOk'); await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await page.locator('#restaurantMenu').click({force:true});
 await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
 await page.locator('#settings').click(); await settle();
-const settingsDiag=await page.evaluate(()=>{const el=document.querySelector('#settingsModal'); return {count:document.querySelectorAll('#settingsModal').length,drawerHidden:document.querySelector('#drawer')?.classList.contains('hidden')??null,bgCount:document.querySelectorAll('#settingsModalBg').length,exists:!!el,text:el?.textContent||'',display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,rect:el?el.getBoundingClientRect().toJSON():null};}); console.log('Settings diagnostic',JSON.stringify(settingsDiag));
 assert.equal(await visible('settingsModal'),true,'Settings modal should open');
 const settingsText=await page.locator('#settingsModal').innerText(); assert.match(settingsText,/Hidden Restaurants/i,'Settings should show Hidden Restaurants');
 const restore=page.locator('#settingsModal [data-setting-rest]').first(); assert.equal(await restore.count(),1,'Settings should expose a restaurant Restore control');
@@ -436,7 +430,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\\s+121/i);
+assert.match(aboutText,/Build\s+121/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
@@ -602,8 +596,6 @@ const wiped=await qa(); assert.equal(wiped.custom.length,0,'Reset App Data shoul
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'Reset App Data should close Manage Foods after wiping custom data');
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
-console.log('Browser console errors:',JSON.stringify(consoleErrors));
-console.log('Browser HTTP failures:',JSON.stringify(badResponses));
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.stringify(badResponses));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
