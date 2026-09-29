@@ -583,3 +583,7 @@
 @media(max-width:390px){.luxury-home h1{font-size:29px;max-width:12em}.pass-surface{padding-left:12px;padding-right:12px}.pass-card-copy h2{font-size:28px}}
 
 .pass-gesture-hit{position:absolute;inset:0;z-index:20;touch-action:none;cursor:grab;padding:0;margin:0;border:0;background:transparent!important;box-shadow:none!important;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;pointer-events:auto}.pass-card-copy{z-index:3;pointer-events:none}
+
+/* CP242 — iPhone touch targets: keep the controls visually compact but give primary controls a 40px+ hit area */
+#foodMenu{min-width:40px;min-height:40px}
+.decision-bottom .bottom-util{min-height:40px;height:40px}
