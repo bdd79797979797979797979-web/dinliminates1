@@ -92,7 +92,7 @@ assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.heigh
 
 await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
-console.log('Food next-card debug',JSON.stringify({qa:await qa(),hidden:await page.locator('#foodNextCard').evaluate(el=>el.className),display:await page.locator('#foodNextCard').evaluate(el=>getComputedStyle(el).display),rect:await page.locator('#foodNextCard').boundingBox()})); assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
+assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
 assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
