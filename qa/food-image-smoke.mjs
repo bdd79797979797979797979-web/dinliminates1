@@ -15,7 +15,7 @@ for(const [id,cuts] of [['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Hea
   for(const cut of cuts) assert.ok(byId.get(id).quickCuts?.includes(cut),id+' must include Quick Cut '+cut);
   assert.ok(/^https?:\/\//.test(byId.get(id).image||''),id+' must have a real image URL');
 }
-assert.match(byId.get('stroganoff')?.image||'',/28503619/,'Stroganoff should use the refreshed Pexels image');
+assert.match(byId.get('stroganoff')?.image||'',/chopped_beef_stroganoff\.jpg/,'Stroganoff should use the refreshed stroganoff image');
 assert.equal(foodUrls.length,64,'Each built-in food should be present in the image audit');
 assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,64,'Each built-in food should have an external image URL');
 const urls=[...new Set(foodUrls.filter(x=>/^https?:\/\//.test(x)))];
@@ -42,3 +42,7 @@ async function worker(){
 await Promise.all(Array.from({length:8},()=>worker()));
 assert.equal(bad.length,0,'Broken food image URLs: '+JSON.stringify(bad.slice(0,12)));
 console.log(JSON.stringify({foodCount:foods.length,checked:urls.length,broken:bad.length}));
+
+assert.match(byId.get('lasagna')?.image||'',/5949921/,'Lasagna should use the refreshed plated-lasagna photo');
+assert.match(byId.get('vegetable-lasagna')?.image||'',/29050589/,'Vegetable Lasagna should use the refreshed vegetable-lasagna photo');
+assert.match(byId.get('stuffed-peppers')?.image||'',/31953510/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
