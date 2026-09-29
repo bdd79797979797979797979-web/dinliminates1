@@ -1402,15 +1402,11 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function bindPassSwipe(cardId,onCut,onKeep){
-    const surface=$('passSurface'),card=$(cardId),next=$('passNextCard');
-    if(!surface||!card)return;
+    const surface=$('passSurface'),card=$(cardId),hit=$('passGestureHit'),next=$('passNextCard');
+    if(!surface||!card||!hit)return;
     let startX=0,startY=0,active=false;
     const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    const inside=(target)=>target instanceof Element&&card.contains(target)&&!target.closest('button,a,input,select');
-    const begin=(target,x,y)=>{
-      if(active||!inside(target))return;
-      startX=x;startY=y;active=true;
-    };
+    const begin=(x,y)=>{startX=x;startY=y;active=true;};
     const move=(x,y,e)=>{
       if(!active)return;
       const dx=x-startX,dy=y-startY;
@@ -1433,40 +1429,23 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         setTimeout(()=>{reset();(dx<0?onCut:onKeep)();},110);
       }else reset();
     };
-    const cancel=()=>{active=false;reset();};
-    const pointerDown=e=>begin(e.target,e.clientX,e.clientY);
-    const pointerMove=e=>move(e.clientX,e.clientY,e);
-    const pointerUp=e=>end(e.clientX,e.clientY);
-    const mouseDown=e=>begin(e.target,e.clientX,e.clientY);
-    const mouseMove=e=>move(e.clientX,e.clientY,e);
-    const mouseUp=e=>end(e.clientX,e.clientY);
-    const touchDown=e=>{const t=e.touches?.[0];if(t)begin(e.target,t.clientX,t.clientY);};
-    const touchMove=e=>{const t=e.touches?.[0];if(t)move(t.clientX,t.clientY,e);};
-    const touchUp=e=>{const t=e.changedTouches?.[0];if(t)end(t.clientX,t.clientY);};
-    document.addEventListener('pointerdown',pointerDown,true);
-    document.addEventListener('pointermove',pointerMove,true);
-    document.addEventListener('pointerup',pointerUp,true);
-    document.addEventListener('pointercancel',cancel,true);
-    document.addEventListener('mousedown',mouseDown,true);
-    document.addEventListener('mousemove',mouseMove,true);
-    document.addEventListener('mouseup',mouseUp,true);
-    document.addEventListener('touchstart',touchDown,{capture:true,passive:true});
-    document.addEventListener('touchmove',touchMove,{capture:true,passive:false});
-    document.addEventListener('touchend',touchUp,{capture:true,passive:true});
-    document.addEventListener('touchcancel',cancel,{capture:true,passive:true});
-    surface._passSwipeCleanup=()=>{
-      document.removeEventListener('pointerdown',pointerDown,true);
-      document.removeEventListener('pointermove',pointerMove,true);
-      document.removeEventListener('pointerup',pointerUp,true);
-      document.removeEventListener('pointercancel',cancel,true);
-      document.removeEventListener('mousedown',mouseDown,true);
-      document.removeEventListener('mousemove',mouseMove,true);
-      document.removeEventListener('mouseup',mouseUp,true);
-      document.removeEventListener('touchstart',touchDown,true);
-      document.removeEventListener('touchmove',touchMove,true);
-      document.removeEventListener('touchend',touchUp,true);
-      document.removeEventListener('touchcancel',cancel,true);
-    };
+    const pd=e=>{e.preventDefault();try{hit.setPointerCapture(e.pointerId)}catch{}begin(e.clientX,e.clientY);};
+    const pm=e=>move(e.clientX,e.clientY,e);
+    const pu=e=>end(e.clientX,e.clientY);
+    const pc=()=>{active=false;reset();};
+    hit.addEventListener('pointerdown',pd);
+    hit.addEventListener('pointermove',pm);
+    hit.addEventListener('pointerup',pu);
+    hit.addEventListener('pointercancel',pc);
+    hit.addEventListener('mousedown',e=>{e.preventDefault();begin(e.clientX,e.clientY)});
+    hit.addEventListener('mousemove',e=>move(e.clientX,e.clientY,e));
+    hit.addEventListener('mouseup',e=>end(e.clientX,e.clientY));
+    hit.addEventListener('mouseleave',e=>{if(active&&e.buttons===0)end(e.clientX,e.clientY)});
+    hit.addEventListener('touchstart',e=>{const t=e.touches[0];if(t)begin(t.clientX,t.clientY)},{passive:true});
+    hit.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)},{passive:false});
+    hit.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)},{passive:true});
+    hit.addEventListener('touchcancel',pc,{passive:true});
+    surface._passSwipeCleanup=()=>{};
   }
 
 
@@ -1481,7 +1460,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const fallback=foodPhotoFallback(item);
     const image= S.screen==='restaurant' ? (item.photo||item.image||'') : img;
     const imageFallback= S.screen==='restaurant' ? (item.photo||item.image||REST_QUICK_IMAGES.American) : fallback;
-    const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
+    const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><div class="pass-gesture-hit" id="passGestureHit" aria-hidden="true"></div><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
     $('passClose').onclick=()=>endPass();
     $('passBack').onclick=passUndo;
     $('passCut').onclick=()=>passVote(false);
