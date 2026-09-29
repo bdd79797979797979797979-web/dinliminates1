@@ -16,7 +16,7 @@
 .pass-count.selected{background:#ff7a1a;color:#111;border-color:#ff7a1a}.pass-name-grid{display:grid;gap:7px;margin-top:10px}.pass-name{height:42px;border-radius:12px;border:1px solid #303030;background:#1a1a1a;color:#eee;padding:0 11px}.pass-progress{display:flex;justify-content:space-between;color:#888;font-size:11px;margin-bottom:9px}.pass-photo{width:100%;aspect-ratio:1.2;object-fit:cover;border-radius:17px}.pass-view h2{font-size:29px;line-height:1.02;letter-spacing:-.05em;margin:11px 0 5px}.pass-actions{display:grid;grid-template-columns:.8fr 1fr 1.2fr;gap:7px;margin-top:12px}.pass-actions button{min-height:50px;border-radius:15px;font-weight:800}.pass-label{font-size:11px;color:#aaa}.pass-setup .status{line-height:1.5}.rest-pass-tools{justify-content:center;margin-top:5px}</style></head>
 <body>
 <main class="app">
-<header class="top app-topbar"><div class="brand-mark"><span class="brand-dot"></span><div class="brand">Dinliminate</div></div><button id="menu" class="menu" aria-label="Menu"><span></span><span></span><span></span></button></header>
+<header class="top app-topbar"><button id="globalBack" class="global-back hidden" aria-label="Back to home">‹</button><div class="brand-mark"><div class="brand">Dinliminate</div></div><button id="menu" class="menu" aria-label="Menu"><span></span><span></span><span></span></button></header>
 
 <section class="screen home" id="home">
 <p class="eyebrow">DINNER DECISIONS</p><h1>what sounds good tonight?</h1><p class="sub">Cut the choices until one wins.</p>
@@ -28,22 +28,22 @@
 </section>
 
 <section class="screen hidden" id="food">
-<div class="heading"><button class="back" data-home>‹ Home</button><div><p class="eyebrow">FOOD</p><h2>What stays?</h2></div><div class="food-head-tools"><button class="pass-head" id="foodPassAround">Pass Around</button><button class="plus" id="addFood" aria-label="Add Food">＋</button></div></div>
+<div class="decision-kicker"><span>FOOD</span><span id="foodCount" class="count-inline"></span></div>
 <div style="margin-top:19px"><div class="label-row"><span>Quick Cuts</span><small>tap to cut · tap again to restore</small></div><div class="quick" id="foodQuick"></div></div>
-<div class="stage"><div class="count" id="foodCount"></div><div class="swipe-card-stack" id="foodStack"><article class="card next-card hidden" id="foodNextCard" aria-hidden="true"><img id="foodNextImg" alt=""><div class="shade"></div></article><article class="card" id="foodCard"><img id="foodImg" alt=""><div class="shade"></div><div class="card-copy"><small id="foodCat"></small><h3 id="foodName"></h3></div></article></div></div>
+<div class="stage"><div class="swipe-card-stack" id="foodStack"><article class="card next-card hidden" id="foodNextCard" aria-hidden="true"><img id="foodNextImg" alt=""><div class="shade"></div></article><article class="card" id="foodCard"><img id="foodImg" alt=""><div class="shade"></div><div class="card-copy"><small id="foodCat"></small><h3 id="foodName"></h3><button class="card-details" id="foodDetails" type="button">Details</button></div></article></div></div>
 <div class="swipe-actions" aria-label="Food decision controls">
   <button class="round-action round-back secondary" id="foodBack" aria-label="Back"><span>↶</span></button>
   <button class="round-action round-maybe maybe" id="foodMaybe" aria-label="Maybe"><span>♥</span></button>
   <button class="round-action round-cut cut" id="foodCut" aria-label="Cut"><span>✕</span></button>
   <button class="round-action round-hide secondary" id="foodHide" aria-label="Hide"><span>⌁</span></button>
-</div><div class="round-tools"><button class="text-btn" id="randomOne">Random Cut One</button></div>
+</div><div class="decision-bottom"><button class="bottom-util" id="foodPassAround">Pass Around</button><button class="bottom-util" id="addFood">Add Food</button></div><div class="round-tools"><button class="text-btn" id="randomOne">Random Cut One</button></div>
 </section>
 
 <section class="screen hidden" id="restaurant">
-<div class="heading"><button class="back" data-home>‹ Home</button><div><p class="eyebrow">RESTAURANT</p><h2>Where should we eat?</h2></div><span></span></div>
+<div class="decision-kicker"><span>RESTAURANTS</span><span id="restaurantCount" class="count-inline"></span></div>
 <div class="panel"><label for="address">Location</label><div class="loc-row"><div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address"><div id="suggestionsBox" aria-label="Address suggestions"></div></div><button class="small" id="locate">Use My Location</button></div><div class="radius-row"><span>Radius</span><select id="radius"><option>1</option><option>3</option><option>5</option><option selected>10</option><option>25</option><option>50</option><option>100</option></select><button class="find" id="find">Find</button></div><p class="status" id="status">Enter an address or use your location.</p></div>
-<div class="restaurant-tools"><button class="restaurant-tool" id="restaurantSearch">Restaurant Search</button><button class="restaurant-tool active-tool" id="hoursToggle">Open/Unknown Hours</button><button class="restaurant-tool pass-button" id="restaurantPassAround">Pass Around</button></div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div style="margin-top:12px"><div class="label-row"><span>Quick Cuts</span><small>tap to cut · tap again to restore</small></div><div class="quick" id="restQuick"></div></div>
-<div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div>
+<div class="restaurant-tools"><button class="restaurant-tool" id="restaurantSearch">Search</button><button class="restaurant-tool active-tool" id="hoursToggle">Open/Unknown</button></div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div style="margin-top:12px"><div class="label-row"><span>Quick Cuts</span><small>tap to cut · tap again to restore</small></div><div class="quick" id="restQuick"></div></div>
+<div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div><div class="decision-bottom restaurant-bottom"><button class="bottom-util" id="restaurantPassAround">Pass Around</button></div>
 </section>
 
 <section class="screen winner hidden" id="winner"><p class="eyebrow">WINNER</p><h2 id="winName"></h2><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
