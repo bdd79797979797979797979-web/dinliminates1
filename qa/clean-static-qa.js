@@ -99,3 +99,15 @@ assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(ro
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
+
+const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+assert(fs.existsSync('icon-512.png'),'512px PWA icon asset is required');
+assert(fs.existsSync('apple-touch-icon.png'),'180px iOS icon asset is required');
+assert(manifest.icons.some(x=>x.src==='./icon-512.png'&&x.sizes==='512x512'),'manifest must declare the 512px PNG icon');
+assert(manifest.icons.some(x=>x.src==='./apple-touch-icon.png'&&x.sizes==='180x180'),'manifest must declare the 180px iOS PNG icon');
+assert(manifest.id==='./'&&manifest.scope==='./'&&manifest.orientation==='portrait','manifest PWA identity/orientation contract must be stable');
+const vercelConfig=JSON.parse(fs.readFileSync('vercel.json','utf8'));
+const globalHeaders=vercelConfig.headers?.find(x=>x.source==='/(.*)')?.headers||[];
+assert(globalHeaders.some(x=>x.key==='Content-Security-Policy'),'Vercel CSP header is required');
+assert(globalHeaders.some(x=>x.key==='Permissions-Policy'&&String(x.value).includes('geolocation=(self)')),'Vercel geolocation Permissions-Policy is required');
+assert(!globalHeaders.some(x=>x.key==='Cache-Control'&&x.value==='no-store'),'Global no-store must not disable API edge caching');
