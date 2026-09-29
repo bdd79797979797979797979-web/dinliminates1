@@ -1391,9 +1391,9 @@ if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.som
 else {S.pool=rows;S.index=0;drawFood();}
 save();
 }
-$('foodStart').onclick = startFood;
-$('restStart').onclick = openRestaurant;
-$('home').addEventListener('click', e => { const target=e.target.closest('#foodStart,#restStart'); if(!target) return; e.preventDefault(); target.id==='foodStart'?startFood():openRestaurant(); });
+$('foodStart').onclick = null;
+$('restStart').onclick = null;
+document.addEventListener('click', e => { const target=e.target.closest?.('#foodStart,#restStart'); if(!target) return; e.preventDefault(); e.stopPropagation(); target.id==='foodStart'?startFood():openRestaurant(); }, true);
 $('foodCut').onclick = () => foodCut();
 $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
