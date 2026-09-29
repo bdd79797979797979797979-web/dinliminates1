@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
+const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.png':'image/png'};
 
 const server = http.createServer((req,res)=>{
   const pathname = decodeURIComponent((req.url||'/').split('?')[0]);
@@ -44,7 +44,7 @@ await page.route('**/*', async route => {
   }
   if (u.includes('/api/restaurant-search?mode=search')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:10,total:7,fastFoodCount:2,results:[
-      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
+      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',phone:'(931) 555-0101',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
       {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
       {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
       {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
@@ -219,6 +219,9 @@ await page.locator('#restaurantQuery').fill(''); await settle();
 
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
 assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restaurant card should show phone number when supplied');
+assert.equal(await page.locator('#restaurantCard .card-phone').getAttribute('href'),'tel:+19315550101','Restaurant phone should be a tappable tel link');
+assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'Website'}).count(),1,'Restaurant card should expose Website directly');
+assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'Details'}).count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
@@ -304,6 +307,8 @@ await click('[data-food-edit="qa-special"]'); await settle();
 await page.locator('#editFoodRecipe').fill('Edited recipe');
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Edited recipe'),true,'custom Food edit should persist');
+const storedCustomPhoto=await page.evaluate(()=>JSON.parse(localStorage.getItem('dinliminate.clean.cp1')||'{}').custom?.find(x=>x.id==='qa-special')?.image||'');
+assert.equal(storedCustomPhoto,'idb:qa-special','Custom food photo should be stored as an IndexedDB reference in localStorage');
 
 await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
@@ -366,19 +371,77 @@ const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Fi
 await page.evaluate(() => {
   const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
   const key=y+'-'+String(m).padStart(2,'0')+'-02';
-  const key2=y+'-'+String(m).padStart(2,'0')+'-03'; localStorage.setItem('dinliminate.clean.history', JSON.stringify([{id:'hist-test',date:key,type:'food',name:'Calendar Food Test',image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',category:'Healthy'},{id:'hist-test-rest',date:key2,type:'restaurant',name:'Calendar Restaurant Test',image:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',category:'American'}]));
+  const key2=y+'-'+String(m).padStart(2,'0')+'-03';
+  localStorage.setItem('dinliminate.clean.history', JSON.stringify([
+    {id:'hist-test',date:key,type:'food',name:'Calendar Food Test',image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',category:'Healthy'},
+    {id:'hist-test-2',date:key,type:'restaurant',name:'Calendar Same Day Restaurant',image:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',category:'American'},
+    {id:'hist-test-rest',date:key2,type:'restaurant',name:'Calendar Restaurant Test',image:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',category:'American'}
+  ]));
 });
 await click('#menu'); await settle(); await click('#history'); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),2,'History calendar should show an X delete control for food and restaurant entries');
-await page.locator('[data-history-delete]').nth(0).click(); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),1,'Calendar X should remove the first entry from the calendar');
-assert.equal(await page.locator('.history-open').count(),1,'Calendar X should remove the corresponding food history row');
-await page.locator('[data-history-delete]').first().click(); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),0,'Calendar X should remove the restaurant entry too');
-assert.equal(await page.locator('.history-open').count(),0,'Calendar X should remove the corresponding restaurant history row');
+assert.equal(await page.locator('[data-history-delete]').count(),2,'History calendar should show one X control per occupied date');
+assert.equal(await page.locator('.cal-more').count(),1,'History calendar should show +1 when two decisions share a date');
+assert.equal(await page.locator('.history-open').count(),3,'History list should retain every decision, including same-day entries');
+const sameDayDelete=page.locator('[data-history-delete="hist-test"]');
+assert.equal(await sameDayDelete.count(),1,'Same-day calendar entry should have an individual delete target');
+await sameDayDelete.click(); await settle();
+assert.equal(await page.locator('.cal-more').count(),0,'Deleting one same-day history entry should remove only that entry from the day');
+assert.equal(await page.locator('.history-open').count(),2,'Deleting one same-day entry should leave the other history entries');
+assert.equal(await page.locator('[data-history-delete]').count(),2,'The remaining same-day entry should still have a delete control');
+const sameDayDelete2=page.locator('[data-history-delete="hist-test-2"]');
+assert.equal(await sameDayDelete2.count(),1,'Second same-day entry should become the calendar item after the first is deleted');
+await sameDayDelete2.click(); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),1,'Deleting the second same-day entry should leave the other date');
+assert.equal(await page.locator('.history-open').count(),1,'Only the unrelated history entry should remain');
+await page.locator('[data-history-delete="hist-test-rest"]').click(); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),0,'All calendar history entries should be individually removable');
+assert.equal(await page.locator('.history-open').count(),0,'History list should clear after all entries are removed');
 
 
-assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
+
+/* Accessibility, touch targets, PWA and multi-width checks. */
+await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await page.waitForLoadState('domcontentloaded'); await settle();
+assert.ok(fs.existsSync(path.join(root,'sw.js')),'service worker file should exist');
+assert.ok(fs.existsSync(path.join(root,'manifest.webmanifest')),'manifest should exist');
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));
+assert.ok(manifest.icons.some(x=>x.sizes==='512x512'&&x.src==='./icon-512.png'),'512px manifest icon required');
+assert.ok(manifest.icons.some(x=>x.sizes==='180x180'&&x.src==='./apple-touch-icon.png'),'180px iOS manifest icon required');
+const pngSize=file=>{const b=fs.readFileSync(file); return {w:b.readUInt32BE(16),h:b.readUInt32BE(20)}};
+assert.deepEqual(pngSize(path.join(root,'icon-512.png')),{w:512,h:512},'512px icon file must actually be 512x512');
+assert.deepEqual(pngSize(path.join(root,'apple-touch-icon.png')),{w:180,h:180},'iOS icon file must actually be 180x180');
+
+await page.locator('#foodStart').click(); await settle();
+await page.locator('#foodDetails').click(); await settle();
+assert.equal(await page.locator('#detailsModal').getAttribute('role'),'dialog','Details modal should have dialog semantics');
+assert.equal(await page.locator('#detailsModal').getAttribute('aria-modal'),'true','Details modal should be modal to assistive technology');
+assert.equal(await page.locator('#detailsModal [data-close]').isFocused(),true,'Details modal should receive focus when opened');
+await page.keyboard.press('Tab'); await settle();
+assert.equal(await page.locator('#detailsModal').isVisible(),true,'Details modal should remain open during keyboard navigation');
+await page.locator('#detailsModal [data-close]').click(); await settle();
+
+await page.locator('#foodCard').focus().catch(()=>{});
+await page.locator('#foodMenu').click(); await settle(); await page.locator('#drawer').press('Escape').catch(()=>{}); await settle();
+const touchSizes=await page.locator('#food .round-action, #food .bottom-util, #foodMenu').evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect();return {id:e.id,w:r.width,h:r.height}}));
+assert.ok(touchSizes.filter(x=>x.w>0).every(x=>x.w>=40&&x.h>=40),'Primary Food controls should remain at least 40px tappable');
+
+await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await settle();
+await page.evaluate(()=>localStorage.removeItem('dinliminate.swipeHint.v1'));
+await page.locator('#foodStart').click(); await settle();
+assert.equal(await page.locator('#swipeHint').isVisible(),true,'First Food start should show a subtle swipe hint');
+assert.match(await page.locator('#swipeHint').innerText(),/Swipe left to Cut · right to Maybe/);
+await page.waitForTimeout(2800); assert.equal(await page.locator('#swipeHint').count(),0,'Swipe hint should disappear automatically');
+
+const swReg=await page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()));
+assert.equal(swReg,true,'Service worker should register on localhost');
+const widths=[320,375,393,430];
+for(const width of widths){
+  await page.setViewportSize({width,height:852}); await page.goto('http://127.0.0.1:4173/?qa=1&fresh='+width); await page.waitForLoadState('domcontentloaded'); await settle();
+  const g=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight:window.innerHeight}));
+  assert.ok(g.scrollWidth<=g.clientWidth+1,'No horizontal overflow at '+width+'px');
+  assert.ok(g.scrollHeight<=g.innerHeight+2,'Home should fit one viewport at '+width+'px');
+}
+await page.setViewportSize({width:393,height:852});
+\nassert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
