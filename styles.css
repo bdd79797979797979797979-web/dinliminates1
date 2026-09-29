@@ -550,3 +550,5 @@
 .quick-cut-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .quick-cut-editor-grid label{display:flex;align-items:center;gap:7px;min-height:34px;padding:7px 8px;border:1px solid #302c27;border-radius:10px;color:#d4ccc1;font-size:9px;font-weight:800}
 .quick-cut-editor-grid input{accent-color:#bfa16b}
+
+.settings-reset-app{display:block;width:100%;text-align:center;background:#4b201d;color:#ffd8d0;border:1px solid #7a342c;box-shadow:none}
