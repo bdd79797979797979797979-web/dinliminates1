@@ -14,7 +14,8 @@ assert(app.includes('S.deleted'),'deleted-food persistence is required');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 
-assert(html.includes('foodNextCard') && html.includes('restaurantNextCard'),'Tinder card stacks must be present for both Food and Restaurant');
+assert(html.includes('foodNextCard'),'Food Tinder card stack must be present in the base DOM');
+assert(app.includes('restaurantNextCard') && app.includes('restaurant-card-stack'),'Restaurant Tinder card stack must be rendered dynamically');
 assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
 assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the clean rebuild');
 assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
