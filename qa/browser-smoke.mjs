@@ -308,6 +308,7 @@ assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be e
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),12,'Restaurant should have 12 Quick Cuts');
 assert.equal(await page.locator('[data-rest-quick] .quick-chip-photo').count(),12,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
+if(await page.locator('#restaurantQuery').isVisible()){await page.locator('#restaurantQuery').fill(''); await settle();}
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
 await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
 await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown'); assert.equal(s.restaurantPool.includes('closed-1'),false,'Open/Unknown should exclude explicitly closed restaurants');
