@@ -1171,6 +1171,28 @@ function settingsView(){
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=appDiagnosisView;$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
 }
+function diagnosisMiles(a,b,c,d){
+ const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
+ return 2*R*Math.asin(Math.sqrt(z));
+}
+function diagnosisNameTokens(value){
+ return String(value||'').toLowerCase().replace(/[’']s\b/gi,' ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+}
+function diagnosisNameVariant(a,b){
+ const aa=diagnosisNameTokens(a),bb=diagnosisNameTokens(b);if(!aa.length||!bb.length)return false;
+ const as=new Set(aa),bs=new Set(bb),shared=aa.filter(t=>bs.has(t)).length;
+ return shared===Math.min(as.size,bs.size)&&shared/new Set([...aa,...bb]).size>=0.6;
+}
+function diagnosisRestaurantDuplicates(rows){
+ const out=[];
+ for(let i=0;i<(rows||[]).length;i++)for(let j=i+1;j<(rows||[]).length;j++){
+  const a=rows[i],b=rows[j];
+  const d=Number.isFinite(Number(a?.lat))&&Number.isFinite(Number(a?.lon))&&Number.isFinite(Number(b?.lat))&&Number.isFinite(Number(b?.lon))?diagnosisMiles(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)):Infinity;
+  const sameAddr=normKey(a?.address)&&normKey(a?.address)===normKey(b?.address),sameName=normKey(a?.name)===normKey(b?.name);
+  if(d<=0.2&&(sameName||sameAddr||diagnosisNameVariant(a?.name,b?.name)))out.push([a?.name,b?.name,d]);
+ }
+ return out;
+}
 async function appDiagnosisView(){
  const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button">↻ Run again</button></div>';
  const modal=openModal('diagnosisModal','App Diagnosis',body);let running=false,run=0;
