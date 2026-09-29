@@ -5,6 +5,11 @@ const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi
 const TARGETED_FAST=["McDonald's","Taco Bell","Wendy's","Burger King","KFC","Chick-fil-A","Popeyes","Subway","Sonic","Arby's","Whataburger","Five Guys","Raising Cane's","Wingstop","Bojangles","Cook Out","Dairy Queen","Zaxby's","Church's Chicken","Captain D's","Long John Silver's","Jimmy John's","Jersey Mike's","Firehouse Subs","Little Caesars","Domino's","Papa John's","Pizza Hut","Marco's Pizza","Krystal","Steak 'n Shake","White Castle","Freddy's","In-N-Out","Carl's Jr.","Panda Express","Jack in the Box","Hardee's","Del Taco","Checkers","Rally's"];
 const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle)\b/i;
 const timezoneCache=new Map(),cache=new Map(),buckets=new Map();
+const SEARCH_BUDGET_MS=18000;
+async function withinBudget(promise,ms,label){
+ const wait=Math.max(250,ms);
+ return Promise.race([promise,new Promise(resolve=>setTimeout(()=>resolve({__timeout:true,label}),wait))]);
+}
 function n(v,d=NaN){const x=Number(v);return Number.isFinite(x)?x:d}
 function clamp(v){return Math.min(MAX_RADIUS,Math.max(1,n(v,DEFAULT_RADIUS)))}
 function validCoords(lat,lon){return Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180}
@@ -195,13 +200,16 @@ if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max
 if(mode==='resolve'){const x=await geocode(req.query.q);return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(req.query.lat),lon=n(req.query.lon);if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
 if(mode==='search'){
+ const startedAt=Date.now();
  const lat=n(req.query.lat),lon=n(req.query.lon),radius=clamp(req.query.radius);
  if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});
- const key=lat.toFixed(3)+':'+lon.toFixed(3)+':'+radius,hit=cache.get(key);
+ const key=lat.toFixed(4)+':'+lon.toFixed(4)+':'+radius,hit=cache.get(key);
  if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');
  const timezonePromise=timezone(lat,lon);
- const [photonResult,arcgisResult]=await Promise.allSettled([photonPlaces(lat,lon,radius),arcgisPlaces(lat,lon,radius)]);
+ const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius),arcgisPlaces(lat,lon,radius)]),Math.max(1000,SEARCH_BUDGET_MS-(Date.now()-startedAt)),'Primary restaurant providers timed out');
+ const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
+ const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};
  const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};
  const preliminary=dedupe([...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
@@ -210,20 +218,29 @@ if(mode==='search'){
  const needsFallback=!preliminary.length||preliminaryFast===0||(radius<=25&&preliminaryFast<2);
  if(needsFallback){
   const fallbackRadius=Math.min(radius,50);
-  const got=await Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food'),overpass(lat,lon,fallbackRadius,'fast_food')]);
-  for(const x of got){
-   if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}
-   else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'));
-  }
+  const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+  if(remaining>1000){
+    const got=await withinBudget(Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food'),overpass(lat,lon,fallbackRadius,'fast_food')]),remaining,'Overpass fallback timed out');
+    if(Array.isArray(got)){
+      for(const x of got){
+        if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}
+        else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'));
+      }
+    }else osmOut.errors.push('Overpass fallback timed out');
+  }else osmOut.errors.push('Search budget reached before Overpass fallback.');
  }
  if(radius>50&&(!preliminary.length||preliminaryFast===0)){
-  const extra=await overpass(lat,lon,radius,DINING_AMENITIES);
-  osmOut.rows.push(...(extra.rows||[]));osmOut.errors.push(...(extra.errors||[]));
+  const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+  if(remaining>1000){
+    const extra=await withinBudget(overpass(lat,lon,radius,DINING_AMENITIES),remaining,'Wide restaurant search timed out');
+    if(extra&&!extra.__timeout){osmOut.rows.push(...(extra.rows||[]));osmOut.errors.push(...(extra.errors||[]))}
+    else osmOut.errors.push('Wide restaurant search timed out');
+  }else osmOut.errors.push('Search budget reached before wide restaurant search.');
  }
  const rows=dedupe([...preliminary,...osmOut.rows]).map(r=>({...r,photo:image(r)}));
  if(!rows.length&&photonOut.errors.length&&arcgisOut.errors.length&&osmOut.errors.length)throw Object.assign(new Error('Restaurant providers are temporarily unavailable. Please try again.'),{code:'PROVIDER_UNAVAILABLE'});
  const zone=await timezonePromise;
- const data={ok:true,version:'r14',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors].slice(0,8),results:rows};
+ const data={ok:true,version:'r14',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-r14',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
