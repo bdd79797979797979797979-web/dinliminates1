@@ -97,7 +97,7 @@ assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),1
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the verified live Mexican stir-fry photo');
+assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry should use the refreshed verified Mexican stir-fry photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected updated 65-food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
@@ -306,7 +306,7 @@ assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https:
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .website-action').innerText(),'Website ↗','Restaurant Website action should be professional');
-assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details action should use the professional icon'); assert.equal(await page.locator('#restDetails .details-icon rect').count(),1,'Restaurant Details icon should use the crisp outlined mark'); assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details icon should remain accessible');
+assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details action should use the professional icon'); assert.equal(await page.locator('#restDetails .details-icon circle').count(),1,'Restaurant Details icon should use the crisp circle mark'); assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details icon should remain accessible');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
