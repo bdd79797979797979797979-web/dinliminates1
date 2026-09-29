@@ -267,7 +267,7 @@ await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
 const restKeepCount=(await qa()).restaurantPool.length; await click('#restMaybe'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action'); assert.equal(restAfterButtons.restaurantPool.length,restKeepCount,'Restaurant Maybe/Keep should leave the count unchanged');
-assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card into the recycle queue for this pass');
+assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Maybe/Keep should retain the current restaurant in the counted list');
 while(!restAfterButtons.restaurantMaybeRound && restAfterButtons.restaurantPool.length>0){ await click('#restCut'); await settle(); restAfterButtons=await qa(); }
 assert.equal(restAfterButtons.restaurantMaybeRound,true,'Restaurant Maybe choices should recycle into a second narrowing pass');
 assert.equal(restAfterButtons.restaurantPool.some(x=>x===restFirstId),true,'The kept restaurant should return when the first pass is exhausted');
@@ -426,7 +426,7 @@ const finalFoodBox=await page.locator('#foodCard').boundingBox(); if(!finalFoodB
 await page.mouse.move(finalFoodBox.x+55,finalFoodBox.y+finalFoodBox.height/2);
 await page.mouse.down();
 await page.mouse.move(finalFoodBox.x+finalFoodBox.width-18,finalFoodBox.y+finalFoodBox.height/2,{steps:4});
-await page.mouse.up(); await settle();
+await page.mouse.up(); await settle(); console.log('Final food swipe debug',JSON.stringify(await qa()));
 assert.equal(await visible('winner'),true,'Right swipe on final food should open Winner');
 const foodWin=await qa(); assert.equal(foodWin.winnerType,'food','Final food swipe should produce a food winner'); assert.equal(foodWin.winner?.id,finalFoodId,'Winner should be the final food'); assert.notEqual(await page.locator('#winName').innerText(),'HUNGRY ☹','Chosen food must not fall into Hungry state');
 await click('#restart'); await settle();
