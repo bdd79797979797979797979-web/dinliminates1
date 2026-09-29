@@ -28,6 +28,7 @@ async function call(query,ip){
  assert.equal(partial.body.ok,true);
  assert.equal(partial.body.total,0);
  assert.ok(Array.isArray(partial.body.providerErrors) && partial.body.providerErrors.length>0,'partial provider failure should be reported');
+ global.fetch=async()=>{throw new Error('simulated total provider outage')};
  const all=await call({mode:'search',lat:36.5304,lon:-87.3601,radius:'11'},'qa-all');
  assert.equal(all.status,502);
  assert.equal(all.body.ok,false);
