@@ -362,7 +362,14 @@ function drawFood(){
 }
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
-function foodCut(item=S.pool[S.index]){if(!item)return;foodCommit('cut',item);S.foodCuts.add(item.id);buildFood();resolveFoodAfterDecision();}
+function foodCut(item=S.pool[S.index]){
+ if(!item)return;
+ const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;
+ foodCommit('cut',item);
+ const roundAfter=!!S.foodMaybeRound|| (S.maybe.size>0 && unkept<=1);
+ S.foodActions[S.foodActions.length-1].roundAfter=roundAfter;
+ S.foodCuts.add(item.id);buildFood();resolveFoodAfterDecision();
+}
 function foodMaybe(item=S.pool[S.index]){
  if(!item)return;
  if(S.pool.length===1){foodCommit('maybe',item);winner(item);return;}
@@ -382,7 +389,7 @@ function foodBack(){
  const action=S.foodActions.pop();if(!action){home();return;}
  if(action.type==='cut')S.foodCuts.delete(action.id);
  if(action.type==='maybe'){if(action.hadMaybe)S.maybe.add(action.id);else S.maybe.delete(action.id);}
- S.foodMaybeRound=!!action.maybeRound||!!action.recycleOnUndo;buildFood();
+ S.foodMaybeRound=!!action.maybeRound||!!action.recycleOnUndo||!!action.roundAfter;buildFood();
  const restored=S.pool.findIndex(x=>x.id===action.id);S.index=restored>=0?restored:Math.max(0,Math.min(action.index||0,Math.max(0,S.pool.length-1)));drawFood();save();
 }
 
@@ -852,7 +859,9 @@ bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAG
 }
 function restaurantCut(row){
  if(!row)return;
- S.restaurantActions.push({type:'cut',id:row.id,index:S.restaurantIndex,maybeRound:!!S.restaurantMaybeRound,hadMaybe:!!row._maybe});row._cut=true;
+ const unkept=restaurantPoolFiltered().filter(x=>!x._maybe).length;
+ S.restaurantActions.push({type:'cut',id:row.id,index:S.restaurantIndex,maybeRound:!!S.restaurantMaybeRound,hadMaybe:!!row._maybe,roundAfter:!!S.restaurantMaybeRound||(Array.isArray(S.restaurantPool)&&S.restaurantPool.some(x=>x._maybe)&&unkept<=1)});
+ row._cut=true;
  const remaining=restaurantPoolFiltered();
  if(!remaining.length)winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});else{S.restaurantIndex=Math.min(S.restaurantIndex,remaining.length-1);drawRestaurants();}
  save();
@@ -869,7 +878,7 @@ function restaurantMaybe(row){
 function restaurantBack(){
  const action=S.restaurantActions.pop();if(!action){home();return;}
  const row=S.restaurantPool.find(x=>x.id===action.id);if(row){if(action.type==='cut')row._cut=false;if(action.type==='maybe')row._maybe=!!action.hadMaybe;}
- S.restaurantMaybeRound=!!action.maybeRound;const rows=restaurantPoolFiltered(),restored=rows.findIndex(x=>x.id===action.id);
+ S.restaurantMaybeRound=!!action.maybeRound||!!action.roundAfter;const rows=restaurantPoolFiltered(),restored=rows.findIndex(x=>x.id===action.id);
  S.restaurantIndex=restored>=0?restored:Math.max(0,Math.min(action.index||0,Math.max(0,rows.length-1)));drawRestaurants();save();
 }
 
