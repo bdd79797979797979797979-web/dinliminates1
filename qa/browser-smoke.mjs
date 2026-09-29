@@ -414,7 +414,6 @@ await click('#locate'); await page.waitForFunction(()=>document.querySelector('#
 assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using your location','Device location should be labeled as the source');
 const deviceLoc=await qa(); assert.ok(Math.abs(Number(deviceLoc.location?.lat)-36.5304)<0.01,'Device latitude should be persisted');
 assert.ok(Math.abs(Number(deviceLoc.location?.lon)+87.3601)<0.01,'Device longitude should be persisted');
-await click('#restStart'); await settle();
 await page.locator('#address').fill('123'); await page.waitForSelector('#suggestionsBox button',{state:'visible'}); await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 if ((await page.locator('#hoursToggle').innerText()) !== 'All') { await click('#hoursToggle'); await settle(); }
 while ((await qa()).restaurantPool.length>1) { await click('#restCut'); await settle(); }
