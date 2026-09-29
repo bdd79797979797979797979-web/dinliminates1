@@ -53,7 +53,7 @@ await page.route('**/*', async route => {
       {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'closed'}
     ]})});
   }
-  if (u.startsWith('https://images.unsplash.com/')) {
+  if (u.startsWith('https://images.unsplash.com/') || u.startsWith('https://images.pexels.com/')) {
     return route.fulfill({status:200,contentType:'image/png',body:png1x1});
   }
   return route.continue();
