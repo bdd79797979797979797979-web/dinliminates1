@@ -50,7 +50,7 @@ assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
 assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
-const requestedPhotoIds={tacos:'12261167','stir-fry':'31673757',meatloaf:'2397401','buttermilk-cornbread':'ourstate.s3.amazonaws.com','potato-soup':'29653177','stuffed-peppers':'22698511',stroganoff:'28503619','health-shake':'7937490'};
+const requestedPhotoIds={tacos:'27626524','stir-fry':'4924603',meatloaf:'2397401','buttermilk-cornbread':'tastingtable.com','potato-soup':'5794/soup-leek-potato.jpg','stuffed-peppers':'31953510',stroganoff:'20234576','health-shake':'7683770'};
 for(const [id,photoId] of Object.entries(requestedPhotoIds)) assert(foodRows.find(x=>x.id===id)?.image?.includes(photoId),id+' must use refreshed photo '+photoId);
 assert(foodRows.find(x=>x.id==='cheerios')?.name==='Cereal','Cheerios Cereal must be renamed to Cereal');
 assert.deepEqual(foodRows.find(x=>x.id==='health-shake')?.quickCuts,['Healthy'],'Health Shake must map to Healthy Quick Cut');
@@ -169,3 +169,5 @@ assert(app.includes('health-shake')&&app.includes('Health Shake'),'Health Shake 
 assert(app.includes("imageIdsExpected={'tacos':'27626524'"),'Diagnosis must validate the refreshed taco image');
 assert(css.includes('.settings-system-action.diagnosis-action{background:#194e6b'),'App Diagnosis must have a distinct button color');
 assert(css.includes('.card-card-action.icon-action{width:32px'),'Details icon button must stay compact');
+
+assert(!foodSource.includes('stouffer')&&!foodSource.includes('Stouffer'),'Stouffer’s Frozen Dinner must remain absent from the food source');
