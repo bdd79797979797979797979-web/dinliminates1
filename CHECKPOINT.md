@@ -32,3 +32,22 @@ Deployment status:
 - The latest green clean candidate has not been verified as a current Vercel deployment; the latest listed clean-rebuild deployment predates this checkpoint.
 
 RECOVERY RULE: Return to stable commit `eb5baa737ce4ac80258e66f718e103aa88546f77` if a later milestone becomes unstable.
+
+## CP96 — Original-scope cleanup
+Source branch: `clean-feature-release-2026-09-28`
+Source recovery: CP95 `40a43b147e198f9243a18688a6fbc2504beb737f`
+
+Changed:
+- Removed the non-original Food All Cut control from the UI and application logic.
+- Removed All Cut-specific browser/static QA assertions.
+- Kept the hungry/no-choice screen because it is still the correct end state when normal elimination leaves no choices.
+- Preserved the premium Tinder-style swipe behavior for BOTH Food and Restaurant: live drag/tilt/stamp, left = Cut, right = Maybe, plus matching buttons.
+- CP95 already contained the previously requested custom photo upload, custom Food editing, built-in delete/restore, Food detail notes, restaurant photo fallbacks, provider menu metadata, compact My Location, address selection/search, Pass Around, and swipe parity.
+
+Verification:
+- QA-only PR #23 is open; no merge requested.
+- Netlify deploy-preview-23 status: success.
+- Vercel status for this branch is currently blocked by the account build-rate-limit status, not an application test failure.
+- CP95 remains the immediate recovery point; CP96 also has a dedicated savepoint branch.
+
+RECOVERY: `savepoint-cp96-no-all-cut-2026-09-28` / commit `10ce3ef30499fd8048afdf3c18a55611834d363e`.
