@@ -5,8 +5,8 @@ for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant',
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r8'])assert(api.includes(s),'missing API contract: '+s);
-assert(api.includes("version:'clean-r8',radiusMiles:radius"),'Restaurant search responses must report clean-r8');
+for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r9'])assert(api.includes(s),'missing API contract: '+s);
+assert(api.includes("version:'clean-r9',radiusMiles:radius"),'Restaurant search responses must report clean-r8');
 assert(foods.includes('window.DINLIMINATE_FOODS='),'food data must publish to the window for the clean browser build');
 for(const s of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup'])assert(foods.includes(s),'missing food data: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
