@@ -1257,6 +1257,7 @@ async function appDiagnosisView(){
    const fsources=foods.filter(x=>x.image&&String(x.image).trim()).length;fsources===foods.length?pass('Food image sources',fsources+'/'+foods.length+' built-in sources present.'):fail('Food image sources',fsources+'/'+foods.length+' built-in foods have image sources.');
    broken.length?fail('Visible image rendering',broken.length+' visible image(s) have no decoded pixels.'):fallbacked.length?warn('Visible image rendering',fallbacked.length+' visible image(s) use a local fallback.'):imgs.length?pass('Visible image rendering',imgs.length+' visible image(s) decoded successfully.'):info('Visible image rendering','No image-bearing surface is currently visible.');
    pass('Details controls','Food, restaurant, and Winner Details controls use the professional icon treatment.');
+   info('Restaurant search service','Live API health check is running or will report unavailable in this runtime context.');
    pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
    S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
    S.location?info('Location',(S.location.label||'Selected location')+' · '+(S.locationSource||'unknown source')):info('Location','No location selected yet.');
