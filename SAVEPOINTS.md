@@ -516,3 +516,15 @@ Commit: `d92c759de2956b739c3883bdfbdf03b2344b0881`
 - Added a luxury home screen with food photography and a richer Dinliminate wordmark.
 - Refined History into a premium calendar presentation.
 - Permanent recovery branch: `savepoint-cp108-restoration-data-search-2026-09-28`.
+
+
+## CP108-BROWSER-GREEN — full requested restoration pass verified
+Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
+- Restored 62 original food choices with photos, ingredients, typical nutrition, recipes, and explicit Quick Cut mappings.
+- Updated Stir Fry to **Mexican Stir Fry** with Mexican mapping and photo.
+- Food Quick Cuts use explicit primary mappings so secondary ingredients do not incorrectly eliminate related dishes.
+- Food/Restaurant Details: X-only close; Hide action; Food Details include ingredients + typical nutrition; Restaurant Details show provider menu items when available.
+- Repaired restaurant search route to `/api/restaurant-search` for Vercel and Netlify; address suggestion, resolve, reverse, and search adapter tests pass.
+- Full CI is green: Static QA, real provider smoke, route adapter smoke, Playwright browser smoke.
+- Premium home redesign and premium calendar styling are included.
+- Recovery branch: `savepoint-cp108-browser-green-2026-09-29`.
