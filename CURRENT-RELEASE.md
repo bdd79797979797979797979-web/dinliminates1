@@ -12,6 +12,12 @@
 - checkpoint-build114-pre-complete-hardening-2026-09-29
 - checkpoint-cp113-pre-next-batch-2026-09-29
 - checkpoint-cp116-api-hardening-2026-09-29
+- checkpoint-cp121-pwa-icons-2026-09-29
+- checkpoint-cp133-pre-ci-2026-09-29
+- checkpoint-cp143-image-host-cleanup-2026-09-29
+- checkpoint-cp149-ci-concurrency-2026-09-29
+- checkpoint-cp153-accessibility-smoke-2026-09-29
+- checkpoint-cp157-accessibility-2026-09-29
 
 ## Current verification
 - Static QA: required
