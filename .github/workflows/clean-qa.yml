@@ -12,7 +12,7 @@ on:
       - 'qa/**'
       - '.github/workflows/clean-qa.yml'
   push:
-    branches: [clean-rebuild, clean-release-candidate]
+    branches: [clean-rebuild, clean-release-candidate, release-hardening-2026-09-29]
   workflow_dispatch:
 
 permissions:
