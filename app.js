@@ -774,7 +774,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   let restaurantSearchSeq = 0;
-  async async function responseJson(response, message){
+  async function responseJson(response, message){
     let body=null;
     try{body=await response.json();}catch{throw new Error(message||'The restaurant search returned an invalid response.');}
     return body;
