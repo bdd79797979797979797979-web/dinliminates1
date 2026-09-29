@@ -37,6 +37,8 @@ jobs:
         run: node qa/api-smoke.cjs
       - name: Route adapter smoke
         run: node qa/restaurant-route-smoke.cjs
+      - name: Provider failure smoke
+        run: node qa/provider-failure-smoke.cjs
       - name: Install Playwright
         run: npm install --no-save playwright@1.55.0
       - name: Install Chromium
