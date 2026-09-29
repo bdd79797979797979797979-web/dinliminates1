@@ -6,7 +6,7 @@ function fakeResponse(body,status=200){
 }
 async function call(query,ip){
   let status=200,body=null;
-  await handler({query,headers:{'x-forwarded-for':ip}},{
+  await handler({url:'/?'+new URLSearchParams(query).toString(),headers:{'x-forwarded-for':ip}},{
     setHeader(){},
     status(code){status=code;return this;},
     json(payload){body=payload;return this;}

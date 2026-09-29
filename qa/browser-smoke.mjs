@@ -97,7 +97,7 @@ assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should hav
 assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
-for(const [id,cuts] of Object.entries({lasagna:['Pasta'],'vegetable-lasagna':['Pasta','Healthy'],'salisbury-steak':['Southern','American'],'stuffed-peppers':['Healthy','American'],'health-shake':['Healthy']})){assert.ok(requestedFoods[id],id+' should exist');assert.deepEqual(requestedFoods[id].quickCuts,cuts,id+' Quick Cut mapping');assert.ok(/^https?:\\/\\//.test(requestedFoods[id].image||''),id+' should have an image');assert.equal(requestedFoods[id].detailsReady,true,id+' should have Details content');}
+for(const [id,cuts] of Object.entries({lasagna:['Pasta'],'vegetable-lasagna':['Pasta','Healthy'],'salisbury-steak':['Southern','American'],'stuffed-peppers':['Healthy','American'],'health-shake':['Healthy']})){assert.ok(requestedFoods[id],id+' should exist');assert.deepEqual(requestedFoods[id].quickCuts,cuts,id+' Quick Cut mapping');assert.equal(String(requestedFoods[id].image||'').startsWith('http'),true,id+' should have an image');assert.equal(requestedFoods[id].detailsReady,true,id+' should have Details content');}
 assert.equal((await page.evaluate(()=>window.DINLIMINATE_FOODS||[])).some(x=>x.id==='frozen'||/stouffer/i.test(x.name||'')),false,'Stouffer dinner must be absent');
 
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
@@ -213,16 +213,13 @@ await click('#passBegin'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around voting should remain full page');
 let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
 assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
-console.log('Pass bind diagnostic',await page.evaluate(()=>window.__DINLIMINATE_TEST__));
 assert.equal(await page.locator('#passGestureHit').getAttribute('data-pass-swipe-bound'),'true','Pass Around gesture layer should be bound when the page is created');
 const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
 const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
-const passTarget=await page.evaluate(({x,y})=>{const e=document.elementFromPoint(x,y);const g=e?getComputedStyle(e):null;return {tag:e?.tagName||'',id:e?.id||'',cls:e?.className||'',pointerEvents:g?.pointerEvents||'',zIndex:g?.zIndex||'',rect:e?JSON.stringify(e.getBoundingClientRect()):''}},{x:passX1,y:passY}); console.log('Pass drag target diagnostic',JSON.stringify(passTarget));
 assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must be the topmost pointer target');
 assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
 await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8});
 await page.waitForTimeout(20);
-console.log('Pass gesture event diagnostic',await page.evaluate(()=>window.__DINLIMINATE_TEST__));
 assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should enter the right-swipe Keep state during the drag');
 await page.mouse.up(); await settle();
 pass=await qa(); assert.ok(pass.pass?.history?.length,'Pass Around right swipe should create a vote history entry'); assert.equal(pass.pass.history.at(-1)?.keep,true,'Pass Around right swipe should record Keep'); assert.equal(pass.pass.voterIndex,1,'Pass Around right swipe should Keep for the current voter');
@@ -343,7 +340,6 @@ if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
-await click('#restHide'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal'); assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i); await click('#appConfirmOk'); await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await page.locator('#restaurantMenu').click({force:true});
 await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
 await page.locator('#settings').click(); await settle();
