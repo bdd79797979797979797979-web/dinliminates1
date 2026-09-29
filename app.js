@@ -1406,27 +1406,27 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     if(!surface||!card)return;
     let startX=0,startY=0,active=false;
     const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    const down=e=>{
-      if(!card.contains(e.target)||e.target.closest('button,a,input,select'))return;
-      startX=e.clientX;startY=e.clientY;active=true;
-      try{card.setPointerCapture(e.pointerId)}catch{}
+    const inside=(target)=>target instanceof Element&&card.contains(target)&&!target.closest('button,a,input,select');
+    const begin=(target,x,y)=>{
+      if(active||!inside(target))return;
+      startX=x;startY=y;active=true;
     };
-    const move=e=>{
+    const move=(x,y,e)=>{
       if(!active)return;
-      const dx=e.clientX-startX,dy=e.clientY-startY;
+      const dx=x-startX,dy=y-startY;
       if(Math.abs(dy)>Math.abs(dx)*1.2)return;
       if(Math.abs(dx)>8){
-        e.preventDefault();
+        if(e?.cancelable)e.preventDefault();
         card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
         card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
         card.dataset.swipe=dx<0?'cut':'maybe';
         if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
       }
     };
-    const up=e=>{
+    const end=(x,y)=>{
       if(!active)return;
       active=false;
-      const dx=e.clientX-startX;
+      const dx=x-startX;
       if(Math.abs(dx)>90){
         card.style.transition='transform .16s ease,opacity .16s ease';
         card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
@@ -1434,15 +1434,38 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       }else reset();
     };
     const cancel=()=>{active=false;reset();};
-    document.addEventListener('pointerdown',down,true);
-    document.addEventListener('pointermove',move,true);
-    document.addEventListener('pointerup',up,true);
+    const pointerDown=e=>begin(e.target,e.clientX,e.clientY);
+    const pointerMove=e=>move(e.clientX,e.clientY,e);
+    const pointerUp=e=>end(e.clientX,e.clientY);
+    const mouseDown=e=>begin(e.target,e.clientX,e.clientY);
+    const mouseMove=e=>move(e.clientX,e.clientY,e);
+    const mouseUp=e=>end(e.clientX,e.clientY);
+    const touchDown=e=>{const t=e.touches?.[0];if(t)begin(e.target,t.clientX,t.clientY);};
+    const touchMove=e=>{const t=e.touches?.[0];if(t)move(t.clientX,t.clientY,e);};
+    const touchUp=e=>{const t=e.changedTouches?.[0];if(t)end(t.clientX,t.clientY);};
+    document.addEventListener('pointerdown',pointerDown,true);
+    document.addEventListener('pointermove',pointerMove,true);
+    document.addEventListener('pointerup',pointerUp,true);
     document.addEventListener('pointercancel',cancel,true);
+    document.addEventListener('mousedown',mouseDown,true);
+    document.addEventListener('mousemove',mouseMove,true);
+    document.addEventListener('mouseup',mouseUp,true);
+    document.addEventListener('touchstart',touchDown,{capture:true,passive:true});
+    document.addEventListener('touchmove',touchMove,{capture:true,passive:false});
+    document.addEventListener('touchend',touchUp,{capture:true,passive:true});
+    document.addEventListener('touchcancel',cancel,{capture:true,passive:true});
     surface._passSwipeCleanup=()=>{
-      document.removeEventListener('pointerdown',down,true);
-      document.removeEventListener('pointermove',move,true);
-      document.removeEventListener('pointerup',up,true);
+      document.removeEventListener('pointerdown',pointerDown,true);
+      document.removeEventListener('pointermove',pointerMove,true);
+      document.removeEventListener('pointerup',pointerUp,true);
       document.removeEventListener('pointercancel',cancel,true);
+      document.removeEventListener('mousedown',mouseDown,true);
+      document.removeEventListener('mousemove',mouseMove,true);
+      document.removeEventListener('mouseup',mouseUp,true);
+      document.removeEventListener('touchstart',touchDown,true);
+      document.removeEventListener('touchmove',touchMove,true);
+      document.removeEventListener('touchend',touchUp,true);
+      document.removeEventListener('touchcancel',cancel,true);
     };
   }
 
