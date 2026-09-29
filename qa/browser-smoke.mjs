@@ -80,7 +80,7 @@ let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
 assert.equal(s.foodPool.length,59,'Potato Quick Cut should remove only Potato-mapped foods');
-assert.equal(s.foodPool.includes('potato-soup'),false);
+assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
