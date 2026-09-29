@@ -921,7 +921,7 @@ function hourStatus(row){
       buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
       // Adding from the Food deck should return directly to the swipe experience.
       // Editing an existing food is managed from the menu, so reopen the manager after save.
-      if(S.screen==='food' && !isEdit){ foodQuick(); drawFood(); }
+      if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
       else manageFoodsView();
     };
   }
