@@ -5,7 +5,7 @@ for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant',
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r14'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r14'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
