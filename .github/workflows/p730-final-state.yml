@@ -6,6 +6,12 @@ on:
       - 'launch-hardening.js'
       - 'qa/p730-final-state.spec.mjs'
       - '.github/workflows/p730-final-state.yml'
+      - 'launch-hardening.css'
+      - 'api/**'
+      - 'netlify/**'
+      - 'netlify.toml'
+      - 'dinliminate-sw.js'
+
 jobs:
   final_state:
     runs-on: ubuntu-latest
