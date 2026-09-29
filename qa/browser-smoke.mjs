@@ -313,6 +313,13 @@ s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='E
 const storedCustomPhoto=await page.evaluate(()=>JSON.parse(localStorage.getItem('dinliminate.clean.cp1')||'{}').custom?.find(x=>x.id==='qa-special')?.image||'');
 assert.equal(storedCustomPhoto,'idb:qa-special','Custom food photo should be stored as an IndexedDB reference in localStorage');
 
+await page.locator('[data-food-delete="qa-special"]').focus(); await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal');
+assert.equal(await page.locator('#appConfirmModal').getAttribute('role'),'dialog','Confirmation modal should expose dialog semantics');
+assert.equal(await page.locator('#appConfirmModal').getAttribute('aria-modal'),'true','Confirmation modal should be modal');
+assert.equal(await page.locator('#appConfirmCancel').isFocused(),true,'Confirmation modal should default focus to Cancel');
+await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmClose').isFocused(),true,'Confirmation modal focus should move through controls');
+await page.keyboard.press('Escape'); await settle(); assert.equal(await visible('appConfirmModal'),false,'Escape should close the confirmation modal');
+assert.equal(await page.locator('[data-food-delete="qa-special"]').isFocused(),true,'Closing confirmation should restore focus to launcher');
 await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
 
