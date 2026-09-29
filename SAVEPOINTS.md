@@ -493,3 +493,13 @@ Commit: `58ba7427135ff251f0ee46a63c0a541d070131e5`
 - Food and Restaurant cards have visible on-card info Details controls that open the full Details sheet.
 - Details sheet restored as a fuller bottom sheet with image, title, category/cuisine, hours/phone, common menu items, recipe/notes, and website where available.
 - Permanent recovery branch: `savepoint-cp106-tight-header-details-2026-09-28`.
+
+
+## CP107 — button repair + larger card focus
+Commit: `e05728f38488e0bbe28c815b2314e9a6b865fcea`
+- Fixed the fatal stale `globalBack` event binding that prevented later button handlers from initializing.
+- Made swipe handlers ignore button/link/input touches.
+- Restored dynamic Restaurant Cut / Maybe / Back / Hide / Details bindings.
+- Enlarged Food and Restaurant decision cards so the image/card is the visual center.
+- Moved Restaurant address/cuisine/common items/status into the card itself to preserve card-first presentation.
+- Permanent recovery branch: `savepoint-cp107-button-repair-card-focus-2026-09-28`.
