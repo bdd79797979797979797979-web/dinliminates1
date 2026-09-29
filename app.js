@@ -878,7 +878,7 @@ bindCardButton('restMaybe', () => restaurantMaybe(current));
 bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
 $('restDetails').onclick = e => { e.preventDefault(); e.stopPropagation(); detailsSheet(current, 'restaurant'); };
-bindRestaurantSwipe();
+bindRestaurantSwipe(current);
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
 }
 function restaurantCut(row){
@@ -918,7 +918,7 @@ drawRestaurants();
 save();
 return true;
 }
-function bindRestaurantSwipe(){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(),()=>restaurantMaybe())}
+function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
 function renderHours(){
  const btn=$('hoursToggle');if(!btn)return;const openMode=S.hoursMode==='openUnknown';btn.textContent=openMode?'Open/Unknown':'All';btn.dataset.mode=openMode?'open':'all';btn.setAttribute('aria-pressed',String(openMode));
 }
