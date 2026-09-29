@@ -608,3 +608,4 @@ assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.strin
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
+
