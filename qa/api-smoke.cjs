@@ -8,15 +8,21 @@ function call(query){
 }
 (async()=>{
  const health=await call({mode:'health'});
- if(health.statusCode!==200||!health.body?.ok)throw new Error('health failed');
+ if(health.statusCode!==200||!health.body?.ok||health.body.version!=='r13')throw new Error('health failed: '+JSON.stringify(health.body));
  const suggestion=await call({mode:'suggest',q:'37040'});
  if(suggestion.statusCode!==200||!suggestion.body?.ok||!suggestion.body.results?.length)throw new Error('address suggestions failed');
  const resolved=await call({mode:'resolve',q:'Clarksville, TN 37040'});
  if(resolved.statusCode!==200||!resolved.body?.ok)throw new Error('address resolve failed: '+JSON.stringify(resolved.body));
  const search=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'10'});
  if(search.statusCode!==200||!search.body?.ok)throw new Error('restaurant search failed: '+JSON.stringify(search.body));
+ if(search.body.version!=='r13')throw new Error('search version mismatch: '+search.body.version);
+ if(typeof search.body.timezone!=='string'||!search.body.timezone)throw new Error('search timezone missing');
+ const falseFast=(search.body.results||[]).filter(x=>/(ruby tuesday|applebee|chili.?s|olive garden|longhorn|outback|cracker barrel|texas roadhouse|red lobster|panera)/i.test(String(x.name||''))&&x.fastFood);
+ if(falseFast.length)throw new Error('full-service chain incorrectly classified as fast food: '+falseFast.map(x=>x.name).join(', '));
+ if(Number(search.body.fastFoodCount)>=2 && Number(search.body.providers?.overpass||0)!==0)throw new Error('Overpass should not run when primary providers already return multiple fast-food results');
  if(!Array.isArray(search.body.results))throw new Error('restaurant results missing');
  if(!(Number(search.body.fastFoodCount)>=1))throw new Error('live restaurant search returned no fast-food results: '+JSON.stringify({total:search.body.total,fastFoodCount:search.body.fastFoodCount,providers:search.body.providers}));
+ const badCoords=await call({mode:'search',lat:999,lon:-87,radius:'10'}); if(badCoords.statusCode!==400)throw new Error('invalid latitude should return 400');
  const exact=await call({mode:'resolve',q:'801 Iron Workers Rd, Clarksville, TN 37043'});
  if(exact.statusCode!==200||!exact.body?.ok)throw new Error('Iron Workers address resolve failed: '+JSON.stringify(exact.body));
  const local=await call({mode:'search',lat:exact.body.lat,lon:exact.body.lon,radius:'10'});
