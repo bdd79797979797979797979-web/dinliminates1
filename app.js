@@ -398,33 +398,30 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const next=$(nextId);let downX=0,active=false;
  card.style.touchAction='none';
  const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+ const cleanup=()=>{document.removeEventListener('pointerup',finish,true);document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('mouseup',finishMouse,true);document.removeEventListener('touchend',finishTouch,true);};
  const finish=(e)=>{
   if(!active)return;active=false;
-  const dx=Number(e?.clientX||downX)-downX;
-  document.removeEventListener('pointerup',finish,true);
-  document.removeEventListener('pointercancel',cancel,true);
+  const dx=Number(e?.clientX||downX)-downX;cleanup();
   if(Math.abs(dx)>90){
-   card.style.transition='transform .16s ease,opacity .16s ease';
-   card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-   const action=dx<0?onCut:onMaybe;
-   setTimeout(()=>{reset();action();},80);
+   card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+   const action=dx<0?onCut:onMaybe;setTimeout(()=>{reset();action();},80);
   }else reset();
  };
- function cancel(){if(!active)return;active=false;document.removeEventListener('pointerup',finish,true);document.removeEventListener('pointercancel',cancel,true);reset();}
+ function finishMouse(e){finish(e);}
+ function finishTouch(e){const t=e.changedTouches?.[0];if(t)finish(t);}
+ function cancel(){if(!active)return;active=false;cleanup();reset();}
  card.onpointerdown=e=>{
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
   downX=e.clientX;active=true;card.dataset.swipe='';
-  document.addEventListener('pointerup',finish,true);
-  document.addEventListener('pointercancel',cancel,true);
+  document.addEventListener('pointerup',finish,true);document.addEventListener('pointercancel',cancel,true);
+  document.addEventListener('mouseup',finishMouse,true);document.addEventListener('touchend',finishTouch,{capture:true,passive:true});
  };
  card.onpointermove=e=>{
-  if(!active)return;
-  const dx=e.clientX-downX;
+  if(!active)return;const dx=e.clientX-downX;
   if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}
  };
- card.onpointerup=finish;
- card.onpointercancel=cancel;
+ card.onpointerup=finish;card.onpointercancel=cancel;
 }
 function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
