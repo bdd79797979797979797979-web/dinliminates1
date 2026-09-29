@@ -274,7 +274,7 @@ await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
 assert.equal(await visible('manageFoodsModal'),false,'saving a custom food from the Food deck should return to the swipe deck');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'saving a custom food should close the editor');
-await page.locator('#menu').click({force:true}); await settle();
+await page.locator('#foodMenu').click({force:true}); await settle();
 await page.locator('#manage').click({force:true}); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Manage Foods should expose the saved custom food for editing');
 await click('[data-food-edit="qa-special"]'); await settle();
