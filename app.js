@@ -7,7 +7,8 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '115';
+  let APP_BUILD = '115';
+  fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -70,9 +71,16 @@
     pass:null,
     passDraftCount:2,
     passDraftNames:[],
-    schemaVersion:3,
+    schemaVersion:4,
     restaurantTimezone:''
   };
+
+  function safeExternalUrl(raw){
+    try{
+      const u=new URL(String(raw||''),location.origin);
+      return (u.protocol==='https:'||u.protocol==='http:') ? u.href : '';
+    }catch{return '';}
+  }
 
   const normKey = (v) => String(v ?? '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -579,10 +587,18 @@ function hourStatus(row){
     });
   }
 
+  function renderLocationSource(){
+    const el=$('locationSourceLabel'); if(!el)return;
+    const labels={device:'Using your location',address:'Using selected address',typed:'Address needs selection',none:'No location selected'};
+    el.textContent=labels[S.locationSource]||labels.none;
+    el.classList.toggle('is-ready',S.locationSource==='device'||S.locationSource==='address');
+  }
+
   function setLocation(lat, lon, label, source='address') {
     S.location = {lat, lon, label};
     S.locationSource = source;
     $('address').value = label || 'Current location';
+    renderLocationSource();
     save();
   }
 
@@ -764,7 +780,7 @@ function hourStatus(row){
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
     const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="tel:'+esc(String(row.phone).replace(/[^+0-9]/g,''))+'">'+esc(row.phone)+'</a>' : '';
     const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
-    const cardWebsite = row.website ? '<a class="card-card-action" href="'+esc(row.website)+'" target="_blank" rel="noopener noreferrer">Website</a>' : '';
+    const websiteUrl=safeExternalUrl(row.website); const cardWebsite = websiteUrl ? '<a class="card-card-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer">Website</a>' : '';
     $('restStage').innerHTML =
       '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action" id="restDetails" type="button" aria-label="Details">Details</button></div></div></article></div>'+
       '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
@@ -976,7 +992,7 @@ function hourStatus(row){
         modal.remove(); $('detailsModalBg')?.remove();
       }
     };
-    if ($('detailWeb')) $('detailWeb').onclick = () => window.open(item.website, '_blank', 'noopener');
+    if ($('detailWeb')) $('detailWeb').onclick = () => { const u=safeExternalUrl(item.website); if(u)window.open(u,'_blank','noopener,noreferrer'); };
   }
 
   function recordHistory(item, type) {
@@ -1218,11 +1234,19 @@ function hourStatus(row){
     else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToast('Decision copied.')).catch(()=>{});
   }
 
-  function startOver() {
-    S.pass = null; S.winnerItem = null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
+  function resetRound(){
+    S.pass=null; S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
     S.maybe.clear(); S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear();
     S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
-    try { localStorage.removeItem(KEY); } catch {}
+    try{localStorage.removeItem(KEY);}catch{}
+    home();
+  }
+  async function systemRestoreFlow(){
+    if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
+    S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.restaurantCuts.clear();
+    S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.saved=false;
+    try{localStorage.removeItem(KEY);}catch{}
+    try{const db=await openPhotoDB(); await new Promise((resolve)=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
     home();
   }
 
@@ -1357,7 +1381,7 @@ function hourStatus(row){
 
   $('locate').onclick = useLocation;
   $('find').onclick = searchRestaurants;
-  $('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; clearSuggestions(); suggestAddresses(); });
+  $('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
   $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
   $('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();clearSuggestions();searchRestaurants();} if(e.key==='Escape') clearSuggestions(); });
 
@@ -1366,7 +1390,7 @@ function hourStatus(row){
 
   $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
   $('share').onclick = shareWinner;
-  $('restart').onclick = startOver;
+  $('restart').onclick = resetRound;
   const updateOffline = () => $('offlineIndicator')?.classList.toggle('hidden', navigator.onLine !== false);
   window.addEventListener('online', updateOffline);
   window.addEventListener('offline', updateOffline);
@@ -1374,6 +1398,7 @@ function hourStatus(row){
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 
   load();
+  renderLocationSource();
   updateStorageIndicator();
   hydrateCustomPhotos();
   migrateCustomPhotos();
