@@ -110,7 +110,7 @@ const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>(
 assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
-const refreshedExpected={tacos:/33614203/, 'stir-fry':/4924603/, meatloaf:/2397401/, 'buttermilk-cornbread':/9704174/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/20234576/, 'health-shake':/775032/};
+const refreshedExpected={tacos:/33614203/, 'stir-fry':/4924603/, meatloaf:/2397401/, 'buttermilk-cornbread':/9704174/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/20234576/, 'health-shake':/Strawberry_Smoothie_with_yogurt/};
 for(const [id,re] of Object.entries(refreshedExpected))assert.match(refreshedImageChecks[id]||'',re,id+' should use its refreshed image mapping');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
