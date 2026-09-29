@@ -169,6 +169,8 @@ assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant searc
 await click('#diagnosisRefresh'); await settle();
 assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
+await page.locator('#settingsModal [data-close]').click(); await settle();
+await click('#foodMenu'); await settle();
 
 await click('#drawerClose'); await settle();
 await page.locator('#foodDetails').click(); await settle();
