@@ -409,3 +409,9 @@ Commit sequence ends at `10ce3ef30499fd8048afdf3c18a55611834d363e`.
 - Savepoint branch: `savepoint-cp96-no-all-cut-2026-09-28`.
 - QA-only PR: #23.
 - Netlify deploy-preview-23 is green; Vercel build status is account-rate-limited.
+
+## CP96 final — All Cut removed completely
+Commit: `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`
+- Removed All Cut from app logic, HTML, static QA, and browser QA.
+- Preserved hungry/no-choice ending and Tinder-style Food + Restaurant swiping.
+- Final recovery branch: `savepoint-cp96-original-scope-final2-2026-09-28`.
