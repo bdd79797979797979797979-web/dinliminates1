@@ -50,6 +50,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.image?.includes('pexels-photo-4924603.jpeg'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food') && api.includes('The Thirsty Goat'),'Restaurant search should use tagged Photon coverage plus targeted local discovery');
+assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(api.includes('Ruby Tuesday') && api.includes('Chipotle'),'Restaurant provider should cover the missing named Clarksville chains');
 console.log('Dinliminate CP108 static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
