@@ -480,6 +480,7 @@ await click('#foodStart'); await settle();
 assert.equal((await qa()).foodPool.includes('popcorn'),true,'System Restore should restore deleted built-in defaults');
 await click('#foodMenu'); await settle(); await click('#manage'); await settle();
 assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'System Restore should preserve custom foods');
+await page.reload({waitUntil:'domcontentloaded'}); await settle(); assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'System Restore should preserve custom foods after reload');
 await page.locator('#manageFoodsModal [data-food-delete="restore-proof-food"]').click(); await settle(); if(await visible('appConfirmModal')) await click('#appConfirmOk'); await settle();
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
