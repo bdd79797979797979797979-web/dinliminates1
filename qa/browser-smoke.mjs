@@ -205,6 +205,13 @@ await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction((
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
+const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
+assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
+await click('#hoursToggle'); await settle();
+assert.equal(await page.locator('#hoursToggle').innerText(),'All','Hours filter should switch to All');
+assert.ok((await qa()).restaurantPool.includes('closed-1'),'Closed restaurant should return in All mode');
+await click('#hoursToggle'); await settle();
+assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should toggle back to Open/Unknown');
 
 // Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
