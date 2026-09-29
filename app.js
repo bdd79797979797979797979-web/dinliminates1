@@ -311,7 +311,7 @@
     $('foodQuick').innerHTML = FOOD_QUICK.map(label => {
       const cut = S.cutCats.has(label);
       const src=QUICK_IMAGES[label] || QUICK_IMAGES.American;
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt=""><span>'+esc(label)+'</span></button>';
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
     }).join('');
     bindImageFallbackAttrs('[data-food-quick] img');
     document.querySelectorAll('[data-food-quick]').forEach(btn => {
@@ -661,7 +661,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     $('restQuick').innerHTML = REST_QUICK.map(label => {
       const cut = S.restaurantCuts.has(label);
       const src=REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American;
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt=""><span>'+esc(label)+'</span></button>';
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
     }).join('');
     bindImageFallbackAttrs('[data-rest-quick] img');
     document.querySelectorAll('[data-rest-quick]').forEach(btn => {
