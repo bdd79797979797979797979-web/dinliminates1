@@ -84,6 +84,14 @@
 
   const normKey = (v) => String(v ?? '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function bindImageFallback(selector,fallback){
+    document.querySelectorAll(selector).forEach(img=>{
+      img.addEventListener('error',()=>{
+        img.onerror=null;
+        if(img.src!==fallback)img.src=fallback;
+      },{once:true});
+    });
+  }
   const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
   const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
   const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
