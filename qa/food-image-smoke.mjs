@@ -15,7 +15,7 @@ for(const [id,cuts] of [['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Hea
   for(const cut of cuts) assert.ok(byId.get(id).quickCuts?.includes(cut),id+' must include Quick Cut '+cut);
   assert.ok(/^https?:\/\//.test(byId.get(id).image||''),id+' must have a real image URL');
 }
-assert.match(byId.get('stroganoff')?.image||'',/28503619/,'Stroganoff should use the refreshed stroganoff image');
+assert.match(byId.get('stroganoff')?.image||'',/20234576/,'Stroganoff should use the refreshed stroganoff image');
 assert.equal(foodUrls.length,65,'Each built-in food should be present in the image audit');
 assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,65,'Each built-in food should have an external image URL');
 const urls=[...new Set(foodUrls.filter(x=>/^https?:\/\//.test(x)))];
@@ -45,15 +45,15 @@ console.log(JSON.stringify({foodCount:foods.length,checked:urls.length,broken:ba
 
 assert.match(byId.get('lasagna')?.image||'',/5949921/,'Lasagna should use the refreshed plated-lasagna photo');
 assert.match(byId.get('vegetable-lasagna')?.image||'',/29050589/,'Vegetable Lasagna should use the refreshed vegetable-lasagna photo');
-assert.match(byId.get('stuffed-peppers')?.image||'',/22698511/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
+assert.match(byId.get('stuffed-peppers')?.image||'',/31953510/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
 
 const imageExpectations={
- tacos:/12261167/,
- "stir-fry":/31673757/,
+ tacos:/27626524/,
+ "stir-fry":/4924603/,
  meatloaf:/2397401/,
- "buttermilk-cornbread":/ourstate\.s3\.amazonaws\.com/,
+ "buttermilk-cornbread":/tastingtable\.com\/img\/gallery\/the-traditional-southern-dish-of-milk-soaked-cornbread/,
  "potato-soup":/5794/,
- "health-shake":/7937490/
+ "health-shake":/7683770/
 };
 for(const [id,re] of Object.entries(imageExpectations)) assert.match(byId.get(id)?.image||'',re,id+' should use its refreshed accurate image');
 assert.equal(byId.get('cheerios')?.name,'Cereal','Cheerios Cereal should be renamed to Cereal');
