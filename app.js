@@ -48,6 +48,7 @@ hiddenRestaurants:{},
 cutCats:new Set(),
 foodCuts:new Set(),
 maybe:new Set(),
+foodMaybeRound:false,
 custom:[],
 pool:[],
 index:0,
@@ -56,6 +57,7 @@ restaurantPool:[],
 restaurantIndex:0,
 restaurantCuts:new Set(),
 restaurantActions:[],
+restaurantMaybeRound:false,
 restaurantQuery:'',
 hoursMode:'openUnknown',
 location:null,
@@ -199,7 +201,7 @@ restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
 passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
-restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded,
+restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
 try {
@@ -235,10 +237,12 @@ S.hiddenRestaurants = d.hiddenRestaurants || {};
 S.cutCats = new Set(d.cutCats || []);
 S.foodCuts = new Set(d.foodCuts || []);
 S.maybe = new Set(d.maybe || []);
+S.foodMaybeRound = !!d.foodMaybeRound;
 S.restaurantCuts = new Set(d.restaurantCuts || []);
 S.hoursMode = d.hoursMode === 'all' ? 'all' : 'openUnknown';
 S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
 S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions : [];
+S.restaurantMaybeRound = !!d.restaurantMaybeRound;
 S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
 S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
@@ -271,9 +275,9 @@ show('home');
 }
 function foodPool() {
 return allFoods().filter(item => {
-if (S.hidden.has(item.id) || S.deleted.has(item.id) || S.maybe.has(item.id)) return false;
+if (S.hidden.has(item.id) || S.deleted.has(item.id)) return false;
+if (S.foodMaybeRound ? !S.maybe.has(item.id) : S.maybe.has(item.id)) return false;
 if (S.foodCuts.has(item.id)) return false;
-// Legacy rounds may still carry primary-based cuts; new rounds use exact item IDs.
 const cuts = Array.isArray(item.quickCuts) ? item.quickCuts : [item.category];
 if ([...S.cutCats].some(label => cuts.includes(label))) return false;
 return true;
@@ -305,13 +309,14 @@ save();
 function maybeShowSwipeHint(){
 try{if(localStorage.getItem('dinliminate.swipeHint.v1'))return;localStorage.setItem('dinliminate.swipeHint.v1','1');}catch{}
 document.querySelector('#swipeHint')?.remove();
-const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.textContent='Swipe left to Cut · right to Maybe';
+const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.textContent='Swipe left to Cut · right to Keep';
 document.body.appendChild(el);
 setTimeout(()=>el.remove(),2600);
 }
 function startFood() {
 S.foodActions = [];
 S.maybe.clear();
+S.foodMaybeRound = false;
 S.cutCats.clear();
 S.foodCuts.clear();
 S.index = 0;
@@ -373,28 +378,40 @@ foodCommit('maybe', item);
 winner(item);
 return;
 }
+const wasRecycle=S.foodMaybeRound;
 foodCommit('maybe', item);
 S.maybe.add(item.id);
 buildFood();
+if (wasRecycle && S.pool.length > 1) S.index=(S.index+1)%S.pool.length;
+else if (!wasRecycle && !S.pool.length && S.maybe.size) {
+S.foodMaybeRound=true;
+buildFood();
+S.index=0;
+}
 resolveFoodAfterDecision();
 }
 function resolveFoodAfterDecision() {
+if (!S.pool.length && !S.foodMaybeRound && S.maybe.size) {
+S.foodMaybeRound=true;
+buildFood();
+S.index=0;
+}
 if (!S.pool.length) {
 winner({name:'Nothing left — hungry mode', image:HUNGRY_IMAGE, category:'Hungry'});
-} else {
-// Keep the final choice on-screen so the user can still Cut it.
+return;
+}
 S.index = Math.min(S.index, S.pool.length - 1);
 drawFood();
-}
 save();
 }
 function foodBack() {
 const action = S.foodActions.pop();
 if (!action) { home(); return; }
-if (action.type === 'cut') {
-S.foodCuts.delete(action.id);
+if (action.type === 'cut') S.foodCuts.delete(action.id);
+if (action.type === 'maybe') {
+S.maybe.delete(action.id);
+if (!S.maybe.size) S.foodMaybeRound=false;
 }
-if (action.type === 'maybe') S.maybe.delete(action.id);
 buildFood();
 const restoredIndex = S.pool.findIndex(x => x.id === action.id);
 S.index = restoredIndex >= 0 ? restoredIndex : Math.max(0, Math.min(action.index || 0, Math.max(0, S.pool.length - 1)));
@@ -600,7 +617,8 @@ return q.split(/\s+/).every(term => hay.includes(term));
 function restaurantPoolFiltered() {
 return (S.restaurantPool || []).filter(row => {
 if ([...S.restaurantCuts].some(label => restaurantQuickMatches(row, label))) return false;
-if (row._maybe || row._cut || row._hidden) return false;
+if (S.restaurantMaybeRound ? !row._maybe : !!row._maybe) return false;
+if (row._cut || row._hidden) return false;
 if (restaurantHidden(row)) return false;
 if (S.hoursMode === 'openUnknown' && explicitClosed(row)) return false;
 return restaurantMatchesQuery(row);
@@ -795,6 +813,7 @@ if(searchSeq===restaurantSearchSeq) setFindBusy(false);
 function openRestaurant() {
 S.screen = 'restaurant';
 S.restaurantActions = [];
+S.restaurantMaybeRound = false;
 S.restaurantQuery = '';
 S.restaurantCuts.clear();
 S.hoursMode = 'openUnknown';
@@ -858,44 +877,47 @@ bindRestaurantSwipe();
 bindImageFallback('#restStage img','https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85');
 function restaurantCut(row) {
 if (!row) return;
-S.restaurantActions.push({type:'cut', id:row.id, index:S.restaurantIndex});
-row._cut = true;
-const remaining = restaurantPoolFiltered();
-if (!remaining.length) {
-winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});
-} else {
-// Leave one final restaurant on the Tinder deck so a right-swipe explicitly chooses it.
-S.restaurantIndex = Math.min(S.restaurantIndex, remaining.length - 1);
-drawRestaurants();
+S.restaurantActions.push({type:'cut',id:row.id,index:S.restaurantIndex});
+row._cut=true;
+let remaining=restaurantPoolFiltered();
+if(!remaining.length&&!S.restaurantMaybeRound&&(S.restaurantPool||[]).some(x=>x._maybe)){
+S.restaurantMaybeRound=true;
+remaining=restaurantPoolFiltered();
 }
+if(!remaining.length) winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});
+else { S.restaurantIndex=Math.min(S.restaurantIndex,remaining.length-1); drawRestaurants(); }
 save();
 }
 function restaurantMaybe(row) {
 if (!row) return;
-const rowsBefore = restaurantPoolFiltered();
-if (rowsBefore.length === 1) {
-// A right-swipe/Maybe on the final restaurant means Keep it: it is the winner.
-winner(row);
-return;
+const rowsBefore=restaurantPoolFiltered();
+if (rowsBefore.length===1) { winner(row); return; }
+const wasRecycle=S.restaurantMaybeRound;
+S.restaurantActions.push({type:'maybe',id:row.id,index:S.restaurantIndex,wasRecycle});
+row._maybe=true;
+let remaining=restaurantPoolFiltered();
+if (!remaining.length && !S.restaurantMaybeRound && (S.restaurantPool||[]).some(x=>x._maybe)) {
+S.restaurantMaybeRound=true;
+remaining=restaurantPoolFiltered();
 }
-S.restaurantActions.push({type:'maybe', id:row.id, index:S.restaurantIndex});
-row._maybe = true;
-const remaining = restaurantPoolFiltered();
-if (!remaining.length) drawRestaurants();
-else { S.restaurantIndex = Math.min(S.restaurantIndex, remaining.length - 1); drawRestaurants(); }
+if (remaining.length) {
+S.restaurantIndex=wasRecycle?(S.restaurantIndex+1)%remaining.length:Math.min(S.restaurantIndex,remaining.length-1);
+drawRestaurants();
+} else drawRestaurants();
 save();
 }
 function restaurantBack() {
-const action = S.restaurantActions.pop();
-if (!action) { home(); return; }
-const row = S.restaurantPool.find(x => x.id === action.id);
-if (row) {
-if (action.type === 'cut') row._cut = false;
-if (action.type === 'maybe') row._maybe = false;
+const action=S.restaurantActions.pop();
+if(!action){home();return;}
+const row=S.restaurantPool.find(x=>x.id===action.id);
+if(row){
+if(action.type==='cut')row._cut=false;
+if(action.type==='maybe')row._maybe=false;
 }
-const rows = restaurantPoolFiltered();
-const restoredIndex = rows.findIndex(x => x.id === action.id);
-S.restaurantIndex = restoredIndex >= 0 ? restoredIndex : Math.max(0, Math.min(action.index || 0, Math.max(0, rows.length - 1)));
+if(action.type==='maybe' && !(S.restaurantPool||[]).some(x=>x._maybe)) S.restaurantMaybeRound=false;
+const rows=restaurantPoolFiltered();
+const restoredIndex=rows.findIndex(x=>x.id===action.id);
+S.restaurantIndex=restoredIndex>=0?restoredIndex:Math.max(0,Math.min(action.index||0,Math.max(0,rows.length-1)));
 drawRestaurants();
 save();
 }
@@ -1415,7 +1437,7 @@ home();
 }
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom foods, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
-S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.restaurantCuts.clear();
+S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
