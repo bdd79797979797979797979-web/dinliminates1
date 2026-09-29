@@ -426,6 +426,29 @@
     foodCut(item);
   }
 
+  function restaurantCanonicalId(row){
+    const name=normKey(row?.name);
+    const phone=normKey(row?.phone);
+    const address=normKey(row?.address);
+    const geo=(Number.isFinite(Number(row?.lat))&&Number.isFinite(Number(row?.lon))) ? Number(row.lat).toFixed(4)+'-'+Number(row.lon).toFixed(4) : '';
+    return 'restaurant-'+(name+'|'+(phone||address||geo)).replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,150);
+  }
+
+  function restaurantHidden(row){
+    if(!row)return false;
+    if(S.hiddenRestaurants[row.id])return true;
+    const targetName=normKey(row.name),targetAddr=normKey(row.address);
+    return Object.values(S.hiddenRestaurants||{}).some(x=>{
+      if(normKey(x.name)!==targetName)return false;
+      if(targetAddr&&normKey(x.address)===targetAddr)return true;
+      if(x.lat!=null&&x.lon!=null&&row.lat!=null&&row.lon!=null){
+        const dlat=Math.abs(Number(x.lat)-Number(row.lat)),dlon=Math.abs(Number(x.lon)-Number(row.lon));
+        return dlat<0.001&&dlon<0.001;
+      }
+      return false;
+    });
+  }
+
   function restaurantCategory(row) {
     if (row.fastFood || /fast food/i.test(String(row.category || ''))) return 'Fast Food';
     const s = (String(row.category || '')+' '+String(row.cuisine || '')+' '+String(row.name || '')+' '+(Array.isArray(row.menuItems)?row.menuItems.join(' '):'')).toLowerCase();
@@ -533,7 +556,7 @@ function hourStatus(row){
     return (S.restaurantPool || []).filter(row => {
       if ([...S.restaurantCuts].some(label => restaurantQuickMatches(row, label))) return false;
       if (row._maybe || row._cut || row._hidden) return false;
-      if (S.hiddenRestaurants[row.id]) return false;
+      if (restaurantHidden(row)) return false;
       if (S.hoursMode === 'openUnknown' && explicitClosed(row)) return false;
       return restaurantMatchesQuery(row);
     });
@@ -676,7 +699,7 @@ function hourStatus(row){
       if (!rr.ok || !d.ok) throw new Error(d.message || 'Restaurant search failed.');
       S.restaurantTimezone = String(d.timezone||'');
       S.restaurantSearchDegraded = !!(d.providerErrors?.length);
-      S.restaurantPool = uniq((d.results || []).map(row => ({...row, _maybe:false, _cut:false, _hidden:false})));
+      S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, id:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
       renderHours(); S.winnerItem = null;
       if(d.total) {
@@ -813,7 +836,7 @@ function hourStatus(row){
     row._hidden = true;
     S.hiddenRestaurants[row.id] = {
       id:row.id,name:row.name,photo:row.photo||row.image||'',category:restaurantCategory(row),
-      address:row.address||'',website:row.website||''
+      address:row.address||'',phone:row.phone||'',lat:row.lat,lon:row.lon,website:row.website||''
     };
     drawRestaurants();
     save();
