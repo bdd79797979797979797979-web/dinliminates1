@@ -9,6 +9,7 @@ for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","m
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
+assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
 assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 console.log('Dinliminate clean static QA: PASS');
