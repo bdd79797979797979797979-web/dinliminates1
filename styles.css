@@ -421,3 +421,37 @@
   background:linear-gradient(115deg,#fff 5%,#ecd6a8 48%,#db8c55 78%,#fff1d8 96%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
+
+
+/* CP109 — one-screen luxury Home */
+.luxury-home{height:calc(100svh - 58px);min-height:0;overflow:hidden;padding:0 0 max(8px,env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center}
+.luxury-home .home-intro{flex:0 0 auto;padding:0 4px}
+.luxury-home .eyebrow{margin:0 0 5px;font-size:9px}
+.luxury-home h1{font-size:clamp(2rem,7.2vw,3.8rem);line-height:.98;max-width:10em;margin:7px auto 0}
+.luxury-home .sub{font-size:10px;line-height:1.35;margin:8px auto 0}
+.luxury-home .home-actions{flex:0 0 auto;width:min(100%,430px);margin:18px auto 0;gap:9px}
+.luxury-home .home-card-photo{position:relative;display:flex;align-items:flex-end;min-height:94px;height:94px;padding:0;border-radius:22px;overflow:hidden;background-image:var(--home-photo);background-size:cover;background-position:center;border:1px solid #ffffff1d;box-shadow:0 18px 45px #0009}
+.home-card-photo .home-card-overlay{position:absolute;inset:0;background:linear-gradient(90deg,#080808d9 0%,#0808087d 43%,#08080818 100%),linear-gradient(0deg,#000d 0%,transparent 58%)}
+.home-card-photo .home-card-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:0 15px 13px;text-align:left}
+.home-card-photo .home-card-copy strong{font-size:21px;line-height:1.05;color:#fff7e8}
+.home-card-photo .home-card-copy>span{font-size:9px;color:#d8d0c4}
+.home-card-photo .arrow{position:absolute;z-index:2;right:15px;bottom:12px;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#0009;border:1px solid #ffffff2b;color:#e9cf9e;font-size:21px}
+.luxury-home .home-foot{margin-top:12px;flex:0 0 auto}
+.luxury-home .home-foot .tiny.made-by{color:#c8a565;letter-spacing:.015em;font-size:8px}
+.luxury-home .home-foot .text-btn{font-size:8px;padding:2px 4px}
+.luxury-home .luxury-orb{opacity:.7}
+
+@media(max-width:390px){
+  .luxury-home{height:calc(100svh - 58px);padding-bottom:2px}
+  .luxury-home h1{font-size:32px;max-width:11em}
+  .luxury-home .sub{font-size:9px;margin-top:6px}
+  .luxury-home .home-actions{margin-top:15px;gap:8px}
+  .luxury-home .home-card-photo{height:82px;min-height:82px;border-radius:19px}
+  .home-card-photo .home-card-copy strong{font-size:18px}
+  .home-card-photo .home-card-copy{padding:0 13px 11px}
+  .home-card-photo .home-card-copy>span{font-size:8px}
+  .home-card-photo .arrow{right:12px;bottom:10px;width:28px;height:28px}
+  .luxury-home .home-foot{margin-top:8px}
+}
+
+/* CP109 — Quick Cut imagery comes from matching dish photos */
