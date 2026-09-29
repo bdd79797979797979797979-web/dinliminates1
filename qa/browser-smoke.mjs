@@ -341,7 +341,7 @@ assert.ok(aboutText.includes(expectedDate),'About date should always reflect the
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About test build label should be gold');
 await page.locator('[data-close]').click(); await settle();
 await click('#menu'); await settle(); await click('#settings'); await settle();
-const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.doesNotMatch(settingsFoodText,/Deleted Foods/i); await page.locator('#settingsModal [data-close]').click(); await settle();
+const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Hidden and deleted foods should share one Settings section'); await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
@@ -363,13 +363,16 @@ const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Fi
 await page.evaluate(() => {
   const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
   const key=y+'-'+String(m).padStart(2,'0')+'-02';
-  localStorage.setItem('dinliminate.clean.history', JSON.stringify([{id:'hist-test',date:key,type:'food',name:'Calendar Test',image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',category:'Healthy'}]));
+  const key2=y+'-'+String(m).padStart(2,'0')+'-03'; localStorage.setItem('dinliminate.clean.history', JSON.stringify([{id:'hist-test',date:key,type:'food',name:'Calendar Food Test',image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85',category:'Healthy'},{id:'hist-test-rest',date:key2,type:'restaurant',name:'Calendar Restaurant Test',image:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',category:'American'}]));
 });
 await click('#menu'); await settle(); await click('#history'); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),1,'History calendar should show an X delete control');
+assert.equal(await page.locator('[data-history-delete]').count(),2,'History calendar should show an X delete control for food and restaurant entries');
+await page.locator('[data-history-delete]').nth(0).click(); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),1,'Calendar X should remove the first entry from the calendar');
+assert.equal(await page.locator('.history-open').count(),1,'Calendar X should remove the corresponding food history row');
 await page.locator('[data-history-delete]').first().click(); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),0,'Calendar X should remove the entry from the calendar');
-assert.equal(await page.locator('.history-open').count(),0,'Calendar X should remove the deleted history row too');
+assert.equal(await page.locator('[data-history-delete]').count(),0,'Calendar X should remove the restaurant entry too');
+assert.equal(await page.locator('.history-open').count(),0,'Calendar X should remove the corresponding restaurant history row');
 
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
