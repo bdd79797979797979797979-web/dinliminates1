@@ -1,7 +1,8 @@
 # Dinliminate P900 — Complete Launch Audit
 Date: 2026-09-29
 Release candidate: p900-launch-complete-2026-09-29
-Final main commit checked: 4c2f4081e2355da81550cd96a66ddeb64fc93060
+Final main app commit checked: 4c2f4081e2355da81550cd96a66ddeb64fc93060
+Packaging commit: 5392c0cd4c153d455087c17f6ce1e6ea275555b0
 
 ## Recommendation status
 
@@ -69,5 +70,6 @@ The remaining yellow items require either a real production browser/device, prov
 - Stable release branch: `release-p900-2026-09-29`
 - Production recovery branch: `recovery-p900-production-2026-09-29`
 - Pre-work recovery branch: `recovery-pre-launch-audit-2026-09-29`
-- Latest main: `4c2f4081e2355da81550cd96a66ddeb64fc93060`
+- Latest main/package commit: `5392c0cd4c153d455087c17f6ce1e6ea275555b0`
+- Downloadable release ZIP artifact: GitHub Actions run `36526475175`, artifact `11014529869`, 605,086 bytes outer artifact; release ZIP inside is 612,225 bytes.
 - Local P730/P900 contract testing has produced green suites; production Vercel is still on an older commit and requires the matching deployment before the production contract can pass.
