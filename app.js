@@ -1081,13 +1081,12 @@ function hourStatus(row){
   $('restaurantPassAround').onclick = passSetup;
   document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 
-  $('globalBack').onclick = home;
   const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
-  $('menu').onclick = openDrawer;
-  $('foodMenu').onclick = openDrawer;
-  $('restaurantMenu').onclick = openDrawer;
-  $('foodBackTop').onclick = home;
-  $('restaurantBackTop').onclick = home;
+  const appMenu = $('menu'); if (appMenu) appMenu.onclick = openDrawer;
+  const foodMenu = $('foodMenu'); if (foodMenu) foodMenu.onclick = openDrawer;
+  const restaurantMenu = $('restaurantMenu'); if (restaurantMenu) restaurantMenu.onclick = openDrawer;
+  const foodBackTop = $('foodBackTop'); if (foodBackTop) foodBackTop.onclick = home;
+  const restaurantBackTop = $('restaurantBackTop'); if (restaurantBackTop) restaurantBackTop.onclick = home;
   $('drawerClose').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
   $('drawerBg').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
   $('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
