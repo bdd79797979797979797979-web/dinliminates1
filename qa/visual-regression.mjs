@@ -43,7 +43,6 @@ function signature(img){
   return {mean,hash};
 }
 const sig=signature(png);
-fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true}); fs.copyFileSync(shot,path.join(root,'qa-artifacts','visual-regression-restaurant-start-393.png')); console.log(JSON.stringify({visualSignature:sig}));
 let diff=0; for(let i=0;i<sig.hash.length;i++) if(sig.hash[i]!==baseline.avgHash[i]) diff++;
 const meanDelta=Math.abs(sig.mean-baseline.mean);
 assert.ok(diff<=24,'Restaurant start visual signature changed too much: '+diff+'/256 hex nibbles');
