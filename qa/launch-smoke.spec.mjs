@@ -132,7 +132,7 @@ test('restaurant location, autocomplete, hours toggle, quick cuts, swipe and pas
   await expect(page.locator('.restaurant-card-v240.active .restaurant-distance-pill')).toBeVisible();
   const activeCard = page.locator('.restaurant-card-v240.active');
   const detailBtn = activeCard.locator('.restaurant-detail-btn-v240');
-  const websiteBtn = activeCard.locator('.restaurant-order-btn-v240');
+  const websiteBtn = activeCard.locator('.restaurant-website-btn-v240');
   await expect(detailBtn).toBeVisible();
   await expect(websiteBtn).toBeVisible();
 
@@ -389,7 +389,7 @@ test('restaurant card shows all available card data without clipping', async ({ 
     '.restaurant-menu-card',
     '.restaurant-card-choose-btn',
     '.restaurant-detail-btn-v240',
-    '.restaurant-order-btn-v240'
+    '.restaurant-website-btn-v240'
   ]) await expect(card.locator(selector)).toBeVisible();
   const cardBox=await card.boundingBox();
   expect(cardBox).toBeTruthy();
