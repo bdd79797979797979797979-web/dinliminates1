@@ -270,7 +270,8 @@ assert.equal(restAfterButtons.restaurantMaybeRound,true,'Restaurant Maybe choice
 assert.equal(restAfterButtons.restaurantPool.some(x=>x===restFirstId),true,'The kept restaurant should return when the first pass is exhausted');
 await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
-
+await click('#restaurantBackTop'); await settle(); await click('#restStart'); await settle();
+assert.equal((await qa()).restaurantMaybeRound,false,'Starting a new restaurant round should reset the Maybe recycle cycle');
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
 s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false); assert.equal(s.restaurantPool.includes('taco-1'),false); assert.equal(s.restaurantPool.includes('waffle-1'),true);
