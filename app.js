@@ -85,9 +85,10 @@
       S.deleted = new Set(d.deleted || []);
       S.hiddenRestaurants = d.hiddenRestaurants || {};
       S.cutCats = new Set(d.cutCats || []);
-      S.cutPrimary = new Set(d.cutPrimary || []);
       S.foodCuts = new Set(d.foodCuts || []);
       if (!S.foodCuts.size && Array.isArray(d.foodActions)) for (const a of d.foodActions) if (a?.type === 'cut' && a.id) S.foodCuts.add(a.id);
+      // Retire the legacy primary-wide Cut state after migrating saved rounds to exact IDs.
+      S.cutPrimary = new Set();
       S.maybe = new Set(d.maybe || []);
       S.restaurantCuts = new Set(d.restaurantCuts || []);
       S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
