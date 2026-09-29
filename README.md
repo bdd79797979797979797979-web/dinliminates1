@@ -1,28 +1,29 @@
-# Dinliminate P634 — Professional Button & Control Pass
+# Dinliminate P900 — Launch Complete Candidate
 
-This release is the P634 UI control pass for the Dinliminate food and restaurant decision surfaces.
+This repository contains the Dinliminate iPhone-focused dinner decision app.
 
-## Changes
-- Standardized Food and Restaurant decision controls into four equal-width primary actions.
-- Moved Pass Around to a dedicated full-width secondary row so it never becomes an orphaned narrow button.
-- Standardized Restaurant utility controls (Open/unknown hours, Search, Pass Around).
-- Standardized restaurant card Details / Website controls.
-- Increased Menu button visibility and changed the visual icon from three dots to a clear menu glyph.
-- Increased visibility of close buttons on light Menu/History sheets.
-- Restyled History Calendar month navigation and day labels for dark-on-light contrast.
-- Ensured the active Saved/History tab uses readable contrast.
-- Kept button sizing/touch targets consistent on small phones.
-- Kept P634 version markers synchronized between the app, launch layer, and restaurant API.
+## Current release
+- Release: p900-launch-complete-2026-09-29
+- Working branch: launch-complete-2026-09-29
+- Recovery branch: recovery-pre-launch-audit-2026-09-29
+- Restaurant search cap: 100 miles
+- Restaurant search contract: combined restaurant + fast food
+- Quick Cuts: reversible hide/show with primary-food protection
+- Restaurant swipe: same Tinder-style left/right interaction as Food
+- Maybe: held choices return for a review round
+- Pass Around: persistent, resumable group elimination
+- History: calendar with photos, details and X removal
+- Settings: hidden choices, delete custom food, export/import, restore defaults
+- PWA: versioned network-first service worker
+- Netlify: static publish + serverless restaurant-function routing included in netlify.toml
 
-## Validation
-- `node --check launch-hardening.js`: PASS
-- `node --check api/restaurant-search.js`: PASS
-- All inline application scripts: PASS syntax check
-- 390px Food control geometry: 4 equal actions + full-width Pass Around
-- 390px Restaurant control geometry: 4 equal actions + full-width Pass Around
-- Menu button visibility: PASS
-- History calendar navigation contrast: PASS
-- Production Vercel deployment: READY
-- Production runtime error scan: no runtime errors in final 10-minute check
+## Recovery
+Use recovery-pre-launch-audit-2026-09-29 to return to the exact pre-audit state.
 
-Real-device iPhone/Android certification remains a separate physical-device test gate.
+After a disconnect, continue from launch-complete-2026-09-29 at its latest commit. See RECOVERY-P900-2026-09-29.md.
+
+## QA
+The repository includes existing P730/P781 regression suites plus qa/p900-launch-complete.spec.mjs. Production contract tests run on main after deployment.
+
+## Deployment
+Vercel remains the primary connected deployment. Netlify compatibility is included so the same source can be connected to a Netlify site without changing the restaurant API contract.
