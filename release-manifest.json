@@ -3,12 +3,10 @@
   "version": "1.0",
   "build": "116",
   "sourceBranch": "release-hardening-2026-09-29",
-  "commit": "494293418f1fd71b68369103cfc79a7bdfb54c10",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
-  "vercelRateLimit": "Deployment rate limited until 2026-09-30",
   "netlify": "legacy/backup",
-  "latestCheckpoint": "checkpoint-cp169-classifier-syntax-2026-09-29"
+  "checkpoint": "checkpoint-cp169-classifier-syntax-2026-09-29"
 }
