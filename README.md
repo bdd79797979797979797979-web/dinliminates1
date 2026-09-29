@@ -2,7 +2,7 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 110.
+Current build: Version 1.0, Build 112.
 
 The deployable app lives at the repository root.
 
