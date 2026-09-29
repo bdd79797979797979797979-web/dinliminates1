@@ -153,7 +153,7 @@ if(mode==='search'){
  const needsFallback=!preliminary.length||preliminaryFast===0||(radius<=25&&preliminaryFast<2);
  if(needsFallback){
   const fallbackRadius=Math.min(radius,50);
-  const got=await Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food|cafe|pub|food_court'),overpass(lat,lon,fallbackRadius,'fast_food')]);
+  const got=await Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food'),overpass(lat,lon,fallbackRadius,'fast_food')]);
   for(const x of got){
    if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}
    else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'));
