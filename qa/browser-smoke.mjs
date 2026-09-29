@@ -24,6 +24,7 @@ const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
 const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[];
+fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true});
 page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
 page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); });
@@ -176,6 +177,7 @@ await click('#passEnd'); await settle();
 
 await click('#foodBackTop'); await settle();
 await click('#restStart'); await settle();
+await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
 await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
@@ -365,6 +367,7 @@ await page.mouse.down();
 await page.mouse.move(finalRestBox.x+finalRestBox.width-20,finalRestBox.y+finalRestBox.height/2,{steps:4});
 await page.mouse.up(); await settle();
 assert.equal(await visible('winner'),true,'Right swipe on final restaurant should open Winner');
+await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-winner-393.png'),fullPage:true});
 const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Final restaurant swipe should produce a restaurant winner'); assert.equal(finalState.winner?.id,finalRestaurantId,'Winner should be the final restaurant');
 
 // History calendar X deletion must remove the saved entry, not just persist it behind a stale render.
@@ -410,7 +413,9 @@ const pngSize=file=>{const b=fs.readFileSync(file); return {w:b.readUInt32BE(16)
 assert.deepEqual(pngSize(path.join(root,'icon-512.png')),{w:512,h:512},'512px icon file must actually be 512x512');
 assert.deepEqual(pngSize(path.join(root,'apple-touch-icon.png')),{w:180,h:180},'iOS icon file must actually be 180x180');
 
+await page.screenshot({path:path.join(root,'qa-artifacts','home-393.png'),fullPage:true});
 await page.locator('#foodStart').click(); await settle();
+await page.screenshot({path:path.join(root,'qa-artifacts','food-393.png'),fullPage:true});
 await page.locator('#foodDetails').click(); await settle();
 assert.equal(await page.locator('#detailsModal').getAttribute('role'),'dialog','Details modal should have dialog semantics');
 assert.equal(await page.locator('#detailsModal').getAttribute('aria-modal'),'true','Details modal should be modal to assistive technology');
