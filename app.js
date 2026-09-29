@@ -1048,10 +1048,10 @@ function hourStatus(row){
       const row=allFoods().find(x=>x.id===btn.dataset.foodEdit);
       if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
     });
-    modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=()=>{
+    modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=async()=>{
       const row=allFoods().find(x=>x.id===btn.dataset.foodDelete);
       if(!row)return;
-      if(!confirm((S.custom.some(x=>x.id===row.id)?'Delete custom food permanently? ':'Remove '+row.name+' from choices? ')+'You can restore deleted built-in foods here.'))return;
+      if(!await appConfirm(S.custom.some(x=>x.id===row.id)?'Delete this custom food?':'Remove this food?',S.custom.some(x=>x.id===row.id)?'Delete '+row.name+' permanently from this device.':'Remove '+row.name+' from the active food choices.','Delete'))return;
       if(S.custom.some(x=>x.id===row.id)){ S.custom=S.custom.filter(x=>x.id!==row.id); deleteStoredPhoto(row.id); }
       else S.deleted.add(row.id);
       S.hidden.delete(row.id); S.maybe.delete(row.id); buildFood(); save();
@@ -1077,10 +1077,10 @@ function hourStatus(row){
     modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{
       S.hidden.delete(btn.dataset.settingFood); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
-    modal.querySelectorAll('[data-setting-food-delete]').forEach(btn=>btn.onclick=()=>{
+    modal.querySelectorAll('[data-setting-food-delete]').forEach(btn=>btn.onclick=async()=>{
       const id=btn.dataset.settingFoodDelete, row=allFoods().find(x=>x.id===id);
       if(!row)return;
-      if(!confirm('Remove '+row.name+' from the food choices?'))return;
+      if(!await appConfirm('Remove this food?', 'Remove '+row.name+' from the food choices.', 'Delete'))return;
       if(S.custom.some(x=>x.id===id))S.custom=S.custom.filter(x=>x.id!==id); else S.deleted.add(id);
       S.hidden.delete(id); S.maybe.delete(id); buildFood(); save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
@@ -1092,8 +1092,8 @@ function hourStatus(row){
       const row=S.restaurantPool.find(x=>x.id===id); if(row)row._hidden=false;
       save(); modal.remove(); $('settingsModalBg')?.remove(); settingsView();
     });
-    $('systemRestore').onclick=()=>{
-      if(!confirm('Restore the default Dinliminate setup and clear saved round changes?'))return;
+    $('systemRestore').onclick=async()=>{
+      if(!await appConfirm('Restore Dinliminate?', 'This restores the default foods and clears saved round changes, including custom foods.', 'Restore'))return;
       S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.cutPrimary.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
       try{localStorage.removeItem(KEY)}catch{}
       home();  modal.remove(); $('settingsModalBg')?.remove();
