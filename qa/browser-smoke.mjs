@@ -217,6 +217,9 @@ await page.locator('#restaurantQuery').fill('Pasta');
 await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Restaurant Search should filter current results');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
+const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
+assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
+assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),12,'Restaurant should have 12 Quick Cuts');
 assert.equal((await page.locator('[data-rest-quick]').evaluateAll(btns=>btns.map(b=>getComputedStyle(b).backgroundImage))).every(v=>v!=='none'&&v.includes('url(')),true,'Every Restaurant Quick Cut should have its own photo');
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
@@ -332,7 +335,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/TEST BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+110/i);
+assert.match(aboutText,/Build\s+111/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About test build label should be gold');
