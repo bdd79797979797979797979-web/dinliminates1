@@ -436,7 +436,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+119/i);
+assert.match(aboutText,/Build\\s+120/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
