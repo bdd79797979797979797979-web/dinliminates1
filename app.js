@@ -1323,6 +1323,10 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     $('resetAppData').onclick=resetAppDataFlow;
   }
 
+  function diagnosisMiles(a,b,c,d){
+    const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
+    return 2*R*Math.asin(Math.sqrt(z));
+  }
   function diagnosisNameTokens(value){
     return String(value||'').toLowerCase().replace(/[’']s\b/gi,' ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
   }
@@ -1336,7 +1340,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     for(let i=0;i<(rows||[]).length;i++)for(let j=i+1;j<(rows||[]).length;j++){
       const a=rows[i],b=rows[j];
       const d=Number.isFinite(Number(a?.lat))&&Number.isFinite(Number(a?.lon))&&Number.isFinite(Number(b?.lat))&&Number.isFinite(Number(b?.lon))
-        ? miles(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)) : Infinity;
+        ? diagnosisMiles(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)) : Infinity;
       const sameAddr=normKey(a?.address) && normKey(a?.address)===normKey(b?.address);
       const sameName=normKey(a?.name)===normKey(b?.name);
       if(d<=0.2 && (sameName || sameAddr || diagnosisNameVariant(a?.name,b?.name))) out.push([a?.name,b?.name,d]);
