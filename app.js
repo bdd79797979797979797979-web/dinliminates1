@@ -333,6 +333,25 @@
   }
   function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>$('foodCut').click(),()=>$('foodMaybe').click())}
 
+
+  function appConfirm(title, message, confirmLabel='Confirm') {
+    return new Promise(resolve => {
+      document.querySelector('#appConfirmModal')?.remove();
+      document.querySelector('#appConfirmModalBg')?.remove();
+      const bg=document.createElement('div'); bg.id='appConfirmModalBg'; bg.className='modal-bg';
+      const modal=document.createElement('section'); modal.id='appConfirmModal'; modal.className='modal confirm-modal';
+      modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby','appConfirmTitle');
+      modal.innerHTML='<div class="modal-head"><h3 id="appConfirmTitle">'+esc(title)+'</h3><button class="menu" type="button" id="appConfirmClose" aria-label="Close">×</button></div>'+
+        '<div class="confirm-copy">'+esc(message)+'</div>'+
+        '<div class="confirm-actions"><button type="button" class="secondary" id="appConfirmCancel">Cancel</button><button type="button" class="danger-action" id="appConfirmOk">'+esc(confirmLabel)+'</button></div>';
+      document.body.append(bg,modal);
+      let done=false; const finish=v=>{if(done)return;done=true;modal.remove();bg.remove();resolve(v)};
+      $('appConfirmCancel').onclick=()=>finish(false); $('appConfirmClose').onclick=()=>finish(false); $('appConfirmOk').onclick=()=>finish(true); bg.onclick=()=>finish(false);
+      modal.onkeydown=e=>{if(e.key==='Escape')finish(false)};
+      queueMicrotask(()=>$('appConfirmOk')?.focus());
+    });
+  }
+
   async function foodHideItem(item) {
     if (!item) return false;
     if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return false;
