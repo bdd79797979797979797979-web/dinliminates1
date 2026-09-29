@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='124','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='125','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -137,13 +137,13 @@ assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pa
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
 assert(app.includes('function appDiagnosisView'),'Settings must expose the App Diagnosis panel');
-assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher');
+assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher'); assert(app.includes("Run '+run+' selected · checking now…") && app.includes("classList.add('selected')"),'App Diagnosis must visibly indicate Run again is selected while diagnostics run');
 assert(app.includes('diagnosisRestaurantDuplicates'),'App Diagnosis must detect possible restaurant duplicates in the loaded pool');
 assert(app.includes('restaurantWebsiteUrl'),'Restaurant diagnosis must include website fallback support');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '124'"),'CP244 build should be 124');
-assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.settings-system-action.diagnosis-action{background:linear-gradient'),'CP244 Details/Diagnosis styling should be present');
+assert(app.includes("let APP_BUILD = '125'"),'CP250 build should be 125');
+assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
 assert(foods.includes('33614203')&&foods.includes('4924603')&&foods.includes('2397401')&&foods.includes('9704174')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('20234576')&&foods.includes('Strawberry_Smoothie_with_yogurt'),'CP246 stabilized food photo mappings should be present');
