@@ -158,3 +158,9 @@
   .round-action span{font-size:20px}
   .round-cut span{font-size:25px}
 }
+
+
+/* CP104 final header alignment */
+.app-topbar{position:relative;justify-content:center}
+.app-topbar .brand-mark{margin:0 auto}
+.app-topbar #menu{position:absolute;right:2px;top:11px}
