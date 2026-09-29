@@ -291,7 +291,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
