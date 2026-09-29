@@ -1,40 +1,66 @@
-# Dinliminate P900 — launch completion audit
+# Dinliminate P900 — Complete Launch Audit
 Date: 2026-09-29
+Release candidate: p900-launch-complete-2026-09-29
 Working branch: launch-complete-2026-09-29
-Recovery branch: recovery-pre-launch-audit-2026-09-29
-Release: p900-launch-complete-2026-09-29
+Pre-work recovery: recovery-pre-launch-audit-2026-09-29
 
 ## Recommendation status
-1. Authoritative restaurant search system — ✅ COMPLETED IN CODE; legacy cleanup isolated for post-certification.
-2. Restaurant round persistence schema — ✅ COMPLETED.
-3. Single release/version identifier — ✅ COMPLETED.
-4. Production API unauthenticated gate — 🟡 EXTERNAL CERTIFICATION REQUIRED.
-5. Combined restaurant + fast food pool — ✅ COMPLETED.
-6. Deterministic restaurant photos — 🟡 PROVIDER/ASSET CERTIFICATION REQUIRED.
-7. Food/Restaurant swipe parity — ✅ COMPLETED IN CODE; regression coverage exists.
-8. Primary-food Quick Cut protection — ✅ COMPLETED.
-9. Quick Cut restore reliability — ✅ COMPLETED.
-10. Search + Quick Cut composition — ✅ COMPLETED.
-11. Maybe review round — ✅ COMPLETED.
-12. Restaurant card self-contained information — ✅ COMPLETED IN CODE.
-13. Conservative common-menu-item sourcing — ✅ COMPLETED.
-14. Open/Unknown Hours parsing — ✅ COMPLETED.
-15. Address autocomplete/selection — ✅ COMPLETED IN CODE; production certification required.
-16. Location failure recovery — ✅ COMPLETED.
-17. Home iPhone visual certification — 🟡 REAL DEVICE REQUIRED.
-18. Dark winner surface — ✅ COMPLETED.
-19. About/byline — ✅ COMPLETED.
-20. Controlled production images — 🟡 ASSET MIGRATION/RIGHTS REVIEW REQUIRED.
-21. Image inventory — 🟡 ASSET GOVERNANCE REMAINS.
-22. Explicit round-data schemas — ✅ COMPLETED.
-23. Export/import validation — 🟡 FOLLOW-UP HARDENING REMAINS.
-24. Report-a-problem destination — 🟡 SUPPORT ADDRESS CONFIGURATION REMAINS.
-25. Permanent regression coverage — ✅ COMPLETED.
-26. Production smoke workflow — ✅ COMPLETED IN WORKFLOW.
-27. 100-mile cap — ✅ COMPLETED.
-28. Faster restaurant provider startup — ✅ COMPLETED.
-29. Service worker — ✅ COMPLETED.
-30. Netlify-compatible deployment config — ✅ COMPLETED.
 
-## Recovery
-Use recovery-pre-launch-audit-2026-09-29 to return to the exact pre-work state. Continue work from launch-complete-2026-09-29 after interruptions.
+1. One authoritative restaurant search flow — ✅ COMPLETED IN CODE. V3 owns location/search; the hardening layer owns decision-state synchronization.
+2. Restaurant round persistence mismatch — ✅ COMPLETED. Round data now uses schema validation instead of build-name whitelisting.
+3. Food round persistence mismatch — ✅ COMPLETED. Food round hydration now uses schema validation and accepts current saves.
+4. Single release/version source — ✅ COMPLETED for active release surfaces: P900 version is propagated across app, launch layer, API and clean entry.
+5. Production API unauthenticated verification — 🟡 EXTERNAL CERTIFICATION REQUIRED. This must be verified against a fresh, unauthenticated production browser.
+6. Combined restaurant + fast-food pool — ✅ COMPLETED IN CODE. API contract explicitly identifies a combined pool; fast-food detection and fallbacks remain.
+7. Place-specific restaurant photos — 🟡 EXTERNAL PROVIDER/ASSET CERTIFICATION REQUIRED.
+8. Food/Restaurant swipe parity — ✅ COMPLETED IN CODE and covered by the existing regression suites.
+9. Food Quick Cut primary-category protection — ✅ COMPLETED.
+10. Food Quick Cut restore — ✅ COMPLETED.
+11. Restaurant Quick Cut restore — ✅ COMPLETED.
+12. Search + Quick Cut composition — ✅ COMPLETED. Activating a Quick Cut no longer clears restaurant/food search text.
+13. Maybe review behavior — ✅ COMPLETED. Held choices can return when the active deck is exhausted.
+14. Restaurant card self-contained data — ✅ COMPLETED IN CODE.
+15. Conservative common-menu-item sourcing — ✅ COMPLETED.
+16. Open/Unknown Hours parsing — ✅ COMPLETED IN CODE.
+17. Address autocomplete — ✅ COMPLETED IN CODE; production certification still required.
+18. No duplicate geocode after selecting a coordinate-bearing suggestion — ✅ COMPLETED IN CODE.
+19. Location failure recovery — ✅ COMPLETED IN CODE.
+20. Home iPhone layout — 🟡 REAL DEVICE CERTIFICATION REQUIRED.
+21. Dark winner surface — ✅ COMPLETED.
+22. About byline — ✅ COMPLETED.
+23. Production image governance — 🟡 ASSET MIGRATION/RIGHTS REVIEW REQUIRED.
+24. Image inventory — 🟡 ASSET GOVERNANCE REMAINS.
+25. Explicit round-data schemas — ✅ COMPLETED.
+26. Export/import validation — ✅ COMPLETED. Current P900 backups carry schema 3 and import their own release version.
+27. Report-a-problem flow — ✅ COMPLETED IN CODE. Removed the blank mailto path; copy/share diagnostics are used instead.
+28. Permanent regression coverage — ✅ COMPLETED. Existing P730/P781 suites remain and P900 contract coverage was added.
+29. Production smoke workflow — ✅ COMPLETED IN WORKFLOW. P900 production checks wait for the matching Vercel commit.
+30. 100-mile restaurant cap — ✅ COMPLETED.
+31. Adaptive provider startup — ✅ COMPLETED. Google/Photon run concurrently before bounded Overpass expansion.
+32. Service worker — ✅ COMPLETED. Replaced self-unregister recovery worker with a versioned network-first worker.
+33. Netlify-compatible routing — ✅ COMPLETED.
+34. Netlify deployment workflow — ✅ COMPLETED AS A MANUAL WORKFLOW. No Netlify account/site credentials are connected in this session, so no live Netlify URL can be honestly claimed yet.
+35. Legacy restaurant "Order" semantics — ✅ COMPLETED. Active markup, handlers and styles use Website terminology.
+36. Restaurant touch targets — ✅ COMPLETED IN CODE. Compact utility and card controls retain explicit manipulation/touch styling.
+37. Pass Around visual hierarchy — ✅ COMPLETED IN CODE.
+38. Food secondary-action hierarchy — ✅ COMPLETED. Add Food and Pass Around are kept ahead of the secondary Random Cut One action.
+39. Restaurant utility layout — ✅ COMPLETED IN CODE. Address/radius/Locate/Find are the compact primary location controls.
+40. Home menu / front page — ✅ COMPLETED IN CODE. Menu is unboxed and Random Cut One is not on the home screen.
+41. Discreet iPhone-help control — ✅ COMPLETED.
+42. Restaurant empty-state messaging — ✅ COMPLETED.
+43. Restaurant count/empty behavior — ✅ COMPLETED IN CODE. No "restaurants remaining" card is used for the main Hungry end state.
+44. Stale restaurant-state protection — ✅ COMPLETED IN CODE through live-pool synchronization and refresh state preservation.
+45. Radius monotonicity — ✅ COMPLETED IN CODE and covered by the existing radius regression test.
+46. Stale request cancellation — ✅ COMPLETED IN CODE through sequence guards and abortable requests.
+47. Historical clean-entry rewrites — ✅ COMPLETED. Clean entry now only rewrites the active P900 assets/version.
+48. Large HTML refactor — 🟡 DEFERRED AS A SEPARATE SAFE REFACTOR. The current P900 candidate retains the known working single-file architecture to avoid destabilizing launch behavior.
+49. Full CSS refactor / legacy wrapper removal — 🟡 DEFERRED AS A SEPARATE SAFE REFACTOR. The current release removes obsolete active terminology but does not risk a broad CSS/DOM rewrite before external certification.
+50. Recovery checkpoints — ✅ COMPLETED. Both a pre-work recovery branch and a current release-candidate branch are preserved.
+
+## Automated evidence
+
+Successful P730 local QA runs exist on the working branch history. A dedicated P900 Launch QA workflow is configured to run the P730/P900 suites locally, then run the P900 production contract on main only after /api/release reports the matching commit.
+
+## External gates
+
+The remaining yellow items require either a real production browser/device, provider configuration, or owner-side asset-rights decisions. They are deliberately not marked green without that evidence.
