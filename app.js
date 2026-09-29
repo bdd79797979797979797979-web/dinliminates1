@@ -1373,6 +1373,33 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     surface.className='pass-surface';
     surface.innerHTML=inner;
     document.body.appendChild(surface);
+    const gesture=surface.querySelector('#passGestureHit'),card=surface.querySelector('#passCard'),next=surface.querySelector('#passNextCard');
+    if(gesture&&card){
+      gesture.dataset.passSwipeBound='true';
+      let startX=0,startY=0,active=false;
+      const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+      const finish=(clientX)=>{
+        if(!active)return; active=false;
+        const dx=clientX-startX;
+        if(Math.abs(dx)>90){
+          card.style.transition='transform .16s ease,opacity .16s ease';
+          card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+          setTimeout(()=>{reset(); if(window.__DINLIMINATE_TEST__)window.__DINLIMINATE_TEST__.passSurfaceVotes=(window.__DINLIMINATE_TEST__.passSurfaceVotes||0)+1; const current=S.pass?.poolIds?.[S.pass.choiceIndex]; const fn=dx<0?false:true; const keep=fn; if(current){ const item=currentPassItem(); if(item)passVote(keep); }},110);
+        }else reset();
+      };
+      surface.addEventListener('pointerdown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
+      surface.addEventListener('pointermove',e=>{if(!active)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dy)>Math.abs(dx)*1.2)return;if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
+      surface.addEventListener('pointerup',e=>finish(e.clientX),true);
+      surface.addEventListener('pointercancel',()=>{active=false;reset();},true);
+      surface.addEventListener('mousedown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
+      surface.addEventListener('mousemove',e=>{if(!active)return;const dx=e.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
+      surface.addEventListener('mouseup',e=>finish(e.clientX),true);
+      surface.addEventListener('mouseleave',e=>{if(active&&e.buttons===0)finish(e.clientX);},true);
+      surface.addEventListener('touchstart',e=>{const t=e.touches?.[0];if(t&&(e.target===gesture||e.target.closest?.('#passGestureHit'))){startX=t.clientX;startY=t.clientY;active=true;}},{capture:true,passive:true});
+      surface.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches?.[0];if(!t)return;const dx=t.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},{capture:true,passive:false});
+      surface.addEventListener('touchend',e=>{const t=e.changedTouches?.[0];if(t)finish(t.clientX);},{capture:true,passive:true});
+      surface.addEventListener('touchcancel',()=>{active=false;reset();},{capture:true,passive:true});
+    }
     return surface;
   }
 
@@ -1480,7 +1507,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       $('passNextCard img').onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
     }
     $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
-    bindPassSwipe('passCard',()=>passVote(false),()=>passVote(true));
+    /* Pass Around gesture is delegated by openPassSurface so redraws cannot drop the swipe binding. */
   }
 
   function passVote(keep){
