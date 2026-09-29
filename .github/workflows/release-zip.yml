@@ -1,0 +1,44 @@
+name: Dinliminate release ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'launch-hardening.js'
+      - 'launch-hardening.css'
+      - 'p636-clean-ui.css'
+      - 'api/**'
+      - 'netlify/**'
+      - 'netlify.toml'
+      - 'dinliminate-sw.js'
+      - 'dinliminate.webmanifest'
+      - 'dinliminate-icon-*.png'
+      - 'dinliminate-icon.svg'
+      - '.github/workflows/release-zip.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact checked-out main tree
+        run: |
+          set -eu
+          zip -qr "Dinliminate-P900-${GITHUB_SHA}.zip" . \
+            -x ".git/*" \
+            -x "node_modules/*" \
+            -x ".DS_Store" \
+            -x "*/.DS_Store"
+          test -s "Dinliminate-P900-${GITHUB_SHA}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dinliminate-P900-${{ github.sha }}
+          path: Dinliminate-P900-${{ github.sha }}.zip
+          if-no-files-found: error
+          retention-days: 30
