@@ -77,3 +77,9 @@ RECOVERY: `savepoint-cp96-original-scope-final2-2026-09-28` / commit `aa8e3f256e
 - Build: 1.0 / 116
 - Release metadata is sourced from release.json and verified by Static QA.
 - Recovery: checkpoint-cp145-https-links-2026-09-29.
+
+
+## CP157 — Accessibility search-control hardening
+- Added accessible names to Restaurant address and radius controls.
+- Static QA now protects those labels.
+- Recovery: checkpoint-cp156-accessible-search-controls-2026-09-29.
