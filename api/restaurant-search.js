@@ -623,6 +623,8 @@ async function doSearch(lat, lon, radiusMi, query='') {
     const coverageMerged=merged.filter(r=>Number(r.distanceMiles)<=coverageRadiusMi);
     const requestedMerged=coverageMerged.filter(r=>Number(r.distanceMiles)<=radiusMi);
     const data={
+      apiSchema:2,
+      searchContract:'combined-restaurant-fast-food',
       results:requestedMerged.slice(0,RESULT_LIMIT),restaurants:requestedMerged.slice(0,RESULT_LIMIT),items:requestedMerged.slice(0,RESULT_LIMIT),
       coverageResults:coverageMerged.slice(0,RESULT_LIMIT),coverageTotal:coverageMerged.length,
       total:requestedMerged.length,fastFoodCount:requestedMerged.filter(r=>r.fastFood).length,
