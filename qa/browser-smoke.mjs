@@ -508,6 +508,7 @@ await page.locator('#foodMenu').click(); await settle(); await page.locator('#dr
 const touchSizes=await page.locator('#food .round-action, #food .bottom-util, #foodMenu').evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect();return {id:e.id,w:r.width,h:r.height}}));
 assert.ok(touchSizes.filter(x=>x.w>0).every(x=>x.w>=40&&x.h>=40),'Primary Food controls should remain at least 40px tappable');
 
+await page.evaluate(()=>{localStorage.removeItem('dinliminate.clean.cp1'); localStorage.removeItem('dinliminate.swipeHint.v1');});
 await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await settle();
 await page.evaluate(()=>localStorage.removeItem('dinliminate.swipeHint.v1'));
 await page.locator('#foodStart').click(); await settle();
