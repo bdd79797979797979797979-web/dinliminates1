@@ -49,7 +49,7 @@ assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato 
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
+assert(stir?.image?.includes('photos/4924603/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
 const requestedPhotoIds={tacos:'27626524','stir-fry':'4924603',meatloaf:'2397401','buttermilk-cornbread':'tastingtable.com','potato-soup':'5794/soup-leek-potato.jpg','stuffed-peppers':'31953510',stroganoff:'20234576','health-shake':'7683770'};
 for(const [id,photoId] of Object.entries(requestedPhotoIds)) assert(foodRows.find(x=>x.id===id)?.image?.includes(photoId),id+' must use refreshed photo '+photoId);
 assert(foodRows.find(x=>x.id==='cheerios')?.name==='Cereal','Cheerios Cereal must be renamed to Cereal');
