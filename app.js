@@ -106,6 +106,7 @@
       S.cutPrimary = new Set();
       S.maybe = new Set(d.maybe || []);
       S.restaurantCuts = new Set(d.restaurantCuts || []);
+      S.hoursMode = d.hoursMode === 'all' ? 'all' : 'openUnknown';
       S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
       S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions : [];
       S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
@@ -164,7 +165,7 @@
   function foodQuick() {
     $('foodQuick').innerHTML = FOOD_QUICK.map(label => {
       const cut = S.cutCats.has(label);
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(QUICK_IMAGES[label] || QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
     }).join('');
     document.querySelectorAll('[data-food-quick]').forEach(btn => {
       btn.onclick = () => {
@@ -431,7 +432,7 @@ function hourStatus(row){
   function restaurantQuick() {
     $('restQuick').innerHTML = REST_QUICK.map(label => {
       const cut = S.restaurantCuts.has(label);
-      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(QUICK_IMAGES[label] || QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
+      return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'" style="background-image:linear-gradient(#0005,#0008),url("'+(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American)+'")"><span>'+esc(label)+'</span></button>';
     }).join('');
     document.querySelectorAll('[data-rest-quick]').forEach(btn => {
       btn.onclick = () => {
@@ -772,11 +773,17 @@ function hourStatus(row){
     const menuItems = Array.isArray(providerMenu) ? providerMenu.filter(Boolean) : String(providerMenu||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
     const menuBlock = type === 'restaurant' && menuItems.length ? '<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menuItems.slice(0,8).join(' · '))+'</p></div>' : '';
     const recipeBlock = item.recipe ? '<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>' : '';
+    const restaurantMeta = type === 'restaurant' ? '<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid">'+
+      '<div><span>Category</span><b>'+esc(category)+'</b></div>'+
+      (item.cuisine ? '<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>' : '')+
+      (item.distance != null ? '<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>' : '')+
+      '<div><span>Hours</span><b>'+esc(item.opening_hours || 'Open/Unknown')+'</b></div>'+
+      (item.phone ? '<div><span>Phone</span><b>'+esc(item.phone)+'</b></div>' : '')+
+      (item.address ? '<div class="wide"><span>Address</span><b>'+esc(item.address)+'</b></div>' : '')+
+      '</div></div>' : '';
     const body = '<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+
-      '<p class="status">'+esc(item.address || category || '')+'</p>'+
-      (item.cuisine ? '<p class="status">'+esc(item.cuisine)+'</p>' : '')+
-      (item.opening_hours ? '<p class="status">Hours: '+esc(item.opening_hours)+'</p>' : type === 'restaurant' ? '<p class="status">Open/Unknown Hours</p>' : '')+
-      (item.phone ? '<p class="status">Phone: '+esc(item.phone)+'</p>' : '')+
+      restaurantMeta+
+      (type === 'restaurant' ? '' : '<p class="status">'+esc(item.category || '')+'</p>')+
       nutritionBlock+ingredientsBlock+menuBlock+recipeBlock+
       '<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+
       (item.website ? '<button class="detail-web-action" id="detailWeb">Website</button>' : '')+'</div></div>';
