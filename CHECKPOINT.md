@@ -62,3 +62,11 @@ Final code/QA commit: `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`
 - Vercel checks are currently blocked by the account build-rate-limit status.
 
 RECOVERY: `savepoint-cp96-original-scope-final2-2026-09-28` / commit `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`.
+
+
+## CP120 — Release hardening continuation
+- Branch: release-hardening-2026-09-29
+- Recovery: checkpoint-cp113-pre-next-batch-2026-09-29
+- Additional recovery: checkpoint-cp116-api-hardening-2026-09-29
+- Build 115 hardening includes durable custom-photo migration, branded confirmation dialogs, restaurant phone/Website card actions, resilient search/retry states, timezone-aware hour support, PWA shell, and Vercel security headers.
+- Main remains untouched pending the complete release gate.
