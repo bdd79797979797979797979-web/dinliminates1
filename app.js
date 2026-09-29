@@ -111,6 +111,7 @@
     $(screen)?.classList.remove('hidden');
     S.screen = screen;
     $('globalBack')?.classList.add('hidden');
+    $('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant');
     window.scrollTo?.(0,0);
   }
 
