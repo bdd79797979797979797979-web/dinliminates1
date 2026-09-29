@@ -477,7 +477,7 @@ const tz=await page.evaluate(()=>{
   return {
     nyOpen:h({opening_hours:'Mo 08:00-17:00'},'2026-09-28T13:00:00Z','America/New_York'),
     laClosed:h({opening_hours:'Mo 08:00-17:00'},'2026-09-28T13:00:00Z','America/Los_Angeles'),
-    overnightOpen:h({opening_hours:'Mo 22:00-02:00'},'2026-09-29T01:00:00Z','America/Chicago'),
+    overnightOpen:h({opening_hours:'Mo 22:00-02:00'},'2026-09-29T06:00:00Z','America/Chicago'),
     unknown:h({opening_hours:'Mo whenever'},'2026-09-28T13:00:00Z','America/New_York')
   };
 });
