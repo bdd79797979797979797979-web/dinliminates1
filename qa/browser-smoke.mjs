@@ -319,10 +319,10 @@ assert.equal(storedCustomPhoto,'idb:qa-special','Custom food photo should be sto
 await page.locator('[data-food-delete="qa-special"]').focus(); await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal');
 assert.equal(await page.locator('#appConfirmModal').getAttribute('role'),'dialog','Confirmation modal should expose dialog semantics');
 assert.equal(await page.locator('#appConfirmModal').getAttribute('aria-modal'),'true','Confirmation modal should be modal');
-assert.equal(await page.locator('#appConfirmCancel').isFocused(),true,'Confirmation modal should default focus to Cancel');
-await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmClose').isFocused(),true,'Confirmation modal focus should move through controls');
+assert.equal(await page.locator('#appConfirmCancel').evaluate(el=>el===document.activeElement),true,'Confirmation modal should default focus to Cancel');
+await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmClose').evaluate(el=>el===document.activeElement),true,'Confirmation modal focus should move through controls');
 await page.keyboard.press('Escape'); await settle(); assert.equal(await visible('appConfirmModal'),false,'Escape should close the confirmation modal');
-assert.equal(await page.locator('[data-food-delete="qa-special"]').isFocused(),true,'Closing confirmation should restore focus to launcher');
+assert.equal(await page.locator('[data-food-delete="qa-special"]').evaluate(el=>el===document.activeElement),true,'Closing confirmation should restore focus to launcher');
 await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
 
@@ -456,7 +456,7 @@ await page.screenshot({path:path.join(root,'qa-artifacts','food-393.png'),fullPa
 await page.locator('#foodDetails').click(); await settle();
 assert.equal(await page.locator('#detailsModal').getAttribute('role'),'dialog','Details modal should have dialog semantics');
 assert.equal(await page.locator('#detailsModal').getAttribute('aria-modal'),'true','Details modal should be modal to assistive technology');
-assert.equal(await page.locator('#detailsModal [data-close]').isFocused(),true,'Details modal should receive focus when opened');
+assert.equal(await page.locator('#detailsModal [data-close]').evaluate(el=>el===document.activeElement),true,'Details modal should receive focus when opened');
 await page.keyboard.press('Tab'); await settle();
 assert.equal(await page.locator('#detailsModal').isVisible(),true,'Details modal should remain open during keyboard navigation');
 await page.locator('#detailsModal [data-close]').click(); await settle();
