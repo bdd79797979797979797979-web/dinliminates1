@@ -267,6 +267,14 @@
     });
   }
 
+  function maybeShowSwipeHint(){
+    try{if(localStorage.getItem('dinliminate.swipeHint.v1'))return;localStorage.setItem('dinliminate.swipeHint.v1','1');}catch{}
+    document.querySelector('#swipeHint')?.remove();
+    const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.textContent='Swipe left to Cut · right to Maybe';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2600);
+  }
+
   function startFood() {
     S.foodActions = [];
     S.maybe.clear();
@@ -279,6 +287,7 @@
     show('food');
     drawFood();
     save();
+    maybeShowSwipeHint();
   }
 
   function drawFood() {
@@ -698,6 +707,7 @@ function hourStatus(row){
     renderHours();
     $('restaurantSearchBox')?.classList.add('hidden');
     $('restaurantQuery').value = '';
+    maybeShowSwipeHint();
   }
 
   function drawRestaurants() {
@@ -1052,7 +1062,7 @@ function hourStatus(row){
       try {
         const data=await readImageFile($('editFoodFile').files?.[0]);
         if(data) $('editFoodPhoto').value=data;
-      } catch(e) { alert(e.message); }
+      } catch(e) { appToast(e.message); }
     };
     $('foodEditorForm').onsubmit=async e=>{
       e.preventDefault();
@@ -1063,14 +1073,14 @@ function hourStatus(row){
         const idx=S.custom.findIndex(x=>x.id===item.id);
         if(idx<0)return;
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-        if(id!==item.id && allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
         if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
         S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,image:photo,recipe};
         if(id!==item.id) await deleteStoredPhoto(item.id);
         S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
       } else {
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-        if(allFoods().some(x=>x.id===id))return alert('A food with that name already exists.');
+        if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
         if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
         S.custom.push({id,name,primary:id,category:cat,image:photo,recipe});
       }
@@ -1211,7 +1221,7 @@ function hourStatus(row){
     $('passBegin').onclick = () => {
       S.passDraftNames = [...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim() || 'Person '+(i+1));
       const pool = passCandidates();
-      if (!pool.length) { modal.remove(); $('passSetupBg')?.remove(); alert('There are no choices left to pass around.'); return; }
+      if (!pool.length) { modal.remove(); $('passSetupBg')?.remove(); appToast('There are no choices left to pass around.'); return; }
       S.pass = {type:S.screen==='restaurant'?'restaurant':'food', players:S.passDraftNames, choiceIndex:0, voterIndex:0, history:[], poolIds:pool.map(x=>x.id)};
       modal.remove(); $('passSetupBg')?.remove();
       drawPass();
@@ -1334,8 +1344,6 @@ function hourStatus(row){
   $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
   $('share').onclick = shareWinner;
   $('restart').onclick = startOver;
-  if($('privacy')) $('privacy').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); privacyView(); };
-
   const updateOffline = () => $('offlineIndicator')?.classList.toggle('hidden', navigator.onLine !== false);
   window.addEventListener('online', updateOffline);
   window.addEventListener('offline', updateOffline);
