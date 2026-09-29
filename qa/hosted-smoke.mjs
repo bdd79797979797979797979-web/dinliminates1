@@ -18,7 +18,7 @@ if(requireRelease){
   rel=await release.json();
   assert.equal(String(rel.build),'117','Hosted build should be Build 117');
   assert.equal(String(rel.version),'1.0','Hosted version should be 1.0');
-  assert.equal(String(rel.sourceBranch),'cp238-launch-hardening','Hosted source branch should identify CP238 launch hardening');
+  assert.equal(String(rel.sourceBranch),'release-hardening-2026-09-29','Hosted source branch should identify the release branch');
 }
 
 const browser=await chromium.launch({headless:true});
