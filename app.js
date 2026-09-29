@@ -7,6 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
+  const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
   let APP_BUILD = '116';
   fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
@@ -1360,18 +1361,50 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       const foodSources=builtins.filter(x=>typeof x?.image==='string'&&x.image.trim()).length;
       const foodQuickCount=FOOD_QUICK.length,restQuickCount=REST_QUICK.length;
       const duplicateRows=diagnosisRestaurantDuplicates(S.restaurantPool||[]);
-      const overflow=await Promise.resolve({x:document.documentElement.scrollWidth>document.documentElement.clientWidth,y:false});
+      const surface=document.querySelector('.screen:not(.hidden)');
+      const surfaceStyle=surface?getComputedStyle(surface):null;
+      const overflow=await Promise.resolve({x:document.documentElement.scrollWidth>document.documentElement.clientWidth || (!!surface && surface.scrollWidth>surface.clientWidth+1),y:document.documentElement.scrollHeight>window.innerHeight+2 || (!!surface && surface.scrollHeight>surface.clientHeight+2)});
       const storageTest=(()=>{
         try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch{return false}
       })();
       storageTest?pass('Device storage','LocalStorage read/write is available.'):warn('Device storage','LocalStorage could not be verified on this device.');
-      pass('Food decision flow','Food Cut, Maybe, Back, Hide, winner, Details, Share, Random Cut One, Quick Cuts, Add Food, History, System Restore, and Reset App Data are wired.');
-      pass('Restaurant decision flow','Restaurant swipe deck, Cut, Maybe, Back, Hide, Details, Website/Google fallback, phone link, Quick Cuts, hours filter, address selection, and retry are wired.');
-      pass('Location flow','Address suggestions, selected-address search, Use My Location, radius control, timezone-aware hours, and stale-request protection are wired.');
-      pass('Persistence','Food/restaurant history, hidden choices, custom foods, saved state, photo storage migration, and reset/restore flows are wired.');
-      pass('Accessibility','Modal semantics, Escape/backdrop close, focus management, labels, and interactive hit targets are wired.');
-      pass('Release hygiene','All Cut UI is removed; Privacy is nested under About; About reports Current Build; no bottom navigation is used.');
-      pass('Restaurant data quality','Provider merging, fast-food classification, real-location duplicate regression, and bounded 100-mile radius are covered by automated QA.');
+      const featureChecks=[
+        ['Food feature wiring',['foodStart','foodCut','foodMaybe','foodBack','foodHide','foodDetails','foodPassAround','addFood','randomOne'],['startFood','foodCut','foodMaybe','foodBack','foodHide','detailsSheet','passSetup','manageFoodsView','randomCutOne']],
+        ['Restaurant feature wiring',['restStart','restaurantMenu','restaurantPassAround','find','locate','address','radius','hoursToggle','restQuick'],['openRestaurant','searchRestaurants','useLocation','restaurantQuick','bindRestaurantTools']],
+        ['Persistence wiring',['history','settings','manage','drawer'],['save','load','readHistory','writeHistory','systemRestoreFlow','resetAppDataFlow']],
+        ['Accessibility wiring',['menu','drawerClose','offlineIndicator'],['openModal','appConfirm']]
+      ];
+      for(const [label,ids,fns] of featureChecks){
+        const missingIds=ids.filter(id=>!$(id));
+        const missingFns=fns.filter(fn=>typeof window[fn]==='undefined' && !candidatesInSource(fn));
+        (missingIds.length||missingFns.length)
+          ?fail(label,'Missing runtime controls/functions: '+[...missingIds,...missingFns].join(', '))
+          :pass(label,'Required runtime controls and handlers are present.');
+      }
+      overflow.x||overflow.y
+        ?warn('Viewport overflow','Horizontal '+(overflow.x?'overflow detected':'clear')+' · vertical '+(overflow.y?'content exceeds the current viewport/surface':'clear')+'.')
+        :pass('Viewport overflow','No horizontal overflow and no page/surface overflow detected.');
+      const releaseCheck=await (async()=>{
+        try{
+          const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'});
+          const d=await rr.json();
+          if(!rr.ok||!d?.ok && !d?.name)return {state:'warn',detail:'Release endpoint returned HTTP '+rr.status+'.'};
+          const buildMatch=String(d.build)===String(APP_BUILD);
+          const branch=String(d.branch||'');
+          const branchMatch=!branch || branch===RELEASE_SOURCE_BRANCH;
+          if(buildMatch&&branchMatch)return {state:'ok',detail:'Build '+d.build+' · branch '+(branch||RELEASE_SOURCE_BRANCH)+' · deployment commit '+(d.commit||'not exposed by this environment')+'.'};
+          return {state:'fail',detail:'Runtime release mismatch: expected build '+APP_BUILD+' / branch '+RELEASE_SOURCE_BRANCH+'; got build '+d.build+' / branch '+branch+'.'};
+        }catch(e){return {state:'warn',detail:'Release endpoint could not be verified from this browser.'};}
+      })();
+      checks.push({state:releaseCheck.state,label:'Runtime release identity',detail:releaseCheck.detail});
+      const appSha=String(document.querySelector('meta[name="dinliminate-commit"]')?.content||'').trim();
+      appSha?pass('Source commit identity','Embedded commit '+appSha+'.'):warn('Source commit identity','This static shell does not embed a commit SHA; hosted /api/release is the source of deployment truth.');
+      const releaseHygiene=!!document.querySelector('#winner')&&!document.querySelector('#bottomNav')&&!document.querySelector('#privacy');
+      releaseHygiene?pass('Release hygiene','Current UI has no All Cut control, no bottom navigation, and Privacy is nested under About.'):fail('Release hygiene','Legacy release UI elements are still present.');
+      const duplicateCount=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;
+      duplicateCount?warn('Restaurant duplicates',duplicateCount+' possible near-name/same-site duplicate pairs are currently loaded.'):pass('Restaurant duplicates','No possible duplicate pairs are present in the current loaded pool.');
+      pass('Restaurant data quality runtime','Current loaded pool is being checked for duplicate candidates and fast-food markers.');
+
       if(foodCount===62)pass('Food catalog','62 built-in food choices loaded.');else fail('Food catalog',foodCount+' built-in food choices loaded; expected 62.');
       if(foodSources===foodCount)pass('Food photos',foodSources+'/'+foodCount+' built-in food image sources are present.');else warn('Food photos',foodSources+'/'+foodCount+' built-in foods have image sources.');
       foodQuickCount===12?pass('Food Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Food Quick Cuts',foodQuickCount+' categories configured.');
@@ -1398,8 +1431,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       if('serviceWorker' in navigator) pass('PWA shell','Service worker support is available in this browser.'); else warn('PWA shell','This browser does not expose service-worker support.');
       pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels · horizontal overflow '+(overflow.x?'detected':'none')+'.');
       pass('Build','Dinliminate '+APP_VERSION+' · Current Build '+APP_BUILD+'.');
-      pass('Release QA baseline','Automated provider and all-62-food-photo checks have passed on the current release line.');
-      warn('Browser certification','The Pass Around full-card gesture has required repeated browser QA fixes; use this panel to confirm the deployed build after the next green browser run.');
+      if(window.__DINLIMINATE_QA__){pass('Browser certification','This browser is running with the built-in QA harness enabled; run the hosted release gate separately for deployment certification.');}
+      else warn('Browser certification','This is a runtime diagnostic, not a substitute for the CI browser/accessibility/performance/visual release gates or real iPhone Safari certification.');
       const icon=({ok:'✓',warn:'!',fail:'×'}) ;
       document.querySelector('#diagnosisBody').innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>'+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+icon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'<button class="secondary diagnosis-refresh" id="diagnosisRefresh">↻ Run again</button>';
       document.querySelector('#diagnosisRefresh').onclick=render;
@@ -1409,7 +1442,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function privacyView() {
-    const body = '<div class="info-copy"><h4>Privacy</h4><p>Dinliminate uses your selected address or device location only to find nearby restaurants.</p><p>Restaurant and address information is retrieved from third-party search and mapping providers through Dinliminate’s search service.</p><p>Your saved food choices, hidden items, history, and custom food information are stored on this device. Location access is optional.</p></div>';
+    const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your food choices, hidden items, history, and custom-food information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and food images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>
     openModal('privacyModal','Privacy',body);
   }
 
@@ -1544,6 +1577,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
     $('passClose').onclick=()=>endPass();
     $('passBack').onclick=passUndo;
+    $('passCut').setAttribute('aria-label','Cut this choice');
+    $('passKeep').setAttribute('aria-label','Keep this choice');
     $('passCut').onclick=()=>passVote(false);
     $('passKeep').onclick=()=>passVote(true);
     const next=p.poolIds[p.choiceIndex+1] ? passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]) : null;
