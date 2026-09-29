@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dinliminate">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>Dinliminate — Dinner Decisions</title>
 
 <link rel="stylesheet" href="./styles.css">
@@ -15,7 +15,7 @@
 /* CP15 visual layer */
 .pass-count.selected{background:#ff7a1a;color:#111;border-color:#ff7a1a}.pass-name-grid{display:grid;gap:7px;margin-top:10px}.pass-name{height:42px;border-radius:12px;border:1px solid #303030;background:#1a1a1a;color:#eee;padding:0 11px}.pass-progress{display:flex;justify-content:space-between;color:#888;font-size:11px;margin-bottom:9px}.pass-photo{width:100%;aspect-ratio:1.2;object-fit:cover;border-radius:17px}.pass-view h2{font-size:29px;line-height:1.02;letter-spacing:-.05em;margin:11px 0 5px}.pass-actions{display:grid;grid-template-columns:.8fr 1fr 1.2fr;gap:7px;margin-top:12px}.pass-actions button{min-height:50px;border-radius:15px;font-weight:800}.pass-label{font-size:11px;color:#aaa}.pass-setup .status{line-height:1.5}.rest-pass-tools{justify-content:center;margin-top:5px}</style></head>
 <body>
-<main class="app">
+<main class="app">\n<div class="offline-indicator hidden" id="offlineIndicator" role="status" aria-live="polite">Offline · saved food choices still work</div>
 <header class="top app-topbar" id="appTopbar"><div class="brand-mark"><div class="brand">Dinliminate</div></div><button id="menu" class="menu" aria-label="Menu"><span></span><span></span><span></span></button></header>
 
 <section class="screen home luxury-home" id="home">
@@ -47,13 +47,13 @@
 <section class="screen hidden decision-screen" id="restaurant">
 <div class="decision-bar"><button id="restaurantBackTop" class="decision-back" aria-label="Back to home">‹</button><div class="decision-brand">Dinliminate</div><button id="restaurantMenu" class="menu decision-menu" aria-label="Menu"><span></span><span></span><span></span></button></div>
 <div class="location-strip"><div class="location-main"><div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address"><div id="suggestionsBox" aria-label="Address suggestions"></div></div><button class="location-btn" id="locate" aria-label="Use My Location">⌖</button><button class="find" id="find">Find</button></div><div class="location-sub"><span>Radius</span><select id="radius"><option>1</option><option>3</option><option>5</option><option selected>10</option><option>25</option><option>50</option><option>100</option></select><p class="status" id="status">Enter an address or use your location.</p></div></div>
-<div class="restaurant-tools"><button class="restaurant-tool" id="restaurantSearch">Search</button><button class="restaurant-tool active-tool" id="hoursToggle">Open/Unknown</button></div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
-<div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div><div class="decision-bottom restaurant-bottom"><button class="bottom-util" id="restaurantPassAround">Pass Around</button></div>
+<div class="restaurant-tools"><button class="restaurant-tool" id="restaurantSearch">Search</button><button class="restaurant-tool active-tool" id="hoursToggle">Open/Unknown</button><button class="restaurant-tool" id="restaurantPassAround">Pass Around</button></div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
+<div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div>
 </section>
 
 <section class="screen winner hidden" id="winner"><div id="celebration" class="celebration hidden" aria-hidden="true"></div><p class="eyebrow">WINNER</p><h2 id="winName"></h2><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
 
-<div class="drawer-bg hidden" id="drawerBg"></div><aside class="drawer hidden" id="drawer"><div class="drawer-head"><b>Menu</b><button class="menu" id="drawerClose">×</button></div><button class="drawer-row" id="manage">Manage Foods <span>›</span></button><button class="drawer-row" id="history">History <span>›</span></button><button class="drawer-row" id="settings">Settings <span>›</span></button><button class="drawer-row" id="about">About <span>›</span></button><button class="drawer-row" id="backToStart">Back to Start <span>⌂</span></button></aside>
+<div class="drawer-bg hidden" id="drawerBg"></div><aside class="drawer hidden" id="drawer"><div class="drawer-head"><b>Menu</b><button class="menu" id="drawerClose">×</button></div><button class="drawer-row" id="manage">Manage Foods <span>›</span></button><button class="drawer-row" id="history">History <span>›</span></button><button class="drawer-row" id="settings">Settings <span>›</span></button><button class="drawer-row" id="about">About <span>›</span></button><button class="drawer-row" id="privacy">Privacy <span>›</span></button><button class="drawer-row" id="backToStart">Back to Start <span>⌂</span></button></aside>
 
 <div class="modal-bg hidden" id="modalBg"></div><section class="modal hidden" id="modal"><div class="modal-head"><h3>Manage Foods</h3><button class="menu" id="modalClose">×</button></div><form class="add" id="addForm"><input id="newName" placeholder="Food name" required><select id="newCat"><option>American</option><option>Southern</option><option>Asian</option><option>Mexican</option><option>Pasta</option><option>Pork</option><option>Healthy</option><option>Breakfast</option><option>Soup</option></select><button class="cut">Add Food</button></form><div class="food-list" id="foodList"></div></section>
 
