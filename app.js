@@ -1404,61 +1404,51 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   function bindPassSwipe(cardId,onCut,onKeep){
     const surface=$('passSurface'),card=$(cardId),hit=$('passGestureHit'),next=$('passNextCard');
     if(!surface||!card||!hit)return;
-    let startX=0,startY=0,active=false;
+    let startX=0,startY=0,active=false,pointerId=null;
     const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    const begin=(x,y)=>{startX=x;startY=y;active=true;};
-    const move=(x,y,e)=>{
+    const allowed=(target)=>target===hit || (target instanceof Element && !!target.closest?.('#passGestureHit'));
+    const begin=(e)=>{
+      if(active||!allowed(e.target))return;
+      startX=e.clientX;startY=e.clientY;pointerId=e.pointerId ?? null;active=true;
+      try{if(pointerId!=null)hit.setPointerCapture(pointerId)}catch{}
+    };
+    const move=(e)=>{
       if(!active)return;
-      const dx=x-startX,dy=y-startY;
+      const dx=e.clientX-startX,dy=e.clientY-startY;
       if(Math.abs(dy)>Math.abs(dx)*1.2)return;
       if(Math.abs(dx)>8){
-        if(e?.cancelable)e.preventDefault();
+        if(e.cancelable)e.preventDefault();
         card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
         card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
         card.dataset.swipe=dx<0?'cut':'maybe';
         if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
       }
     };
-    const end=(x,y)=>{
+    const end=(e)=>{
       if(!active)return;
       active=false;
-      const dx=x-startX;
+      const dx=e.clientX-startX; pointerId=null;
       if(Math.abs(dx)>90){
         card.style.transition='transform .16s ease,opacity .16s ease';
         card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
         setTimeout(()=>{reset();(dx<0?onCut:onKeep)();},110);
       }else reset();
     };
-    const pd=e=>{if(e.target.closest('button:not(#passGestureHit),a,input,select'))return;e.preventDefault();begin(e.clientX,e.clientY);try{hit.setPointerCapture(e.pointerId)}catch{}};
-    const pm=e=>move(e.clientX,e.clientY,e);
-    const pu=e=>end(e.clientX,e.clientY);
-    const pc=()=>{active=false;reset();};
-    hit.addEventListener('pointerdown',pd);
-    hit.addEventListener('mousedown',pd);
-    hit.addEventListener('touchstart',e=>{const t=e.touches[0];if(t){begin(t.clientX,t.clientY)}},{passive:true});
-    document.addEventListener('pointermove',pm,true);
-    document.addEventListener('pointerup',pu,true);
-    document.addEventListener('pointercancel',pc,true);
-    const mm=e=>{if(active)pm(e)};
-    const mu=e=>{if(active)pu(e)};
-    document.addEventListener('mousemove',mm,true);
-    document.addEventListener('mouseup',mu,true);
-    const tm=e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)};
-    const te=e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)};
-    document.addEventListener('touchmove',tm,{passive:false,capture:true});
-    document.addEventListener('touchend',te,{passive:true,capture:true});
-    document.addEventListener('touchcancel',pc,{passive:true,capture:true});
-    surface._passSwipeCleanup=()=>{
-      document.removeEventListener('pointermove',pm,true);
-      document.removeEventListener('pointerup',pu,true);
-      document.removeEventListener('pointercancel',pc,true);
-      document.removeEventListener('mousemove',mm,true);
-      document.removeEventListener('mouseup',mu,true);
-      document.removeEventListener('touchmove',tm,true);
-      document.removeEventListener('touchend',te,true);
-      document.removeEventListener('touchcancel',pc,true);
-    };
+    const cancel=()=>{active=false;pointerId=null;reset();};
+    document.addEventListener('pointerdown',begin,true);
+    document.addEventListener('pointermove',move,true);
+    document.addEventListener('pointerup',end,true);
+    document.addEventListener('pointercancel',cancel,true);
+    document.addEventListener('mousedown',begin,true);
+    document.addEventListener('mousemove',move,true);
+    document.addEventListener('mouseup',end,true);
+    document.addEventListener('touchstart',e=>{const t=e.touches?.[0];if(t){startX=t.clientX;startY=t.clientY;active=allowed(e.target);}}, {capture:true,passive:true});
+    document.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches?.[0];if(t)move({clientX:t.clientX,clientY:t.clientY,cancelable:e.cancelable,preventDefault:()=>e.preventDefault()});},{capture:true,passive:false});
+    document.addEventListener('touchend',e=>{if(!active)return;const t=e.changedTouches?.[0];if(t)end({clientX:t.clientX,clientY:t.clientY});},{capture:true,passive:true});
+    document.addEventListener('touchcancel',cancel,{capture:true,passive:true});
+    surface._passSwipeCleanup=()=>{};
   }
+
 
   function drawPass(){
     const p=S.pass;
