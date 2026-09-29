@@ -4,7 +4,7 @@
 - Runtime: Vercel
 - Working branch: release-hardening-2026-09-29
 - Current hardening PR: #40 (draft)
-- Current app build: 1.0 / 115
+- Current app build: 1.0 / 116
 - Main remains untouched until the final release gate is green.
 - Netlify is legacy/backup and is not the current runtime.
 
