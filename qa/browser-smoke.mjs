@@ -179,6 +179,7 @@ let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
 assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
 const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
 const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
+const passTarget=await page.evaluate(({x,y})=>{const e=document.elementFromPoint(x,y);const g=e?getComputedStyle(e):null;return {tag:e?.tagName||'',id:e?.id||'',cls:e?.className||'',pointerEvents:g?.pointerEvents||'',zIndex:g?.zIndex||'',rect:e?JSON.stringify(e.getBoundingClientRect()):''}},{x:passX1,y:passY}); console.log('Pass drag target diagnostic',JSON.stringify(passTarget));
 await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8});
 await page.waitForTimeout(20);
 assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should show the right-swipe Keep state during a real pointer drag');
