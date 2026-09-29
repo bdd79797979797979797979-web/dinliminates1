@@ -1393,6 +1393,7 @@ save();
 }
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
+$('home').addEventListener('click', e => { const target=e.target.closest('#foodStart,#restStart'); if(!target) return; e.preventDefault(); target.id==='foodStart'?startFood():openRestaurant(); });
 $('foodCut').onclick = () => foodCut();
 $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
