@@ -446,7 +446,7 @@ for(const width of widths){
   assert.ok(g.scrollHeight<=g.innerHeight+2,'Home should fit one viewport at '+width+'px');
 }
 await page.setViewportSize({width:393,height:852});
-\nassert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
+assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
