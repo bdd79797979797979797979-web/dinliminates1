@@ -221,6 +221,15 @@ await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction((
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
+await click('#restaurantMenu'); await settle();
+await click('#settings'); await settle();
+await click('#appDiagnosis'); await settle();
+assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Restaurant Settings');
+assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant duplicates/i,'Restaurant App Diagnosis should inspect the loaded restaurant pool');
+assert.match(await page.locator('#diagnosisModal').innerText(),/Current restaurant pool/i,'Restaurant App Diagnosis should report the current pool');
+assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
+await page.locator('#diagnosisModal [data-close]').click(); await settle();
+await page.locator('#settingsModal [data-close]').click(); await settle();
 const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
 await click('#hoursToggle'); await settle();
