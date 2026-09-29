@@ -33,7 +33,7 @@ page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) reque
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/release')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'117',sourceBranch:'cp238-launch-hardening',commit:null,branch:'cp238-launch-hardening',environment:'test',expectedBranch:'cp238-launch-hardening'})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'122',sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
   }
   if (u.includes('/api/restaurant-search?mode=health')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,65,'Restored 65-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
@@ -98,20 +98,20 @@ assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),1
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use an accurate Mexican stir-fry photo');
+assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry should use an accurate Mexican stir-fry photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
-let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,62,'expected restored food catalog');
+let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected restored food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,62,'Food data should expose 62 image-backed choices');
+assert.equal(foodImageSources.length,65,'Food data should expose 62 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,59,'Potato Quick Cut should remove only Potato-mapped foods');
+assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,62,'Quick Cut should restore');
+s=await qa(); assert.equal(s.foodPool.length,65,'Quick Cut should restore');
 
 const foodBox=await page.locator('#foodCard').boundingBox();
 if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
@@ -125,7 +125,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,62,'Food Back should restore left swipe');
+s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore left swipe');
 
 const foodBox2=await page.locator('#foodCard').boundingBox();
 if(!foodBox2) throw new Error('Food card bounding box missing for right swipe QA');
@@ -136,7 +136,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should Maybe');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,62,'Food Back should restore right swipe');
+s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore right swipe');
 const beforeCut=s.foodPool.length;
 await click('#foodCut'); await settle();
 let afterCut=await qa(); assert.equal(afterCut.foodPool.length < beforeCut,true);
@@ -147,14 +147,14 @@ s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should res
 
 await click('#foodMaybe'); await settle();
 s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling');
-assert.equal(s.foodPool.length,61,'Maybe should move the current card to the recycle queue for this pass');
+assert.equal(s.foodPool.length,65,'Maybe should move the current card to the recycle queue for this pass');
 while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
 assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
 await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
-assert.equal((await qa()).foodPool.length,62,'Starting a new food round should reset the Maybe recycle cycle');
+assert.equal((await qa()).foodPool.length,65,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
@@ -178,8 +178,10 @@ assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open fro
 assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
-await click('#diagnosisRefresh'); await settle();
+assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
+await click('#diagnosisRefresh'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
 assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
+assert.ok((await page.locator('#diagnosisRunStatus').innerText()).includes('complete'),'Diagnosis should show which run just completed');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
 await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#foodMenu'); await settle();
@@ -266,9 +268,9 @@ await click('#restCut'); await settle();
 let restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Cut should remove the current card');
 await click('#restBack'); await settle();
 restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
-await click('#restMaybe'); await settle();
-restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action');
-assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Maybe should move the current card into the recycle queue for this pass');
+const restKeepCount=(await qa()).restaurantPool.length; await click('#restMaybe'); await settle();
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantActions.at(-1)?.type,'maybe','Restaurant Maybe should record a Maybe action'); assert.equal(restAfterButtons.restaurantPool.length,restKeepCount,'Restaurant Maybe/Keep should leave the count unchanged');
+assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Maybe/Keep should leave the choice in the pool for recycling');
 while(!restAfterButtons.restaurantMaybeRound && restAfterButtons.restaurantPool.length>0){ await click('#restCut'); await settle(); restAfterButtons=await qa(); }
 assert.equal(restAfterButtons.restaurantMaybeRound,true,'Restaurant Maybe choices should recycle into a second narrowing pass');
 assert.equal(restAfterButtons.restaurantPool.some(x=>x===restFirstId),true,'The kept restaurant should return when the first pass is exhausted');
@@ -296,7 +298,7 @@ assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https:
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).count(),1,'Restaurant Website action should use a symbol');
-assert.equal(await page.locator('#restDetails').innerText(),'ⓘ','Restaurant Details action should use an info symbol');
+assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details should use an accessible icon label');
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
