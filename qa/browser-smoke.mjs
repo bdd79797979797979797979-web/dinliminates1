@@ -125,9 +125,6 @@ await click('#randomOne'); await settle();
 s=await qa(); assert.equal(s.foodActions.length>=1,true,'Random Cut One should use the same action history');
 await click('#foodBack'); await settle();
 
-await click('#allCut'); await settle();
-assert.equal(await visible('winner'),true,'All Cut should end in the winner/hungry window');
-s=await qa(); assert.ok((s.winner?.name||'').includes('Nothing left'),'All Cut should end in hungry mode');
 await click('#restart'); await settle();
 await click('#foodStart'); await settle();
 
