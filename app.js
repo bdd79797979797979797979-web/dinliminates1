@@ -75,6 +75,14 @@
     restaurantTimezone:''
   };
 
+  function phoneHref(raw){
+    const digits=String(raw||'').replace(/[^+0-9]/g,'');
+    if(/^\+/.test(digits))return 'tel:'+digits;
+    if(/^1\d{10}$/.test(digits))return 'tel:+'+digits;
+    if(/^\d{10}$/.test(digits))return 'tel:+1'+digits;
+    return digits ? 'tel:'+digits : '';
+  }
+
   function safeExternalUrl(raw){
     try{
       const u=new URL(String(raw||''),location.origin);
@@ -809,7 +817,7 @@ function hourStatus(row){
     const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
     const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
-    const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="tel:'+esc(String(row.phone).replace(/[^+0-9]/g,''))+'">'+esc(row.phone)+'</a>' : '';
+    const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '';
     const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
     const websiteUrl=safeExternalUrl(row.website); const cardWebsite = websiteUrl ? '<a class="card-card-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer">Website</a>' : '';
     $('restStage').innerHTML =
