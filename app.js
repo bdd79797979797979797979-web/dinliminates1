@@ -87,7 +87,7 @@
   const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
   const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
   const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
-  const allFoods = () => [...getDefaultFoods(), ...S.custom];
+  const allFoods = () => [...getDefaultFoods(), ...S.custom.map(x=>({...x,quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}))];
 
 
   const STORAGE_VERSION = 4;
@@ -1111,10 +1111,11 @@ function hourStatus(row){
     // can never leave a live backdrop sitting over the Food swipe deck.
     const managerWasOpen = !!$('manageFoodsModal');
     if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-    const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup','Greek','Snack','Potato'];
+    const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'];
     const body='<form class="add" id="foodEditorForm">'+
       '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
       '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
+      '<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
       '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
       '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
       '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
@@ -1129,6 +1130,7 @@ function hourStatus(row){
     $('foodEditorForm').onsubmit=async e=>{
       e.preventDefault();
       const name=$('editFoodName').value.trim(), cat=$('editFoodCat').value;
+      const quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value); if(!quickCuts.includes(cat)) quickCuts.unshift(cat);
       let photo=$('editFoodPhoto').value.trim()||HUNGRY_IMAGE, recipe=$('editFoodRecipe').value.trim();
       if(!name)return;
       if(isEdit){
@@ -1137,14 +1139,14 @@ function hourStatus(row){
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
         if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
         if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-        S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,image:photo,recipe};
+        S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,recipe};
         if(id!==item.id) await deleteStoredPhoto(item.id);
         S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
       } else {
         const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
         if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
         if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-        S.custom.push({id,name,primary:id,category:cat,image:photo,recipe});
+        S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
       }
       buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
       // Adding from the Food deck should return directly to the swipe experience.
