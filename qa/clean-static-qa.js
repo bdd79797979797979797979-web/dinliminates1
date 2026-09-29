@@ -17,7 +17,7 @@ console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foo
 assert(html.includes('foodNextCard'),'Food Tinder card stack must be present in the base DOM');
 assert(app.includes('restaurantNextCard') && app.includes('restaurant-card-stack'),'Restaurant Tinder card stack must be rendered dynamically');
 assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
-assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the clean rebuild');
+assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the current app');
 assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
 assert(html.includes('swipe-actions') && html.includes('round-action'),'Decision controls must use the card-first circular action structure');
 assert(html.includes('round-cut') && html.includes('round-maybe') && html.includes('round-back') && html.includes('round-hide'),'All four decision actions must remain wired');
@@ -59,7 +59,7 @@ assert(css.includes('font-size:clamp(2rem,8.1vw'),'Home headline must stay compa
 assert(css.includes('.luxury-home .home-card-photo{'),'Home choice cards must use dedicated photo backgrounds');
 assert(!html.includes('Made by Brian Dunn for Devona Dunn'),'Front page should not show attribution text');
 assert(!html.includes('Continue saved round'),'Front page should not show a Continue saved round button');
-assert(!html.toLowerCase().includes('clean rebuild'),'HTML should not mention clean rebuild');
+assert(!html.toLowerCase().includes('current app'),'HTML should not mention current app');
 assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
@@ -82,6 +82,6 @@ assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food De
 
 assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
 
-assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention clean rebuild');
+assert(!app.includes('current app') && !app.includes('current app'),'App source should not mention current app');
 assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
