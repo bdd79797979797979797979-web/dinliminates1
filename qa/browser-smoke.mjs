@@ -320,7 +320,7 @@ await page.locator('[data-food-delete="qa-special"]').focus(); await click('[dat
 assert.equal(await page.locator('#appConfirmModal').getAttribute('role'),'dialog','Confirmation modal should expose dialog semantics');
 assert.equal(await page.locator('#appConfirmModal').getAttribute('aria-modal'),'true','Confirmation modal should be modal');
 assert.equal(await page.locator('#appConfirmCancel').evaluate(el=>el===document.activeElement),true,'Confirmation modal should default focus to Cancel');
-await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmClose').evaluate(el=>el===document.activeElement),true,'Confirmation modal focus should move through controls');
+await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmOk').evaluate(el=>el===document.activeElement),true,'Confirmation modal focus should move through the primary action');
 await page.keyboard.press('Escape'); await settle(); assert.equal(await visible('appConfirmModal'),false,'Escape should close the confirmation modal');
 assert.equal(await page.locator('[data-food-delete="qa-special"]').evaluate(el=>el===document.activeElement),true,'Closing confirmation should restore focus to launcher');
 await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
