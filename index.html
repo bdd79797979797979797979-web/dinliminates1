@@ -5516,7 +5516,7 @@ window.__dinliminateReleaseMigration=(async()=>{
   } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
 })();
 </script>
-<link rel="stylesheet" href="./launch-hardening.css?v=p781-launch-ready"><script src="./launch-hardening.js?v=p781-launch-ready" defer></script><style id="dinliminate-p636-final-controls">
+<link rel="stylesheet" href="./launch-hardening.css?v=p900-launch-complete-2026-09-29"><script src="./launch-hardening.js?v=p900-launch-complete-2026-09-29" defer></script><style id="dinliminate-p636-final-controls">
   .game-bottom{display:flex!important;gap:7px!important;flex-wrap:wrap!important;justify-content:center!important;margin-top:8px!important}
   .food-secondary-action{min-height:34px!important;padding:0 12px!important;font-size:.55rem!important;font-weight:850!important}
   .pass-around-btn,.restaurant-pass-btn{border-color:rgba(103,196,155,.32)!important;color:#a4dfc8!important;background:rgba(103,196,155,.09)!important}
@@ -6171,9 +6171,9 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
 <button aria-label="Keep this choice as a maybe" class="gesture-btn hold-btn" id="holdBtn" type="button">Maybe <span>♥</span></button>
 </div>
 <div class="game-bottom">
-<button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random Cut One</button>
 <button class="text-btn food-secondary-action add-food-btn" id="addDuringBtn" type="button">Add food</button>
 <button aria-label="Pass Around with other people" class="text-btn food-secondary-action pass-around-btn pass-food-btn" id="foodPassAroundBtn" type="button">Pass Around</button>
+<button class="text-btn food-secondary-action random-food-btn" id="randomBtn" type="button">Random Cut One</button>
 </div>
 </section>
 <section class="panel restaurant-panel hidden" id="restaurantPanel">
@@ -6204,7 +6204,7 @@ body:not(.game-mode):not(.restaurant-mode) > .app > header .menu-btn{display:non
   </div>
 
   <div class="restaurant-utility-row" aria-label="Restaurant tools">
-    <button class="restaurant-tool-btn restaurant-search-btn" id="restaurantSearchBtn" type="button" aria-expanded="false" aria-controls="restaurantInlineSearch" aria-label="Search restaurants">Restaurant Search</button>
+    <button class="restaurant-tool-btn restaurant-search-btn" id="restaurantSearchBtn" type="button" aria-expanded="false" aria-controls="restaurantInlineSearch" aria-label="Search restaurants">Search</button>
     <button class="restaurant-tool-btn restaurant-hours-filter-btn" id="restaurantOpenUnknownBtn" type="button" aria-label="Showing open or unknown-hour restaurants">Open / Unknown</button>
     <button class="restaurant-tool-btn restaurant-pass-btn" id="restaurantPassAroundBtn" type="button">Pass Around</button>
   </div>
@@ -6746,7 +6746,7 @@ let foodPreferences = readFoodPreferences();
 let motionTiltEnabled = safeRead('dinliminateMotionTilt','false') === 'true';
 let motionTiltActive = false;
 let motionBaseline = { beta: null, gamma: null };
-const DINLIMINATE_VERSION = 'p730-one-choice-and-home-polish';
+const DINLIMINATE_VERSION = 'p900-launch-complete-2026-09-29';
 try{ localStorage.removeItem('dinliminateRestaurantPhotoCache'); }catch{}
 const RESTAURANT_MAX_MILES = 100; // Launch cap: keeps provider fan-out and search latency bounded.
 const RESTAURANT_FALLBACK_PHOTO = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width=1200 height=800 viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#eee7d8"/><circle cx="600" cy="310" r="90" fill="#719d88"/><path d="M540 290h120v120H540z" fill="#f7f5ef"/><text x="600" y="500" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17201d">Restaurant photo unavailable</text></svg>');
@@ -6762,7 +6762,7 @@ let userCity = '';
 function updateHomeCount(){ const el=$('homeCount'); if(!el)return; const count=dedupe([...homeMeals,...customItems]).filter(i=>!isDeletedFood(i) && (hideEnabled ? !isHidden(i) : true)).length; el.textContent=count; }
 
 const $ = id => document.getElementById(id);
-const DATA_VERSION='2';
+const DATA_VERSION='3';
 safeWrite('dinliminateDataVersion',DATA_VERSION);
 
 function safeRead(key,fallback){try{return localStorage.getItem(key) ?? fallback;}catch{return fallback;}}
@@ -6973,13 +6973,13 @@ function openDetails(item){
   const editBtn = isCustom ? `<button class="detail-action primary-detail" id="editCardBtn" type="button">Edit Card</button>` : '';
   const deleteBtn = isCustom ? `<button class="detail-action delete-card-action" id="deleteCardBtn" type="button">Delete Card</button>` : '';
   const mapBtn = item?.type==='restaurant' ? `<button class="detail-action" id="detailMapBtn" type="button">Open in Maps</button>` : '';
-  const orderBtn = item?.type==='restaurant' && safeExternalUrl(item.website) ? `<button class="detail-action primary-detail" id="detailOrderBtn" type="button">Visit Website</button>` : '';
+  const orderBtn = item?.type==='restaurant' && safeExternalUrl(item.website) ? `<button class="detail-action primary-detail" id="detailWebsiteBtn" type="button">Visit Website</button>` : '';
   const reportBtn = item?.type==='restaurant' ? `<button class="detail-action" id="detailReportBtn" type="button">Report data</button>` : '';
   $('detailActions').innerHTML = `${editBtn}${saveBtn}${mapBtn}${orderBtn}${reportBtn}${deleteBtn}`;
   if(isCustom){ $('editCardBtn')?.addEventListener('click', () => { closeDetails(); openModal(item); }); }
   $('detailSaveBtn')?.addEventListener('click',()=>{const now=toggleSaved(item);$('detailSaveBtn').textContent=now?'♥ Saved':'♡ Save';});
   $('detailMapBtn')?.addEventListener('click',()=>{const q=(Number.isFinite(item.lat)&&Number.isFinite(item.lon))?`${item.lat},${item.lon}`:item.name;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener');});
-  $('detailOrderBtn')?.addEventListener('click',()=>{const url=safeExternalUrl(item.website);if(url)window.open(url,'_blank','noopener');});
+  $('detailWebsiteBtn')?.addEventListener('click',()=>{const url=safeExternalUrl(item.website);if(url)window.open(url,'_blank','noopener');});
   $('detailReportBtn')?.addEventListener('click',()=>{
     const key=savedKey(item);
     let reports=[]; try{reports=JSON.parse(safeRead('dinliminateRestaurantReports','[]'));}catch{}
@@ -8440,7 +8440,7 @@ function renderRestaurantStage(){
     const menuBox=menuItems.length?'<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>'+menuItems.map(x=>escapeHtml(x)).join(' · ')+'</strong></div>':'';
     const cls=i===0?'restaurant-card restaurant-card-v240 active':i===1?'restaurant-card restaurant-card-v240 back-one':'restaurant-card restaurant-card-v240 back-two';
     const actions=i===0
-      ? '<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-order-btn-v240" data-rest-action="order">'+(website?'Website':'Search')+'</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>'
+      ? '<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-website-btn-v240" data-rest-action="website">'+(website?'Website':'Search')+'</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>'
       : '<div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>';
     return '<article class="'+cls+'" data-restaurant-id="'+escapeHtml(String(item.id||item.name))+'"><div class="restaurant-photo-v240"><img src="'+escapeHtml(photoSrc||'about:blank')+'" alt="'+escapeHtml(item.name)+'" loading="'+(i===0?'eager':'lazy')+'" decoding="async" onerror="this.onerror=null;this.style.display=\'none\';this.parentElement.classList.add(\'no-image\')"><div class="restaurant-photo-placeholder">🍽️<span>'+escapeHtml(item.category||'Restaurant')+'</span></div><div class="restaurant-photo-gradient"></div><div class="swipe-badge cut">CUT</div><div class="swipe-badge hold">MAYBE</div><div class="restaurant-top-pills"><span class="restaurant-status-pill '+(open===true?'open':'')+'">'+openLabel+'</span><span class="restaurant-distance-pill">'+escapeHtml(distance)+'</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">'+escapeHtml(item.name)+'</div><div class="restaurant-meta-v240">'+escapeHtml(item.category&&/^restaurant$/i.test(String(item.category).trim())?(restaurantCuisineLabel(item)||'Restaurant'):(restaurantCuisineLabel(item)||item.category||'Restaurant'))+'</div></div></div><div class="restaurant-address-v240">'+escapeHtml(item.address||'Address unavailable')+'</div>'+menuBox+actions+'</div></article>';
   }).join('');
@@ -8452,7 +8452,7 @@ function renderRestaurantStage(){
     const a=btn.dataset.restAction;
     if(a==='choose'){chooseRestaurantCurrent();return;}
     if(a==='details')openDetails(list[0]);
-    if(a==='order'){
+    if(a==='website'){
       const website=safeExternalUrl(list[0]?.website);
       if(website)window.open(website,'_blank','noopener,noreferrer');
       else window.open(`https://www.google.com/search?q=${encodeURIComponent(list[0]?.name||'restaurant')}`,'_blank','noopener,noreferrer');
@@ -10468,3 +10468,5 @@ body.restaurant-mode .restaurant-stage .restaurant-v240-hint{
   body.restaurant-mode .restaurant-stage .restaurant-v240-hint{min-height:8px!important;font-size:.40rem!important;}
 }
 </style>
+
+<style id="dinliminate-p900-final-ui">#restaurantSearchBtn,#restaurantOpenUnknownBtn,#restaurantPassAroundBtn{min-height:36px;touch-action:manipulation}body.restaurant-mode .restaurant-website-btn-v240,body.restaurant-mode .restaurant-detail-btn-v240{touch-action:manipulation}.home-phone-help{touch-action:manipulation}</style>
