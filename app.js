@@ -1403,6 +1403,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
 
   function bindPassSwipe(cardId,onCut,onKeep){
     const surface=$('passSurface'),card=$(cardId),hit=$('passGestureHit'),next=$('passNextCard');
+    if(window.__DINLIMINATE_TEST__) window.__DINLIMINATE_TEST__.passBind={surface:!!surface,card:!!card,hit:!!hit};
     if(!surface||!card||!hit)return;
     let startX=0,startY=0,active=false,pointerId=null;
     const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
