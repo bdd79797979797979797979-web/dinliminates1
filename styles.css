@@ -631,3 +631,9 @@
 .details-icon{width:20px;height:20px;display:block}
 .winner-details-action{width:46px!important;min-width:46px!important}
 .winner-details-action .details-icon{width:21px;height:21px}
+
+/* Build 119 Details icon refinement */
+.icon-action{width:42px!important;min-width:42px!important;height:42px!important;min-height:42px!important;border-radius:12px!important;background:linear-gradient(180deg,#1c1c1c,#111)!important;border:1px solid #5f4d34!important;color:#d9bf8a!important;box-shadow:0 6px 16px #0009, inset 0 1px 0 #ffffff10!important}
+.icon-action:hover{background:linear-gradient(180deg,#24211d,#151411)!important;border-color:#8b7149!important;color:#fff!important}
+.icon-action:focus-visible{outline:2px solid #bfa16b;outline-offset:2px}
+.details-icon{width:21px!important;height:21px!important}
