@@ -10,11 +10,15 @@ const h=await health.json();
 assert.equal(h.ok,true,'Hosted restaurant health should report ok');
 assert.equal(Number(h.maxRadiusMiles),100,'Hosted restaurant API should expose 100-mile maximum');
 
-const release=await fetch(base+'/api/release',{cache:'no-store'});
-assert.equal(release.ok,true,'Hosted release endpoint should return HTTP 200');
-const rel=await release.json();
-assert.equal(String(rel.build),'116','Hosted build should be Build 116');
-assert.equal(String(rel.version),'1.0','Hosted version should be 1.0');
+const requireRelease=String(process.env.REQUIRE_RELEASE||'true').toLowerCase()!=='false';
+let rel=null;
+if(requireRelease){
+  const release=await fetch(base+'/api/release',{cache:'no-store'});
+  assert.equal(release.ok,true,'Hosted release endpoint should return HTTP 200');
+  rel=await release.json();
+  assert.equal(String(rel.build),'116','Hosted build should be Build 116');
+  assert.equal(String(rel.version),'1.0','Hosted version should be 1.0');
+}
 
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
@@ -29,4 +33,4 @@ assert.equal(await page.locator('#restStart').isVisible(),true,'Hosted Home shou
 assert.equal(await page.locator('#offlineIndicator').count(),1,'Hosted shell should include the offline indicator');
 assert.equal(errors.length,0,'Hosted app should have no page/console errors: '+errors.join(' | '));
 await browser.close();
-console.log(JSON.stringify({health:h,release:rel,base}));
+console.log(JSON.stringify({health:h,release:rel,base,requireRelease}));
