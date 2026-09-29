@@ -161,9 +161,9 @@ assert(/Food catalog contract/.test(app)&&/Food image catalog/.test(app),'App Di
 assert(css.includes('.icon-action{')&&css.includes('.details-icon{'),'Details must use a professional icon button');
 
 assert(css.includes('.diagnosis-action{')&&css.includes('.diagnosis-refresh.selected{')&&css.includes('.diagnosis-run-status.running{'),'Diagnosis must expose distinct launcher and selected/running states');
-assert(css.includes('.card-copy>.icon-action{width:35px')&&css.includes('.card-card-action.icon-action{width:35px'),'Details card icon must be compact and keep breathing room from card text');
+assert(css.includes('.card-copy>.icon-action{width:32px')&&css.includes('.card-card-action.icon-action{width:32px'),'Details card icon must be compact and keep breathing room from card text');
 assert(app.includes("setAttribute('aria-pressed','true')")&&app.includes('diagnosisRunStatus'),'Diagnosis Run Again must expose a visible selected/run status');
-assert(html.includes('<rect x="4.75"')&&app.includes('<rect x="4.75"'),'Details icon must use the crisp outlined info mark');
+assert(html.includes('<circle cx="12" cy="12"')&&app.includes('<circle cx="12" cy="12"'),'Details icon must use the crisp circular info mark');
 
 assert(app.includes('health-shake')&&app.includes('Health Shake'),'Health Shake must be covered by static catalog validation');
 assert(app.includes("imageIdsExpected={'tacos':'27626524'"),'Diagnosis must validate the refreshed taco image');
