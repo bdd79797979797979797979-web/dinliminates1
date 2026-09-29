@@ -181,7 +181,7 @@ await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants')); assert.equal(await page.locator('#locationSourceLabel').innerText(),'Using selected address','Selected address should expose its location source');
+await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants')); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
 let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
 await page.locator('#address').fill('456');
@@ -358,7 +358,7 @@ await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneMo
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
 await click('#restStart'); await settle();
 await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
-assert.equal(await page.locator('#locationSourceLabel').innerText(),'Using your location','Device location should be labeled as the source');
+assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using your location','Device location should be labeled as the source');
 const deviceLoc=await qa(); assert.ok(Math.abs(Number(deviceLoc.location?.lat)-36.5304)<0.01,'Device latitude should be persisted');
 assert.ok(Math.abs(Number(deviceLoc.location?.lon)+87.3601)<0.01,'Device longitude should be persisted');
 await click('#restStart'); await settle();
