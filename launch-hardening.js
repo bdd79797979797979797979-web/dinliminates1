@@ -886,21 +886,30 @@
     ta.remove();
   }
 
-  function emailDraft() {
-    const subject = encodeURIComponent('Dinliminate problem report');
-    const body = encodeURIComponent(diagnostics() + '\n\nWhat happened:\n');
-    window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  async function shareDiagnostics() {
+    const value = diagnostics() + '\n\nWhat happened:\n';
+    try {
+      if(navigator.share) { await navigator.share({title:'Dinliminate problem report',text:value}); return; }
+    } catch(err) {
+      if(err?.name==='AbortError') return;
+    }
+    try {
+      await navigator.clipboard?.writeText(value);
+      window.toast?.('Problem report copied.');
+    } catch {
+      showLaunchSheet('Problem report', '<p>Copy the diagnostic text and add what happened before sending it to support.</p>');
+    }
   }
 
   function showReport() {
     const safeDiag = diagnostics().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     showLaunchSheet('Report a problem',
-      '<p>Copy the diagnostic text below, then add what went wrong. No address or GPS coordinates are included in this report.</p>' +
+      '<p>Copy or share the diagnostic text below, then add what went wrong. No address or GPS coordinates are included in this report.</p>' +
       '<pre class="launch-diagnostics">' + safeDiag + '</pre>',
-      '<button type="button" class="settings-tool launch-copy-diagnostics">Copy diagnostics</button>' +
-      '<button type="button" class="settings-tool launch-email-draft">Email draft</button>');
+      '<button type="button" class="settings-tool launch-copy-diagnostics">Copy report</button>' +
+      '<button type="button" class="settings-tool launch-share-diagnostics">Share report</button>');
     q('.launch-copy-diagnostics')?.addEventListener('click', copyDiagnostics);
-    q('.launch-email-draft')?.addEventListener('click', emailDraft);
+    q('.launch-share-diagnostics')?.addEventListener('click', shareDiagnostics);
   }
 
   function robustShareClick(e) {
