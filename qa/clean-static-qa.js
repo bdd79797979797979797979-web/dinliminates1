@@ -30,5 +30,5 @@ assert(html.includes('class="decision-bottom"'),'Decision utilities must be plac
 assert(html.includes('id="foodDetails"'),'Food must expose Details directly on the card');
 assert(html.includes('id="restDetails"'),'Restaurant must expose Details directly on the card');
 assert(html.indexOf('id="foodCut"') < html.indexOf('id="foodMaybe"'),'Food action order must be Cut then Maybe');
-assert(html.indexOf('id="restCut"') < html.indexOf('id="restMaybe"'),'Restaurant action order must be Cut then Maybe');
+assert(app.indexOf('id="restCut"') < app.indexOf('id="restMaybe"'),'Restaurant action order must be Cut then Maybe');
 assert(c.includes("round-cut") && c.includes("round-maybe") && c.includes(".global-back") && c.includes(".decision-bottom"),'CP105 hierarchy styles must exist');
