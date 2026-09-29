@@ -528,3 +528,10 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Full CI is green: Static QA, real provider smoke, route adapter smoke, Playwright browser smoke.
 - Premium home redesign and premium calendar styling are included.
 - Recovery branch: `savepoint-cp108-browser-green-2026-09-29`.
+
+
+## CP120 — Release hardening recovery
+- Current branch: release-hardening-2026-09-29
+- Recovery points preserved before subsequent work.
+- Route adapter QA aligned to r14.
+- Do not delete prior checkpoint branches.
