@@ -275,15 +275,6 @@
     foodCut(item);
   }
 
-  function allCut() {
-    const items = S.pool.slice();
-    if (!items.length) return;
-    items.forEach(item => foodCommit('cut', item));
-    items.forEach(item => S.cutPrimary.add(item.primary));
-    buildFood();
-    winner({name:'Nothing left — hungry mode', image:HUNGRY_IMAGE, category:'Hungry'});
-  }
-
   function restaurantCategory(row) {
     if (row.fastFood || /fast food/i.test(String(row.category || ''))) return 'Fast Food';
     const s = (String(row.category || '')+' '+String(row.cuisine || '')+' '+String(row.name || '')).toLowerCase();
@@ -1021,7 +1012,6 @@ function hourStatus(row){
   $('foodHide').onclick = foodHide;
   $('addFood').onclick = manageFoodsView;
   $('randomOne').onclick = randomCutOne;
-  $('allCut').onclick = allCut;
   $('foodPassAround').onclick = passSetup;
   $('restaurantPassAround').onclick = passSetup;
   document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
