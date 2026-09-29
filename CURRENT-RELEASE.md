@@ -29,3 +29,5 @@
 
 ## Release rule
 Do not promote this branch to Vercel production until the full launch gate is green.
+
+- checkpoint-cp182-hosted-verification-2026-09-29
