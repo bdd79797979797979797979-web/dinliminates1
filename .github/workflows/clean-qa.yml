@@ -51,6 +51,8 @@ jobs:
         run: node qa/api-smoke.cjs
       - name: Route adapter smoke
         run: node qa/restaurant-route-smoke.cjs
+      - name: Restaurant classification smoke
+        run: node qa/restaurant-classification-smoke.cjs
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
       - name: Install Playwright
