@@ -299,7 +299,6 @@ await click('#appConfirmOk'); await settle();
 s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 
 
-await page.locator('#restaurantSearch').fill ? null : null;
 if(!(await page.locator('#restaurantQuery').isVisible())){await click('#restaurantSearch');await settle();}
 await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
