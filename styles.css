@@ -616,3 +616,7 @@
 .settings-system-action{display:flex;width:100%;min-height:46px;align-items:center;justify-content:center;border-radius:13px;background:#1a1a1a;color:#eee;border:1px solid #343434;font-weight:850;font-size:12px}.settings-system-action.restore-action{background:#5b3fb3;color:#fff;border-color:#8166d8;box-shadow:0 10px 24px #5b3fb333}.settings-reset-app{width:100%;min-height:46px;border-radius:13px;margin-top:10px}
 .diagnosis-row.info .diagnosis-mark{background:#252627;color:#b8c4ca}.diagnosis-refresh:disabled{opacity:.62}#hoursToggle[aria-pressed="true"]{background:#ece7dc;color:#222;border-color:#d8d0c3}#hoursToggle[aria-pressed="false"]{background:#171717;color:#ddd;border-color:#303030}
 .count-inline{display:inline-block;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#888!important;font-size:10px;font-weight:700;box-shadow:none!important}
+
+/* CP241: contain home images so they never intercept card interaction. */
+.home-card-photo{position:relative;overflow:hidden;}
+.home-card-photo .home-photo-img{pointer-events:none;}
