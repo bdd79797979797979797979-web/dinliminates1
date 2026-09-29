@@ -605,3 +605,6 @@
 
 /* CP238 — History management toolbar */
 .history-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #29251f}.history-toolbar .status{margin:0}.history-toolbar button{min-height:38px;padding:0 12px;border-radius:999px;font-size:9px;font-weight:850}
+
+/* CP240 — restaurant choice count stays as plain text, never a colored pill. */
+.count-inline{display:inline-block;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#888!important;font-size:10px;font-weight:700;letter-spacing:.02em;box-shadow:none!important;}

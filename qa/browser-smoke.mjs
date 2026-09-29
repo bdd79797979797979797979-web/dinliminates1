@@ -245,6 +245,10 @@ assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is 
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
 await page.locator('#settingsModal [data-close]').click(); await settle();
 const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
+const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
+assert.equal(restaurantCountStyle.background,'rgba(0, 0, 0, 0)','Restaurant count should not render as a colored pill');
+assert.equal(restaurantCountStyle.border,'0px','Restaurant count should not render a capsule border');
+assert.equal(restaurantCountStyle.padding,'0px','Restaurant count should not render capsule padding');
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
 await click('#hoursToggle'); await settle();
 assert.equal(await page.locator('#hoursToggle').innerText(),'All','Hours filter should switch to All');
@@ -466,6 +470,7 @@ await page.mouse.up(); await settle();
 assert.equal(await visible('winner'),true,'Right swipe on final restaurant should open Winner');
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-winner-393.png'),fullPage:true});
 const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Final restaurant swipe should produce a restaurant winner'); assert.equal(finalState.winner?.id,finalRestaurantId,'Winner should be the final restaurant');
+assert.equal(await page.locator('#celebration').count(),0,'Restaurant winner should not render a celebration layer');
 
 // History calendar X deletion must remove the saved entry, not just persist it behind a stale render.
 await page.evaluate(() => {

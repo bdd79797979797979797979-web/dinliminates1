@@ -995,7 +995,7 @@ if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
 winImg.src = item.image || item.photo || HUNGRY_IMAGE;
 winImg.alt = item.name || 'Hungry';
-if (!hungry) triggerCelebration(); else $('celebration')?.classList.add('hidden');
+if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
 save();
 }
 function openModal(id, title, body) {
