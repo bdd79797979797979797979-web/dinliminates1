@@ -45,3 +45,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
+      - name: Performance budget
+        run: node qa/performance-budget.mjs
