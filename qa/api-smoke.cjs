@@ -32,5 +32,15 @@ function call(query){
  for(const name of required) if(!localNames.some(x=>x.includes(name))) throw new Error('Iron Workers search missing '+name+': '+JSON.stringify({total:local.body.total,names:localNames.slice(0,80),providers:local.body.providers}));
  const tight=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'1'}); if(tight.statusCode!==200||!tight.body?.ok||tight.body.radiusMiles!==1)throw new Error('1-mile radius failed: '+JSON.stringify(tight.body));
  const wide=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'100'}); if(wide.statusCode!==200||!wide.body?.ok||wide.body.radiusMiles!==100)throw new Error('100-mile radius failed: '+JSON.stringify(wide.body));
+ 
+ const radiusChecks=[];
+ for(const radius of [1,3,5,10,25,50,100]){
+   const rr=await call({mode:'search',lat:36.5304,lon:-87.3601,radius:String(radius)});
+   if(rr.statusCode!==200||!rr.body?.ok||rr.body.radiusMiles!==radius)throw new Error('radius contract failed at '+radius+'mi: '+JSON.stringify(rr.body));
+   const outOfRange=(rr.body.results||[]).filter(x=>Number(x.distance)>radius+0.2);
+   if(outOfRange.length)throw new Error('radius leakage at '+radius+'mi: '+outOfRange.slice(0,3).map(x=>x.name).join(', '));
+   if(!(Number(rr.body.fastFoodCount)>=1))throw new Error('fast food missing at '+radius+'mi');
+   radiusChecks.push({radius,total:rr.body.total,fastFoodCount:rr.body.fastFoodCount});
+ }
  console.log(JSON.stringify({health:health.body,suggestions:suggestion.body.results.length,resolved:resolved.body.display,restaurantCount:search.body.total,fastFoodCount:search.body.fastFoodCount,providers:search.body.providers,ironWorkers:{display:exact.body.display,total:local.body.total,names:(local.body.results||[]).filter(x=>required.some(n=>String(x.name||'').toLowerCase().includes(n))).map(x=>x.name)}}));
 })().catch(err=>{console.error(err);process.exit(1)});
