@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='123','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='124','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -144,3 +144,6 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
+assert(app.includes("let APP_BUILD = '124'"),'CP244 build should be 124';
+assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.settings-system-action.diagnosis-action{background:linear-gradient'),'CP244 Details/Diagnosis styling should be present');
+assert(foods.includes('33614203')&&foods.includes('4924603')&&foods.includes('2397401')&&foods.includes('9704174')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('20234576')&&foods.includes('775032'),'CP244 food photo refresh mappings should be present');
