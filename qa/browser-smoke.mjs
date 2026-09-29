@@ -261,7 +261,7 @@ await click('#restaurantBackTop'); await settle(); await click('#foodStart'); aw
 await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 await click('[data-food-hide="popcorn"]'); await settle();
 s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
-await page.locator('#manageFoodsModal [data-close]').click(); await settle();
+await page.locator('#manageFoodsModal .modal-head [data-close]').click(); await settle();
 await page.locator('#foodMenu').click(); await settle(); await page.locator('#settings').click(); await settle();
 assert.equal((await page.locator('#settingsModal').innerText()).toLowerCase().includes('popcorn'),true,'Settings should list hidden built-in food');
 assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),1,'Settings should place Delete beside hidden-food Restore');
