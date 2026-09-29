@@ -160,7 +160,7 @@ await click('#passBack'); await settle();
 pass=await qa(); assert.equal(pass.pass.poolIds.includes(firstPassId),true,'Pass Around Back should restore exact cut');
 await click('#passEnd'); await settle();
 
-await click('#food [data-home]'); await settle();
+await click('#foodBackTop'); await settle();
 await click('#restStart'); await settle();
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
