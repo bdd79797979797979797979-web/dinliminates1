@@ -184,6 +184,7 @@ assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must 
 assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
 await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8});
 await page.waitForTimeout(20);
+console.log('Pass gesture event diagnostic',await page.evaluate(()=>window.__DINLIMINATE_TEST__));
 assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should enter the right-swipe Keep state during the drag');
 await page.mouse.up(); await settle();
 pass=await qa(); assert.ok(pass.pass?.history?.length,'Pass Around right swipe should create a vote history entry'); assert.equal(pass.pass.history.at(-1)?.keep,true,'Pass Around right swipe should record Keep'); assert.equal(pass.pass.voterIndex,1,'Pass Around right swipe should Keep for the current voter');
