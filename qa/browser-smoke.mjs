@@ -554,7 +554,7 @@ await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await settle();
 await page.evaluate(()=>localStorage.removeItem('dinliminate.swipeHint.v1'));
 await page.locator('#foodStart').click(); await settle();
 assert.equal(await page.locator('#swipeHint').isVisible(),true,'First Food start should show a subtle swipe hint');
-assert.match(await page.locator('#swipeHint').innerText(),/Swipe left to Cut · right to Maybe/);
+assert.match(await page.locator('#swipeHint').innerText(),/Swipe left to Cut · right to Keep/);
 await page.waitForTimeout(2800); assert.equal(await page.locator('#swipeHint').count(),0,'Swipe hint should disappear automatically');
 
 const swReg=await page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()));
