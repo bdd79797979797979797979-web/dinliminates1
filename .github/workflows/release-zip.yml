@@ -17,6 +17,7 @@ on:
       - 'dinliminate-icon-*.png'
       - 'dinliminate-icon.svg'
       - '.github/workflows/release-zip.yml'
+      - 'LAUNCH-P900-AUDIT-2026-09-29.md'
 
 permissions:
   contents: read
