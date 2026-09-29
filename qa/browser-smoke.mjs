@@ -30,19 +30,19 @@ page.on('response', res => { if(res.url().includes('/data/foods.js')) dataRespon
 page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) requestFailures.push({url:req.url(),error:req.failure()?.errorText||'unknown'}); });
 await page.route('**/*', async route => {
   const u = route.request().url();
-  if (u.includes('/api/restaurants?mode=suggest')) {
+  if (u.includes('/api/restaurant-search?mode=suggest')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,results:[
       {lat:36.5298,lon:-87.3588,display:'123 Main St, Clarksville, TN 37040'},
       {lat:36.5304,lon:-87.3601,display:'456 Market St, Clarksville, TN 37043'}
     ]})});
   }
-  if (u.includes('/api/restaurants?mode=resolve')) {
+  if (u.includes('/api/restaurant-search?mode=resolve')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,lat:36.5298,lon:-87.3588,display:'123 Main St, Clarksville, TN 37040'})});
   }
-  if (u.includes('/api/restaurants?mode=reverse')) {
+  if (u.includes('/api/restaurant-search?mode=reverse')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,display:'Current location (QA)'})});
   }
-  if (u.includes('/api/restaurants?mode=search')) {
+  if (u.includes('/api/restaurant-search?mode=search')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:10,total:7,fastFoodCount:2,results:[
       {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',opening_hours:'Mo-Su 06:00-23:00'},
       {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7'},
