@@ -188,6 +188,16 @@
     $('foodName').textContent = item.name;
     $('foodCat').textContent = item.category;
     $('foodCount').textContent = S.pool.length + (S.pool.length === 1 ? ' choice' : ' choices');
+    const next = S.pool[S.index + 1];
+    const nextCard = $('foodNextCard');
+    if (nextCard) {
+      nextCard.classList.toggle('hidden', !next);
+      if (next) {
+        $('foodNextImg').src = next.image;
+        $('foodNextImg').alt = next.name;
+        nextCard.style.transform = 'scale(.96)';
+      }
+    }
     bindFoodSwipe();
   }
 
@@ -241,7 +251,8 @@
     const card = $('foodCard');
     if (!card) return;
     let downX = 0, active = false;
-    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';};
+    const next=$('foodNextCard');
+    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
     card.onpointerdown = e => {
       downX = e.clientX; active = true;
       try { card.setPointerCapture(e.pointerId); } catch {}
@@ -253,6 +264,8 @@
         card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
         card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
         card.dataset.swipe=dx<0?'cut':'maybe';
+        if(next) next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
+        if(next) next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
       }
     };
     card.onpointerup = e => {
@@ -548,8 +561,10 @@ function hourStatus(row){
     const row = rows[S.restaurantIndex];
     const category = restaurantCategory(row);
     const image = row.photo || row.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    const nextRow = rows[S.restaurantIndex + 1];
+    const nextImage = nextRow?.photo || nextRow?.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
     $('restStage').innerHTML =
-      '<article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3></div></article>'+
+      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3></div></article></div>'+
       '<div class="rest-card-extra"><div class="rest-meta">'+
       (row.address ? '<div>'+esc(row.address)+'</div>' : '')+
       (row.cuisine ? '<div>'+esc(row.cuisine)+'</div>' : '')+
@@ -617,7 +632,8 @@ function hourStatus(row){
     const card = $('restaurantCard');
     if (!card) return;
     let downX = 0, active = false;
-    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';};
+    const next=$('restaurantNextCard');
+    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
     card.onpointerdown = e => {
       downX = e.clientX; active = true;
       try { card.setPointerCapture(e.pointerId); } catch {}
