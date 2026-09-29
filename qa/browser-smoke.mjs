@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,65,'Updated 64-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,65,'Updated 65-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
@@ -102,7 +102,7 @@ assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry 
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected updated 65-food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,65,'Food data should expose 64 image-backed choices');
+assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
@@ -148,7 +148,7 @@ s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should res
 
 const foodKeepCount=(await qa()).foodPool.length; await click('#foodMaybe'); await settle();
 s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling'); assert.equal(s.foodPool.length,foodKeepCount,'Maybe/Keep should leave the food count unchanged');
-assert.equal(s.foodPool.length,64,'Maybe/Keep should leave the food count unchanged');
+assert.equal(s.foodPool.length,65,'Maybe/Keep should leave the food count unchanged');
 while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
 assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
