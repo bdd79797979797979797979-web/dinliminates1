@@ -345,6 +345,7 @@ await page.locator('#restaurantMenu').click({force:true});
 await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
 await page.locator('#settings').click(); await settle();
 const settingsDiag=await page.evaluate(()=>{const el=document.querySelector('#settingsModal'); return {count:document.querySelectorAll('#settingsModal').length,drawerHidden:document.querySelector('#drawer')?.classList.contains('hidden')??null,bgCount:document.querySelectorAll('#settingsModalBg').length,exists:!!el,text:el?.textContent||'',display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,rect:el?el.getBoundingClientRect().toJSON():null};}); console.log('Settings diagnostic',JSON.stringify(settingsDiag));
+await click('#restHide'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use branded confirmation before Settings Restore is tested'); await click('#appConfirmOk'); await settle();
 assert.equal(await visible('settingsModal'),true,'Settings modal should open');
 const settingsText=await page.locator('#settingsModal').innerText(); assert.match(settingsText,/Hidden Restaurants/i,'Settings should show Hidden Restaurants');
 const restore=page.locator('#settingsModal [data-setting-rest]').first(); assert.equal(await restore.count(),1,'Settings should expose a restaurant Restore control');
