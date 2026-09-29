@@ -2,21 +2,7 @@ name: Dinliminate Netlify production deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'index.html'
-      - 'launch-hardening.js'
-      - 'launch-hardening.css'
-      - 'api/**'
-      - 'netlify.toml'
-      - 'netlify/functions/**'
-      - 'p636-clean-ui.css'
-      - 'dinliminate.webmanifest'
-      - 'dinliminate-sw.js'
-      - 'dinliminate-icon-180.png'
-      - 'dinliminate-icon-512.png'
+
 
 permissions:
   contents: read
