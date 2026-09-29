@@ -53,6 +53,8 @@ jobs:
         run: node qa/restaurant-route-smoke.cjs
       - name: Restaurant classification smoke
         run: node qa/restaurant-classification-smoke.cjs
+      - name: Food image smoke
+        run: node qa/food-image-smoke.mjs
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
       - name: Install Playwright
