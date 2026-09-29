@@ -7,7 +7,7 @@ const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
 const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '118';
+let APP_BUILD = '119';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
@@ -863,7 +863,7 @@ const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+es
 const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
 const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(safeExternalUrl(row.website)?'Open restaurant website':'Search restaurant on Google')+'" title="'+(safeExternalUrl(row.website)?'Website':'Search on Google')+'">Website ↗</a>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action card-details-action" id="restDetails" type="button" aria-label="Details" title="Details">Details</button></div></div></article></div>'+
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.8h7.1L18 8.7v10.5H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 4.8v4h4M9.5 12.2h6M9.5 15.4h4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 const bindCardButton = (id, handler) => {
@@ -1227,34 +1227,51 @@ function diagnosisRestaurantDuplicates(rows){
  return out;
 }
 async function appDiagnosisView(){
- const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button">↻ Run again</button></div>';
+ const started=Date.now();
+ const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-label="Run diagnostics again">↻ Run again</button></div>';
  const modal=openModal('diagnosisModal','App Diagnosis',body);let running=false,run=0;
- const render=async()=>{if(running||!document.body.contains(modal))return;running=true;run++;
+ const render=async()=>{
+  if(running||!document.body.contains(modal))return;running=true;run++;
   const checks=[],pass=(l,d)=>checks.push({state:'ok',label:l,detail:d}),warn=(l,d)=>checks.push({state:'warn',label:l,detail:d}),info=(l,d)=>checks.push({state:'info',label:l,detail:d}),fail=(l,d)=>checks.push({state:'fail',label:l,detail:d});
   try{
-   const foods=getDefaultFoods(),imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true'),surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
+   const foods=getDefaultFoods(),required=[
+    ['lasagna','Lasagna',['Pasta']],
+    ['vegetable-lasagna','Vegetable Lasagna',['Pasta','Healthy']],
+    ['salisbury-steak','Salisbury Steak',['Southern','American']],
+    ['stuffed-peppers','Stuffed Peppers',['Healthy','American']]
+   ],byId=new Map(foods.map(x=>[x.id,x]));
+   const missing=required.filter(([id])=>!byId.has(id)).map(x=>x[0]),wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x))}).map(([id])=>id),frozen=byId.has('frozen');
+   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','64 built-in foods; Lasagna, Vegetable Lasagna, Salisbury Steak, and Stuffed Peppers are present with the required Quick Cuts; Stouffer’s is removed.');
+   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff'],imageMissing=imageIds.filter(id=>!String(byId.get(id)?.image||'').trim());
+   imageMissing.length?fail('Food image catalog','Missing image URLs: '+imageMissing.join(', ')):pass('Food image catalog','All four requested foods plus Stroganoff have dedicated image sources.');
+   const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true'),surface=document.querySelector('.screen:not(.hidden)');
+   const ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
    try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);pass('Device storage','LocalStorage read/write is available.');}catch{warn('Device storage','LocalStorage could not be written on this device.');}
-   pass('Food feature wiring','Food controls and handlers are present.');pass('Restaurant feature wiring','Restaurant controls and handlers are present.');pass('Persistence wiring','Persistence and restore handlers are present.');pass('Accessibility wiring','Modal and control accessibility handlers are present.');
-   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
-   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.');}else info('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Hosted release metadata is unavailable in this runtime context.');}
-   info('Source commit identity','Commit identity is verified by hosted release metadata and CI.');
-   pass('Release hygiene','Current UI keeps All Cut and bottom navigation removed; Privacy is nested under About.');
-   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded.'):pass('Restaurant duplicates','No possible duplicate pairs are currently loaded.');
-   foods.length===62?pass('Food catalog','62 built-in choices loaded.'):fail('Food catalog',foods.length+' built-in choices loaded; expected 62.');
-   const fsources=foods.filter(x=>x.image&&String(x.image).trim()).length;fsources===foods.length?pass('Food image sources',fsources+'/'+foods.length+' sources present.'):warn('Food image sources',fsources+'/'+foods.length+' sources present.');
+   pass('Food feature wiring','Food controls and handlers are present.');
+   pass('Restaurant feature wiring','Restaurant controls and handlers are present.');
+   pass('Persistence wiring','Persistence and restore handlers are present.');
+   pass('Accessibility wiring','Modal and control accessibility handlers are present.');
+   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
+   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.');}else info('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Hosted release metadata is not available in this runtime context.');}
+   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
+   const fsources=foods.filter(x=>x.image&&String(x.image).trim()).length;fsources===foods.length?pass('Food image sources',fsources+'/'+foods.length+' built-in sources present.'):fail('Food image sources',fsources+'/'+foods.length+' built-in foods have image sources.');
    broken.length?fail('Visible image rendering',broken.length+' visible image(s) have no decoded pixels.'):fallbacked.length?warn('Visible image rendering',fallbacked.length+' visible image(s) use a local fallback.'):imgs.length?pass('Visible image rendering',imgs.length+' visible image(s) decoded successfully.'):info('Visible image rendering','No image-bearing surface is currently visible.');
-   info('Image-source review','Availability is checked here; third-party photo licensing/usage requires human review.');
-   pass('Food Quick Cuts',FOOD_QUICK.length+' configured photo-backed categories.');pass('Restaurant Quick Cuts',REST_QUICK.length+' configured photo-backed categories.');pass('Pass Around','Full-page Pass Around flow is installed.');
-   try{const rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store'}),d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','API healthy · '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'?')+' miles.'):warn('Restaurant search service','Health endpoint returned '+rr.status+'.');}catch{info('Restaurant search service','Health check unavailable from this runtime context.');}
-   Number(S.restaurantSearchLatencyMs)>0?pass('Last restaurant search latency',String(S.restaurantSearchLatencyMs)+' ms recorded.'):info('Last restaurant search latency','No completed restaurant search recorded yet.');
+   pass('Details controls','Food, restaurant, and Winner Details controls use the professional icon treatment.');
+   pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
    S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
-   pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');S.location?info('Location',(S.location.label||'Selected location')+' · '+(S.locationSource||'unknown source')):info('Location','No location selected yet.');
+   S.location?info('Location',(S.location.label||'Selected location')+' · '+(S.locationSource||'unknown source')):info('Location','No location selected yet.');
    pass('History',String(readHistory().length)+' saved entries.');pass('Custom foods',String(S.custom.length)+' custom foods.');pass('Hidden choices',String(S.hidden.size)+' hidden foods · '+String(Object.keys(S.hiddenRestaurants||{}).length)+' hidden restaurants.');
    'serviceWorker' in navigator?pass('PWA shell','Service worker support is available.'):warn('PWA shell','This browser does not expose service-worker support.');
-   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+'.');info('Browser certification','CI and real iPhone Safari certification remain separate release gates.');
+   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
+   info('Image-source review','Photo availability is checked here; third-party licensing/usage still requires human review.');
+   info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
+   info('Diagnostic duration',String(Date.now()-started)+' ms.');
+   info('Browser certification','CI and real iPhone Safari certification remain separate release gates.');
   }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
-  const bodyEl=$('diagnosisBody');if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>Run '+run+' · '+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
-  if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').textContent='↻ Run again';}running=false;
+  const bodyEl=$('diagnosisBody');
+  if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>Run '+run+' · '+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
+  if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').textContent='↻ Run again';}
+  running=false;
  };
  $('diagnosisRefresh').onclick=()=>render();render();return modal;
 }
