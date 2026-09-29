@@ -22,7 +22,7 @@ on:
       - 'SAVEPOINTS.md'
       - 'CURRENT-RELEASE.md'
   push:
-    branches: [clean-rebuild, clean-release-candidate, release-hardening-2026-09-29]
+    branches: [clean-rebuild, clean-release-candidate, release-hardening-2026-09-29, 'cp*-launch-hardening']
   workflow_dispatch:
 
 permissions:
