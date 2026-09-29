@@ -38,10 +38,10 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===62,'The original 62-food deck must be restored');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===64,'The Build 119 food deck must contain exactly 64 foods');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===62,'Food deck must contain exactly 62 foods');
+assert(foodRows.length===64,'Food deck must contain exactly 64 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
 for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Stouffer’s Frozen Dinner','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='118','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='119','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -132,7 +132,7 @@ assert(app.includes('privacyFromAbout') && app.includes("privacyView()"),'Privac
 assert(app.includes('CURRENT BUILD'),'About must label the build as Current Build');
 assert(app.includes("S.pool.length===1") && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
-assert(app.includes('id="restDetails"') && app.includes('card-details-action') && app.includes('Details'),'Restaurant Details must be a working professional control');
+assert(app.includes('id="restDetails"') && app.includes('icon-action') && app.includes('details-icon'),'Restaurant Details must use the professional icon button');
 assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
@@ -149,3 +149,9 @@ assert(app.includes('restaurantChoiceIndex')&&app.includes('foodChoiceIndex'),'M
 assert(css.includes('.settings-system-action.restore-action{background:#5b3fb3'),'System Restore must use a unique color');
 assert(css.includes('.home-card-photo .home-photo-img{'),'Home images must render as image elements');
 assert(app.includes('diagnosisRefresh')&&app.includes('Run again'),'App Diagnosis must have a stable rerunnable control');
+
+assert(foods.includes('"id":"vegetable-lasagna"')&&foods.includes('"id":"salisbury-steak"')&&foods.includes('"id":"stuffed-peppers"')&&!foods.includes('"id":"frozen"'),'Requested food additions/removal must be present');
+
+assert(/Food catalog contract/.test(app)&&/Food image catalog/.test(app),'App Diagnosis must provide actionable food catalog/image checks');
+
+assert(css.includes('.icon-action{')&&css.includes('.details-icon{'),'Details must use a professional icon button');
