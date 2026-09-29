@@ -2,7 +2,7 @@ const fs=require('fs'),assert=require('assert/strict');
 const foodsText=fs.readFileSync('data/foods.js','utf8');
 const appText=fs.readFileSync('app.js','utf8');
 const json=JSON.parse(foodsText.slice(foodsText.indexOf('[')).trim().replace(/;\s*$/,''));
-assert.equal(json.length,64,'Food image audit expects 64 built-in foods');
+assert.equal(json.length,65,'Food image audit expects 65 built-in foods');
 const urls=json.map(x=>String(x.image||'').trim());
 assert.equal(urls.every(x=>/^https:\/\//i.test(x)),true,'Every built-in food image must use HTTPS');
 const hosts=[...new Set(urls.map(u=>new URL(u).hostname))].sort();
