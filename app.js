@@ -8,7 +8,7 @@
   const HISTORY_KEY = 'dinliminate.clean.history';
   const HUNGRY_IMAGE = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85';
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
-  const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup','Greek','Pork','BBQ'];
+  const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
 
   const QUICK_IMAGES = {
     Southern:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=500&q=80',
@@ -286,16 +286,35 @@
 
   function restaurantCategory(row) {
     if (row.fastFood || /fast food/i.test(String(row.category || ''))) return 'Fast Food';
-    const s = (String(row.category || '')+' '+String(row.cuisine || '')+' '+String(row.name || '')).toLowerCase();
+    const s = (String(row.category || '')+' '+String(row.cuisine || '')+' '+String(row.name || '')+' '+(Array.isArray(row.menuItems)?row.menuItems.join(' '):'')).toLowerCase();
     if (/mexican|tex mex|taco|burrito/.test(s)) return 'Mexican';
     if (/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(s)) return 'Asian';
-    if (/italian|pasta|pizza/.test(s)) return 'Pasta';
+    if (/italian|pasta/.test(s)) return 'Pasta';
     if (/southern|soul|country/.test(s)) return 'Southern';
     if (/healthy|salad|vegetarian|vegan/.test(s)) return 'Healthy';
-    if (/soup|stew|chili|chowder/.test(s)) return 'Soup';
+    if (/soup|stew|chili|chowder/.test(s)) return 'Soup/Stew';
     if (/greek|mediterranean|gyro/.test(s)) return 'Greek';
-    if (/pork|bbq|barbecue/.test(s)) return /pork/.test(s) ? 'Pork' : 'BBQ';
+    if (/pork/.test(s)) return 'Pork';
+    if (/bbq|barbecue/.test(s)) return 'BBQ';
     return 'American';
+  }
+
+  function restaurantQuickMatches(row, label) {
+    const category = restaurantCategory(row);
+    if (label === 'Fast Food') return !!row.fastFood || category === 'Fast Food';
+    if (label === 'American') return category === 'American';
+    const hay = [row.name,row.brand,row.operator,row.category,row.cuisine,Array.isArray(row.menuItems)?row.menuItems.join(' '):''].filter(Boolean).join(' ').toLowerCase();
+    if (label === 'Mexican') return category === label || /mexican|tex mex|taco|burrito/.test(hay);
+    if (label === 'Asian') return category === label || /asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(hay);
+    if (label === 'Pasta') return category === label || /italian|pasta|spaghetti|lasagna|fettuccine|ravioli|ziti/.test(hay);
+    if (label === 'Southern') return category === label || /southern|soul food|country cooking/.test(hay);
+    if (label === 'Healthy') return category === label || /healthy|salad|vegetarian|vegan|grain bowl|fresh/.test(hay);
+    if (label === 'Soup/Stew') return category === label || /soup|stew|chili|chowder/.test(hay);
+    if (label === 'Potato') return /potato|fries|french fries|tater|hash brown|mashed potato/.test(hay);
+    if (label === 'Greek') return category === label || /greek|mediterranean|gyro|tzatziki/.test(hay);
+    if (label === 'Pork') return category === label || /pork|ham|bacon|sausage/.test(hay);
+    if (label === 'BBQ') return category === label || /bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(hay);
+    return category === label;
   }
 
   
@@ -357,7 +376,7 @@ function hourStatus(row){
 
   function restaurantPoolFiltered() {
     return (S.restaurantPool || []).filter(row => {
-      if (S.restaurantCuts.has(restaurantCategory(row))) return false;
+      if ([...S.restaurantCuts].some(label => restaurantQuickMatches(row, label))) return false;
       if (row._maybe || row._cut || row._hidden) return false;
       if (S.hiddenRestaurants[row.id]) return false;
       if (S.hoursMode === 'closed' ? !explicitClosed(row) : explicitClosed(row)) return false;
