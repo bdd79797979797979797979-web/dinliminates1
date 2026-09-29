@@ -683,3 +683,14 @@
 .diagnosis-action::after{content:'CHECK';position:absolute;top:5px;right:7px;font-size:7px;letter-spacing:.08em;opacity:.55}
 .diagnosis-refresh.selected{box-shadow:0 0 0 2px #bfa16b66,0 8px 20px #173f4755,inset 0 1px 0 #ffffff15!important}
 .diagnosis-refresh.complete::after{content:'READY';font-size:7px;letter-spacing:.08em;margin-left:6px;opacity:.7}
+
+/* CP244 Details + Diagnosis refinement */
+.card-card-actions{gap:8px!important;margin-top:7px!important;align-items:center!important}
+.card-card-action.icon-action{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;border-radius:8px!important;margin-top:0!important}
+.card-card-action.icon-action .details-icon{width:15px!important;height:15px!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#6a43b8,#4a2e8a)!important;color:#fff!important;border-color:#9a77d7!important;box-shadow:0 8px 20px #4a2e8a3d}
+.settings-system-action.diagnosis-action:hover{background:linear-gradient(180deg,#7650c7,#56379d)!important;border-color:#b095e8!important}
+.diagnosis-runbar{gap:9px}.diagnosis-run-status{font-variant-numeric:tabular-nums}
+.diagnosis-refresh.selected{background:linear-gradient(180deg,#d8bd79,#b2954f)!important;color:#15120d!important;border-color:#f0d79b!important}
+.diagnosis-refresh.complete{background:#171717!important;color:#d8c39b!important;border-color:#5a4c34!important}
+.diagnosis-refresh.complete::after{content:' READY';font-size:7px;letter-spacing:.08em;opacity:.78}
