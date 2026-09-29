@@ -283,6 +283,12 @@ await click('#restaurantSearch'); await settle();
 await page.locator('#restaurantQuery').fill('Pasta');
 await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Restaurant Search should filter current results');
 await page.locator('#restaurantQuery').fill(''); await settle();
+await click('#restHide'); await settle();
+assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal');
+assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i);
+await click('#appConfirmOk'); await settle();
+s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
+
 
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
 assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restaurant card should show phone number when supplied');
