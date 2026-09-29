@@ -1369,14 +1369,14 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       })();
       storageTest?pass('Device storage','LocalStorage read/write is available.'):warn('Device storage','LocalStorage could not be verified on this device.');
       const featureChecks=[
-        ['Food feature wiring',['foodStart','foodCut','foodMaybe','foodBack','foodHide','foodDetails','foodPassAround','addFood','randomOne'],['startFood','foodCut','foodMaybe','foodBack','foodHide','detailsSheet','passSetup','manageFoodsView','randomCutOne']],
-        ['Restaurant feature wiring',['restStart','restaurantMenu','restaurantPassAround','find','locate','address','radius','hoursToggle','restQuick'],['openRestaurant','searchRestaurants','useLocation','restaurantQuick','bindRestaurantTools']],
-        ['Persistence wiring',['history','settings','manage','drawer'],['save','load','readHistory','writeHistory','systemRestoreFlow','resetAppDataFlow']],
-        ['Accessibility wiring',['menu','drawerClose','offlineIndicator'],['openModal','appConfirm']]
+        ['Food feature wiring',['foodStart','foodCut','foodMaybe','foodBack','foodHide','foodDetails','foodPassAround','addFood','randomOne'],[typeof startFood==='function',typeof foodCut==='function',typeof foodMaybe==='function',typeof foodBack==='function',typeof foodHide==='function',typeof detailsSheet==='function',typeof passSetup==='function',typeof manageFoodsView==='function',typeof randomCutOne==='function']],
+        ['Restaurant feature wiring',['restStart','restaurantMenu','restaurantPassAround','find','locate','address','radius','hoursToggle','restQuick'],[typeof openRestaurant==='function',typeof searchRestaurants==='function',typeof useLocation==='function',typeof restaurantQuick==='function',typeof bindRestaurantTools==='function']],
+        ['Persistence wiring',['history','settings','manage','drawer'],[typeof save==='function',typeof load==='function',typeof readHistory==='function',typeof writeHistory==='function',typeof systemRestoreFlow==='function',typeof resetAppDataFlow==='function']],
+        ['Accessibility wiring',['menu','drawerClose','offlineIndicator'],[typeof openModal==='function',typeof appConfirm==='function']]
       ];
       for(const [label,ids,fns] of featureChecks){
         const missingIds=ids.filter(id=>!$(id));
-        const missingFns=fns.filter(fn=>typeof window[fn]==='undefined' && !candidatesInSource(fn));
+        const missingFns=fns.map((ok,i)=>ok?null:'handler-'+i).filter(Boolean);
         (missingIds.length||missingFns.length)
           ?fail(label,'Missing runtime controls/functions: '+[...missingIds,...missingFns].join(', '))
           :pass(label,'Required runtime controls and handlers are present.');
