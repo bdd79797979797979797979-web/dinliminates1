@@ -502,7 +502,7 @@ async function googleSearch(lat, lon, coverageRadiusMi) {
         'X-Goog-FieldMask': 'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types,currentOpeningHours,places.photos'
       },
       body: JSON.stringify({
-        includedTypes: ['restaurant'],
+        includedTypes: ['restaurant','fast_food'],
         maxResultCount: 20,
         locationRestriction: { circle: { center: { latitude: lat, longitude: lon }, radius: meters } }
       })
@@ -517,7 +517,7 @@ async function googleSearch(lat, lon, coverageRadiusMi) {
         name,
         type: 'restaurant',
         amenity: 'restaurant',
-        fastFood: /fast_food|meal_takeaway/i.test(String(p.primaryType || '')) || isFastFoodText(name),
+        fastFood: /fast[_ -]?food|meal_takeaway/i.test(String(p.primaryType || '')+' '+(Array.isArray(p.types)?p.types.join(' '):'')) || isFastFoodText(name),
         category: isFastFoodText(name) ? 'Fast Food' : 'Restaurant',
         cuisine: '',
         tags: isFastFoodText(name) ? ['restaurant','fast_food','fast food'] : ['restaurant'],
