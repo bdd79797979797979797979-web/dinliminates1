@@ -356,10 +356,12 @@
       return;
     }
     const item = S.pool[S.index];
-    $('foodImg').src = foodPhoto(item);
-    $('foodImg').dataset.fallback = foodPhotoFallback(item);
-    $('foodImg').onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
-    $('foodImg').alt = item.name;
+    const foodImg = $('foodImg');
+    if (!foodImg) return;
+    foodImg.src = foodPhoto(item);
+    foodImg.dataset.fallback = foodPhotoFallback(item);
+    foodImg.onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
+    foodImg.alt = item.name;
     $('foodName').textContent = item.name;
     $('foodCat').textContent = item.category;
     $('foodCount').textContent = S.pool.length + (S.pool.length === 1 ? ' choice' : ' choices');
@@ -368,10 +370,13 @@
     if (nextCard) {
       nextCard.classList.toggle('hidden', !next);
       if (next) {
-        $('foodNextImg').src = foodPhoto(next);
-        $('foodNextImg').dataset.fallback = foodPhotoFallback(next);
-        $('foodNextImg').onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
-        $('foodNextImg').alt = next.name;
+        const foodNextImg = $('foodNextImg');
+        if (foodNextImg) {
+          foodNextImg.src = foodPhoto(next);
+          foodNextImg.dataset.fallback = foodPhotoFallback(next);
+          foodNextImg.onerror = function(){ this.onerror=null; this.src=this.dataset.fallback||QUICK_IMAGES.American; };
+          foodNextImg.alt = next.name;
+        }
         nextCard.style.transform = 'scale(.96)';
       }
     }
@@ -1014,9 +1019,11 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     show('winner');
     const hungry = item?.category === 'Hungry';
     $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
-    $('winImg').classList.toggle('hungry-image', hungry);
-    $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
-    $('winImg').alt = item.name || 'Hungry';
+    const winImg = $('winImg');
+    if (!winImg) return;
+    winImg.classList.toggle('hungry-image', hungry);
+    winImg.src = item.image || item.photo || HUNGRY_IMAGE;
+    winImg.alt = item.name || 'Hungry';
     if (!hungry) triggerCelebration(); else $('celebration')?.classList.add('hidden');
     save();
   }
@@ -1511,9 +1518,12 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     if(next){
       const nsrc=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhoto(next);
       $('passNextCard').classList.remove('hidden');
-      $('passNextCard img').src=nsrc;
-      $('passNextCard img').dataset.fallback=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhotoFallback(next);
-      $('passNextCard img').onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
+      const passNextImg = $('passNextCard img');
+      if (passNextImg) {
+        passNextImg.src=nsrc;
+        passNextImg.dataset.fallback=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhotoFallback(next);
+        passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
+      }
     }
     $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
     /* Pass Around gesture is delegated by openPassSurface so redraws cannot drop the swipe binding. */
