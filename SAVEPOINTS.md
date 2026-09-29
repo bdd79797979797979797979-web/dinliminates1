@@ -400,3 +400,12 @@ Current verification:
 - Netlify deploy-preview-22 status is green.
 - Latest Chromium release QA is queued/running against the synchronized PR revision; do not mark this checkpoint release-green until that browser gate completes.
 - Vercel preview builds are currently blocked by the account build-rate-limit status.
+
+## CP96 — Original-scope cleanup
+Commit sequence ends at `10ce3ef30499fd8048afdf3c18a55611834d363e`.
+- Removed non-original All Cut UI, logic, and QA coverage.
+- Kept hungry/no-choice state and the premium Tinder-style Food + Restaurant swipe experience.
+- CP95 remains the pre-change recovery point: `40a43b147e198f9243a18688a6fbc2504beb737f`.
+- Savepoint branch: `savepoint-cp96-no-all-cut-2026-09-28`.
+- QA-only PR: #23.
+- Netlify deploy-preview-23 is green; Vercel build status is account-rate-limited.
