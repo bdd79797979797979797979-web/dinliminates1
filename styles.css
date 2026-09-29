@@ -694,3 +694,8 @@
 .diagnosis-refresh.selected{background:linear-gradient(180deg,#d8bd79,#b2954f)!important;color:#15120d!important;border-color:#f0d79b!important}
 .diagnosis-refresh.complete{background:#171717!important;color:#d8c39b!important;border-color:#5a4c34!important}
 .diagnosis-refresh.complete::after{content:' READY';font-size:7px;letter-spacing:.08em;opacity:.78}
+
+/* CP250: crisp Details icon refinement */
+.card-card-action.icon-action{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;margin-left:3px!important;flex:0 0 28px!important}
+.card-card-action.icon-action .details-icon{width:14px!important;height:14px!important;stroke-width:1.8!important}
+.card-card-actions{gap:10px!important;align-items:center!important}
