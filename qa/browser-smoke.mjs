@@ -152,7 +152,7 @@ assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a sec
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
-await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
+await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle(); console.log('Food next probe 1',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#foodNextCard'),s=window.__DINLIMINATE_QA__?.snapshot(); return {screen:s?.screen,pool:s?.foodPool?.length,index:s?.index,maybe:s?.maybe?.length,round:s?.foodMaybeRound,cls:c?.className,display:c&&getComputedStyle(c).display,rect:c?.getBoundingClientRect().toJSON(),child:c?.firstElementChild?.tagName};}))); await page.evaluate(()=>window.drawFood?.()); await settle(); console.log('Food next probe 2',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#foodNextCard'),s=window.__DINLIMINATE_QA__?.snapshot(); return {screen:s?.screen,pool:s?.foodPool?.length,index:s?.index,maybe:s?.maybe?.length,round:s?.foodMaybeRound,cls:c?.className,display:c&&getComputedStyle(c).display,rect:c?.getBoundingClientRect().toJSON(),child:c?.firstElementChild?.tagName};})));
 assert.equal((await qa()).foodPool.length,62,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
