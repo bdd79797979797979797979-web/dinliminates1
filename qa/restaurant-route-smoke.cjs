@@ -18,7 +18,7 @@ async function callNetlify(){
 
 (async()=>{
   const v=await callVercel(), n=await callNetlify();
-  assert.equal(v.status,200); assert.equal(v.body.ok,true); assert.equal(v.body.version,'r12');
-  assert.equal(n.status,200); assert.equal(n.body.ok,true); assert.equal(n.body.version,'r12');
+  assert.equal(v.status,200); assert.equal(v.body.ok,true); assert.equal(v.body.version,'r14');
+  assert.equal(n.status,200); assert.equal(n.body.ok,true); assert.equal(n.body.version,'r14');
   console.log('restaurant route adapters: PASS');
 })();
