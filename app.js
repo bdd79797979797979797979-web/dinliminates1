@@ -613,13 +613,18 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const part=block.trim();if(!part)continue;
     const dm=part.match(/^((?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?(?:,(?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?)*)\s+(.+)$/i);
     const daySpec=dm?dm[1]:null,timeSpec=dm?dm[2]:part;
-    if(daySpec&&!dayMatches(daySpec,day))continue;
     const ranges=[...timeSpec.matchAll(/(\d{1,2}:?\d{2})-(\d{1,2}:?\d{2})/g)];
     if(!ranges.length)continue;
     matched=true;
     for(const r of ranges){
       const a=parseTime(r[1]),b=parseTime(r[2]);if(!Number.isFinite(a)||!Number.isFinite(b))continue;
-      if(b>=a ? (minute>=a&&minute<=b) : (minute>=a||minute<=b))return 'open';
+      if(b>=a){
+        if((!daySpec||dayMatches(daySpec,day)) && minute>=a && minute<=b)return 'open';
+      }else{
+        const sameDay=(!daySpec||dayMatches(daySpec,day)) && minute>=a;
+        const previousDay=(!daySpec||dayMatches(daySpec,(day+6)%7)) && minute<=b;
+        if(sameDay||previousDay)return 'open';
+      }
     }
   }
   return matched ? 'closed' : 'unknown';
