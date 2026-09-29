@@ -424,7 +424,7 @@ const finalFoodBox=await page.locator('#foodCard').boundingBox(); if(!finalFoodB
 await page.mouse.move(finalFoodBox.x+55,finalFoodBox.y+finalFoodBox.height/2);
 await page.mouse.down();
 await page.mouse.move(finalFoodBox.x+finalFoodBox.width-18,finalFoodBox.y+finalFoodBox.height/2,{steps:4});
-await page.mouse.up(); await settle(); console.log('Final food swipe debug',JSON.stringify(await qa()));
+await page.mouse.up(); await settle();
 assert.equal(await visible('winner'),true,'Right swipe on final food should open Winner');
 const foodWin=await qa(); assert.equal(foodWin.winnerType,'food','Final food swipe should produce a food winner'); assert.equal(foodWin.winner?.id,finalFoodId,'Winner should be the final food'); assert.notEqual(await page.locator('#winName').innerText(),'HUNGRY ☹','Chosen food must not fall into Hungry state');
 await click('#restart'); await settle();
