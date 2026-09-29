@@ -57,6 +57,8 @@ jobs:
         run: node qa/restaurant-dedupe-smoke.cjs
       - name: Food image smoke
         run: node qa/food-image-smoke.mjs
+      - name: Image source governance audit
+        run: node qa/image-source-audit.cjs
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
       - name: Install Playwright
