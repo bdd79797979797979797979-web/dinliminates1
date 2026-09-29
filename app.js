@@ -126,6 +126,18 @@ function bindHomeImageFallbacks(){
   img.onerror=function(){const current=this.currentSrc||this.src;if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  });
 }
+function phoneHref(raw){
+ const digits=String(raw||'').replace(/[^+0-9]/g,'');
+ if(/^\+/.test(digits))return 'tel:'+digits;
+ if(/^1\d{10}$/.test(digits))return 'tel:+'+digits;
+ if(/^\d{10}$/.test(digits))return 'tel:+1'+digits;
+ return digits?'tel:'+digits:'';
+}
+function safeExternalUrl(raw){
+ try{const u=new URL(String(raw||''),location.origin);return u.protocol==='https:'?u.href:'';}catch{return '';}
+}
+const normKey=(v)=>String(v??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
 const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
 const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
