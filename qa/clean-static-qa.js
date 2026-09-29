@@ -5,7 +5,7 @@ for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant',
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r9'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r9'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
@@ -49,6 +49,8 @@ const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
 assert(stir?.image?.includes('pexels-photo-4924603.jpeg'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
+assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food') && api.includes('The Thirsty Goat'),'Restaurant search should use tagged Photon coverage plus targeted local discovery');
+assert(api.includes('Ruby Tuesday') && api.includes('Chipotle'),'Restaurant provider should cover the missing named Clarksville chains');
 console.log('Dinliminate CP108 static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 
@@ -59,6 +61,8 @@ assert(css.includes('font-size:clamp(2rem,8.1vw'),'Home headline must stay compa
 assert(css.includes('.luxury-home .home-card-photo{'),'Home choice cards must use dedicated photo backgrounds');
 assert(!html.includes('Made by Brian Dunn for Devona Dunn'),'Front page should not show attribution text');
 assert(!html.includes('Continue saved round'),'Front page should not show a Continue saved round button');
+assert(html.includes('id="backToStart"'),'Menu must include Back to Start');
+assert(html.includes('id="celebration"'),'Winner must include celebration layer');
 assert(!html.toLowerCase().includes('current app'),'HTML should not mention current app');
 assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
