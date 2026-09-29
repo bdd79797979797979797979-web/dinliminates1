@@ -23,3 +23,7 @@ Current recovery:
 - checkpoint-cp155-qa-contract-cleanup-2026-09-29
 - checkpoint-cp153-accessibility-smoke-2026-09-29
 - checkpoint-cp149-ci-concurrency-2026-09-29
+
+### Hosted verification
+- Run Hosted Vercel Smoke with the exact Vercel preview URL after deployment is available.
+- Required checks: restaurant health endpoint, release endpoint, Home render, console/page errors, and Build 116.
