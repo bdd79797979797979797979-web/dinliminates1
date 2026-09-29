@@ -35,6 +35,8 @@ jobs:
         run: node qa/clean-static-qa.js
       - name: Real provider smoke
         run: node qa/api-smoke.cjs
+      - name: API smoke
+        run: node qa/api-smoke.mjs
       - name: Install Playwright
         run: npm install --no-save playwright@1.55.0
       - name: Install Chromium
