@@ -3,7 +3,7 @@ function call(query){
   return new Promise((resolve,reject)=>{
     let out={statusCode:200,body:null};
     const res={status(code){out.statusCode=code;return res},json(body){out.body=body;resolve(out);return res}};
-    Promise.resolve(handler({url:'/?'+new URLSearchParams(query).toString(),headers:{},res)).catch(reject);
+    Promise.resolve(handler({url:'/?'+new URLSearchParams(query).toString(),headers:{}},res)).catch(reject);
   });
 }
 (async()=>{
