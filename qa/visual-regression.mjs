@@ -7,11 +7,12 @@ import {chromium} from 'playwright';
 import {PNG} from 'pngjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
 const server=http.createServer((req,res)=>{
   const pathname=decodeURIComponent((req.url||'/').split('?')[0]),rel=pathname==='/'?'index.html':pathname.replace(/^\//,'');
   const file=path.join(root,rel);
   if(!file.startsWith(root)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404);res.end('not found');return;}
-  res.writeHead(200,{'Content-Type':path.extname(file)==='.html'?'text/html':path.extname(file)==='.js'?'text/javascript':'text/plain'});fs.createReadStream(file).pipe(res);
+  res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'text/plain'});fs.createReadStream(file).pipe(res);
 });
 await new Promise(r=>server.listen(4176,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
