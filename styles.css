@@ -587,3 +587,17 @@
 /* CP242 — iPhone touch targets: keep the controls visually compact but give primary controls a 40px+ hit area */
 #foodMenu{min-width:40px;min-height:40px}
 .decision-bottom .bottom-util{min-height:40px;height:40px}
+
+/* CP229 — App Diagnosis */
+.diagnosis-wrap{padding-bottom:8px}
+.diagnosis-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:4px 0 12px;border-bottom:1px solid #302a22}
+.diagnosis-summary>b{font-size:16px;letter-spacing:-.02em}
+.diagnosis-summary>span{font-size:9px;color:#a79f93;text-align:right}
+.diagnosis-row{display:grid;grid-template-columns:28px minmax(0,1fr);gap:9px;align-items:start;padding:10px 0;border-bottom:1px solid #29251f}
+.diagnosis-mark{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;background:#24211d;color:#d8c8a8}
+.diagnosis-row.ok .diagnosis-mark{background:#243024;color:#bfe0b5}
+.diagnosis-row.warn .diagnosis-mark{background:#342c1f;color:#e4c17b}
+.diagnosis-row.fail .diagnosis-mark{background:#3a241f;color:#f0a497}
+.diagnosis-row b{display:block;font-size:11px;color:#f1eadf}
+.diagnosis-row small{display:block;margin-top:2px;font-size:9px;line-height:1.45;color:#aaa196}
+.diagnosis-refresh{width:100%;min-height:42px;border-radius:12px;margin-top:12px}
