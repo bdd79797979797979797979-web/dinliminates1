@@ -7,7 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '110';
+  const APP_BUILD = '111';
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -89,7 +89,6 @@
     };
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
     S.saved = true;
-    updateContinue();
   }
 
   function load() {
@@ -119,11 +118,6 @@
     } catch { return false; }
   }
 
-  function updateContinue() {
-    const active = (S.screen !== 'winner') && ((S.pool?.length || 0) > 0 || (S.restaurantPool?.length || 0) > 0);
-    $('continue')?.classList.toggle('hidden', !S.saved || !active);
-  }
-
   function show(screen) {
     document.querySelectorAll('.screen').forEach(x => x.classList.add('hidden'));
     $(screen)?.classList.remove('hidden');
@@ -144,7 +138,6 @@
     closeOverlays();
     S.screen = 'home';
     show('home');
-    updateContinue();
   }
 
   function foodPool() {
@@ -599,9 +592,16 @@ function hourStatus(row){
     S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
     const row = rows[S.restaurantIndex];
     const category = restaurantCategory(row);
-    const image = row.photo || row.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    const restaurantFallback = (r) => {
+      const s = String(r?.name||'').toLowerCase();
+      if (/ruby tuesday/.test(s)) return 'https://s.wsj.net/public/resources/images/BN-VP628_31fHe_OR_20171016100013.jpg';
+      if (/chipotle/.test(s)) return 'https://photos.zillowstatic.com/fp/524675e3749c32d6b928e285dabf619f-cc_ft_960.jpg';
+      if (/thirsty goat/.test(s)) return 'https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg';
+      return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    };
+    const image = row.photo || row.image || restaurantFallback(row);
     const nextRow = rows[S.restaurantIndex + 1];
-    const nextImage = nextRow?.photo || nextRow?.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
+    const nextImage = nextRow?.photo || nextRow?.image || restaurantFallback(nextRow);
     const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
     const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
@@ -636,11 +636,17 @@ function hourStatus(row){
   }
 
   function restaurantMaybe(row) {
+    if (!row) return;
+    const rowsBefore = restaurantPoolFiltered();
+    if (rowsBefore.length === 1) {
+      // A right-swipe/Maybe on the final restaurant means Keep it: it is the winner.
+      winner(row);
+      return;
+    }
     S.restaurantActions.push({type:'maybe', id:row.id, index:S.restaurantIndex});
     row._maybe = true;
     const remaining = restaurantPoolFiltered();
-    if (remaining.length === 1) winner(remaining[0]);
-    else if (!remaining.length) drawRestaurants();
+    if (!remaining.length) drawRestaurants();
     else { S.restaurantIndex = Math.min(S.restaurantIndex, remaining.length - 1); drawRestaurants(); }
     save();
   }
@@ -732,6 +738,27 @@ function hourStatus(row){
     };
   }
 
+  function triggerCelebration() {
+    const el = $('celebration');
+    if (!el) return;
+    el.innerHTML = '';
+    const colors = ['#ffb04a','#ffd76a','#f5f1e8','#ff6b57','#9ee7ff'];
+    for (let b=0;b<3;b++) {
+      const burst = document.createElement('div');
+      burst.className='firework-burst burst-'+(b+1);
+      for (let i=0;i<18;i++) {
+        const p=document.createElement('span');
+        p.style.setProperty('--angle',(i*20)+'deg');
+        p.style.setProperty('--delay',(b*0.11 + (i%5)*0.015)+'s');
+        p.style.setProperty('--color',colors[i%colors.length]);
+        burst.appendChild(p);
+      }
+      el.appendChild(burst);
+    }
+    el.classList.remove('hidden');
+    window.setTimeout(()=>el.classList.add('hidden'),2400);
+  }
+
   function winner(item) {
     S.winnerItem = item;
     S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
@@ -742,6 +769,7 @@ function hourStatus(row){
     $('winImg').classList.toggle('hungry-image', hungry);
     $('winImg').src = item.image || item.photo || HUNGRY_IMAGE;
     $('winImg').alt = item.name || 'Hungry';
+    if (!hungry) triggerCelebration(); else $('celebration')?.classList.add('hidden');
     save();
   }
 
@@ -853,9 +881,14 @@ function hourStatus(row){
         const row = history.find(x => x.date === btn.dataset.historyDate);
         if (row) detailsSheet(row, row.type);
       });
-      modal.querySelectorAll('[data-history-delete]').forEach(btn => btn.onclick = () => {
-        writeHistory(history.filter(x => x.date !== btn.dataset.historyDelete));
-        modal.remove(); $('historyModalBg')?.remove(); render();
+      modal.querySelectorAll('[data-history-delete]').forEach(btn => {
+        const remove = (e) => {
+          e.preventDefault(); e.stopPropagation();
+          writeHistory(history.filter(x => x.date !== btn.dataset.historyDelete));
+          modal.remove(); $('historyModalBg')?.remove(); render();
+        };
+        btn.onclick = remove;
+        btn.onpointerdown = (e) => e.stopPropagation();
       });
     };
     render();
@@ -978,10 +1011,10 @@ function hourStatus(row){
     const deletedFoods=allFoods().filter(x=>S.deleted.has(x.id));
     const hiddenRestaurants=Object.values(S.hiddenRestaurants);
     const body='<div class="settings-stack">'+
-      '<h4>Hidden Choices</h4><div>'+
-      (hiddenFoods.length?hiddenFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><span class="food-row-actions"><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button><button class="restore danger-lite" data-setting-food-delete="'+esc(x.id)+'">Delete</button></span></div>').join(''):'<p class="status">No hidden foods.</p>')+
-      '</div><h4>Deleted Foods</h4><div>'+
-      (deletedFoods.length?deletedFoods.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No deleted foods.</p>')+
+      '<h4>Food Choices</h4><div class="settings-food-choices">'+
+      ((hiddenFoods.length||deletedFoods.length)?hiddenFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Hidden</small></span><span class="food-row-actions"><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button><button class="restore danger-lite" data-setting-food-delete="'+esc(x.id)+'">Delete</button></span></div>').join(''):'')+
+      deletedFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Deleted</small></span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join('')+
+      ((!hiddenFoods.length&&!deletedFoods.length)?'<p class="status">No hidden or deleted foods.</p>':'')+
       '</div><h4>Hidden Restaurants</h4><div>'+
       (hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+
       '</div><h4>System</h4><button class="secondary" id="systemRestore" style="width:100%;min-height:46px;border-radius:13px">System Restore</button><p class="status">Restores the original foods and clears saved round changes.</p></div>';
@@ -1008,7 +1041,7 @@ function hourStatus(row){
       if(!confirm('Restore the default Dinliminate setup and clear saved round changes?'))return;
       S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.custom=[]; S.cutCats.clear(); S.cutPrimary.clear(); S.maybe.clear(); S.pool=[]; S.restaurantPool=[]; S.restaurantCuts.clear(); S.restaurantActions=[]; S.foodActions=[]; S.index=0; S.restaurantIndex=0; S.restaurantQuery=''; S.location=null; S.saved=false; S.winnerItem=null; S.pass=null;
       try{localStorage.removeItem(KEY)}catch{}
-      home(); updateContinue(); modal.remove(); $('settingsModalBg')?.remove();
+      home();  modal.remove(); $('settingsModalBg')?.remove();
     };
   }
 
@@ -1161,6 +1194,7 @@ function hourStatus(row){
   $('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
   $('settings').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); settingsView(); };
   $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); aboutView(); };
+  $('backToStart').onclick = () => home();
   $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
   $('iphoneHelp').onclick = iphoneHelp;
 
@@ -1179,7 +1213,7 @@ function hourStatus(row){
 
 
 
-  S.saved = load() || false;
+  load();
   if (S.saved && S.screen === 'food' && S.pool.length) {
     show('food'); foodQuick(); drawFood();
   } else if (S.saved && S.screen === 'restaurant' && S.restaurantPool.length) {
@@ -1212,6 +1246,4 @@ function hourStatus(row){
       })
     };
   }
-
-  updateContinue();
 })();
