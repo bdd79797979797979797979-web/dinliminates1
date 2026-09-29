@@ -223,8 +223,11 @@ s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant 
 await click('#restBack'); await settle();
 s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should undo Maybe swipe');
 
-await assert.ok((await page.locator('#restStage').innerText()).includes('Common'),'restaurant card should show provider-supplied common menu items');
-await click('#restDetails'); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); await page.locator('#detailsModal [data-close]').click(); await settle();
+await page.locator('#restaurantSearch').click(); await settle();
+await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
+assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac · Fries'),true,'restaurant card should show provider-supplied common menu items');
+await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Common menu items'),true,'Restaurant Details should show common menu items when supplied'); assert.equal((await page.locator('#detailsModal').innerText()).includes('Big Mac'),true,'Restaurant Details should show the supplied menu items'); await page.locator('#detailsModal [data-close]').click(); await settle();
+await page.locator('#restaurantQuery').fill(''); await settle();
 
 const hideDialog=page.waitForEvent('dialog'); const hideClick=click('#restHide'); const dlg=await hideDialog; assert.equal(dlg.type(),'confirm','Restaurant Hide should ask for confirmation'); await dlg.accept(); await hideClick; await settle(); s=await qa(); console.log('Restaurant hide QA state',JSON.stringify({hiddenRestaurants:s.hiddenRestaurants,restaurantPool:s.restaurantPool})); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 await page.locator('#menu').click({force:true});
