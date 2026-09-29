@@ -91,6 +91,7 @@ assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWid
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
 await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
+await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
 assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
