@@ -394,13 +394,36 @@ function foodBack(){
 }
 
 function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
-const card=$(cardId); if(!card)return;
-let downX=0,active=false; const next=$(nextId);
-const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-card.onpointerdown=e=>{if(e.target.closest('button,a,input,select'))return;downX=e.clientX;active=true;try{card.setPointerCapture(e.pointerId)}catch{}};
-card.onpointermove=e=>{if(!active)return;const dx=e.clientX-downX;if(Math.abs(dx)>8){card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}};
-card.onpointerup=e=>{if(!active)return;active=false;const dx=e.clientX-downX;if(Math.abs(dx)>90){card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';setTimeout(()=>{reset();dx<0?onCut():onMaybe()},110)}else reset();};
-card.onpointercancel=()=>{active=false;reset();};
+ const card=$(cardId);if(!card)return;
+ const next=$(nextId);let downX=0,active=false,pointerId=null;
+ card.style.touchAction='none';
+ const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+ const finish=(e)=>{
+  if(!active)return;active=false;
+  const x=Number(e?.clientX||downX),dx=x-downX;
+  try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
+  pointerId=null;
+  if(Math.abs(dx)>90){
+   card.style.transition='transform .16s ease,opacity .16s ease';
+   card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+   const action=dx<0?onCut:onMaybe;
+   setTimeout(()=>{reset();action();},80);
+  }else reset();
+ };
+ card.onpointerdown=e=>{
+  if(e.button!=null&&e.button!==0)return;
+  if(e.target.closest?.('button,a,input,select'))return;
+  downX=e.clientX;active=true;pointerId=e.pointerId??null;card.dataset.swipe='';
+  try{card.setPointerCapture?.(e.pointerId);}catch{}
+ };
+ card.onpointermove=e=>{
+  if(!active)return;
+  const dx=e.clientX-downX;
+  if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}
+ };
+ card.onpointerup=finish;
+ card.onpointercancel=()=>{active=false;pointerId=null;reset();};
+ card.onlostpointercapture=()=>{if(active)finish({clientX:downX});};
 }
 function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
