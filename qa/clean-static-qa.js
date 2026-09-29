@@ -38,12 +38,12 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===62,'The original 62-food deck must be restored');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===65,'The current 65-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===62,'Food deck must contain exactly 62 foods');
+assert(foodRows.length===65,'Food deck must contain exactly 62 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
-for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cheerios Cereal','Stouffer’s Frozen Dinner','Fish Sticks']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
 assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
@@ -73,7 +73,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='117','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='123','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -132,7 +132,7 @@ assert(app.includes('privacyFromAbout') && app.includes("privacyView()"),'Privac
 assert(app.includes('CURRENT BUILD'),'About must label the build as Current Build');
 assert(app.includes("S.pool.length === 1") && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
-assert(app.includes("id=\"restDetails\"") && app.includes("ⓘ"),'Restaurant Details must be a working info-symbol control');
+assert(app.includes('id="restDetails"') && app.includes('icon-action') && app.includes('details-icon'),'Restaurant Details must be a working compact icon control');
 assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
