@@ -620,3 +620,5 @@
 /* CP241: contain home images so they never intercept card interaction. */
 .home-card-photo{position:relative;overflow:hidden;}
 .home-card-photo .home-photo-img{pointer-events:none;}
+
+.home-card-photo .home-card-overlay{pointer-events:none;}
