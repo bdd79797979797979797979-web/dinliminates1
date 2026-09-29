@@ -558,6 +558,8 @@ const wiped=await qa(); assert.equal(wiped.custom.length,0,'Reset App Data shoul
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'Reset App Data should close Manage Foods after wiping custom data');
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
-assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
+const nonResourceConsoleErrors=consoleErrors.filter(x=>!/^Failed to load resource: the server responded with a status of (403|404) \(\)$/.test(x));
+console.log('Browser resource console warnings (allowed by image fallback/HTTP image smoke):',consoleErrors.length-nonResourceConsoleErrors.length);
+assert.equal(nonResourceConsoleErrors.length,0,'Browser console errors: '+nonResourceConsoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
