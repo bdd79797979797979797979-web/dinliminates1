@@ -122,8 +122,9 @@ function sameRestaurant(x,r){
   if(sameName)return dist<=0.15 || sameAddress || sameContact(x,r);
   if(sameContact(x,r))return dist<=0.2;
   if(sameAddress&&variant)return true;
-  // Provider labels such as "Robert Heads BBQ" vs "Heads BBQ" can describe the same site.
-  return variant && dist<=0.2;
+  // Different names must share a verified address/contact match before merging.
+  // This prevents nearby businesses with similar names from collapsing into one card.
+  return false;
 }
 function dedupe(rows){
   rows=[...(rows||[])].sort((a,b)=>providerPriority(a)-providerPriority(b));
