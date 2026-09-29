@@ -1,12 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": "120",
+  "build": "121",
   "sourceBranch": "release-hardening-2026-09-29",
-  "releaseMode": "candidate",
-  "production": false,
-  "vercelProject": "dinliminates1",
-  "vercelProductionVerified": false,
-  "netlify": "legacy/backup",
-  "checkpoint": "CP244"
+  "checkpoint": "CP242"
 }
