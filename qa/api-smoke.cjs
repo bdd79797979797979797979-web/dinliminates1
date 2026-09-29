@@ -26,6 +26,16 @@ function call(query){
  const exact=await call({mode:'resolve',q:'801 Iron Workers Rd, Clarksville, TN 37043'});
  if(exact.statusCode!==200||!exact.body?.ok)throw new Error('Iron Workers address resolve failed: '+JSON.stringify(exact.body));
  const local=await call({mode:'search',lat:exact.body.lat,lon:exact.body.lon,radius:'10'});
+ const localNameList=(local.body.results||[]).map(x=>String(x.name||''));
+ const family=(name)=>String(name||'').toLowerCase().replace(/[’']s\\b/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\\s+/g,' ').trim();
+ const ironPairs=[];
+ for(let i=0;i<localNameList.length;i++)for(let j=i+1;j<localNameList.length;j++){
+   const aa=family(localNameList[i]),bb=family(localNameList[j]);
+   const xi=local.body.results[i],xj=local.body.results[j];
+   const dt=(Number.isFinite(xi.lat)&&Number.isFinite(xi.lon)&&Number.isFinite(xj.lat)&&Number.isFinite(xj.lon))?Math.hypot((xi.lat-xj.lat)*69,(xi.lon-xj.lon)*55):999;
+   if(dt<=0.2 && ((aa.includes('head')&&aa.includes('bbq')&&bb.includes('head')&&bb.includes('bbq')) || (aa.includes('chris')&&aa.includes('pizza')&&bb.includes('chris')&&bb.includes('pizza')))) ironPairs.push([localNameList[i],localNameList[j],dt]);
+ }
+ if(ironPairs.length) throw new Error('Iron Workers duplicate restaurant records remain: '+JSON.stringify(ironPairs));
  if(local.statusCode!==200||!local.body?.ok)throw new Error('Iron Workers restaurant search failed: '+JSON.stringify(local.body));
  const localNames=(local.body.results||[]).map(x=>String(x.name||'').toLowerCase());
  const required=['ruby tuesday','chipotle','thirsty goat'];
