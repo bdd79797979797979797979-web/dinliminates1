@@ -130,8 +130,21 @@ assert.equal(s.foodPool.includes('wings'),true,'cutting Chicken Tenders must not
 assert.equal(s.foodPool.includes('chicken-dumplings'),true,'cutting Chicken Tenders must not remove Chicken & Dumplings');
 await click('#foodBack'); await settle();
 
-await click('#restart'); await settle();
+await click('#foodBackTop'); await settle();
+assert.equal((await qa()).screen,'home','top Back should return to the home screen');
 await click('#foodStart'); await settle();
+
+// Menu + Food Details + Hide must be clickable.
+await click('#foodMenu'); await settle();
+assert.equal(await visible('drawer'),true,'Food Menu should open the drawer');
+await click('#drawerClose'); await settle();
+await page.locator('#foodDetails').click(); await settle();
+assert.equal(await visible('detailsModal'),true,'Food Details should open the Details sheet');
+assert.equal(await page.locator('#detailsModal').locator('text=Typical nutrition').count()>0,true,'Food Details should show typical nutrition');
+assert.equal(await page.locator('#detailsModal').locator('text=Ingredients').count()>0,true,'Food Details should show ingredients');
+assert.equal(await page.locator('#detailsModal #detailHide').count(),1,'Food Details should include Hide');
+await page.locator('#detailsModal [data-close]').click(); await settle();
+
 
 await click('#foodPassAround'); await settle();
 assert.equal(await visible('passSetup'),true,'Pass Around setup should open');
@@ -160,6 +173,22 @@ await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction((
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
+
+// Restaurant card controls must all be real interactive elements.
+await page.locator('#restDetails').click(); await settle();
+assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet');
+await page.locator('#detailsModal [data-close]').click(); await settle();
+const restBeforeButtons=await qa();
+const restFirstId=restBeforeButtons.restaurantPool[0];
+await click('#restCut'); await settle();
+let restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),false,'Restaurant Cut should remove the current card');
+await click('#restBack'); await settle();
+restAfterButtons=await qa(); assert.equal(restAfterButtons.restaurantPool.includes(restFirstId),true,'Restaurant Back should restore the current card');
+await click('#restMaybe'); await settle();
+restAfterButtons=await qa(); assert.equal(restAfterButtons.maybe.length,1,'Restaurant Maybe should move the current card out');
+await click('#restBack'); await settle();
+restAfterButtons=await qa(); assert.equal(restAfterButtons.maybe.length,0,'Restaurant Back should restore Maybe');
+
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
 s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false); assert.equal(s.restaurantPool.includes('taco-1'),false); assert.equal(s.restaurantPool.includes('waffle-1'),true);
