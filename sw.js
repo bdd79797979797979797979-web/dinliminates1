@@ -1,4 +1,4 @@
-const CACHE='dinliminate-shell-v2';
+const CACHE='dinliminate-shell-v117';
 const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./manifest.webmanifest','./release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -10,7 +10,7 @@ self.addEventListener('fetch',event=>{
   const req=event.request;
   if(req.method!=='GET')return;
   const url=new URL(req.url);
-  const imageHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','www.cooksoups.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com'];
+  const imageHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','recipesclare.com','www.ajsbbq.co.nz','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','www.pastapiracy.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','www.cooksoups.com','bigbitesedenderry.com','kookycrunch.com','www.goodnes.com'];
   if(url.origin!==self.location.origin && !imageHosts.includes(url.hostname))return;
   if(url.origin===self.location.origin && url.pathname.startsWith('/api/'))return;
   if(req.mode==='navigate'){

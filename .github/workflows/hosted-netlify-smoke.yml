@@ -2,7 +2,7 @@ name: Dinliminate Hosted Netlify Preview Smoke
 
 on:
   push:
-    branches: [release-hardening-2026-09-29]
+    branches: [release-hardening-2026-09-29, 'cp*-launch-hardening']
   workflow_dispatch:
 
 permissions:

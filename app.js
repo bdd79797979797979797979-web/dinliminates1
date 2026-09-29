@@ -7,7 +7,8 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  let APP_BUILD = '116';
+  const RELEASE_SOURCE_BRANCH = 'cp238-launch-hardening';
+  let APP_BUILD = '117';
   fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
@@ -19,13 +20,13 @@
     Asian:'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg?auto=compress&cs=tinysrgb&w=700', // Fried Rice
     Mexican:'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=700', // Tacos / Mexican Stir Fry family
     Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700', // Pork Chops
-    'Soup/Stew':'https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg', // Potato Soup
+    'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700', // Soup & Sandwich
     Healthy:'https://images.pexels.com/photos/11906476/pexels-photo-11906476.jpeg?auto=compress&cs=tinysrgb&w=700', // Salad Bowl
-    Breakfast:'https://commons.wikimedia.org/wiki/Special:FilePath/Eggs%20and%20bacon.jpg?width=700', // Bacon & Eggs
+    Breakfast:'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=700', // Eggs & Toast
     American:'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=700', // Burger
     Greek:'https://images.pexels.com/photos/6941006/pexels-photo-6941006.jpeg?auto=compress&cs=tinysrgb&w=700', // Gyro
     Snack:'https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=700&q=85', // Popcorn
-    Potato:'https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/loaded_baked_potato.jpg' // Loaded Baked Potato
+    Potato:'https://images.pexels.com/photos/273825/pexels-photo-273825.jpeg?auto=compress&cs=tinysrgb&w=700' // Roasted potatoes
   };
 
   const REST_QUICK_IMAGES = {
@@ -36,7 +37,7 @@
     Pasta:'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=700',
     Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700',
     Healthy:'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg?auto=compress&cs=tinysrgb&w=700',
-    'Soup/Stew':'https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg',
+    'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700',
     Potato:'https://images.pexels.com/photos/1442066/pexels-photo-1442066.jpeg?auto=compress&cs=tinysrgb&w=700',
     Greek:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
     Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700',
@@ -63,6 +64,7 @@
     hoursMode:'openUnknown',
     location:null,
     locationSource:'none',
+    restaurantSearchLatencyMs:0,
     saved:false,
     storageWarning:false,
     restaurantSearchDegraded:false,
@@ -730,6 +732,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
 
   let suggestTimer = 0;
   let suggestSeq = 0;
+  let suggestionIndex = -1;
   const suggestCache = new Map();
   async function suggestAddresses() {
     const q = $('address').value.trim();
@@ -757,6 +760,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function renderSuggestions(rows) {
+    suggestionIndex = -1;
     let box = $('suggestionsBox');
     if (!box) {
       box = document.createElement('div');
@@ -764,12 +768,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       $('address').insertAdjacentElement('afterend', box);
     }
     box.innerHTML = (rows || []).map((row, i) =>
-      '<button type="button" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
+      '<button type="button" role="option" aria-selected="false" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
     ).join('');
-    box.style.display = rows?.length ? 'grid' : 'none';
+    const hasRows=!!rows?.length;
+    box.hidden=!hasRows;
+    box.style.display=hasRows ? 'grid' : 'none';
+    $('address')?.setAttribute('aria-expanded',String(hasRows));
     box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
       btn.onclick = async () => {
         const row = rows[i];
+        suggestionIndex = -1;
         setLocation(row.lat, row.lon, row.display,'address');
         clearSuggestions();
         $('status').textContent = 'Location selected. Searching restaurants…';
@@ -779,8 +787,19 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function clearSuggestions() {
+    suggestionIndex = -1;
     const box = $('suggestionsBox');
-    if (box) box.style.display = 'none';
+    if (box) { box.style.display = 'none'; box.hidden=true; }
+    $('address')?.setAttribute('aria-expanded','false');
+  }
+
+  function moveSuggestion(delta){
+    const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+    if(!opts.length)return false;
+    suggestionIndex=(suggestionIndex+delta+opts.length)%opts.length;
+    opts.forEach((el,i)=>el.setAttribute('aria-selected',String(i===suggestionIndex)));
+    opts[suggestionIndex].scrollIntoView?.({block:'nearest'});
+    return true;
   }
 
   let restaurantSearchSeq = 0;
@@ -817,6 +836,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
       S.restaurantTimezone = String(d.timezone||'');
       S.restaurantSearchDegraded = !!(d.providerErrors?.length);
+      S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
+      S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||18000;
       S.restaurantPool = uniq((d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})));
       S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantCuts.clear(); S.restaurantQuery = ''; S.hoursMode = 'openUnknown';
       renderHours(); S.winnerItem = null;
@@ -1144,7 +1165,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
             '<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
       }
       body += '</div></div><div class="history-list">';
-      body += history.length ? history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(x.image)+'" alt=""><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
+      body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(x.image)+'" alt=""><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
       body += '</div>';
       const modal = openModal('historyModal','History',body);
       $('calPrev').onclick = () => { cursor = new Date(y,m-1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
@@ -1157,6 +1178,12 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         const row = history.find(x => x.id === btn.dataset.historyDate);
         if (row) detailsSheet(row, row.type);
       });
+      if(history.length){
+        $('historyClearAll').onclick=async()=>{
+          if(!await appConfirm('Clear history?','This permanently removes all saved food and restaurant decisions from this device.','Clear History'))return;
+          writeHistory([]); modal.remove(); $('historyModalBg')?.remove(); render();
+        };
+      }
       modal.querySelectorAll('[data-history-delete]').forEach(btn => {
         const remove = (e) => {
           e.preventDefault(); e.stopPropagation();
@@ -1360,18 +1387,50 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       const foodSources=builtins.filter(x=>typeof x?.image==='string'&&x.image.trim()).length;
       const foodQuickCount=FOOD_QUICK.length,restQuickCount=REST_QUICK.length;
       const duplicateRows=diagnosisRestaurantDuplicates(S.restaurantPool||[]);
-      const overflow=await Promise.resolve({x:document.documentElement.scrollWidth>document.documentElement.clientWidth,y:false});
+      const surface=document.querySelector('.screen:not(.hidden)');
+      const surfaceStyle=surface?getComputedStyle(surface):null;
+      const overflow=await Promise.resolve({x:document.documentElement.scrollWidth>document.documentElement.clientWidth || (!!surface && surface.scrollWidth>surface.clientWidth+1),y:document.documentElement.scrollHeight>window.innerHeight+2 || (!!surface && surface.scrollHeight>surface.clientHeight+2)});
       const storageTest=(()=>{
         try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch{return false}
       })();
       storageTest?pass('Device storage','LocalStorage read/write is available.'):warn('Device storage','LocalStorage could not be verified on this device.');
-      pass('Food decision flow','Food Cut, Maybe, Back, Hide, winner, Details, Share, Random Cut One, Quick Cuts, Add Food, History, System Restore, and Reset App Data are wired.');
-      pass('Restaurant decision flow','Restaurant swipe deck, Cut, Maybe, Back, Hide, Details, Website/Google fallback, phone link, Quick Cuts, hours filter, address selection, and retry are wired.');
-      pass('Location flow','Address suggestions, selected-address search, Use My Location, radius control, timezone-aware hours, and stale-request protection are wired.');
-      pass('Persistence','Food/restaurant history, hidden choices, custom foods, saved state, photo storage migration, and reset/restore flows are wired.');
-      pass('Accessibility','Modal semantics, Escape/backdrop close, focus management, labels, and interactive hit targets are wired.');
-      pass('Release hygiene','All Cut UI is removed; Privacy is nested under About; About reports Current Build; no bottom navigation is used.');
-      pass('Restaurant data quality','Provider merging, fast-food classification, real-location duplicate regression, and bounded 100-mile radius are covered by automated QA.');
+      const featureChecks=[
+        ['Food feature wiring',['foodStart','foodCut','foodMaybe','foodBack','foodHide','foodDetails','foodPassAround','addFood','randomOne'],[typeof startFood==='function',typeof foodCut==='function',typeof foodMaybe==='function',typeof foodBack==='function',typeof foodHide==='function',typeof detailsSheet==='function',typeof passSetup==='function',typeof manageFoodsView==='function',typeof randomCutOne==='function']],
+        ['Restaurant feature wiring',['restStart','restaurantMenu','restaurantPassAround','find','locate','address','radius','hoursToggle','restQuick'],[typeof openRestaurant==='function',typeof searchRestaurants==='function',typeof useLocation==='function',typeof restaurantQuick==='function',typeof bindRestaurantTools==='function']],
+        ['Persistence wiring',['history','settings','manage','drawer'],[typeof save==='function',typeof load==='function',typeof readHistory==='function',typeof writeHistory==='function',typeof systemRestoreFlow==='function',typeof resetAppDataFlow==='function']],
+        ['Accessibility wiring',['menu','drawerClose','offlineIndicator'],[typeof openModal==='function',typeof appConfirm==='function']]
+      ];
+      for(const [label,ids,fns] of featureChecks){
+        const missingIds=ids.filter(id=>!$(id));
+        const missingFns=fns.map((ok,i)=>ok?null:'handler-'+i).filter(Boolean);
+        (missingIds.length||missingFns.length)
+          ?fail(label,'Missing runtime controls/functions: '+[...missingIds,...missingFns].join(', '))
+          :pass(label,'Required runtime controls and handlers are present.');
+      }
+      overflow.x||overflow.y
+        ?warn('Viewport overflow','Horizontal '+(overflow.x?'overflow detected':'clear')+' · vertical '+(overflow.y?'content exceeds the current viewport/surface':'clear')+'.')
+        :pass('Viewport overflow','No horizontal overflow and no page/surface overflow detected.');
+      const releaseCheck=await (async()=>{
+        try{
+          const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'});
+          const d=await rr.json();
+          if(!rr.ok||!d?.ok && !d?.name)return {state:'warn',detail:'Release endpoint returned HTTP '+rr.status+'.'};
+          const buildMatch=String(d.build)===String(APP_BUILD);
+          const branch=String(d.branch||'');
+          const branchMatch=!branch || branch===RELEASE_SOURCE_BRANCH;
+          if(buildMatch&&branchMatch)return {state:'ok',detail:'Build '+d.build+' · branch '+(branch||RELEASE_SOURCE_BRANCH)+' · deployment commit '+(d.commit||'not exposed by this environment')+'.'};
+          return {state:'fail',detail:'Runtime release mismatch: expected build '+APP_BUILD+' / branch '+RELEASE_SOURCE_BRANCH+'; got build '+d.build+' / branch '+branch+'.'};
+        }catch(e){return {state:'warn',detail:'Release endpoint could not be verified from this browser.'};}
+      })();
+      checks.push({state:releaseCheck.state,label:'Runtime release identity',detail:releaseCheck.detail});
+      const appSha=String(document.querySelector('meta[name="dinliminate-commit"]')?.content||'').trim();
+      appSha?pass('Source commit identity','Embedded commit '+appSha+'.'):warn('Source commit identity','This static shell does not embed a commit SHA; hosted /api/release is the source of deployment truth.');
+      const releaseHygiene=!!document.querySelector('#winner')&&!document.querySelector('#bottomNav')&&!document.querySelector('#privacy');
+      releaseHygiene?pass('Release hygiene','Current UI has no All Cut control, no bottom navigation, and Privacy is nested under About.'):fail('Release hygiene','Legacy release UI elements are still present.');
+      const duplicateCount=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;
+      duplicateCount?warn('Restaurant duplicates',duplicateCount+' possible near-name/same-site duplicate pairs are currently loaded.'):pass('Restaurant duplicates','No possible duplicate pairs are present in the current loaded pool.');
+      pass('Restaurant data quality runtime','Current loaded pool is being checked for duplicate candidates and fast-food markers.');
+
       if(foodCount===62)pass('Food catalog','62 built-in food choices loaded.');else fail('Food catalog',foodCount+' built-in food choices loaded; expected 62.');
       if(foodSources===foodCount)pass('Food photos',foodSources+'/'+foodCount+' built-in food image sources are present.');else warn('Food photos',foodSources+'/'+foodCount+' built-in foods have image sources.');
       foodQuickCount===12?pass('Food Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Food Quick Cuts',foodQuickCount+' categories configured.');
@@ -1385,6 +1444,11 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
           pass('Restaurant search service','API healthy · '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'?')+' miles.');
         }else fail('Restaurant search service','Health endpoint returned '+rr.status+'.');
       }catch{warn('Restaurant search service','Health endpoint could not be reached from this device/build.');}
+      if(Number(S.restaurantSearchLatencyMs)>0){
+        const latency=Number(S.restaurantSearchLatencyMs);
+        const budget=Number(S.restaurantSearchBudgetMs)||18000;
+        latency>budget?warn('Last restaurant search latency',''+latency+' ms exceeded the '+budget+' ms service budget.') : pass('Last restaurant search latency',''+latency+' ms within the '+budget+' ms service budget.');
+      }else warn('Last restaurant search latency','No completed restaurant search latency is available on this device yet.');
       if(S.restaurantPool?.length){
         const ff=(S.restaurantPool||[]).filter(x=>x.fastFood).length;
         pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+ff+' marked fast food.');
@@ -1398,8 +1462,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
       if('serviceWorker' in navigator) pass('PWA shell','Service worker support is available in this browser.'); else warn('PWA shell','This browser does not expose service-worker support.');
       pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels · horizontal overflow '+(overflow.x?'detected':'none')+'.');
       pass('Build','Dinliminate '+APP_VERSION+' · Current Build '+APP_BUILD+'.');
-      pass('Release QA baseline','Automated provider and all-62-food-photo checks have passed on the current release line.');
-      warn('Browser certification','The Pass Around full-card gesture has required repeated browser QA fixes; use this panel to confirm the deployed build after the next green browser run.');
+      if(window.__DINLIMINATE_QA__){pass('Browser certification','This browser is running with the built-in QA harness enabled; run the hosted release gate separately for deployment certification.');}
+      else warn('Browser certification','This is a runtime diagnostic, not a substitute for the CI browser/accessibility/performance/visual release gates or real iPhone Safari certification.');
       const icon=({ok:'✓',warn:'!',fail:'×'}) ;
       document.querySelector('#diagnosisBody').innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>'+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+icon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'<button class="secondary diagnosis-refresh" id="diagnosisRefresh">↻ Run again</button>';
       document.querySelector('#diagnosisRefresh').onclick=render;
@@ -1409,7 +1473,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function privacyView() {
-    const body = '<div class="info-copy"><h4>Privacy</h4><p>Dinliminate uses your selected address or device location only to find nearby restaurants.</p><p>Restaurant and address information is retrieved from third-party search and mapping providers through Dinliminate’s search service.</p><p>Your saved food choices, hidden items, history, and custom food information are stored on this device. Location access is optional.</p></div>';
+    const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your food choices, hidden items, history, and custom-food information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and food images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>
     openModal('privacyModal','Privacy',body);
   }
 
@@ -1544,6 +1608,8 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
     $('passClose').onclick=()=>endPass();
     $('passBack').onclick=passUndo;
+    $('passCut').setAttribute('aria-label','Cut this choice');
+    $('passKeep').setAttribute('aria-label','Keep this choice');
     $('passCut').onclick=()=>passVote(false);
     $('passKeep').onclick=()=>passVote(true);
     const next=p.poolIds[p.choiceIndex+1] ? passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]) : null;
@@ -1633,7 +1699,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   $('find').onclick = searchRestaurants;
   $('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
   $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
-  $('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();clearSuggestions();searchRestaurants();} if(e.key==='Escape') clearSuggestions(); });
+  $('address').addEventListener('keydown', e => {
+    if(e.key==='ArrowDown'){ if(moveSuggestion(1)){e.preventDefault();return;} }
+    if(e.key==='ArrowUp'){ if(moveSuggestion(-1)){e.preventDefault();return;} }
+    if(e.key==='Enter'){
+      const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+      if(suggestionIndex>=0&&opts[suggestionIndex]){e.preventDefault();opts[suggestionIndex].click();return;}
+      e.preventDefault();clearSuggestions();searchRestaurants();
+    }
+    if(e.key==='Escape') clearSuggestions();
+  });
 
   bindRestaurantTools();
   renderHours();

@@ -24,14 +24,17 @@ await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:4173'})
 const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
-const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[];
+const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[];
 fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true});
 page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
-page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); });
+page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); if(res.status()>=400) badResponses.push({status:res.status(),url:res.url(),type:res.request().resourceType()}); });
 page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) requestFailures.push({url:req.url(),error:req.failure()?.errorText||'unknown'}); });
 await page.route('**/*', async route => {
   const u = route.request().url();
+  if (u.includes('/api/release')) {
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'117',sourceBranch:'cp238-launch-hardening',commit:null,branch:'cp238-launch-hardening',environment:'test',expectedBranch:'cp238-launch-hardening'})});
+  }
   if (u.includes('/api/restaurant-search?mode=suggest')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,results:[
       {lat:36.5298,lon:-87.3588,display:'123 Main St, Clarksville, TN 37040'},
@@ -418,7 +421,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+116/i);
+assert.match(aboutText,/Build\s+117/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
@@ -477,9 +480,11 @@ assert.equal(await sameDayDelete2.count(),1,'Second same-day entry should become
 await sameDayDelete2.click(); await settle();
 assert.equal(await page.locator('[data-history-delete]').count(),1,'Deleting the second same-day entry should leave the other date');
 assert.equal(await page.locator('.history-open').count(),1,'Only the unrelated history entry should remain');
-await page.locator('[data-history-delete="hist-test-rest"]').click(); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),0,'All calendar history entries should be individually removable');
-assert.equal(await page.locator('.history-open').count(),0,'History list should clear after all entries are removed');
+await page.locator('#historyClearAll').click(); await settle();
+assert.equal(await visible('appConfirmModal'),true,'Clear all history should use branded confirmation');
+await click('#appConfirmOk'); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),0,'Clear all history should remove every calendar entry');
+assert.equal(await page.locator('.history-open').count(),0,'Clear all history should remove every history list row');
 
 
 
@@ -581,8 +586,10 @@ const wiped=await qa(); assert.equal(wiped.custom.length,0,'Reset App Data shoul
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'Reset App Data should close Manage Foods after wiping custom data');
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
-const nonResourceConsoleErrors=consoleErrors.filter(x=>!/^Failed to load resource: the server responded with a status of (403|404) \(\)$/.test(x));
-console.log('Browser resource console warnings (allowed by image fallback/HTTP image smoke):',consoleErrors.length-nonResourceConsoleErrors.length);
-assert.equal(nonResourceConsoleErrors.length,0,'Browser console errors: '+nonResourceConsoleErrors.join(' | '));
+console.log('Browser console errors:',JSON.stringify(consoleErrors));
+console.log('Browser HTTP failures:',JSON.stringify(badResponses));
+assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
+assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.stringify(badResponses));
+assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
