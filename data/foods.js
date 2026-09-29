@@ -141,7 +141,7 @@ window.DINLIMINATE_FOODS=[
     "quickCuts": [
       "Mexican"
     ],
-    "image": "https://images.pexels.com/photos/4924603/pexels-photo-4924603.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "image": "https://images.pexels.com/photos/31673757/pexels-photo-31673757/free-photo-of-delicious-beef-stir-fry-with-bell-peppers.jpeg?auto=compress&dpr=1&h=1200&w=900",
     "ingredients": [
       "chicken or beef",
       "bell peppers",
