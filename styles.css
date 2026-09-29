@@ -482,7 +482,6 @@
 }
 
 /* CP110 — About metadata */
-#aboutModal .about-test{margin:10px 0 12px;color:#bfa16b;font-size:10px;font-weight:900;letter-spacing:.18em}
 #aboutModal .about-meta{display:grid;gap:7px;margin-top:10px}
 #aboutModal .about-meta p{display:flex;justify-content:space-between;gap:18px;margin:0;padding:9px 11px;border-radius:11px;background:#1a1917;border:1px solid #302a23}
 #aboutModal .about-meta span{color:#777168;font-size:9px;text-transform:uppercase;letter-spacing:.12em}
@@ -503,3 +502,6 @@
 .settings-state{display:block;margin-top:2px;font-size:9px;color:#777168;text-transform:uppercase;letter-spacing:.1em}
 #backToStart{color:#ead9b8}
 @media(max-width:390px){.firework-burst span{width:3px;height:18px}.firework-burst.burst-1{left:18%;top:25%}.firework-burst.burst-2{left:82%;top:22%}.firework-burst.burst-3{left:53%;top:13%}.cal-x{width:25px;height:25px;top:-7px;right:-7px}}
+
+/* CP112 — About attribution */
+#aboutModal .about-credit{margin:14px 0 0;color:#bfa16b;font-size:11px;font-weight:800;letter-spacing:.02em}
