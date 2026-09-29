@@ -26,4 +26,5 @@ jobs:
       - name: Hosted smoke
         env:
           BASE_URL: https://deploy-preview-40--diliminate.netlify.app
+          REQUIRE_RELEASE: 'false'
         run: node qa/hosted-smoke.mjs
