@@ -333,7 +333,7 @@ await click('#backToStart'); await settle(); assert.equal((await qa()).screen,'h
 await click('#menu'); await settle(); await click('#about'); await settle();
 assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
-assert.match(aboutText,/TEST BUILD/);
+assert.doesNotMatch(aboutText,/TEST BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
 assert.match(aboutText,/Build\s+112/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
