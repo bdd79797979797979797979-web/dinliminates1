@@ -215,6 +215,7 @@ let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
 assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
 assert.equal(await page.locator('#passGestureHit').getAttribute('data-pass-swipe-bound'),'true','Pass Around gesture layer should be bound when the page is created');
 const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
+const passTarget=await page.locator('#passGestureHit').evaluate(el=>{const r=el.getBoundingClientRect(),h=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return {id:h?.id||'',pointerEvents:getComputedStyle(h||el).pointerEvents};});
 const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
 assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must be the topmost pointer target');
 assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
