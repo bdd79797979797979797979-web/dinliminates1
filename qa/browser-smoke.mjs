@@ -153,8 +153,7 @@ assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a sec
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
-await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle(); console.log('Food next probe 1',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#foodNextCard'),s=window.__DINLIMINATE_QA__?.snapshot(); return {screen:s?.screen,pool:s?.foodPool?.length,index:s?.index,maybe:s?.maybe?.length,round:s?.foodMaybeRound,cls:c?.className,display:c&&getComputedStyle(c).display,rect:c?.getBoundingClientRect().toJSON(),child:c?.firstElementChild?.tagName};}))); await page.evaluate(()=>window.drawFood?.()); await settle(); console.log('Food next probe 2',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#foodNextCard'),s=window.__DINLIMINATE_QA__?.snapshot(); return {screen:s?.screen,pool:s?.foodPool?.length,index:s?.index,maybe:s?.maybe?.length,round:s?.foodMaybeRound,cls:c?.className,display:c&&getComputedStyle(c).display,rect:c?.getBoundingClientRect().toJSON(),child:c?.firstElementChild?.tagName};})));
-assert.equal((await qa()).foodPool.length,62,'Starting a new food round should reset the Maybe recycle cycle');
+await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle(); assert.equal((await qa()).foodPool.length,62,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
@@ -315,13 +314,10 @@ const restaurantCard=page.locator('#restaurantCard');
 if(!(await restaurantCard.count())) throw new Error('Restaurant card missing for right swipe QA');
 assert.equal(await visible('restaurantNextCard'),true,'Restaurant should show the next Tinder card behind the current card');
 const restBox=await restaurantCard.boundingBox(); if(!restBox) throw new Error('Restaurant card bounding box missing for swipe QA');
-console.log('Restaurant gesture probe before',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#restaurantCard'),r=c?.getBoundingClientRect(),e=r?document.elementFromPoint(r.left+r.width/2,r.top+r.height/2):null;return {onDown:!!c?.onpointerdown,onMove:!!c?.onpointermove,onUp:!!c?.onpointerup,hit:e&&{id:e.id,tag:e.tagName,cls:e.className},round:window.__DINLIMINATE_QA__?.snapshot().restaurantMaybeRound,count:window.__DINLIMINATE_QA__?.snapshot().restaurantPool?.length};})));
 await page.mouse.move(restBox.x+55,restBox.y+restBox.height/2);
 await page.mouse.down();
 await page.mouse.move(restBox.x+restBox.width-18,restBox.y+restBox.height/2,{steps:5});
-console.log('Restaurant gesture during drag',JSON.stringify(await page.evaluate(()=>{const c=document.querySelector('#restaurantCard');return {swipe:c?.dataset.swipe,transform:c?.style.transform,opacity:c?.style.opacity};})));
-await page.mouse.up(); await page.waitForTimeout(180); console.log('Restaurant gesture probe after',JSON.stringify(await qa()));
-s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
+await page.mouse.up(); await page.waitForTimeout(180); s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
 await click('#restBack'); await settle();
 s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should undo Maybe swipe');
 
