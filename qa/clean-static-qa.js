@@ -91,7 +91,7 @@ assert(!html.includes('id="newCat"'),'legacy Add Food category control must be r
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("btn.textContent=openMode?'Open/Unknown':'All'") && app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must use Open/Unknown and All');
-assert(app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
+assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'") || app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
 for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
