@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,64,'Updated 64-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
