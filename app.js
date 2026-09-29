@@ -965,7 +965,7 @@ function hourStatus(row){
     bg.className = 'modal-bg';
     const modal = document.createElement('section');
     modal.id = id;
-    modal.className = 'modal'; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3>'+esc(title)+'</h3><button class="menu" data-close>×</button></div>'+body;
+    modal.className = 'modal'; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby',id+'Title'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3 id="'+id+'Title">'+esc(title)+'</h3><button class="menu" data-close aria-label="Close '+esc(title)+'">×</button></div>'+body;
     document.body.append(bg, modal);
     const close = () => {
       modal.remove(); bg.remove();
@@ -985,7 +985,7 @@ function hourStatus(row){
         else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
       }
     });
-    queueMicrotask(()=>modal.focus());
+    queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
     return modal;
   }
 
