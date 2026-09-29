@@ -2,19 +2,10 @@ const CLEAN_VERSION = "p900-launch-complete-2026-09-29";
 
 function transform(html) {
   return html
-    .replace(/<script id="dinliminate-release-migration">[\s\S]*?<\/script>\s*/i, "")
-    .replaceAll("./launch-hardening.css?v=p635", "./launch-hardening.css?v="+CLEAN_VERSION)
-    .replaceAll("./launch-hardening.css?v=p636-final", "./launch-hardening.css?v="+CLEAN_VERSION)
-    .replaceAll("./launch-hardening.css?v=p688-qc-radius-live-sync", "./launch-hardening.css?v="+CLEAN_VERSION)
-    .replaceAll("./launch-hardening.js?v=p635", "./launch-hardening.js?v="+CLEAN_VERSION)
-    .replaceAll("./launch-hardening.js?v=p636-final", "./launch-hardening.js?v="+CLEAN_VERSION)
-    .replaceAll("./launch-hardening.js?v=p688-qc-radius-live-sync", "./launch-hardening.js?v="+CLEAN_VERSION)
-    .replaceAll("const DINLIMINATE_VERSION = 'p635';", "const DINLIMINATE_VERSION = '"+CLEAN_VERSION+"';")
-    .replaceAll("const DINLIMINATE_VERSION = 'p636-final';", "const DINLIMINATE_VERSION = '"+CLEAN_VERSION+"';")
+    .replaceAll("./launch-hardening.css?v=p900-launch-complete-2026-09-29", "./launch-hardening.css?v="+CLEAN_VERSION)
+    .replaceAll("./launch-hardening.js?v=p900-launch-complete-2026-09-29", "./launch-hardening.js?v="+CLEAN_VERSION)
+    .replaceAll("const DINLIMINATE_VERSION = 'p900-launch-complete-2026-09-29';", "const DINLIMINATE_VERSION = '"+CLEAN_VERSION+"';")
     .replaceAll("const V='p623';", "const V='"+CLEAN_VERSION+"';")
-    .replaceAll("Website / Order", "Website")
-    .replaceAll("Search / Order", "Search")
-    .replaceAll("Search/Order", "Search")
     .replace("</head>", '<link rel="stylesheet" href="./p636-clean-ui.css?v='+CLEAN_VERSION+'"></head>')
     .replace("<body>", '<body data-dinliminate-release="'+CLEAN_VERSION+'">');
 }
