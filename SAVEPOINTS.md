@@ -482,3 +482,14 @@ Commit: `b7b7cd0ab0adb98a1c609eaecf428ef02c00bfa8`
 - Food Pass Around and Add Food are streamlined into the bottom utility row.
 - Restaurant uses the same decision layout with a compact location strip at the top and Pass Around at the bottom.
 - Permanent recovery branch: `savepoint-cp105-streamlined-tinder-layout-2026-09-28`.
+
+
+## CP106 — tight header + Quick Cuts count + Details restoration
+Commit: `58ba7427135ff251f0ee46a63c0a541d070131e5`
+- Removed the standalone FOOD/RESTAURANTS heading labels.
+- Decision screens now use a compact local Back / Dinliminate / Menu bar directly above Quick Cuts.
+- Food and Restaurant choice counts are on the Quick Cuts line in a distinct colored pill.
+- Restaurant search/hours controls and location strip were compressed.
+- Food and Restaurant cards have visible on-card info Details controls that open the full Details sheet.
+- Details sheet restored as a fuller bottom sheet with image, title, category/cuisine, hours/phone, common menu items, recipe/notes, and website where available.
+- Permanent recovery branch: `savepoint-cp106-tight-header-details-2026-09-28`.
