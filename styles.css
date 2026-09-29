@@ -230,3 +230,91 @@
   .swipe-actions{gap:15px}
   .bottom-util{min-width:104px}
 }
+
+
+/* CP106 — ultra-compact decision header + Quick Cuts row */
+#appTopbar.hidden{display:none!important}
+.decision-screen{min-height:100%;padding-top:0}
+.decision-bar{height:43px;display:grid;grid-template-columns:42px 1fr 42px;align-items:center;position:relative;margin-top:0}
+.decision-back{width:42px;height:40px;border:0;background:none;color:#aaa;font-size:29px;line-height:1;text-align:left;padding:0}
+.decision-brand{text-align:center;font-size:20px;font-weight:850;letter-spacing:-.05em}
+.decision-menu{position:static;width:40px;height:40px;justify-self:end}
+.quick-section{margin-top:0}
+.quick-label{height:27px;align-items:center}
+.quick-label>span:first-child{font-size:12px;font-weight:700;color:#e5e5e5}
+.quick-label small{display:none}
+.count-inline{display:inline-flex;align-items:center;justify-content:center;min-height:22px;padding:3px 9px;border-radius:999px;background:#173449;border:1px solid #2b6684;color:#7fd5ff;font-size:10px;font-weight:850;letter-spacing:.02em}
+.quick{padding:4px 0 4px;gap:7px}
+.photo-chip{width:68px;min-width:68px;height:44px;border-radius:12px}
+.photo-chip span{font-size:10px}
+
+/* Keep the card, actions, and utilities in one viewport on iPhone. */
+.stage{padding-top:2px}
+.swipe-card-stack,.restaurant-card-stack{aspect-ratio:3/4.0;max-height:52svh}
+.swipe-card-stack>.card,.restaurant-card-stack>.card{max-height:52svh}
+.card-copy{left:17px;right:17px;bottom:16px}
+.card-copy h3{font-size:30px}
+.card-details{width:32px;min-width:32px;height:32px;padding:0;margin:8px 0 0 auto;border-radius:50%;font-size:16px;font-weight:900;background:#fff;color:#111;box-shadow:0 6px 16px #0008}
+.card-details::after{content:''}
+.card-details{display:flex;align-items:center;justify-content:center}
+
+/* Decision actions: Cut left and Maybe right; Back/Hide stay secondary. */
+.swipe-actions{display:grid;grid-template-columns:42px 66px 66px 42px;justify-content:center;align-items:center;gap:14px;margin:8px 0 2px}
+.round-action{width:42px;height:42px;min-height:42px}
+.round-cut{width:66px;height:66px;min-height:66px}
+.round-maybe{width:66px;height:66px;min-height:66px}
+.round-cut span{font-size:28px}
+.round-maybe span{font-size:22px}
+
+/* Food bottom utilities are compact and quiet. */
+.decision-bottom{padding:0 0 1px;gap:7px}
+.bottom-util{height:31px;min-width:100px;font-size:9px}
+.round-tools .text-btn{font-size:8px;padding:1px 4px 2px}
+
+/* Restaurant location/search controls are compressed to a single small footprint. */
+.location-strip{margin-top:3px;padding:6px 7px 5px;border-radius:14px}
+.location-main{grid-template-columns:minmax(0,1fr) 32px 48px;gap:4px}
+.location-main input{height:32px;font-size:10px}
+.location-btn{width:32px;height:32px;font-size:16px}
+.location-main .find{height:32px;font-size:9px}
+.location-sub{margin-top:3px}
+.location-sub select{height:24px;font-size:9px}
+.location-sub .status{font-size:9px}
+.restaurant-tools{display:flex;gap:4px;margin-top:4px}
+.restaurant-tool{flex:1;height:25px;font-size:8px;padding:0 8px}
+.restaurant-search-box{margin-top:4px}
+.restaurant-search-box input{height:29px;font-size:10px}
+.restaurant-quick-section{margin-top:2px}
+
+/* Restaurant info stays connected to the card without a large secondary panel. */
+.rest-stage>.rest-card-extra{padding:5px 13px 7px;border-radius:0 0 19px 19px}
+.rest-meta{font-size:9px}
+.card-actions{margin-top:4px}
+.card-actions button{height:28px;min-height:28px;font-size:8px}
+
+/* Full Details sheet restored as a polished bottom sheet. */
+#detailsModal{top:auto;bottom:0;transform:translateX(-50%);width:min(100vw,520px);max-height:86svh;border-radius:24px 24px 0 0;padding:0 16px 18px;background:#111;border-color:#292929;box-shadow:0 -18px 55px #000a}
+#detailsModal .modal-head{position:sticky;top:0;background:#111;padding:13px 0 10px;z-index:2;border-bottom:1px solid #242424}
+#detailsModal .modal-head::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:42px;height:4px;border-radius:99px;background:#666}
+#detailsModal .modal-head h3{font-size:18px}
+#detailsModal .history-detail-photo{max-height:250px;border-radius:18px;margin-top:12px}
+#detailsModal h2{font-size:28px!important;letter-spacing:-.05em!important}
+#detailsModal .status{font-size:11px;color:#aaa}
+#detailsModal .panel{background:#181818;border-color:#2b2b2b;margin-top:10px}
+#detailsModal .panel .status{color:#ccc}
+#detailsModal .winner-actions{grid-template-columns:1fr auto;margin-top:12px}
+#detailsModal .winner-actions .small{height:42px;min-height:42px;border-radius:999px}
+#detailsModal .winner-actions .cut{height:42px;border-radius:999px}
+
+/* Don't let the decision bar consume status-bar-sized space. */
+@media(max-width:390px){
+  .decision-bar{height:41px}
+  .decision-brand{font-size:19px}
+  .quick-label{height:24px}
+  .photo-chip{width:64px;min-width:64px;height:42px}
+  .swipe-card-stack,.restaurant-card-stack{max-height:49svh}
+  .swipe-card-stack>.card,.restaurant-card-stack>.card{max-height:49svh}
+  .swipe-actions{grid-template-columns:40px 60px 60px 40px;gap:11px;margin-top:6px}
+  .round-cut,.round-maybe{width:60px;height:60px;min-height:60px}
+  .bottom-util{min-width:94px}
+}
