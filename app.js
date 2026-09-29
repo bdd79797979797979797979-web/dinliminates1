@@ -135,9 +135,8 @@
       if (S.foodCuts.has(item.id)) return false;
       // Legacy rounds may still carry primary-based cuts; new rounds use exact item IDs.
       if (S.cutPrimary.has(item.primary)) return false;
-      if (S.cutCats.has(item.category)) return false;
-      if (S.cutCats.has('Soup/Stew') && (item.category === 'Soup' || item.category === 'Stew' || item.primary === 'soup' || item.primary === 'stew')) return false;
-      if (S.cutCats.has('Potato') && item.primary === 'potato') return false;
+      const cuts = Array.isArray(item.quickCuts) ? item.quickCuts : [item.category];
+      if ([...S.cutCats].some(label => cuts.includes(label))) return false;
       return true;
     });
   }
@@ -284,6 +283,16 @@
       } else { reset(); }
     };
     card.onpointercancel=()=>{active=false;reset();};
+  }
+
+  function foodHideItem(item) {
+    if (!item) return;
+    if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return;
+    S.hidden.add(item.id);
+    buildFood();
+    S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
+    drawFood();
+    save();
   }
 
   function foodHide() {
@@ -725,16 +734,30 @@ function hourStatus(row){
   function detailsSheet(item, type) {
     const image = item.image || item.photo || HUNGRY_IMAGE;
     const category = type === 'restaurant' ? restaurantCategory(item) : item.category || '';
+    const nut = item.nutrition || {};
+    const nutritionBlock = type === 'food' && item.nutrition ? '<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid">'+
+      '<div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div>'+
+      '<div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div>'+
+      '<div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div>'+
+      '<div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div>'+
+      '<div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>' : '';
+    const ingredientsBlock = type === 'food' && Array.isArray(item.ingredients) && item.ingredients.length ? '<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>' : '';
+    const menuBlock = type === 'restaurant' && Array.isArray(item.menuItems) && item.menuItems.length ? '<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(item.menuItems.slice(0,8).join(' · '))+'</p></div>' : '';
+    const recipeBlock = item.recipe ? '<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>' : '';
     const body = '<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+
       '<p class="status">'+esc(item.address || category || '')+'</p>'+
       (item.cuisine ? '<p class="status">'+esc(item.cuisine)+'</p>' : '')+
       (item.opening_hours ? '<p class="status">Hours: '+esc(item.opening_hours)+'</p>' : type === 'restaurant' ? '<p class="status">Open/Unknown Hours</p>' : '')+
       (item.phone ? '<p class="status">Phone: '+esc(item.phone)+'</p>' : '')+
-      ((item.menuItems||[]).length ? '<div class="panel"><b style="font-size:12px">Common menu items</b><p class="status">'+esc(item.menuItems.slice(0,8).join(' · '))+'</p></div>' : '')+(item.recipe ? '<div class="panel"><b style="font-size:12px">Recipe / notes</b><p class="status">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>' : '')+
-      '<div class="winner-actions" style="margin-top:12px"><button class="small" id="detailDone">Close</button>'+
-      (item.website ? '<button class="cut" id="detailWeb">Website</button>' : '')+'</div></div>';
+      nutritionBlock+ingredientsBlock+menuBlock+recipeBlock+
+      '<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+
+      (item.website ? '<button class="detail-web-action" id="detailWeb">Website</button>' : '')+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
-    $('detailDone').onclick = () => { modal.remove(); $('detailsModalBg')?.remove(); };
+    $('detailHide').onclick = () => {
+      if (type === 'restaurant') restaurantHide(item);
+      else foodHideItem(item);
+      modal.remove(); $('detailsModalBg')?.remove();
+    };
     if ($('detailWeb')) $('detailWeb').onclick = () => window.open(item.website, '_blank', 'noopener');
   }
 
