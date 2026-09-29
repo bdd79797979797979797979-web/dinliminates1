@@ -74,7 +74,7 @@ assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice C
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
 assert(app.includes("const APP_VERSION = '1.0'") && app.includes("APP_BUILD = '"+String(release.build)+"'") && String(release.build)==='116','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
-assert(app.includes("aria-labelledby",id+'Title'),'Generic modals must expose labelled dialog semantics');
+assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
 assert(app.includes('restaurantSearchDegraded'),'degraded-search state is required');
 assert(app.includes('resetRound') && app.includes('systemRestoreFlow'),'round reset and system restore flows are separated');
