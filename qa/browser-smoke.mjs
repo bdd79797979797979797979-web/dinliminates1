@@ -419,6 +419,16 @@ assert.equal(await page.locator('.history-open').count(),0,'History list should 
 
 
 /* Accessibility, touch targets, PWA and multi-width checks. */
+await page.goto('http://127.0.0.1:4173/?qa=1&storage-failure=1'); await page.waitForLoadState('domcontentloaded'); await settle();
+await page.evaluate(()=>{
+  const original=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(key,value){ if(String(key).includes('dinliminate.clean.cp1')) throw new DOMException('Quota exceeded','QuotaExceededError'); return original.call(this,key,value); };
+});
+await click('#foodStart'); await settle();
+assert.equal(await page.locator('#storageIndicator').isVisible(),true,'Storage failure should surface visibly');
+assert.match(await page.locator('#storageIndicator').innerText(),/could not save|storage/i);
+await page.evaluate(()=>{ window.location.reload(); });
+await page.waitForLoadState('domcontentloaded'); await settle();
 await page.goto('http://127.0.0.1:4173/?qa=1&fresh=1'); await page.waitForLoadState('domcontentloaded'); await settle();
 assert.ok(fs.existsSync(path.join(root,'sw.js')),'service worker file should exist');
 assert.ok(fs.existsSync(path.join(root,'manifest.webmanifest')),'manifest should exist');
