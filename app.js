@@ -713,7 +713,7 @@ function hourStatus(row){
         const rd = await rr.json();
         if (searchSeq !== restaurantSearchSeq) return;
         if (!rr.ok || !rd.ok) throw new Error(rd.message || 'Could not locate that address.');
-        loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; $('address').value = rd.display;
+        loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = rd.display;
       }
       const radius = Number($('radius').value) || 10;
       const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius,{signal});
