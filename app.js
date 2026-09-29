@@ -1449,6 +1449,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     document.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches?.[0];if(t)move({clientX:t.clientX,clientY:t.clientY,cancelable:e.cancelable,preventDefault:()=>e.preventDefault()});},{capture:true,passive:false});
     document.addEventListener('touchend',e=>{if(!active)return;const t=e.changedTouches?.[0];if(t)end({clientX:t.clientX,clientY:t.clientY});},{capture:true,passive:true});
     document.addEventListener('touchcancel',cancel,{capture:true,passive:true});
+    hit.dataset.passSwipeBound='true';
     surface._passSwipeCleanup=()=>{};
   }
 
