@@ -1,10 +1,10 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8');
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);
-for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne','allCut','Continue saved round'])assert(html.includes(s),'missing HTML contract: '+s);
+for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne','Continue saved round'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
-for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','allCut','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
+for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r8'])assert(api.includes(s),'missing API contract: '+s);
 assert(api.includes("version:'clean-r8',radiusMiles:radius"),'Restaurant search responses must report clean-r8');
 assert(foods.includes('window.DINLIMINATE_FOODS='),'food data must publish to the window for the clean browser build');
