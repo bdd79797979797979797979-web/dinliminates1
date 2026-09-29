@@ -16,7 +16,7 @@
 .pass-count.selected{background:#ff7a1a;color:#111;border-color:#ff7a1a}.pass-name-grid{display:grid;gap:7px;margin-top:10px}.pass-name{height:42px;border-radius:12px;border:1px solid #303030;background:#1a1a1a;color:#eee;padding:0 11px}.pass-progress{display:flex;justify-content:space-between;color:#888;font-size:11px;margin-bottom:9px}.pass-photo{width:100%;aspect-ratio:1.2;object-fit:cover;border-radius:17px}.pass-view h2{font-size:29px;line-height:1.02;letter-spacing:-.05em;margin:11px 0 5px}.pass-actions{display:grid;grid-template-columns:.8fr 1fr 1.2fr;gap:7px;margin-top:12px}.pass-actions button{min-height:50px;border-radius:15px;font-weight:800}.pass-label{font-size:11px;color:#aaa}.pass-setup .status{line-height:1.5}.rest-pass-tools{justify-content:center;margin-top:5px}</style></head>
 <body>
 <main class="app">
-<header class="top"><div class="brand">Dinliminate</div><button id="menu" class="menu" aria-label="Menu">☰</button></header>
+<header class="top app-topbar"><div class="brand-mark"><span class="brand-dot"></span><div class="brand">Dinliminate</div></div><button id="menu" class="menu" aria-label="Menu"><span></span><span></span><span></span></button></header>
 
 <section class="screen home" id="home">
 <p class="eyebrow">DINNER DECISIONS</p><h1>what sounds good tonight?</h1><p class="sub">Cut the choices until one wins.</p>
@@ -31,7 +31,12 @@
 <div class="heading"><button class="back" data-home>‹ Home</button><div><p class="eyebrow">FOOD</p><h2>What stays?</h2></div><div class="food-head-tools"><button class="pass-head" id="foodPassAround">Pass Around</button><button class="plus" id="addFood" aria-label="Add Food">＋</button></div></div>
 <div style="margin-top:19px"><div class="label-row"><span>Quick Cuts</span><small>tap to cut · tap again to restore</small></div><div class="quick" id="foodQuick"></div></div>
 <div class="stage"><div class="count" id="foodCount"></div><div class="swipe-card-stack" id="foodStack"><article class="card next-card hidden" id="foodNextCard" aria-hidden="true"><img id="foodNextImg" alt=""><div class="shade"></div></article><article class="card" id="foodCard"><img id="foodImg" alt=""><div class="shade"></div><div class="card-copy"><small id="foodCat"></small><h3 id="foodName"></h3></div></article></div></div>
-<div class="actions"><button class="secondary" id="foodBack">Back</button><button class="maybe" id="foodMaybe">Maybe</button><button class="cut" id="foodCut">Cut</button><button class="secondary" id="foodHide">Hide</button></div><div class="round-tools"><button class="text-btn" id="randomOne">Random Cut One</button></div>
+<div class="swipe-actions" aria-label="Food decision controls">
+  <button class="round-action round-back secondary" id="foodBack" aria-label="Back"><span>↶</span></button>
+  <button class="round-action round-maybe maybe" id="foodMaybe" aria-label="Maybe"><span>♥</span></button>
+  <button class="round-action round-cut cut" id="foodCut" aria-label="Cut"><span>✕</span></button>
+  <button class="round-action round-hide secondary" id="foodHide" aria-label="Hide"><span>⌁</span></button>
+</div><div class="round-tools"><button class="text-btn" id="randomOne">Random Cut One</button></div>
 </section>
 
 <section class="screen hidden" id="restaurant">
