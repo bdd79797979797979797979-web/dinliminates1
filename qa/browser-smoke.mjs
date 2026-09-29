@@ -153,6 +153,8 @@ assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a sec
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
+await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
+assert.equal((await qa()).foodPool.length,62,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
