@@ -49,7 +49,7 @@ assert.match(byId.get('stuffed-peppers')?.image||'',/22698511/,'Stuffed Peppers 
 
 const imageExpectations={
  tacos:/12261167/,
- "stir-fry":/4924603/,
+ "stir-fry":/31673757/,
  meatloaf:/2397401/,
  "buttermilk-cornbread":/ourstate\.s3\.amazonaws\.com/,
  "potato-soup":/5794/,
