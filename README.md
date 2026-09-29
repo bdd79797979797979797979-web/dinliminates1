@@ -2,7 +2,7 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 116.
+Current build: Version 1.0, Build 117.
 
 The deployable app lives at the repository root.
 
@@ -18,5 +18,5 @@ Milestones:
 ## Current release hardening
 - Working branch: release-hardening-2026-09-29
 - Base recovery: checkpoint-build114-pre-complete-hardening-2026-09-29
-- Current release candidate stays off main until final verification.
-- Vercel is the official runtime for the release candidate; Netlify remains legacy/backup.
+- Current release candidate stays off main until the exact release commit is fully verified.
+- Vercel is the official runtime for the release candidate; Netlify remains legacy/backup. Vercel deployment is currently blocked by the connected account build-rate limit.
