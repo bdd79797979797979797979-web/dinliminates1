@@ -121,8 +121,11 @@ s=await qa(); assert.equal(s.maybe.length,1,'Maybe should move the current choic
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.maybe.length,0,'Back should restore Maybe');
 
+await page.evaluate(()=>{ Math.random=()=>0.24; });
 await click('#randomOne'); await settle();
 s=await qa(); assert.equal(s.foodActions.length>=1,true,'Random Cut One should use the same action history');
+assert.equal(s.foodPool.includes('wings'),true,'cutting Chicken Tenders must not remove Chicken Wings');
+assert.equal(s.foodPool.includes('chicken-dumplings'),true,'cutting Chicken Tenders must not remove Chicken & Dumplings');
 await click('#foodBack'); await settle();
 
 await click('#restart'); await settle();
