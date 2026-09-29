@@ -104,7 +104,7 @@ window.DINLIMINATE_FOODS=[
       "sodium": 290
     },
     "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
-    "recipe": ""
+    "recipe": "Pop kernels in oil or an air popper, then season with butter and salt while warm."
   },
   {
     "id": "fruit-bowl",
@@ -663,7 +663,7 @@ window.DINLIMINATE_FOODS=[
       "sodium": 980
     },
     "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
-    "recipe": ""
+    "recipe": "Brown beef, then simmer with tomatoes, potatoes, carrots, green beans, corn, and seasoned broth until tender."
   },
   {
     "id": "chicken-fried-steak",
