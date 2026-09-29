@@ -213,7 +213,10 @@
       if(!d.foodCuts.length && Array.isArray(d.foodActions))
         for(const a of d.foodActions) if(a?.type==='cut'&&a.id) d.foodCuts.push(a.id);
       delete d.cutPrimary;
+      const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundType','legacyRestaurantPool','restaurantResults'];
+      legacyKeys.forEach(key=>{try{delete d[key]}catch{}});
       Object.assign(S, d);
+      legacyKeys.forEach(key=>{try{delete S[key]}catch{}});
       S.hidden = new Set(d.hidden || []);
       S.deleted = new Set(d.deleted || []);
       S.hiddenRestaurants = d.hiddenRestaurants || {};
