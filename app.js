@@ -626,12 +626,17 @@ function hourStatus(row){
   }
 
   function restaurantCut(row) {
+    if (!row) return;
     S.restaurantActions.push({type:'cut', id:row.id, index:S.restaurantIndex});
     row._cut = true;
     const remaining = restaurantPoolFiltered();
-    if (remaining.length === 1) winner(remaining[0]);
-    else if (!remaining.length) drawRestaurants();
-    else { S.restaurantIndex = Math.min(S.restaurantIndex, remaining.length - 1); drawRestaurants(); }
+    if (!remaining.length) {
+      winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});
+    } else {
+      // Leave one final restaurant on the Tinder deck so a right-swipe explicitly chooses it.
+      S.restaurantIndex = Math.min(S.restaurantIndex, remaining.length - 1);
+      drawRestaurants();
+    }
     save();
   }
 
