@@ -105,7 +105,7 @@ window.DINLIMINATE_FOODS=[
     },
     "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values.",
     "recipe": "Pop kernels in oil or an air popper, then season with butter and salt while warm.",
-    "image": "https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=1200&q=85"
+    "image": "https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=1400"
   },
   {
     "id": "fruit-bowl",
@@ -141,7 +141,7 @@ window.DINLIMINATE_FOODS=[
     "quickCuts": [
       "Mexican"
     ],
-    "image": "https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "image": "https://images.pexels.com/photos/4924603/pexels-photo-4924603.jpeg?auto=compress&cs=tinysrgb&w=1400",
     "ingredients": [
       "chicken or beef",
       "bell peppers",
