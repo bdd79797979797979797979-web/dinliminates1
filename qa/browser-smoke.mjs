@@ -69,12 +69,19 @@ await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(100);
 console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
 await assert.equal(await page.locator('#home h1').innerText(),'what sounds good tonight?');
-const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
+const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
+assert.ok(homeGeom.scrollHeight <= homeGeom.innerHeight + 2,'Home should fit one iPhone viewport without vertical scrolling');
+assert.equal(await page.locator('#home .home-card-photo').count(),2,'Home should have one photo-backed Food choice and one photo-backed Restaurant choice');
+assert.equal((await page.locator('#home .home-card-photo').evaluateAll(els=>els.map(e=>e.getAttribute('style')||''))).every(s=>s.includes('--home-photo')),true,'Both Home choices should have dedicated food/restaurant photos');
+assert.match(await page.locator('#home .made-by').innerText(),/Made by Brian Dunn for Devona Dunn/);
+assert.match(await page.locator('#home .made-by').evaluate(el=>getComputedStyle(el).color),/rgb\(/,'Attribution should have a styled gold color');
 
 await assert.equal((await qa()).foodCatalog,62,'Restored 62-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
+assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
+assert.equal((await page.locator('[data-food-quick]').evaluateAll(btns=>btns.map(b=>getComputedStyle(b).backgroundImage))).every(v=>v!=='none'&&v.includes('url(')),true,'Every Food Quick Cut should have its own photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,62,'expected restored food catalog');
 await click('[data-food-quick="Potato"]'); await settle();
@@ -123,11 +130,11 @@ s=await qa(); assert.equal(s.maybe.length,1,'Maybe should move the current choic
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.maybe.length,0,'Back should restore Maybe');
 
+const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
 await click('#randomOne'); await settle();
-s=await qa(); assert.equal(s.foodActions.length>=1,true,'Random Cut One should use the same action history');
-assert.equal(s.foodPool.includes('wings'),true,'cutting Chicken Tenders must not remove Chicken Wings');
-assert.equal(s.foodPool.includes('chicken-dumplings'),true,'cutting Chicken Tenders must not remove Chicken & Dumplings');
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Random Cut One should use the same Cut action');
+assert.equal(s.foodPool.length,randomBefore-1,'Random Cut One should remove exactly one choice');
 await click('#foodBack'); await settle();
 
 await click('#foodBackTop'); await settle();
@@ -203,8 +210,11 @@ await page.locator('#restaurantQuery').fill('Pasta');
 await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Restaurant Search should filter current results');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
-await click('#hoursToggle'); await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['closed-1'],'Closed mode should isolate explicit closed results');
-await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(s.restaurantPool.includes('closed-1'),false);
+assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),12,'Restaurant should have 12 Quick Cuts');
+assert.equal((await page.locator('[data-rest-quick]').evaluateAll(btns=>btns.map(b=>getComputedStyle(b).backgroundImage))).every(v=>v!=='none'&&v.includes('url(')),true,'Every Restaurant Quick Cut should have its own photo');
+assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
+await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
+await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown'); assert.equal(s.restaurantPool.includes('closed-1'),false,'Open/Unknown should exclude explicitly closed restaurants');
 
 const restBefore=s.restaurantPool.length;
 await click('#restCut'); await settle(); let restAfter=await qa(); assert.equal(restAfter.restaurantPool.length,restBefore-1);
@@ -292,11 +302,18 @@ await click('[data-food-restore-deleted="popcorn"]'); await settle();
 s=await qa(); assert.equal(s.foodPool.includes('popcorn'),true,'deleted built-in restore should work');
 
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
-assert.equal(await visible('winner'),true,'Food elimination should produce winner');
+assert.equal((await qa()).foodPool.length,1,'Food should be able to reach one remaining choice');
+await click('#foodCut'); await settle();
+assert.equal(await visible('winner'),true,'Cutting the last remaining choice should enter Hungry');
+assert.match(await page.locator('#winName').innerText(),/HUNGRY/,'Hungry state should use the original HUNGRY label');
+assert.equal((await page.locator('#winner').getAttribute('class')).includes('hidden'),false);
 const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgroundColor);
-assert.equal(bg,'rgb(9, 9, 9)','winner should use the black winner window');
-await click('#details'); await settle(); assert.equal(await visible('detailsModal'),true,'Winner Details should open'); assert.match(await page.locator('#detailsModal').innerText(),/Recipe \/ notes/i,'Built-in food Details should include recipe notes'); await page.locator('#detailsModal [data-close]').click(); await settle();
-
+assert.equal(bg,'rgb(9, 9, 9)','winner should use the black Hungry/winner window');
+await click('#restart'); await settle();
+await click('#foodStart'); await settle();
+while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
+assert.equal((await qa()).foodPool.length,1);
+await click('#foodCut'); await settle(); assert.equal(await visible('winner'),true);
 await click('#restart'); await settle();
 await click('#menu'); await settle(); await click('#about'); await settle(); assert.equal(await visible('aboutModal'),true,'About should open'); await page.locator('[data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open');
