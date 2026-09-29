@@ -306,6 +306,7 @@ assert.equal(await page.locator('#manageFoodsModal').count(),0,'Restoring a dele
 
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal((await qa()).foodPool.length,1,'Food should be able to reach one remaining choice');
+console.log('Food final-click diagnostic',JSON.stringify(await page.evaluate(()=>{const el=document.querySelector('#food'),btn=document.querySelector('#foodCut');return {screen:window.__DINLIMINATE_QA__?.snapshot?.().screen,className:el?.className,display:el?getComputedStyle(el).display:null,visibility:el?getComputedStyle(el).visibility:null,rect:el?.getBoundingClientRect().toJSON(),btnRect:btn?.getBoundingClientRect().toJSON(),btnDisplay:btn?getComputedStyle(btn).display:null,bodyScrollY:scrollY,bodyScrollHeight:document.body.scrollHeight,innerHeight};})));
 await click('#foodCut'); await settle();
 assert.equal(await visible('winner'),true,'Cutting the last remaining choice should enter Hungry');
 assert.match(await page.locator('#winName').innerText(),/HUNGRY/,'Hungry state should use the original HUNGRY label');
