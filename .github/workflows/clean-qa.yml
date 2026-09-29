@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dinliminate-clean-qa-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   clean-qa:
     runs-on: ubuntu-latest
