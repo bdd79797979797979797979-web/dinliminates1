@@ -7,7 +7,7 @@
   const KEY = 'dinliminate.clean.cp1';
   const HISTORY_KEY = 'dinliminate.clean.history';
   const APP_VERSION = '1.0';
-  const APP_BUILD = '111';
+  const APP_BUILD = '112';
   const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
   const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
   const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
@@ -297,7 +297,37 @@
     card.onpointercancel=()=>{active=false;reset();};
   }
 
-  function foodHideItem(item) {
+
+  function appConfirm(title, message, confirmLabel='Confirm') {
+    return new Promise(resolve => {
+      document.querySelector('#appConfirmModal')?.remove();
+      document.querySelector('#appConfirmModalBg')?.remove();
+      const bg = document.createElement('div');
+      bg.id = 'appConfirmModalBg';
+      bg.className = 'modal-bg';
+      const modal = document.createElement('section');
+      modal.id = 'appConfirmModal';
+      modal.className = 'modal confirm-modal';
+      modal.setAttribute('role','dialog');
+      modal.setAttribute('aria-modal','true');
+      modal.setAttribute('aria-labelledby','appConfirmTitle');
+      modal.innerHTML =
+        '<div class="modal-head"><h3 id="appConfirmTitle">'+esc(title)+'</h3><button class="menu" type="button" id="appConfirmClose" aria-label="Close">×</button></div>'+
+        '<div class="confirm-copy">'+esc(message)+'</div>'+
+        '<div class="confirm-actions"><button type="button" class="secondary" id="appConfirmCancel">Cancel</button><button type="button" class="danger-action" id="appConfirmOk">'+esc(confirmLabel)+'</button></div>';
+      document.body.append(bg,modal);
+      let settled=false;
+      const finish=value=>{ if(settled)return; settled=true; modal.remove(); bg.remove(); resolve(value); };
+      $('appConfirmCancel').onclick=()=>finish(false);
+      $('appConfirmClose').onclick=()=>finish(false);
+      $('appConfirmOk').onclick=()=>finish(true);
+      bg.onclick=()=>finish(false);
+      modal.addEventListener('keydown',e=>{if(e.key==='Escape')finish(false);});
+      $('appConfirmOk').focus();
+    });
+  }
+
+  async function foodHideItem(item) {
     if (!item) return false;
     if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return false;
     S.hidden.add(item.id);
@@ -308,10 +338,10 @@
     return true;
   }
 
-  function foodHide() {
+  async function foodHide() {
     const item = S.pool[S.index];
     if (!item) return;
-    if (!confirm('Hide '+item.name+' until you restore it in Settings?')) return;
+    if (!await appConfirm('Hide this food?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return;
     S.hidden.add(item.id);
     buildFood();
     S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
@@ -605,9 +635,11 @@ function hourStatus(row){
     const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
     const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
     const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
+    const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="tel:'+esc(String(row.phone).replace(/[^+0-9]/g,''))+'">'+esc(row.phone)+'</a>' : '';
     const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
+    const cardWebsite = row.website ? '<a class="card-card-action" href="'+esc(row.website)+'" target="_blank" rel="noopener noreferrer">Website</a>' : '';
     $('restStage').innerHTML =
-      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+'<div class="card-status">'+cardHours+'</div><button class="card-details" id="restDetails" type="button" aria-label="Details">i</button></div></article></div>'+
+      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action" id="restDetails" type="button" aria-label="Details">Details</button></div></div></article></div>'+
       '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
     const current = rows[S.restaurantIndex];
     const bindCardButton = (id, handler) => {
@@ -620,7 +652,7 @@ function hourStatus(row){
     bindCardButton('restBack', restaurantBack);
     bindCardButton('restMaybe', () => restaurantMaybe(current));
     bindCardButton('restCut', () => restaurantCut(current));
-    bindCardButton('restHide', () => restaurantHide(current));
+    bindCardButton('restHide', async () => { await restaurantHide(current); });
     bindCardButton('restDetails', () => detailsSheet(current, 'restaurant'));
     bindRestaurantSwipe();
   }
@@ -671,9 +703,9 @@ function hourStatus(row){
     save();
   }
 
-  function restaurantHide(row) {
+  async function restaurantHide(row) {
     if (!row) return false;
-    if (!confirm('Hide '+row.name+' until you restore it in Settings?')) return false;
+    if (!await appConfirm('Hide this restaurant?', 'Hide '+row.name+' until you restore it in Settings.', 'Hide')) return false;
     row._hidden = true;
     S.hiddenRestaurants[row.id] = {
       id:row.id,name:row.name,photo:row.photo||row.image||'',category:restaurantCategory(row),
@@ -829,8 +861,8 @@ function hourStatus(row){
       '<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+
       (item.website ? '<button class="detail-web-action" id="detailWeb">Website</button>' : '')+'</div></div>';
     const modal = openModal('detailsModal', 'Details', body);
-    $('detailHide').onclick = () => {
-      const hidden = type === 'restaurant' ? restaurantHide(item) : foodHideItem(item);
+    $('detailHide').onclick = async () => {
+      const hidden = type === 'restaurant' ? await restaurantHide(item) : await foodHideItem(item);
       if (hidden) {
         modal.remove(); $('detailsModalBg')?.remove();
       }
@@ -1050,9 +1082,14 @@ function hourStatus(row){
     };
   }
 
+  function privacyView() {
+    const body = '<div class="info-copy"><h4>Privacy</h4><p>Dinliminate uses your selected address or device location only to find nearby restaurants.</p><p>Restaurant and address information is retrieved from third-party search and mapping providers through Dinliminate’s search service.</p><p>Your saved food choices, hidden items, history, and custom food information are stored on this device. Location access is optional.</p></div>';
+    openModal('privacyModal','Privacy',body);
+  }
+
   function aboutView() {
     const date = new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
-    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><p class="about-test">TEST BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+    const body = '<div class="info-copy"><h4>Dinliminate</h4><p>Made for Devona Dunn by Brian Dunn.</p><p>Cut the dinner choices until one survives.</p><p class="about-test">TEST BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
     openModal('aboutModal','About Dinliminate',body);
   }
 
@@ -1199,6 +1236,7 @@ function hourStatus(row){
   $('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
   $('settings').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); settingsView(); };
   $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); aboutView(); };
+  $('privacy').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); privacyView(); };
   $('backToStart').onclick = () => home();
   $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
   $('iphoneHelp').onclick = iphoneHelp;
@@ -1216,7 +1254,11 @@ function hourStatus(row){
   $('share').onclick = shareWinner;
   $('restart').onclick = startOver;
 
-
+  const updateOffline = () => $('offlineIndicator')?.classList.toggle('hidden', navigator.onLine !== false);
+  window.addEventListener('online', updateOffline);
+  window.addEventListener('offline', updateOffline);
+  updateOffline();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 
   load();
   if (S.saved && S.screen === 'food' && S.pool.length) {
