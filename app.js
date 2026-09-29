@@ -355,7 +355,10 @@
     if (label === 'Southern') return category === label || /southern|soul food|country cooking/.test(hay);
     if (label === 'Healthy') return category === label || /healthy|salad|vegetarian|vegan|grain bowl|fresh/.test(hay);
     if (label === 'Soup/Stew') return category === label || /soup|stew|chili|chowder/.test(hay);
-    if (label === 'Potato') return /potato|fries|french fries|tater|hash brown|mashed potato/.test(hay);
+    if (label === 'Potato') {
+      const menu = Array.isArray(row.menuItems) ? row.menuItems.join(' ').toLowerCase() : String(row.menuItems || '').toLowerCase();
+      return /potato|fries|french fries|tater|hash brown|mashed potato/.test(menu) || /\bpotato\b/.test(String(row.name||'').toLowerCase());
+    }
     if (label === 'Greek') return category === label || /greek|mediterranean|gyro|tzatziki/.test(hay);
     if (label === 'Pork') return category === label || /pork|ham|bacon|sausage/.test(hay);
     if (label === 'BBQ') return category === label || /bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(hay);
