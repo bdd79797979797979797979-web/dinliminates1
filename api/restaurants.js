@@ -98,15 +98,27 @@ function nameVariantMatch(a,b){
   if(as.size===bs.size&&shared===as.size)return true;
   return shared===shorter && shared/union>=0.6;
 }
+function sameContact(x,r){
+  const xp=norm(String(x?.phone||'').replace(/[^0-9]/g,''));
+  const rp=norm(String(r?.phone||'').replace(/[^0-9]/g,''));
+  if(xp&&rp&&xp.length>=10&&rp.length>=10&&xp.slice(-10)===rp.slice(-10))return true;
+  const xw=norm(x?.website||''),rw=norm(r?.website||'');
+  if(xw&&rw&&xw===rw)return true;
+  return false;
+}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
   const sameName=norm(x.name)===norm(r.name);
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
   if(dist>0.2)return false;
-  if(sameName)return dist<=0.15;
   const ax=norm(x.address||''), ar=norm(r.address||'');
   const sameAddress=!!ax&&!!ar&&ax===ar;
-  return nameVariantMatch(x.name,r.name) && (dist<=0.12 || sameAddress);
+  const variant=nameVariantMatch(x.name,r.name);
+  if(sameName)return dist<=0.15 || sameAddress || sameContact(x,r);
+  if(sameContact(x,r))return dist<=0.2;
+  if(sameAddress&&variant)return true;
+  // Provider labels such as "Robert Heads BBQ" vs "Heads BBQ" can describe the same site.
+  return variant && dist<=0.2;
 }
 function dedupe(rows){
   rows=[...(rows||[])].sort((a,b)=>providerPriority(a)-providerPriority(b));
