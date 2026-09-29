@@ -32,7 +32,7 @@ async function checkVisibleSurface(label){
       return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none';
     }).map(el=>({tag:el.tagName,id:el.id,aria:el.getAttribute('aria-label'),text:(el.innerText||'').trim(),title:el.getAttribute('title'),name:el.getAttribute('name')}));
     const images=[...document.images].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(el).display!=='none'}).map(el=>({id:el.id,alt:el.alt,src:el.currentSrc||el.src}));
-    const dialogs=[...document.querySelectorAll('[role="dialog"]')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0});
+    const dialogs=[...document.querySelectorAll('[role="dialog"]')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0}).map(el=>({id:el.id,ariaModal:el.getAttribute('aria-modal')}));
     return {interactive,images,dialogs};
   });
   const unnamed=report.interactive.filter(x=>!(x.aria||x.text||x.title||x.name));
@@ -40,7 +40,7 @@ async function checkVisibleSurface(label){
   const missingAlt=report.images.filter(x=>!String(x.alt||'').trim());
   assert.equal(missingAlt.length,0,label+' has visible images without alt text: '+JSON.stringify(missingAlt));
   for(const d of report.dialogs) {
-    assert.equal(d.getAttribute('aria-modal'),'true',label+' visible dialog must be modal');
+    assert.equal(d.ariaModal,'true',label+' visible dialog must be modal');
   }
 }
 
