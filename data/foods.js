@@ -1264,7 +1264,7 @@ window.DINLIMINATE_FOODS=[
     "quickCuts": [
       "Soup/Stew"
     ],
-    "image": "https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg",
+    "image": "https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=1400",
     "ingredients": [
       "potatoes",
       "onion",
