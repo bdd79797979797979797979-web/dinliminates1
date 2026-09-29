@@ -134,3 +134,9 @@ assert(app.includes("id=\"restDetails\"") && app.includes("ⓘ"),'Restaurant Det
 assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
+assert(app.includes('function appDiagnosisView'),'Settings must expose the App Diagnosis panel');
+assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher');
+assert(app.includes('diagnosisRestaurantDuplicates'),'App Diagnosis must detect possible restaurant duplicates in the loaded pool');
+assert(app.includes('restaurantWebsiteUrl'),'Restaurant diagnosis must include website fallback support');
+assert(app.includes('Release QA baseline'),'App Diagnosis must show automated QA baseline state');
+assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
