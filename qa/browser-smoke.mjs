@@ -502,6 +502,13 @@ assert.equal((await qa()).foodPool.includes('popcorn'),true,'System Restore shou
 await click('#foodMenu'); await settle(); await click('#manage'); await settle();
 assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'System Restore should preserve custom foods');
 await page.reload({waitUntil:'domcontentloaded'}); await settle(); assert.equal((await qa()).custom.some(x=>x.name==='Restore Proof Food'),true,'System Restore should preserve custom foods after reload');
+await page.locator('#foodMenu').click(); await settle(); await page.locator('#settings').click(); await settle();
+await page.locator('#resetAppData').click(); await settle();
+assert.equal(await visible('appConfirmModal'),true,'Reset App Data should use branded confirmation');
+await click('#appConfirmOk'); await settle();
+assert.equal(await visible('home'),true,'Reset App Data should return Home');
+const wiped=await qa(); assert.equal(wiped.custom.length,0,'Reset App Data should wipe custom foods');
+
 await page.locator('#manageFoodsModal [data-food-delete="restore-proof-food"]').click(); await settle(); if(await visible('appConfirmModal')) await click('#appConfirmOk'); await settle();
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
