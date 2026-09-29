@@ -945,7 +945,7 @@ function hourStatus(row){
     });
     modal.querySelectorAll('[data-food-restore-deleted]').forEach(btn=>btn.onclick=()=>{
       S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove();
-      if(S.screen==='food'){ show('food'); foodQuick(); drawFood(); }
+      if(S.screen==='food'){ closeOverlays(); show('food'); foodQuick(); drawFood(); }
       else manageFoodsView();
     });
     modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
