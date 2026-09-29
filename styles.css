@@ -652,3 +652,8 @@
 .diagnosis-refresh{width:auto!important;min-width:118px;margin-top:0!important}
 .diagnosis-refresh.selected{background:linear-gradient(180deg,#2b6c76,#1b4b54)!important;color:#fff!important;border-color:#7ab4bb!important;box-shadow:0 8px 20px #173f4755,inset 0 1px 0 #ffffff15!important}
 .diagnosis-refresh.complete{border-color:#58705a!important}
+
+/* CP244: compact crisp Details icon with breathing room from card copy */
+.card-card-actions{display:flex;align-items:center;gap:8px;margin-top:10px}
+.card-card-action.icon-action{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;border-radius:11px!important}
+.card-card-action.icon-action .details-icon{width:19px!important;height:19px!important}
