@@ -1363,7 +1363,7 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
   }
 
   function removePassSurface(){
-    document.querySelector('#passSurface')?.remove();
+    const el=document.querySelector('#passSurface'); if(!el)return; el._passSwipeCleanup?.(); el.remove();
   }
 
   function openPassSurface(inner){
@@ -1405,15 +1405,16 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
     const surface=$('passSurface'),card=$(cardId),next=$('passNextCard');
     if(!surface||!card)return;
     let startX=0,startY=0,active=false;
-    const reset=()=>{card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-    surface.addEventListener('pointerdown',e=>{
+    const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+    const down=e=>{
       if(!card.contains(e.target)||e.target.closest('button,a,input,select'))return;
       startX=e.clientX;startY=e.clientY;active=true;
-    },true);
-    surface.addEventListener('pointermove',e=>{
+      try{card.setPointerCapture(e.pointerId)}catch{}
+    };
+    const move=e=>{
       if(!active)return;
       const dx=e.clientX-startX,dy=e.clientY-startY;
-      if(Math.abs(dy)>Math.abs(dx)*1.15){return;}
+      if(Math.abs(dy)>Math.abs(dx)*1.2)return;
       if(Math.abs(dx)>8){
         e.preventDefault();
         card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
@@ -1421,19 +1422,30 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         card.dataset.swipe=dx<0?'cut':'maybe';
         if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';
       }
-    },true);
-    surface.addEventListener('pointerup',e=>{
+    };
+    const up=e=>{
       if(!active)return;
       active=false;
       const dx=e.clientX-startX;
       if(Math.abs(dx)>90){
         card.style.transition='transform .16s ease,opacity .16s ease';
         card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-        setTimeout(()=>{const dir=dx<0?onCut:onKeep;reset();dir();},110);
+        setTimeout(()=>{reset();(dx<0?onCut:onKeep)();},110);
       }else reset();
-    },true);
-    surface.addEventListener('pointercancel',()=>{active=false;reset();},true);
+    };
+    const cancel=()=>{active=false;reset();};
+    document.addEventListener('pointerdown',down,true);
+    document.addEventListener('pointermove',move,true);
+    document.addEventListener('pointerup',up,true);
+    document.addEventListener('pointercancel',cancel,true);
+    surface._passSwipeCleanup=()=>{
+      document.removeEventListener('pointerdown',down,true);
+      document.removeEventListener('pointermove',move,true);
+      document.removeEventListener('pointerup',up,true);
+      document.removeEventListener('pointercancel',cancel,true);
+    };
   }
+
 
   function drawPass(){
     const p=S.pass;
