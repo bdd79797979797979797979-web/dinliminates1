@@ -18,3 +18,6 @@ console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 assert(html.includes('foodNextCard') && html.includes('restaurantNextCard'),'Tinder card stacks must be present for both Food and Restaurant');
 assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
+
+assert(!html.includes('allCut') && !app.includes('allCut'),'All Cut must stay removed from the clean rebuild');
+assert(!html.includes('bottom-nav') && !html.includes('id="bottomNav"'),'Legacy bottom navigation must stay removed');
