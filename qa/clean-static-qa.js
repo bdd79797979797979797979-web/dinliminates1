@@ -49,7 +49,7 @@ assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato 
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
+assert(stir?.image?.includes('photos/4924603/'),'Mexican Stir Fry must use the refreshed accurate Mexican stir-fry photo');
 const requestedPhotoIds={tacos:'33614195','stir-fry':'31673757',meatloaf:'2397401','buttermilk-cornbread':'9704174','potato-soup':'29653177','stuffed-peppers':'19359972',stroganoff:'29935503','health-shake':'5946722'};
 for(const [id,photoId] of Object.entries(requestedPhotoIds)) assert(foodRows.find(x=>x.id===id)?.image?.includes(photoId),id+' must use refreshed photo '+photoId);
 assert(foodRows.find(x=>x.id==='cheerios')?.name==='Cereal','Cheerios Cereal must be renamed to Cereal');
@@ -77,7 +77,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='120','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='121','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -161,5 +161,6 @@ assert(/Food catalog contract/.test(app)&&/Food image catalog/.test(app),'App Di
 assert(css.includes('.icon-action{')&&css.includes('.details-icon{'),'Details must use a professional icon button');
 
 assert(css.includes('.diagnosis-action{')&&css.includes('.diagnosis-refresh.selected{')&&css.includes('.diagnosis-run-status.running{'),'Diagnosis must expose distinct launcher and selected/running states');
+assert(css.includes('.card-copy>.icon-action{width:35px')&&css.includes('.card-card-action.icon-action{width:35px'),'Details card icon must be compact and keep breathing room from card text');
 assert(app.includes("setAttribute('aria-pressed','true')")&&app.includes('diagnosisRunStatus'),'Diagnosis Run Again must expose a visible selected/run status');
 assert(html.includes('<rect x="4.75"')&&app.includes('<rect x="4.75"'),'Details icon must use the crisp outlined info mark');
