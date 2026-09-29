@@ -487,3 +487,19 @@
 #aboutModal .about-meta p{display:flex;justify-content:space-between;gap:18px;margin:0;padding:9px 11px;border-radius:11px;background:#1a1917;border:1px solid #302a23}
 #aboutModal .about-meta span{color:#777168;font-size:9px;text-transform:uppercase;letter-spacing:.12em}
 #aboutModal .about-meta b{color:#ead9b8;font-size:10px}
+/* CP111 — winner celebration, history hit targets, and combined food settings */
+#winner{position:relative;overflow:hidden}
+.celebration{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.winner>*:not(.celebration){position:relative;z-index:1}
+.firework-burst{position:absolute;left:50%;top:32%;width:8px;height:8px;transform:translate(-50%,-50%)}
+.firework-burst.burst-1{left:24%;top:27%;animation:burstPulse 2.2s ease-out .05s infinite}
+.firework-burst.burst-2{left:76%;top:20%;animation:burstPulse 2.2s ease-out .25s infinite}
+.firework-burst.burst-3{left:55%;top:12%;animation:burstPulse 2.2s ease-out .42s infinite}
+.firework-burst span{position:absolute;left:50%;top:50%;width:4px;height:22px;border-radius:4px;background:var(--color);box-shadow:0 0 9px var(--color);transform-origin:50% 0;transform:rotate(var(--angle)) translateY(-8px);animation:fireworkRay 1.35s cubic-bezier(.15,.7,.25,1) var(--delay) forwards;opacity:0}
+@keyframes fireworkRay{0%{opacity:0;transform:rotate(var(--angle)) translateY(0) scale(.5)}18%{opacity:1}100%{opacity:0;transform:rotate(var(--angle)) translateY(-70px) scale(.9)}}
+@keyframes burstPulse{0%,100%{transform:translate(-50%,-50%) scale(.88);opacity:.9}50%{transform:translate(-50%,-50%) scale(1.06);opacity:1}}
+.cal-x{pointer-events:auto;touch-action:manipulation;width:24px;height:24px;top:-6px;right:-6px;font-size:12px;line-height:22px;z-index:20;border:1px solid #4b4437;box-shadow:0 3px 10px #000b;display:grid;place-items:center}
+.settings-food-choices{padding:2px 0}
+.settings-state{display:block;margin-top:2px;font-size:9px;color:#777168;text-transform:uppercase;letter-spacing:.1em}
+#backToStart{color:#ead9b8}
+@media(max-width:390px){.firework-burst span{width:3px;height:18px}.firework-burst.burst-1{left:18%;top:25%}.firework-burst.burst-2{left:82%;top:22%}.firework-burst.burst-3{left:53%;top:13%}.cal-x{width:25px;height:25px;top:-7px;right:-7px}}
