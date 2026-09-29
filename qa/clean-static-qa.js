@@ -5,7 +5,7 @@ for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant',
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'clean-r9'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant','cafe','pub','food_court',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r11'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
@@ -63,12 +63,12 @@ assert(!html.includes('Made by Brian Dunn for Devona Dunn'),'Front page should n
 assert(!html.includes('Continue saved round'),'Front page should not show a Continue saved round button');
 assert(html.includes('id="backToStart"'),'Menu must include Back to Start');
 assert(html.includes('id="celebration"'),'Winner must include celebration layer');
-assert(!html.toLowerCase().includes('current app'),'HTML should not mention current app');
+assert(!html.toLowerCase().includes('clean rebuild'),'HTML should not mention build-internal wording');
 assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '110'"),'About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && app.includes("const APP_BUILD = '111'"),'About must expose the current app version/build');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
@@ -86,6 +86,6 @@ assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food De
 
 assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
 
-assert(!app.includes('current app') && !app.includes('current app'),'App source should not mention current app');
+assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes("if (!S.pool.length)") && app.includes("Keep the final choice on-screen so the user can still Cut it."),'Food final choice must remain active until the user Cuts it');
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
