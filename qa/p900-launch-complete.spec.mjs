@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE = process.env.DINLIMINATE_BASE_URL || 'https://dinliminates1.vercel.app';
+const IS_LOCAL = /^https?:\/\/(127\.0\.0\.1|localhost)(?::\d+)?$/i.test(BASE);
 test.describe.configure({ timeout: 120000 });
 
 test('P900 release contract is present', async ({ request }) => {
@@ -14,6 +15,7 @@ test('P900 release contract is present', async ({ request }) => {
   expect(html).not.toContain('p642-cache-cleanup');
 });
 
+test.skip(IS_LOCAL, 'Production provider contract runs against the real deployment. Local app QA uses the deterministic existing UI suites.');
 test('P900 combined restaurant and fast-food API contract', async ({ request }) => {
   const health = await request.get(BASE + '/api/restaurant-search?mode=health');
   expect(health.ok()).toBeTruthy();
