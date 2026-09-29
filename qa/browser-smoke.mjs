@@ -35,6 +35,9 @@ await page.route('**/*', async route => {
   if (u.includes('/api/release')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'117',sourceBranch:'cp238-launch-hardening',commit:null,branch:'cp238-launch-hardening',environment:'test',expectedBranch:'cp238-launch-hardening'})});
   }
+  if (u.includes('/api/restaurant-search?mode=health')) {
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
+  }
   if (u.includes('/api/restaurant-search?mode=suggest')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,results:[
       {lat:36.5298,lon:-87.3588,display:'123 Main St, Clarksville, TN 37040'},
