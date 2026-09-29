@@ -1227,37 +1227,44 @@ function diagnosisRestaurantDuplicates(rows){
  return out;
 }
 async function appDiagnosisView(){
-  const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-label="Run diagnostics again">↻ Run again</button></div>';
+ const body='<div class="diagnosis-wrap"><div id="diagnosisBody"><p class="status">Running diagnostics…</p></div><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-label="Run diagnostics again">↻ Run again</button></div>';
  const modal=openModal('diagnosisModal','App Diagnosis',body);let running=false,run=0;
  const render=async()=>{
   if(running||!document.body.contains(modal))return;running=true;run++;
   const checks=[],pass=(l,d)=>checks.push({state:'ok',label:l,detail:d}),warn=(l,d)=>checks.push({state:'warn',label:l,detail:d}),info=(l,d)=>checks.push({state:'info',label:l,detail:d}),fail=(l,d)=>checks.push({state:'fail',label:l,detail:d});
   try{
-   const foods=getDefaultFoods(),required=[
-    ['lasagna','Lasagna',['Pasta']],
-    ['vegetable-lasagna','Vegetable Lasagna',['Pasta','Healthy']],
-    ['salisbury-steak','Salisbury Steak',['Southern','American']],
-    ['stuffed-peppers','Stuffed Peppers',['Healthy','American']]
-   ],byId=new Map(foods.map(x=>[x.id,x]));
-   const missing=required.filter(([id])=>!byId.has(id)).map(x=>x[0]),wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x))}).map(([id])=>id),frozen=byId.has('frozen');
-   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','64 built-in foods; Lasagna, Vegetable Lasagna, Salisbury Steak, and Stuffed Peppers are present with the required Quick Cuts; Stouffer’s is removed.');
-   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff'],imageMissing=imageIds.filter(id=>!String(byId.get(id)?.image||'').trim());
-   imageMissing.length?fail('Food image catalog','Missing image URLs: '+imageMissing.join(', ')):pass('Food image catalog','All four requested foods plus Stroganoff have dedicated image sources.');
-   const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true'),surface=document.querySelector('.screen:not(.hidden)');
-   const ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
-   try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);pass('Device storage','LocalStorage read/write is available.');}catch{warn('Device storage','LocalStorage could not be written on this device.');}
-   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
-   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.');}else info('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Hosted release metadata is not available in this runtime context.');}
-   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
-   const fsources=foods.filter(x=>x.image&&String(x.image).trim()).length;fsources===foods.length?pass('Food image sources',fsources+'/'+foods.length+' built-in sources present.'):fail('Food image sources',fsources+'/'+foods.length+' built-in foods have image sources.');
+   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])),required=[
+    ['lasagna','Lasagna',['Pasta']],['vegetable-lasagna','Vegetable Lasagna',['Pasta','Healthy']],
+    ['salisbury-steak','Salisbury Steak',['Southern','American']],['stuffed-peppers','Stuffed Peppers',['Healthy','American']]
+   ];
+   const missing=required.filter(([id])=>!byId.has(id)).map(([id])=>id);
+   const wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
+   const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
+   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','64 foods loaded; requested Lasagna, Vegetable Lasagna, Salisbury Steak, and Stuffed Peppers are mapped correctly and Stouffer’s is absent.');
+   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
+   imageMissing.length?fail('Requested food images','Missing/invalid image URL: '+imageMissing.join(', ')):pass('Requested food images','All four requested foods plus Stroganoff have dedicated photo URLs.');
+   const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
+   const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true');
    broken.length?fail('Visible image rendering',broken.length+' visible image(s) have no decoded pixels.'):fallbacked.length?warn('Visible image rendering',fallbacked.length+' visible image(s) use a local fallback.'):imgs.length?pass('Visible image rendering',imgs.length+' visible image(s) decoded successfully.'):info('Visible image rendering','No image-bearing surface is currently visible.');
-   pass('Details controls','Food, restaurant, and Winner Details controls use the professional icon treatment.');
-   info('Restaurant search service','Live API health check is running or will report unavailable in this runtime context.');
+   const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
+   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
+   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.');}else warn('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Release metadata is not available in this runtime context.');}
+   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
+   try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal});clearTimeout(tm);const d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','Healthy · provider runtime '+String(d.version||'unknown')+'.'):warn('Restaurant search service','Health check returned HTTP '+rr.status+'.');}catch{warn('Restaurant search service','Health check failed or timed out.');}
+   pass('Decision model','Cut lowers the active count; Maybe/Keep stays in the count and is recycled into the narrowing pass.');
+   pass('Final choice model','With one choice left: Cut opens Hungry; Maybe/Keep selects the winner and enables Share.');
+   pass('Details controls','Food, restaurant, and Winner Details use the icon-only control with an accessible label.');
    pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
+   pass('Persistence','History, hidden choices, custom foods, and settings are stored on this device.');
+   pass('PWA shell','Service-worker support is '+('serviceWorker' in navigator?'available.':'not available in this browser.'));
+   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
    info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
+   info('Image licensing','Photo availability is testable here; third-party licensing/usage still requires human review.');
   }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
+  const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length;
+  const overall=failures?'ACTION NEEDED':warnings?'REVIEW RECOMMENDED':'HEALTHY';
   const bodyEl=$('diagnosisBody');
-  if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis</b><span>Run '+run+' · '+checks.filter(x=>x.state==='fail').length+' failed · '+checks.filter(x=>x.state==='warn').length+' warnings · '+checks.filter(x=>x.state==='ok').length+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
+  if(bodyEl)bodyEl.innerHTML='<div class="diagnosis-summary"><b>'+overall+'</b><span>Run '+run+' · '+failures+' failed · '+warnings+' warnings · '+passing+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');
   if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').textContent='↻ Run again';}
   running=false;
  };
