@@ -74,6 +74,7 @@
     restaurantTimezone:''
   };
 
+  const normKey = (v) => String(v ?? '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
   const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
