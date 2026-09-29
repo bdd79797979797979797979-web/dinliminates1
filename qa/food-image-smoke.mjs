@@ -6,7 +6,7 @@ const src=fs.readFileSync(new URL('../data/foods.js',import.meta.url),'utf8');
 const sandbox={window:{},self:{},globalThis:{}};
 vm.createContext(sandbox); vm.runInContext(src,sandbox);
 const foods=sandbox.window.DINLIMINATE_FOODS||[];
-assert.equal(foods.length,64,'Food image smoke requires the 64-food catalog');
+assert.equal(foods.length,65,'Food image smoke requires the 65-food catalog');
 const foodUrls=foods.map(x=>String(x.image||'').trim());
 const byId=new Map(foods.map(x=>[x.id,x]));
 assert(!byId.has('frozen'),'Stouffer’s Frozen Dinner must be removed');
@@ -15,9 +15,9 @@ for(const [id,cuts] of [['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Hea
   for(const cut of cuts) assert.ok(byId.get(id).quickCuts?.includes(cut),id+' must include Quick Cut '+cut);
   assert.ok(/^https?:\/\//.test(byId.get(id).image||''),id+' must have a real image URL');
 }
-assert.match(byId.get('stroganoff')?.image||'',/chopped_beef_stroganoff\.jpg/,'Stroganoff should use the refreshed stroganoff image');
-assert.equal(foodUrls.length,64,'Each built-in food should be present in the image audit');
-assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,64,'Each built-in food should have an external image URL');
+assert.match(byId.get('stroganoff')?.image||'',/29935503/,'Stroganoff should use the refreshed stroganoff image');
+assert.equal(foodUrls.length,65,'Each built-in food should be present in the image audit');
+assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,65,'Each built-in food should have an external image URL');
 const urls=[...new Set(foodUrls.filter(x=>/^https?:\/\//.test(x)))];
 
 const bad=[];
@@ -45,4 +45,17 @@ console.log(JSON.stringify({foodCount:foods.length,checked:urls.length,broken:ba
 
 assert.match(byId.get('lasagna')?.image||'',/5949921/,'Lasagna should use the refreshed plated-lasagna photo');
 assert.match(byId.get('vegetable-lasagna')?.image||'',/29050589/,'Vegetable Lasagna should use the refreshed vegetable-lasagna photo');
-assert.match(byId.get('stuffed-peppers')?.image||'',/31953510/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
+assert.match(byId.get('stuffed-peppers')?.image||'',/19359972/,'Stuffed Peppers should use the refreshed stuffed-peppers photo');
+
+const imageExpectations={
+ tacos:/3264572/,
+ "stir-fry":/4924603/,
+ meatloaf:/2397401/,
+ "buttermilk-cornbread":/9704174/,
+ "potato-soup":/29653177/,
+ "health-shake":/5946722/
+};
+for(const [id,re] of Object.entries(imageExpectations)) assert.match(byId.get(id)?.image||'',re,id+' should use its refreshed accurate image');
+assert.equal(byId.get('cheerios')?.name,'Cereal','Cheerios Cereal should be renamed to Cereal');
+assert.deepEqual(byId.get('health-shake')?.quickCuts,['Healthy'],'Health Shake should be associated with Healthy Quick Cut');
+assert.ok(byId.get('health-shake')?.ingredients?.length&&byId.get('health-shake')?.nutrition&&byId.get('health-shake')?.recipe,'Health Shake should have Details-ready nutrition, ingredients, and recipe data');
