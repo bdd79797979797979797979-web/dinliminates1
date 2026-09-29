@@ -1429,25 +1429,29 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         setTimeout(()=>{reset();(dx<0?onCut:onKeep)();},110);
       }else reset();
     };
-    const pd=e=>{e.preventDefault();try{hit.setPointerCapture(e.pointerId)}catch{}begin(e.clientX,e.clientY);};
+    const pd=e=>{if(e.target.closest('button:not(#passGestureHit),a,input,select'))return;e.preventDefault();begin(e.clientX,e.clientY);try{hit.setPointerCapture(e.pointerId)}catch{}};
     const pm=e=>move(e.clientX,e.clientY,e);
     const pu=e=>end(e.clientX,e.clientY);
     const pc=()=>{active=false;reset();};
     hit.addEventListener('pointerdown',pd);
-    hit.addEventListener('pointermove',pm);
-    hit.addEventListener('pointerup',pu);
-    hit.addEventListener('pointercancel',pc);
-    hit.addEventListener('mousedown',e=>{e.preventDefault();begin(e.clientX,e.clientY)});
-    hit.addEventListener('mousemove',e=>move(e.clientX,e.clientY,e));
-    hit.addEventListener('mouseup',e=>end(e.clientX,e.clientY));
-    hit.addEventListener('mouseleave',e=>{if(active&&e.buttons===0)end(e.clientX,e.clientY)});
-    hit.addEventListener('touchstart',e=>{const t=e.touches[0];if(t)begin(t.clientX,t.clientY)},{passive:true});
-    hit.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)},{passive:false});
-    hit.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)},{passive:true});
-    hit.addEventListener('touchcancel',pc,{passive:true});
-    surface._passSwipeCleanup=()=>{};
+    hit.addEventListener('mousedown',pd);
+    hit.addEventListener('touchstart',e=>{const t=e.touches[0];if(t){begin(t.clientX,t.clientY)}},{passive:true});
+    document.addEventListener('pointermove',pm,true);
+    document.addEventListener('pointerup',pu,true);
+    document.addEventListener('pointercancel',pc,true);
+    document.addEventListener('mousemove',e=>{if(active)pm(e)},true);
+    document.addEventListener('mouseup',e=>{if(active)pu(e)},true);
+    document.addEventListener('touchmove',e=>{const t=e.touches[0];if(t)move(t.clientX,t.clientY,e)},{passive:false,capture:true});
+    document.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY)},{passive:true,capture:true});
+    document.addEventListener('touchcancel',pc,{passive:true,capture:true});
+    surface._passSwipeCleanup=()=>{
+      document.removeEventListener('pointermove',pm,true);
+      document.removeEventListener('pointerup',pu,true);
+      document.removeEventListener('pointercancel',pc,true);
+      document.removeEventListener('mousemove',e=>{if(active)pm(e)},true);
+      document.removeEventListener('mouseup',e=>{if(active)pu(e)},true);
+    };
   }
-
 
   function drawPass(){
     const p=S.pass;
