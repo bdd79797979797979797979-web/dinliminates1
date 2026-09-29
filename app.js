@@ -395,7 +395,7 @@ card.onpointermove=e=>{if(!active)return;const dx=e.clientX-downX;if(Math.abs(dx
 card.onpointerup=e=>{if(!active)return;active=false;const dx=e.clientX-downX;if(Math.abs(dx)>90){card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';setTimeout(()=>{reset();dx<0?onCut():onMaybe()},110)}else reset();};
 card.onpointercancel=()=>{active=false;reset();};
 }
-function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>$('foodCut').click(),()=>$('foodMaybe').click())}
+function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
 document.querySelector('#appToast')?.remove();
 const el=document.createElement('div'); el.id='appToast'; el.className='app-toast'; el.textContent=message;
@@ -885,7 +885,7 @@ drawRestaurants();
 save();
 return true;
 }
-function bindRestaurantSwipe(){bindSwipeCard('restaurantCard','restaurantNextCard',()=>$('restCut').click(),()=>$('restMaybe').click())}
+function bindRestaurantSwipe(){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(),()=>restaurantMaybe())}
 function renderHours(){
  const btn=$('hoursToggle');if(!btn)return;const openMode=S.hoursMode==='openUnknown';btn.textContent=openMode?'Open/Unknown':'All';btn.dataset.mode=openMode?'open':'all';btn.setAttribute('aria-pressed',String(openMode));
 }
