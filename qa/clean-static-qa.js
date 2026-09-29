@@ -32,3 +32,12 @@ assert(html.includes('id="restDetails"'),'Restaurant must expose Details directl
 assert(html.indexOf('id="foodCut"') < html.indexOf('id="foodMaybe"'),'Food action order must be Cut then Maybe');
 assert(app.indexOf('id="restCut"') < app.indexOf('id="restMaybe"'),'Restaurant action order must be Cut then Maybe');
 assert(c.includes("round-cut") && c.includes("round-maybe") && c.includes(".global-back") && c.includes(".decision-bottom"),'CP105 hierarchy styles must exist');
+
+assert(html.includes('class="decision-bar"'),'Food/Restaurant must use local compact decision bars');
+assert(html.includes('id="foodBackTop"') && html.includes('id="foodMenu"'),'Food local Back/Menu controls must be present');
+assert(html.includes('id="restaurantBackTop"') && html.includes('id="restaurantMenu"'),'Restaurant local Back/Menu controls must be present');
+assert(html.includes('id="foodCount"') && html.includes('id="restaurantCount"'),'Choice counts must be present on the Quick Cuts rows');
+assert(!/<span>FOOD<\/span>/.test(html) && !/<span>RESTAURANTS<\/span>/.test(html),'Standalone FOOD/RESTAURANTS header labels must stay removed');
+assert(html.includes('class="card-details" id="foodDetails"') && app.includes("detailsSheet(item, 'food')"),'Food card Details must open the full Details sheet');
+assert(app.includes('class="card-details" id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
+assert(c.includes('#detailsModal{top:auto;bottom:0'),'Details must use the restored bottom-sheet presentation');
