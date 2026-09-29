@@ -25,6 +25,11 @@ exports.handler = async (event) => {
       body = JSON.stringify(value);
       return this;
     },
+    send(value) {
+      if (Buffer.isBuffer(value)) { body = value.toString('base64'); isBinary = true; }
+      else body = value === undefined || value === null ? '' : String(value);
+      return this;
+    },
     end(value) {
       if (value === undefined || value === null) {
         body = '';
