@@ -1,33 +1,1588 @@
+/* Dinliminate original 62-food deck restored from the pre-clean rebuild.
+   Photos are curated from the original app source; nutrition is a typical serving estimate,
+   not a medical or packaged-food label. */
 window.DINLIMINATE_FOODS=[
-["meatloaf","Meatloaf & Mashed Potatoes","meatloaf","Southern","https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85","Ground beef meatloaf with onion, breadcrumbs, egg, ketchup glaze, and creamy mashed potatoes."],
-["stroganoff","Beef Stroganoff","pasta","Pasta","https://images.unsplash.com/photo-1551892374-ecf8754cf8b0?auto=format&fit=crop&w=1200&q=85","Beef strips with onion and mushrooms in a creamy sour-cream sauce over egg noodles."],
-["fried-rice","Fried Rice","fried-rice","Asian","https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=1200&q=85","Wok-fried rice with egg, vegetables, soy sauce, and your choice of chicken or pork."],
-["mexican-stir-fry","Mexican Stir Fry","stir-fry","Mexican","https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85","Sliced meat with peppers, onions, corn, and Mexican spices, finished with lime and served over rice."],
-["pot-roast","Pot Roast","pot-roast","Southern","https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85","Slow-roasted beef with carrots, potatoes, onions, and a savory gravy."],
-["pork-chops","Pork Chops","pork","Pork","https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=1200&q=85","Pan-seared or baked pork chops seasoned with salt, pepper, garlic, and herbs."],
-["spaghetti","Spaghetti","pasta","Pasta","https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=1200&q=85","Spaghetti with tomato meat sauce, Italian seasoning, Parmesan, and garlic bread."],
-["tenders","Chicken Tenders & Fries","chicken","American","https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=1200&q=85","Crispy breaded chicken tenders served with golden fries and a dipping sauce."],
-["potato-soup","Potato Soup","potato","Soup","https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=1200&q=85","Creamy potato soup with tender potatoes, onion, broth, and optional cheese or bacon."],
-["cabbage","Cabbage & Sausage","sausage","Southern","https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=1200&q=85","Southern-style cabbage cooked with smoked sausage, onion, garlic, and black pepper."],
-["steak-potato","Steak & Potato","steak","American","https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85","Grilled or pan-seared steak with a baked, roasted, or mashed potato."],
-["chicken-dumplings","Chicken & Dumplings","chicken","Southern","https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=1200&q=85","Southern chicken simmered in broth with tender flour dumplings and vegetables."],
-["sloppy-joes","Sloppy Joes & Fries","sloppy","American","https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=1200&q=85","Ground beef in a sweet-savory tomato sauce piled on a toasted bun with fries."],
-["pbj","PB&J & Chips","sandwich","American","https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=1200&q=85","Classic peanut-butter-and-jelly sandwich served with potato chips."],
-["parfait","Parfait","healthy","Healthy","https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=85","Layered yogurt, fruit, and granola; add honey for extra sweetness."],
-["smoothie","Smoothie","healthy","Healthy","https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=1200&q=85","Blended fruit with yogurt or milk and ice until smooth."],
-["bacon-eggs","Bacon & Eggs","breakfast","Breakfast","https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85","Crisp bacon with fluffy scrambled, fried, or over-easy eggs."],
-["beef-stew","Beef Stew","stew","Soup","https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=85","Tender beef simmered with potatoes, carrots, onion, and a rich savory broth."],
-["chicken-noodle","Chicken Noodle Soup","soup","Soup","https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85","Chicken simmered with carrots, celery, onion, noodles, and seasoned broth."],
-["wings","Chicken Wings","chicken","American","https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=85","Crispy chicken wings tossed in buffalo, barbecue, or your favorite sauce."],
-["gyro","Gyro","gyro","Greek","https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=85","Warm pita filled with seasoned gyro meat, lettuce, tomato, onion, and tzatziki."],
-["cheerios","Cheerios Cereal","cereal","Breakfast","https://images.unsplash.com/photo-1517093157656-b9eccef91cb1?auto=format&fit=crop&w=1200&q=85","Cheerios with cold milk; add banana, berries, or honey."],
-["frozen","Stouffer’s Frozen Dinner","frozen","American","https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85","Stouffer’s-style comfort-food frozen dinner, heated until hot throughout."],
-["popcorn","Popcorn","snack","Snack","https://images.unsplash.com/photo-1578849278619-7d347d3ed1f8?auto=format&fit=crop&w=1200&q=85","Fresh-popped popcorn seasoned with butter, salt, or your favorite topping."],
-["fruit","Fruit Bowl","healthy","Healthy","https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85","A simple bowl of mixed fresh fruit such as berries, melon, grapes, and banana."],
-["burger-fries","Burger & Fries","burger","American","https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85","Classic beef burger with lettuce, tomato, onion, pickles, and fries."],
-["goulash","Goulash","pasta","Pasta","https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85","Tomato-based beef pasta with onion, garlic, paprika, and elbow macaroni."],
-["southern-vegetable-plate","Southern Vegetable Plate","vegetable-plate","Southern","https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85","Southern vegetable plate with corn, green beans, macaroni and cheese, and seasoned beans."],
-["southern-vegetable-beef-soup","Southern Vegetable Beef Soup","soup","Soup","https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85","Tomato-based vegetable beef soup with ground or chopped beef and mixed vegetables."],
-["buttermilk-cornbread","Buttermilk & Cornbread","southern-bread","Southern","https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=85","Cold buttermilk served with warm Southern-style cornbread."],
-["fish-chips","Fish & Chips","fish","American","https://images.unsplash.com/photo-1579208030886-b937da0925dc?auto=format&fit=crop&w=1200&q=85","Crispy battered fish with seasoned fries and tartar sauce."],
-].map(([id,name,primary,category,image,recipe])=>({id,name,primary,category,image,recipe}));
+  {
+    "id": "spaghetti",
+    "name": "Spaghetti",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "spaghetti",
+      "ground beef",
+      "tomato sauce",
+      "onion",
+      "garlic",
+      "Parmesan"
+    ],
+    "nutrition": {
+      "calories": 620,
+      "protein": 29,
+      "carbs": 79,
+      "fat": 22,
+      "sodium": 980
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "grilled-chicken-rice",
+    "name": "Grilled Chicken + Rice",
+    "primary": "chicken",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy"
+    ],
+    "image": "https://images.pexels.com/photos/5192403/pexels-photo-5192403.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chicken breast",
+      "white or brown rice",
+      "olive oil",
+      "garlic",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 560,
+      "protein": 46,
+      "carbs": 48,
+      "fat": 19,
+      "sodium": 620
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "tacos",
+    "name": "Tacos",
+    "primary": "beef",
+    "category": "Mexican",
+    "quickCuts": [
+      "Mexican"
+    ],
+    "image": "https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "ground beef",
+      "corn or flour tortillas",
+      "lettuce",
+      "tomato",
+      "cheese",
+      "salsa"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 27,
+      "carbs": 46,
+      "fat": 25,
+      "sodium": 1050
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "popcorn",
+    "name": "Popcorn",
+    "primary": "popcorn",
+    "category": "Snack",
+    "quickCuts": [
+      "Snack"
+    ],
+    "ingredients": [
+      "popcorn kernels",
+      "butter or oil",
+      "salt"
+    ],
+    "nutrition": {
+      "calories": 260,
+      "protein": 6,
+      "carbs": 31,
+      "fat": 13,
+      "sodium": 290
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "fruit-bowl",
+    "name": "Fruit Bowl",
+    "primary": "fruit",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy"
+    ],
+    "image": "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85",
+    "ingredients": [
+      "berries",
+      "melon",
+      "grapes",
+      "banana",
+      "apple"
+    ],
+    "nutrition": {
+      "calories": 180,
+      "protein": 2,
+      "carbs": 46,
+      "fat": 1,
+      "sodium": 10
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "stir-fry",
+    "name": "Stir Fry",
+    "primary": "stir-fry",
+    "category": "Asian",
+    "quickCuts": [
+      "Asian"
+    ],
+    "image": "https://images.pexels.com/photos/13065209/pexels-photo-13065209.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chicken or beef",
+      "broccoli",
+      "bell pepper",
+      "onion",
+      "soy sauce",
+      "rice"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 30,
+      "carbs": 55,
+      "fat": 18,
+      "sodium": 1200
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "homemade-pizza",
+    "name": "Homemade Pizza",
+    "primary": "pizza",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/5903276/pexels-photo-5903276.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "pizza dough",
+      "tomato sauce",
+      "mozzarella",
+      "pepperoni or vegetables",
+      "olive oil"
+    ],
+    "nutrition": {
+      "calories": 680,
+      "protein": 31,
+      "carbs": 74,
+      "fat": 28,
+      "sodium": 1320
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "burgers",
+    "name": "Burgers",
+    "primary": "burger",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "ground beef patty",
+      "bun",
+      "lettuce",
+      "tomato",
+      "pickles",
+      "cheese"
+    ],
+    "nutrition": {
+      "calories": 690,
+      "protein": 38,
+      "carbs": 43,
+      "fat": 39,
+      "sodium": 1180
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "eggs-toast",
+    "name": "Eggs & Toast",
+    "primary": "eggs",
+    "category": "Breakfast",
+    "quickCuts": [
+      "Breakfast"
+    ],
+    "image": "https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "eggs",
+      "bread",
+      "butter",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 390,
+      "protein": 20,
+      "carbs": 25,
+      "fat": 24,
+      "sodium": 610
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "soup-sandwich",
+    "name": "Soup & Sandwich",
+    "primary": "soup",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew"
+    ],
+    "image": "https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "tomato or chicken soup",
+      "bread",
+      "deli meat or cheese",
+      "butter"
+    ],
+    "nutrition": {
+      "calories": 540,
+      "protein": 23,
+      "carbs": 57,
+      "fat": 24,
+      "sodium": 1280
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "pasta-alfredo",
+    "name": "Pasta Alfredo",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/13294544/pexels-photo-13294544.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "fettuccine",
+      "butter",
+      "heavy cream",
+      "Parmesan",
+      "garlic",
+      "black pepper"
+    ],
+    "nutrition": {
+      "calories": 760,
+      "protein": 25,
+      "carbs": 78,
+      "fat": 42,
+      "sodium": 920
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "salad-bowl",
+    "name": "Salad Bowl",
+    "primary": "salad",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy"
+    ],
+    "image": "https://images.pexels.com/photos/11906476/pexels-photo-11906476.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "mixed greens",
+      "tomato",
+      "cucumber",
+      "carrot",
+      "dressing",
+      "grilled chicken optional"
+    ],
+    "nutrition": {
+      "calories": 320,
+      "protein": 18,
+      "carbs": 18,
+      "fat": 21,
+      "sodium": 540
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "mac-cheese",
+    "name": "Mac & Cheese",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/25449940/pexels-photo-25449940.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "elbow macaroni",
+      "cheddar cheese",
+      "milk",
+      "butter",
+      "flour"
+    ],
+    "nutrition": {
+      "calories": 510,
+      "protein": 19,
+      "carbs": 53,
+      "fat": 25,
+      "sodium": 980
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "fried-rice",
+    "name": "Fried Rice",
+    "primary": "fried-rice",
+    "category": "Asian",
+    "quickCuts": [
+      "Asian"
+    ],
+    "image": "https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "cooked rice",
+      "egg",
+      "peas and carrots",
+      "soy sauce",
+      "sesame or cooking oil",
+      "chicken optional"
+    ],
+    "nutrition": {
+      "calories": 490,
+      "protein": 16,
+      "carbs": 69,
+      "fat": 15,
+      "sodium": 1120
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "grilled-cheese",
+    "name": "Grilled Cheese",
+    "primary": "sandwich",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/33706245/pexels-photo-33706245.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "bread",
+      "butter",
+      "cheddar or American cheese"
+    ],
+    "nutrition": {
+      "calories": 470,
+      "protein": 17,
+      "carbs": 38,
+      "fat": 28,
+      "sodium": 840
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "burrito-bowl",
+    "name": "Burrito Bowl",
+    "primary": "rice",
+    "category": "Mexican",
+    "quickCuts": [
+      "Mexican"
+    ],
+    "image": "https://images.pexels.com/photos/10696501/pexels-photo-10696501.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "rice",
+      "beans",
+      "seasoned beef or chicken",
+      "salsa",
+      "lettuce",
+      "cheese"
+    ],
+    "nutrition": {
+      "calories": 620,
+      "protein": 34,
+      "carbs": 72,
+      "fat": 22,
+      "sodium": 1180
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "southern-vegetable-plate",
+    "name": "Southern Vegetable Plate",
+    "primary": "vegetable-plate",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://static.spotapps.co/spots/c2/7e1c43d84d40ceb08957852a6b91e1/full",
+    "ingredients": [
+      "corn",
+      "green beans",
+      "macaroni and cheese",
+      "seasoned beans",
+      "butter"
+    ],
+    "nutrition": {
+      "calories": 590,
+      "protein": 18,
+      "carbs": 74,
+      "fat": 23,
+      "sodium": 1080
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "meatloaf",
+    "name": "Meatloaf & Mashed Potatoes",
+    "primary": "meatloaf",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "ground beef",
+      "breadcrumbs",
+      "egg",
+      "onion",
+      "ketchup",
+      "potatoes"
+    ],
+    "nutrition": {
+      "calories": 680,
+      "protein": 38,
+      "carbs": 52,
+      "fat": 34,
+      "sodium": 1320
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "stroganoff",
+    "name": "Beef Stroganoff",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/1998918/pexels-photo-1998918.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "beef strips",
+      "egg noodles",
+      "mushrooms",
+      "onion",
+      "sour cream",
+      "beef broth"
+    ],
+    "nutrition": {
+      "calories": 720,
+      "protein": 40,
+      "carbs": 63,
+      "fat": 33,
+      "sodium": 1170
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "grilled-salmon",
+    "name": "Grilled Salmon",
+    "primary": "salmon",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy"
+    ],
+    "image": "https://images.pexels.com/photos/31235406/pexels-photo-31235406.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "salmon",
+      "lemon",
+      "olive oil",
+      "garlic",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 42,
+      "carbs": 8,
+      "fat": 34,
+      "sodium": 420
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "lasagna",
+    "name": "Lasagna",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/29174061/pexels-photo-29174061.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "lasagna noodles",
+      "ground beef",
+      "marinara",
+      "ricotta",
+      "mozzarella",
+      "Parmesan"
+    ],
+    "nutrition": {
+      "calories": 760,
+      "protein": 42,
+      "carbs": 62,
+      "fat": 38,
+      "sodium": 1360
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chicken-parmesan",
+    "name": "Chicken Parmesan",
+    "primary": "chicken-parmesan",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://images.pexels.com/photos/36863871/pexels-photo-36863871.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chicken breast",
+      "breadcrumbs",
+      "marinara",
+      "mozzarella",
+      "Parmesan",
+      "pasta"
+    ],
+    "nutrition": {
+      "calories": 720,
+      "protein": 46,
+      "carbs": 56,
+      "fat": 31,
+      "sodium": 1260
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "goulash",
+    "name": "Goulash",
+    "primary": "pasta",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://hips.hearstapps.com/hmg-prod/images/american-chop-suey-american-goulash-with-elbow-royalty-free-image-1654804622.jpg?crop=0.668xw%3A1.00xh%3B0.277xw%2C0&resize=1200:*",
+    "ingredients": [
+      "ground beef",
+      "elbow macaroni",
+      "tomato sauce",
+      "diced tomatoes",
+      "onion",
+      "paprika"
+    ],
+    "nutrition": {
+      "calories": 610,
+      "protein": 31,
+      "carbs": 66,
+      "fat": 22,
+      "sodium": 1140
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "santa-fe-soup",
+    "name": "Santa Fe Soup",
+    "primary": "soup",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew",
+      "Mexican"
+    ],
+    "image": "https://images.pexels.com/photos/28286253/pexels-photo-28286253.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "beans",
+      "corn",
+      "tomatoes",
+      "chicken or beef",
+      "green chiles",
+      "broth"
+    ],
+    "nutrition": {
+      "calories": 430,
+      "protein": 28,
+      "carbs": 43,
+      "fat": 14,
+      "sodium": 1090
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "southern-vegetable-beef-soup",
+    "name": "Southern Vegetable Beef Soup",
+    "primary": "soup",
+    "category": "Soup",
+    "quickCuts": [
+      "Southern",
+      "Soup/Stew"
+    ],
+    "image": "https://calliesbiscuits.com/cdn/shop/articles/Blog_Resized21_1024x1024.jpg?v=1635184734",
+    "ingredients": [
+      "beef",
+      "tomatoes",
+      "corn",
+      "green beans",
+      "carrots",
+      "potatoes"
+    ],
+    "nutrition": {
+      "calories": 410,
+      "protein": 28,
+      "carbs": 39,
+      "fat": 15,
+      "sodium": 980
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chicken-fried-steak",
+    "name": "Chicken Fried Steak",
+    "primary": "beef",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://vinovoss.com/images/dishes/chicken-fried-steak_600px.webp?org_if_sml=1&q=85&w=1200",
+    "ingredients": [
+      "cube steak",
+      "flour",
+      "egg",
+      "milk",
+      "oil",
+      "cream gravy"
+    ],
+    "nutrition": {
+      "calories": 790,
+      "protein": 39,
+      "carbs": 48,
+      "fat": 49,
+      "sodium": 1610
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "country-fried-chicken",
+    "name": "Country Fried Chicken",
+    "primary": "chicken",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://recipesclare.com/assets/images/1751102299554-1rk4gwow.webp",
+    "ingredients": [
+      "chicken",
+      "flour",
+      "buttermilk",
+      "oil",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 720,
+      "protein": 45,
+      "carbs": 45,
+      "fat": 41,
+      "sodium": 1420
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "pot-roast",
+    "name": "Pot Roast",
+    "primary": "beef",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://images.pexels.com/photos/6545671/pexels-photo-6545671.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chuck roast",
+      "potatoes",
+      "carrots",
+      "onion",
+      "beef broth",
+      "gravy"
+    ],
+    "nutrition": {
+      "calories": 690,
+      "protein": 48,
+      "carbs": 31,
+      "fat": 38,
+      "sodium": 1170
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chicken-dumplings",
+    "name": "Chicken & Dumplings",
+    "primary": "chicken",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Soup/Stew"
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chicken_and_dumplings.JPG?width=1400",
+    "ingredients": [
+      "chicken",
+      "broth",
+      "flour",
+      "milk",
+      "onion",
+      "carrots"
+    ],
+    "nutrition": {
+      "calories": 610,
+      "protein": 39,
+      "carbs": 52,
+      "fat": 26,
+      "sodium": 1260
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "bbq-pulled-pork",
+    "name": "BBQ Pulled Pork",
+    "primary": "pork",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Pork"
+    ],
+    "image": "https://www.ajsbbq.co.nz/assets/gallery-pulled-pork-DxzwwzGu.jpg",
+    "ingredients": [
+      "pork shoulder",
+      "barbecue sauce",
+      "onion",
+      "brown sugar",
+      "paprika"
+    ],
+    "nutrition": {
+      "calories": 590,
+      "protein": 39,
+      "carbs": 38,
+      "fat": 28,
+      "sodium": 1180
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "bbq-ribs",
+    "name": "BBQ Ribs",
+    "primary": "pork",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Pork"
+    ],
+    "image": "https://images.pexels.com/photos/37128276/pexels-photo-37128276.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "pork ribs",
+      "dry rub",
+      "barbecue sauce",
+      "brown sugar",
+      "paprika"
+    ],
+    "nutrition": {
+      "calories": 760,
+      "protein": 43,
+      "carbs": 39,
+      "fat": 48,
+      "sodium": 1160
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "pork-chops",
+    "name": "Pork Chops",
+    "primary": "pork",
+    "category": "Pork",
+    "quickCuts": [
+      "Pork"
+    ],
+    "image": "https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "pork chops",
+      "olive oil",
+      "garlic",
+      "herbs",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 43,
+      "carbs": 3,
+      "fat": 34,
+      "sodium": 490
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "fried-catfish",
+    "name": "Fried Catfish",
+    "primary": "catfish",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://images.pexels.com/photos/29516766/pexels-photo-29516766.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "catfish fillet",
+      "cornmeal",
+      "flour",
+      "oil",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 610,
+      "protein": 34,
+      "carbs": 36,
+      "fat": 39,
+      "sodium": 950
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "shrimp-grits",
+    "name": "Shrimp & Grits",
+    "primary": "shrimp",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern"
+    ],
+    "image": "https://southernbite.com/wp-content/uploads/2025/06/Shrimp-and-Grits-4-500x500.jpg",
+    "ingredients": [
+      "shrimp",
+      "stone-ground grits",
+      "butter",
+      "cheddar",
+      "garlic",
+      "green onion"
+    ],
+    "nutrition": {
+      "calories": 620,
+      "protein": 33,
+      "carbs": 47,
+      "fat": 34,
+      "sodium": 1110
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chili",
+    "name": "Chili",
+    "primary": "beef",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew"
+    ],
+    "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/homemade_chili_con_carne.jpg",
+    "ingredients": [
+      "ground beef",
+      "kidney beans",
+      "tomatoes",
+      "onion",
+      "chili powder",
+      "cumin"
+    ],
+    "nutrition": {
+      "calories": 480,
+      "protein": 31,
+      "carbs": 38,
+      "fat": 21,
+      "sodium": 1120
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chili-cheese-baked-potato",
+    "name": "Chili Cheese Baked Potato",
+    "primary": "potato",
+    "category": "Potato",
+    "quickCuts": [
+      "Potato"
+    ],
+    "image": "https://butterhearth.com/assets/images/1763506457858-ku289il9.webp",
+    "ingredients": [
+      "baked potato",
+      "chili",
+      "cheddar",
+      "sour cream",
+      "green onion"
+    ],
+    "nutrition": {
+      "calories": 610,
+      "protein": 27,
+      "carbs": 67,
+      "fat": 25,
+      "sodium": 1160
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "loaded-baked-potato",
+    "name": "Loaded Baked Potato",
+    "primary": "potato",
+    "category": "Potato",
+    "quickCuts": [
+      "Potato"
+    ],
+    "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/loaded_baked_potato.jpg",
+    "ingredients": [
+      "baked potato",
+      "cheddar",
+      "sour cream",
+      "bacon",
+      "green onion",
+      "butter"
+    ],
+    "nutrition": {
+      "calories": 540,
+      "protein": 20,
+      "carbs": 50,
+      "fat": 30,
+      "sodium": 1060
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "mashed-potatoes-gravy",
+    "name": "Mashed Potatoes & Gravy",
+    "primary": "potato",
+    "category": "Potato",
+    "quickCuts": [
+      "Potato"
+    ],
+    "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/one_plate_coocked__potato_and_gravy.jpg",
+    "ingredients": [
+      "potatoes",
+      "butter",
+      "milk",
+      "brown gravy",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 430,
+      "protein": 8,
+      "carbs": 50,
+      "fat": 22,
+      "sodium": 880
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "biscuits-gravy",
+    "name": "Biscuits & Gravy",
+    "primary": "breakfast",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Breakfast"
+    ],
+    "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/sausage_gravy.jpg",
+    "ingredients": [
+      "biscuits",
+      "sausage",
+      "flour",
+      "milk",
+      "butter",
+      "black pepper"
+    ],
+    "nutrition": {
+      "calories": 620,
+      "protein": 18,
+      "carbs": 50,
+      "fat": 38,
+      "sodium": 1240
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "buttermilk-cornbread",
+    "name": "Buttermilk & Cornbread",
+    "primary": "buttermilk",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Breakfast"
+    ],
+    "image": "https://images.pexels.com/photos/8489749/pexels-photo-8489749.jpeg?auto=compress&dpr=1&h=750&w=1260",
+    "ingredients": [
+      "buttermilk",
+      "cornmeal",
+      "egg",
+      "butter",
+      "salt"
+    ],
+    "nutrition": {
+      "calories": 370,
+      "protein": 11,
+      "carbs": 43,
+      "fat": 18,
+      "sodium": 520
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "sausage-peppers",
+    "name": "Sausage & Peppers",
+    "primary": "pork",
+    "category": "Pork",
+    "quickCuts": [
+      "Pork"
+    ],
+    "image": "https://www.pastapiracy.com/assets/images/simmering_sausage_peppers.png",
+    "ingredients": [
+      "Italian sausage",
+      "bell peppers",
+      "onion",
+      "tomato sauce",
+      "olive oil"
+    ],
+    "nutrition": {
+      "calories": 580,
+      "protein": 27,
+      "carbs": 24,
+      "fat": 40,
+      "sodium": 1180
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "bacon-eggs",
+    "name": "Bacon & Eggs",
+    "primary": "bacon",
+    "category": "Breakfast",
+    "quickCuts": [
+      "Breakfast"
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eggs%20and%20bacon.jpg?width=1400",
+    "ingredients": [
+      "bacon",
+      "eggs",
+      "butter or pan drippings",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 430,
+      "protein": 26,
+      "carbs": 2,
+      "fat": 34,
+      "sodium": 920
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chicken-waffles",
+    "name": "Chicken & Waffles",
+    "primary": "chicken",
+    "category": "Breakfast",
+    "quickCuts": [
+      "Breakfast",
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/31706937/pexels-photo-31706937.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "fried chicken",
+      "waffles",
+      "syrup",
+      "butter",
+      "hot honey optional"
+    ],
+    "nutrition": {
+      "calories": 790,
+      "protein": 39,
+      "carbs": 73,
+      "fat": 37,
+      "sodium": 1230
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "tenders",
+    "name": "Chicken Tenders & Fries",
+    "primary": "chicken",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://slicelife.imgix.net/706/photos/original/Michaelangelos_ChickenTendersWFF.jpg?auto=compress&auto=format",
+    "ingredients": [
+      "chicken strips",
+      "breading",
+      "fries",
+      "dipping sauce",
+      "oil"
+    ],
+    "nutrition": {
+      "calories": 840,
+      "protein": 43,
+      "carbs": 73,
+      "fat": 42,
+      "sodium": 1550
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "sloppy-joes",
+    "name": "Sloppy Joes & Fries",
+    "primary": "beef",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://cdn.shopify.com/s/files/1/0984/6720/files/DSC_0239_32f6f925-62ba-481d-ab20-8b7903ba0659.jpg?v=1592862244",
+    "ingredients": [
+      "ground beef",
+      "tomato sauce",
+      "ketchup",
+      "mustard",
+      "bun",
+      "fries"
+    ],
+    "nutrition": {
+      "calories": 780,
+      "protein": 34,
+      "carbs": 77,
+      "fat": 33,
+      "sodium": 1460
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "cabbage",
+    "name": "Cabbage & Sausage",
+    "primary": "pork",
+    "category": "Southern",
+    "quickCuts": [
+      "Southern",
+      "Pork"
+    ],
+    "image": "https://savouryflavor.com/assets/images/1764611130433-fm0ektkv.webp",
+    "ingredients": [
+      "cabbage",
+      "smoked sausage",
+      "onion",
+      "garlic",
+      "black pepper"
+    ],
+    "nutrition": {
+      "calories": 480,
+      "protein": 23,
+      "carbs": 18,
+      "fat": 33,
+      "sodium": 1040
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "steak-potato",
+    "name": "Steak & Potato",
+    "primary": "steak",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://resizer.otstatic.com/v3/photos/43647085-2",
+    "ingredients": [
+      "steak",
+      "potato",
+      "olive oil",
+      "butter",
+      "garlic",
+      "salt"
+    ],
+    "nutrition": {
+      "calories": 700,
+      "protein": 49,
+      "carbs": 37,
+      "fat": 38,
+      "sodium": 560
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "potato-soup",
+    "name": "Potato Soup",
+    "primary": "soup",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew"
+    ],
+    "image": "https://www.cooksoups.com/assets/images/potato-bacon-soup.jpg",
+    "ingredients": [
+      "potatoes",
+      "onion",
+      "celery",
+      "broth",
+      "milk or cream",
+      "bacon optional"
+    ],
+    "nutrition": {
+      "calories": 420,
+      "protein": 10,
+      "carbs": 48,
+      "fat": 21,
+      "sodium": 930
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "beef-stew",
+    "name": "Beef Stew",
+    "primary": "stew",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew"
+    ],
+    "image": "https://images.pexels.com/photos/10692537/pexels-photo-10692537.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "beef",
+      "potatoes",
+      "carrots",
+      "onion",
+      "beef broth",
+      "tomato paste"
+    ],
+    "nutrition": {
+      "calories": 530,
+      "protein": 37,
+      "carbs": 38,
+      "fat": 25,
+      "sodium": 1020
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "chicken-noodle",
+    "name": "Chicken Noodle Soup",
+    "primary": "soup",
+    "category": "Soup",
+    "quickCuts": [
+      "Soup/Stew"
+    ],
+    "image": "https://images.pexels.com/photos/34326231/pexels-photo-34326231.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chicken",
+      "broth",
+      "egg noodles",
+      "carrots",
+      "celery",
+      "onion"
+    ],
+    "nutrition": {
+      "calories": 360,
+      "protein": 27,
+      "carbs": 35,
+      "fat": 11,
+      "sodium": 980
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "wings",
+    "name": "Chicken Wings",
+    "primary": "chicken",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/8862753/pexels-photo-8862753.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "chicken wings",
+      "buffalo or barbecue sauce",
+      "oil",
+      "salt",
+      "pepper"
+    ],
+    "nutrition": {
+      "calories": 720,
+      "protein": 45,
+      "carbs": 13,
+      "fat": 53,
+      "sodium": 1320
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "meatball-subs",
+    "name": "Meatball Subs",
+    "primary": "beef",
+    "category": "Pasta",
+    "quickCuts": [
+      "Pasta"
+    ],
+    "image": "https://bigbitesedenderry.com/img/gallery/7.jpg",
+    "ingredients": [
+      "meatballs",
+      "marinara",
+      "sub roll",
+      "mozzarella",
+      "Parmesan"
+    ],
+    "nutrition": {
+      "calories": 690,
+      "protein": 34,
+      "carbs": 57,
+      "fat": 36,
+      "sodium": 1530
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "tuna-melt",
+    "name": "Tuna Melt",
+    "primary": "tuna",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://kookycrunch.com/assets/images/1759837530030-r4i-jr61.webp",
+    "ingredients": [
+      "tuna",
+      "mayonnaise",
+      "bread",
+      "cheddar",
+      "pickles or celery"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 31,
+      "carbs": 32,
+      "fat": 30,
+      "sodium": 950
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "philly-cheesesteak",
+    "name": "Philly Cheesesteak",
+    "primary": "beef",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/37324434/pexels-photo-37324434.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "thin-sliced beef",
+      "hoagie roll",
+      "onion",
+      "provolone or American cheese",
+      "oil"
+    ],
+    "nutrition": {
+      "calories": 760,
+      "protein": 43,
+      "carbs": 44,
+      "fat": 45,
+      "sodium": 1320
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "pbj",
+    "name": "Peanut Butter & Jelly Sandwich + Chips",
+    "primary": "sandwich",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Peanut_butter_and_jelly_sandwich.jpg?width=1400",
+    "ingredients": [
+      "bread",
+      "peanut butter",
+      "jelly",
+      "potato chips"
+    ],
+    "nutrition": {
+      "calories": 610,
+      "protein": 18,
+      "carbs": 65,
+      "fat": 31,
+      "sodium": 690
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "ham-sandwich",
+    "name": "Ham Sandwich + Chips",
+    "primary": "sandwich",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/37228374/pexels-photo-37228374.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "bread",
+      "ham",
+      "cheese",
+      "lettuce",
+      "mustard or mayo",
+      "potato chips"
+    ],
+    "nutrition": {
+      "calories": 560,
+      "protein": 27,
+      "carbs": 55,
+      "fat": 26,
+      "sodium": 1470
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "parfait",
+    "name": "Parfait",
+    "primary": "parfait",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy",
+      "Breakfast"
+    ],
+    "image": "https://images.pexels.com/photos/20691481/pexels-photo-20691481.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "Greek yogurt",
+      "berries",
+      "granola",
+      "honey"
+    ],
+    "nutrition": {
+      "calories": 330,
+      "protein": 18,
+      "carbs": 43,
+      "fat": 9,
+      "sodium": 180
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "smoothie",
+    "name": "Smoothie",
+    "primary": "smoothie",
+    "category": "Healthy",
+    "quickCuts": [
+      "Healthy",
+      "Breakfast"
+    ],
+    "image": "https://images.pexels.com/photos/13116680/pexels-photo-13116680.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "fruit",
+      "yogurt or milk",
+      "ice",
+      "honey optional"
+    ],
+    "nutrition": {
+      "calories": 290,
+      "protein": 10,
+      "carbs": 48,
+      "fat": 7,
+      "sodium": 110
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "gyro",
+    "name": "Gyro",
+    "primary": "gyro",
+    "category": "Greek",
+    "quickCuts": [
+      "Greek"
+    ],
+    "image": "https://images.pexels.com/photos/6941006/pexels-photo-6941006.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "gyro meat",
+      "pita",
+      "lettuce",
+      "tomato",
+      "onion",
+      "tzatziki"
+    ],
+    "nutrition": {
+      "calories": 620,
+      "protein": 31,
+      "carbs": 49,
+      "fat": 32,
+      "sodium": 1130
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "cheerios",
+    "name": "Cheerios Cereal",
+    "primary": "cereal",
+    "category": "Breakfast",
+    "quickCuts": [
+      "Breakfast"
+    ],
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cheerios.png?width=1400",
+    "ingredients": [
+      "Cheerios cereal",
+      "milk",
+      "banana or berries optional"
+    ],
+    "nutrition": {
+      "calories": 300,
+      "protein": 11,
+      "carbs": 47,
+      "fat": 8,
+      "sodium": 410
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "frozen",
+    "name": "Stouffer’s Frozen Dinner",
+    "primary": "frozen",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://www.goodnes.com/sites/g/files/jgfbjl321/files/styles/gdn_hero_pdp_product_image/public/gdn_product/field_product_images/stouffers-v978fpjmtmeos1u73ry3.jpg.webp?itok=-H2wBe3a",
+    "ingredients": [
+      "frozen entree",
+      "sauce or gravy",
+      "vegetables or pasta depending on entree"
+    ],
+    "nutrition": {
+      "calories": 520,
+      "protein": 23,
+      "carbs": 49,
+      "fat": 25,
+      "sodium": 1260
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  },
+  {
+    "id": "fish-sticks",
+    "name": "Fish Sticks",
+    "primary": "fish",
+    "category": "American",
+    "quickCuts": [
+      "American"
+    ],
+    "image": "https://images.pexels.com/photos/5639413/pexels-photo-5639413.jpeg?auto=compress&cs=tinysrgb&w=1400",
+    "ingredients": [
+      "breaded white fish",
+      "flour",
+      "breadcrumbs",
+      "oil",
+      "tartar sauce"
+    ],
+    "nutrition": {
+      "calories": 420,
+      "protein": 22,
+      "carbs": 34,
+      "fat": 23,
+      "sodium": 840
+    },
+    "nutritionNote": "Typical estimate per serving; preparation, portion size, and brand can change these values."
+  }
+];
