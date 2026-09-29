@@ -56,6 +56,9 @@ function dedupe(rows){const map=new Map();for(const r of rows){const addr=norm(r
 function namedImage(s){
   const q=norm(s||'');
   const map=[
+    [/ruby tuesday/, 'https://s.wsj.net/public/resources/images/BN-VP628_31fHe_OR_20171016100013.jpg'],
+    [/chipotle/, 'https://photos.zillowstatic.com/fp/524675e3749c32d6b928e285dabf619f-cc_ft_960.jpg'],
+    [/thirsty goat/, 'https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg'],
     [/mcdonald/, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'],
     [/taco bell/, 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'],
     [/wendy/, 'https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1200&q=85'],
