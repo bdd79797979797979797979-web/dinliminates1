@@ -12,6 +12,7 @@ assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.inc
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
 assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
+assert(app.includes('legacyKeys') && app.includes('cutPrimary'),'Persisted state migration must retire legacy fields');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 
