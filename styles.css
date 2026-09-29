@@ -489,7 +489,7 @@
 #aboutModal .about-meta b{color:#ead9b8;font-size:10px}
 /* CP111 — winner celebration, history hit targets, and combined food settings */
 #winner{position:relative;overflow:hidden}
-.celebration{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.celebration{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}
 .winner>*:not(.celebration){position:relative;z-index:1}
 .firework-burst{position:absolute;left:50%;top:32%;width:8px;height:8px;transform:translate(-50%,-50%)}
 .firework-burst.burst-1{left:24%;top:27%;animation:burstPulse 2.2s ease-out .05s infinite}
