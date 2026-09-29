@@ -774,9 +774,8 @@ function hourStatus(row){
     const category = restaurantCategory(row);
     const restaurantFallback = (r) => {
       const s = String(r?.name||'').toLowerCase();
-      if (/ruby tuesday/.test(s)) return 'https://s.wsj.net/public/resources/images/BN-VP628_31fHe_OR_20171016100013.jpg';
-      if (/chipotle/.test(s)) return 'https://photos.zillowstatic.com/fp/524675e3749c32d6b928e285dabf619f-cc_ft_960.jpg';
-      if (/thirsty goat/.test(s)) return 'https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg';
+      if (/chipotle/.test(s)) return 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85';
+      if (/ruby tuesday|thirsty goat/.test(s)) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
       return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
     };
     const image = row.photo || row.image || restaurantFallback(row);
