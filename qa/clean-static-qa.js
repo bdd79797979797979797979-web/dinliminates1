@@ -59,7 +59,13 @@ assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("S.hoursMode === 'openUnknown' ? 'Open/Unknown' : 'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
-for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) assert(app.includes(label+':\''),'Food Quick Cut photo mapping must include '+label);
-for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) assert(app.includes(label+':\''),'Restaurant Quick Cut photo mapping must include '+label);
+for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
+  const key = label === 'Soup/Stew' ? "'Soup/Stew':" : label+':';
+  assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
+}
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
+  const key = label === 'Soup/Stew' ? "'Soup/Stew':" : label+':';
+  assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
+}
 assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
