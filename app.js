@@ -7,7 +7,7 @@ const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
 const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '119';
+let APP_BUILD = '120';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
@@ -1244,8 +1244,8 @@ async function appDiagnosisView(){
    const missing=required.filter(([id])=>!byId.has(id)).map(([id])=>id);
    const wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
    const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
-   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','64 foods loaded; requested foods present; Stouffer’s absent.');
-   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
+   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
+   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
    imageMissing.length?fail('Food image catalog','Missing/invalid image URL: '+imageMissing.join(', ')):pass('Food image catalog','Requested foods + Stroganoff have photo URLs.');
    const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
    const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true');
@@ -1257,7 +1257,7 @@ async function appDiagnosisView(){
    try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal});clearTimeout(tm);const d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','Healthy · provider runtime '+String(d.version||'unknown')+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','HTTP '+rr.status+'.'));}catch{(location.hostname==='localhost'||location.hostname==='127.0.0.1')?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','Health check failed or timed out.');}
    pass('Decision model','Cut lowers the active count; Maybe/Keep stays in the count and is recycled into the narrowing pass.');
    pass('Final choice model','With one choice left: Cut opens Hungry; Maybe/Keep selects the winner and enables Share.');
-   pass('Details controls','Food, restaurant, and Winner Details use the icon-only control with an accessible label.');
+   pass('Details controls','Food and restaurant Details use a compact crisp icon-only control with an accessible label.');
    S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
    pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
    pass('Persistence','History, hidden choices, custom foods, and settings persist locally.');
