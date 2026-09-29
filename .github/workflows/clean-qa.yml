@@ -56,7 +56,7 @@ jobs:
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
       - name: Install Playwright
-        run: npm install --no-save playwright@1.55.0
+        run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Browser smoke
@@ -66,6 +66,8 @@ jobs:
       - name: Performance budget
         run: node qa/performance-budget.mjs
 
+      - name: Visual regression
+        run: node qa/visual-regression.mjs
       - name: Upload visual QA artifacts
         if: always()
         uses: actions/upload-artifact@v6
