@@ -581,3 +581,5 @@
 .pass-actions{display:grid;grid-template-columns:.7fr 1fr 1.2fr;gap:8px;width:min(92vw,430px);margin:12px auto 0}
 .pass-actions button{min-height:52px;border-radius:16px;font-size:11px;font-weight:900}
 @media(max-width:390px){.luxury-home h1{font-size:29px;max-width:12em}.pass-surface{padding-left:12px;padding-right:12px}.pass-card-copy h2{font-size:28px}}
+
+.pass-gesture-hit{position:absolute;inset:0;z-index:4;touch-action:none;cursor:grab}.pass-card-copy{z-index:3;pointer-events:none}
