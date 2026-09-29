@@ -1,8 +1,7 @@
 # Dinliminate P900 — Complete Launch Audit
 Date: 2026-09-29
 Release candidate: p900-launch-complete-2026-09-29
-Working branch: launch-complete-2026-09-29
-Pre-work recovery: recovery-pre-launch-audit-2026-09-29
+Final main commit checked: 4c2f4081e2355da81550cd96a66ddeb64fc93060
 
 ## Recommendation status
 
@@ -64,3 +63,11 @@ Successful P730 local QA runs exist on the working branch history. A dedicated P
 ## External gates
 
 The remaining yellow items require either a real production browser/device, provider configuration, or owner-side asset-rights decisions. They are deliberately not marked green without that evidence.
+
+
+## Final checkpoint
+- Stable release branch: `release-p900-2026-09-29`
+- Production recovery branch: `recovery-p900-production-2026-09-29`
+- Pre-work recovery branch: `recovery-pre-launch-audit-2026-09-29`
+- Latest main: `4c2f4081e2355da81550cd96a66ddeb64fc93060`
+- Local P730/P900 contract testing has produced green suites; production Vercel is still on an older commit and requires the matching deployment before the production contract can pass.
