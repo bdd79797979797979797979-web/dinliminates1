@@ -657,3 +657,9 @@
 .card-card-actions{display:flex;align-items:center;gap:8px;margin-top:10px}
 .card-card-action.icon-action{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;border-radius:11px!important}
 .card-card-action.icon-action .details-icon{width:19px!important;height:19px!important}
+
+/* CP242: card Details icon spacing */
+.card-copy>.icon-action{width:35px!important;min-width:35px!important;height:35px!important;min-height:35px!important;border-radius:10px!important;margin-top:7px!important;align-self:flex-end!important}
+.card-copy>.icon-action .details-icon{width:18px!important;height:18px!important}
+.card-card-action.icon-action{width:35px!important;min-width:35px!important;height:35px!important;min-height:35px!important;border-radius:10px!important}
+.card-card-action.icon-action .details-icon{width:18px!important;height:18px!important}
