@@ -543,10 +543,10 @@ function dayMatches(spec,day){
     });
   }
 
-function localClockForZone(zone){
+function localClockForZone(zone,now=new Date()){
     const opts={timeZone:zone||undefined,hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'};
     try{
-      const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',opts).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+      const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',opts).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
       const dayIndex={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[parts.weekday];
       let hour=Number(parts.hour); if(hour===24)hour=0;
       return {day:Number.isFinite(dayIndex)?dayIndex:new Date().getDay(),minute:hour*60+Number(parts.minute||0)};
@@ -557,13 +557,13 @@ function localClockForZone(zone){
   const m=String(t||'').match(/^(\d{1,2}):?(\d{2})$/);if(!m)return NaN;
   const h=Number(m[1]),min=Number(m[2]);return (h>=0&&h<24&&min>=0&&min<60)?h*60+min:NaN;
 }
-function hourStatus(row){
+function hourStatus(row,now=new Date(),zoneOverride=''){
   const raw=String(row?.opening_hours||'').trim();
   if(!raw)return 'unknown';
   const low=raw.toLowerCase();
   if(low==='24/7'||low==='open')return 'open';
   if(low==='closed'||low==='off')return 'closed';
-  const clock=localClockForZone(S.restaurantTimezone),day=clock.day,minute=clock.minute;
+  const clock=localClockForZone(zoneOverride||S.restaurantTimezone,now),day=clock.day,minute=clock.minute;
   let matched=false;
   for(const block of raw.split(';')){
     const part=block.trim();if(!part)continue;
@@ -1435,6 +1435,7 @@ function hourStatus(row){
   updateOffline();
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 
+  if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone)};
   load();
   renderLocationSource();
   updateStorageIndicator();
