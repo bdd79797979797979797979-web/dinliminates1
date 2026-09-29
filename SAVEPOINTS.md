@@ -503,3 +503,16 @@ Commit: `e05728f38488e0bbe28c815b2314e9a6b865fcea`
 - Enlarged Food and Restaurant decision cards so the image/card is the visual center.
 - Moved Restaurant address/cuisine/common items/status into the card itself to preserve card-first presentation.
 - Permanent recovery branch: `savepoint-cp107-button-repair-card-focus-2026-09-28`.
+
+
+## CP108 — full data restoration + restaurant search route repair
+Commit: `d92c759de2956b739c3883bdfbdf03b2344b0881`
+- Restored the original 62-food deck from the pre-clean app source.
+- Added dish-specific photos, ingredients, typical nutrition, recipe/notes, and explicit Quick Cut mappings for every food.
+- Potato Quick Cut is isolated to potato-primary foods, preventing secondary potato ingredients from removing Steak & Potato or similar dishes.
+- Food and Restaurant Details now include the requested full data; the Details sheet has Hide + Website actions and no inner Close button.
+- Added working `/api/restaurant-search` adapters for both Vercel and Netlify and corrected all client requests to that route.
+- Rebuilt Netlify redirect/function configuration for the restaurant search API.
+- Added a luxury home screen with food photography and a richer Dinliminate wordmark.
+- Refined History into a premium calendar presentation.
+- Permanent recovery branch: `savepoint-cp108-restoration-data-search-2026-09-28`.
