@@ -103,14 +103,14 @@ assert.equal((await page.evaluate(()=>window.DINLIMINATE_FOODS||[])).some(x=>x.i
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/4924603\//,'Mexican Stir Fry should use the refreshed accurate photo');
+assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the refreshed accurate photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected restored food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
 assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
-const refreshedExpected={tacos:/33614203/, 'stir-fry':/4924603/, meatloaf:/2397401/, 'buttermilk-cornbread':/9704174/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/20234576/, 'health-shake':/Strawberry_Smoothie_with_yogurt/};
+const refreshedExpected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/36863862/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/28503619/, 'health-shake':/7974814/};
 for(const [id,re] of Object.entries(refreshedExpected))assert.match(refreshedImageChecks[id]||'',re,id+' should use its refreshed image mapping');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
