@@ -415,3 +415,40 @@ Commit: `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`
 - Removed All Cut from app logic, HTML, static QA, and browser QA.
 - Preserved hungry/no-choice ending and Tinder-style Food + Restaurant swiping.
 - Final recovery branch: `savepoint-cp96-original-scope-final2-2026-09-28`.
+
+
+## CP97 — core decision engine
+Commit: `a605ef0f017f9314047cd6b2e8a81d7ae2ceca87`
+- Normal Food Cut is item-specific instead of removing every choice sharing the same primary.
+- Restaurant search state resets between searches.
+- Permanent recovery branch: `savepoint-cp97-core-engine-2026-09-28`.
+
+## CP98 — restaurant search rebuild
+Commit: `780b056462bbb92d293e2487843afdd70c1b8e26`
+- Anchored address autocomplete, stronger search race protection, parallel restaurant/fast-food provider fallback, clearer provider failure handling, and name-first fallback photos.
+- Restaurant Quick Cuts expanded with Soup/Stew and Potato plus menu-aware matching.
+- Permanent recovery branch: `savepoint-cp98-restaurant-search-2026-09-28`.
+
+## CP99 — Quick Cut state hardening
+Commit: `9030e509928074bcfd5f0ce9a69361f709336525`
+- Hungry/no-choice endings no longer create History entries.
+- Start Over/System Restore clears item-specific Food Cut state.
+- Permanent recovery branch: `savepoint-cp99-quickcuts-2026-09-28`.
+
+## CP100 — winner/history/back recovery
+Commit: `0ec78f92bcc259e71b71b3e5df332cee3b89046b`
+- Food and Restaurant Back restore the exact prior choice by stable ID, with index fallback.
+- Permanent recovery branch: `savepoint-cp100-winner-history-back-2026-09-28`.
+
+## CP101 — History/Settings iPhone polish
+Commit: `9d7ac7d914749937d3b33ade6a6ae76ce6384e7f`
+- Settings/History modals have bounded scrolling.
+- Calendar X controls stay clear of the decision photo.
+- Permanent recovery branch: `savepoint-cp101-settings-history-2026-09-28`.
+
+## CP102 — premium Tinder swipe presentation
+Commit: `a67fee420963f057e98f1e8f6ef1e50c1861c58d`
+- Food and Restaurant both show the next card behind the active card.
+- Shared drag animation promotes the next card while the current card moves.
+- Added direct Restaurant API smoke coverage and browser stack assertions.
+- Permanent recovery branch: `savepoint-cp102-premium-swipe-ui-2026-09-28`.
