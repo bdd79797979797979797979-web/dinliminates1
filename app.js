@@ -755,6 +755,7 @@ function hourStatus(row){
     const close = () => {
       modal.remove(); bg.remove();
       if (id === 'settingsModal') removeFoodOverlays();
+      if (S.screen && $(S.screen)) show(S.screen);
     };
     bg.onclick = close;
     modal.querySelector('[data-close]').onclick = close;
