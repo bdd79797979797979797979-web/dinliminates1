@@ -86,7 +86,49 @@ async function arcgisPlaces(lat,lon,radius){
 
 async function overpass(lat,lon,radius,types='restaurant|fast_food'){const els=[],errs=[];for(const ep of OVERPASS){const cs=centers(lat,lon,radius);for(let i=0;i<cs.length;i+=3){const got=await Promise.allSettled(cs.slice(i,i+3).map(c=>json(ep+'?data='+encodeURIComponent(query(c.lat,c.lon,c.radius,types)),{},7000)));for(const g of got){if(g.status==='fulfilled')els.push(...(g.value?.elements||[]));else errs.push(String(g.reason?.message||g.reason))}}if(els.length)break}const rows=[];for(const el of els){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r)}return{rows,errors:errs}}
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
-function dedupe(rows){rows=[...(rows||[])].sort((a,b)=>providerPriority(a)-providerPriority(b));const map=new Map();for(const r of rows){const nameKey=norm(r.name);let key=null;for(const [k,x] of map){if(norm(x.name)===nameKey&&Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon)&&miles(x.lat,x.lon,r.lat,r.lon)<=0.08){key=k;break}}if(!key){const addr=norm(r.address||''),geo=Math.round(r.lat*1000)+'|'+Math.round(r.lon*1000);key=addr?(nameKey+'|'+addr):(nameKey+'|'+geo);if(map.has(key)) key=key+'|'+Math.round(r.lat*100000)+'|'+Math.round(r.lon*100000)}if(!map.has(key))map.set(key,r);else{const x=map.get(key);x.fastFood=x.fastFood||r.fastFood;for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand'])if(!x[f]&&r[f])x[f]=r[f]}}return[...map.values()].sort((a,b)=>a.distance-b.distance)}
+function restaurantNameTokens(value){
+  return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
+}
+function nameVariantMatch(a,b){
+  const aa=restaurantNameTokens(a),bb=restaurantNameTokens(b);
+  if(!aa.length||!bb.length)return false;
+  const as=new Set(aa),bs=new Set(bb);
+  const shared=aa.filter(t=>bs.has(t)).length;
+  const shorter=Math.min(as.size,bs.size),union=new Set([...aa,...bb]).size;
+  if(as.size===bs.size&&shared===as.size)return true;
+  return shared===shorter && shared/union>=0.6;
+}
+function sameRestaurant(x,r){
+  if(!x||!r)return false;
+  const sameName=norm(x.name)===norm(r.name);
+  const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
+  if(dist>0.2)return false;
+  if(sameName)return dist<=0.15;
+  const ax=norm(x.address||''), ar=norm(r.address||'');
+  const sameAddress=!!ax&&!!ar&&ax===ar;
+  return nameVariantMatch(x.name,r.name) && (dist<=0.12 || sameAddress);
+}
+function dedupe(rows){
+  rows=[...(rows||[])].sort((a,b)=>providerPriority(a)-providerPriority(b));
+  const map=new Map();
+  for(const r of rows){
+    let key=null;
+    for(const [k,x] of map){if(sameRestaurant(x,r)){key=k;break}}
+    if(!key){
+      const nameKey=norm(r.name),addr=norm(r.address||''),geo=Math.round(r.lat*1000)+'|'+Math.round(r.lon*1000);
+      key=addr?(nameKey+'|'+addr):(nameKey+'|'+geo);
+      while(map.has(key)) key=key+'|'+Math.round(r.lat*100000)+'|'+Math.round(r.lon*100000);
+    }
+    if(!map.has(key))map.set(key,{...r});
+    else{
+      const x=map.get(key);
+      x.fastFood=x.fastFood||r.fastFood;
+      for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!x[f]&&r[f])x[f]=r[f];
+      x.menuItems=[...new Set([...(x.menuItems||[]),...(r.menuItems||[])])].slice(0,10);
+    }
+  }
+  return[...map.values()].sort((a,b)=>a.distance-b.distance);
+}
 function namedImage(s){
   const q=norm(s||'');
   const map=[
@@ -173,5 +215,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-r14',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant};
 module.exports=handler;
