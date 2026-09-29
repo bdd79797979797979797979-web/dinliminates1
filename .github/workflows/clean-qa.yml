@@ -11,6 +11,16 @@ on:
       - 'api/**'
       - 'qa/**'
       - '.github/workflows/clean-qa.yml'
+      - 'manifest.webmanifest'
+      - 'vercel.json'
+      - 'sw.js'
+      - 'release.json'
+      - 'icon.svg'
+      - '*.png'
+      - 'README.md'
+      - 'CHECKPOINT.md'
+      - 'SAVEPOINTS.md'
+      - 'CURRENT-RELEASE.md'
   push:
     branches: [clean-rebuild, clean-release-candidate, release-hardening-2026-09-29]
   workflow_dispatch:
