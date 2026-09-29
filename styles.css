@@ -455,3 +455,27 @@
 }
 
 /* CP109 — Quick Cut imagery comes from matching dish photos */
+
+
+/* CP109 — final iPhone-safe Home and richer Restaurant Details */
+.luxury-home .home-card-photo{background-color:#171615}
+.luxury-home .home-card-photo::after{content:'';position:absolute;inset:1px;border-radius:20px;pointer-events:none;border:1px solid #ffffff10}
+.luxury-home .home-card-photo.food-choice{background-position:center 58%}
+.luxury-home .home-card-photo.restaurant-choice{background-position:center 50%}
+.restaurant-detail-summary{margin-top:13px}
+.restaurant-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.restaurant-detail-grid>div{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-radius:11px;background:#211f1c}
+.restaurant-detail-grid>div.wide{grid-column:1/-1}
+.restaurant-detail-grid span{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#777168}
+.restaurant-detail-grid b{font-size:10px;line-height:1.35;color:#e3ddd3}
+#detailsModal .restaurant-detail-summary .detail-section-title{margin-bottom:8px}
+.made-by{white-space:nowrap}
+
+@media(max-width:390px){
+  .luxury-home .home-intro{padding-top:2px}
+  .luxury-home .home-actions{margin-top:12px}
+  .luxury-home .home-card-photo{height:80px;min-height:80px}
+  .luxury-home .home-foot .made-by{font-size:7.5px}
+  .restaurant-detail-grid{gap:6px}
+  .restaurant-detail-grid>div{padding:8px}
+}
