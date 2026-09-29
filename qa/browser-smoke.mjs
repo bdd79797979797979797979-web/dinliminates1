@@ -480,9 +480,11 @@ assert.equal(await sameDayDelete2.count(),1,'Second same-day entry should become
 await sameDayDelete2.click(); await settle();
 assert.equal(await page.locator('[data-history-delete]').count(),1,'Deleting the second same-day entry should leave the other date');
 assert.equal(await page.locator('.history-open').count(),1,'Only the unrelated history entry should remain');
-await page.locator('[data-history-delete="hist-test-rest"]').click(); await settle();
-assert.equal(await page.locator('[data-history-delete]').count(),0,'All calendar history entries should be individually removable');
-assert.equal(await page.locator('.history-open').count(),0,'History list should clear after all entries are removed');
+await page.locator('#historyClearAll').click(); await settle();
+assert.equal(await visible('appConfirmModal'),true,'Clear all history should use branded confirmation');
+await click('#appConfirmOk'); await settle();
+assert.equal(await page.locator('[data-history-delete]').count(),0,'Clear all history should remove every calendar entry');
+assert.equal(await page.locator('.history-open').count(),0,'Clear all history should remove every history list row');
 
 
 
