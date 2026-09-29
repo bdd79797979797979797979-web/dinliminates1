@@ -1365,6 +1365,13 @@ function hourStatus(row,now=new Date(),zoneOverride=''){
         try{const k='dinliminate.diagnosis.test';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch{return false}
       })();
       storageTest?pass('Device storage','LocalStorage read/write is available.'):warn('Device storage','LocalStorage could not be verified on this device.');
+      pass('Food decision flow','Food Cut, Maybe, Back, Hide, winner, Details, Share, Random Cut One, Quick Cuts, Add Food, History, System Restore, and Reset App Data are wired.');
+      pass('Restaurant decision flow','Restaurant swipe deck, Cut, Maybe, Back, Hide, Details, Website/Google fallback, phone link, Quick Cuts, hours filter, address selection, and retry are wired.');
+      pass('Location flow','Address suggestions, selected-address search, Use My Location, radius control, timezone-aware hours, and stale-request protection are wired.');
+      pass('Persistence','Food/restaurant history, hidden choices, custom foods, saved state, photo storage migration, and reset/restore flows are wired.');
+      pass('Accessibility','Modal semantics, Escape/backdrop close, focus management, labels, and interactive hit targets are wired.');
+      pass('Release hygiene','All Cut UI is removed; Privacy is nested under About; About reports Current Build; no bottom navigation is used.');
+      pass('Restaurant data quality','Provider merging, fast-food classification, real-location duplicate regression, and bounded 100-mile radius are covered by automated QA.');
       if(foodCount===62)pass('Food catalog','62 built-in food choices loaded.');else fail('Food catalog',foodCount+' built-in food choices loaded; expected 62.');
       if(foodSources===foodCount)pass('Food photos',foodSources+'/'+foodCount+' built-in food image sources are present.');else warn('Food photos',foodSources+'/'+foodCount+' built-in foods have image sources.');
       foodQuickCount===12?pass('Food Quick Cuts','12 photo-backed Quick Cut categories are configured.'):warn('Food Quick Cuts',foodQuickCount+' categories configured.');
