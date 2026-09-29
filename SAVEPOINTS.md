@@ -460,3 +460,12 @@ Commit: `8e15ffdb67f98e73eb35e392bc41bd82f6e77314`
 - Adds final static regression guards for removed All Cut and legacy bottom navigation.
 - Cumulative preview: PR #28 Netlify deploy-preview-28.
 - Permanent recovery branch: `savepoint-cp103-launch-candidate-2026-09-28`.
+
+
+## CP104 — Tinder-inspired structure
+Commit: `8accf12ee64d1aa172dac80ef9321cd8526af63a8`
+- Decision screens now use a card-first structure inspired by the provided Tinder reference.
+- Circular Back / Maybe / Cut / Hide controls replace the former rectangular action row.
+- Food and Restaurant retain the shared next-card stack.
+- Centered Dinliminate branding and upper-right menu preserve the clean top hierarchy.
+- Permanent recovery branch: `savepoint-cp104-tinder-structure-2026-09-28`.
