@@ -5500,20 +5500,14 @@ body.restaurant-mode .restaurant-location-label.device-accurate{color:#8ed9b7!im
 .restaurant-data-attribution a{color:inherit;}
 @media(max-width:520px){.restaurant-data-attribution{font-size:.46rem;margin-top:2px;}}
 </style>
-<script id="dinliminate-release-migration">
-window.__dinliminateReleaseMigration=(async()=>{
-  try {
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r=>r.unregister().catch(()=>false)));
-    }
-  } catch(e) { console.warn('Dinliminate service-worker cleanup skipped',e); }
-  try {
-    if('caches' in window){
-      const names=await caches.keys();
-      await Promise.all(names.filter(n=>/dinliminate/i.test(String(n))).map(n=>caches.delete(n)));
-    }
-  } catch(e) { console.warn('Dinliminate cache cleanup skipped',e); }
+<script id="dinliminate-service-worker-init">
+window.__dinliminateServiceWorkerInit=(async()=>{
+  if(!('serviceWorker' in navigator) || !window.isSecureContext) return false;
+  try{
+    const reg=await navigator.serviceWorker.register('/dinliminate-sw.js',{updateViaCache:'none'});
+    try{await reg.update();}catch{}
+    return true;
+  }catch(e){console.warn('Dinliminate service-worker registration skipped',e);return false;}
 })();
 </script>
 <link rel="stylesheet" href="./launch-hardening.css?v=p900-launch-complete-2026-09-29"><script src="./launch-hardening.js?v=p900-launch-complete-2026-09-29" defer></script><style id="dinliminate-p636-final-controls">
@@ -9645,15 +9639,7 @@ body.restaurant-mode .restaurant-location-row .restaurant-address-suggestions{le
   if(field&&!field.value&&restaurantLocationMode!=='device'&&saved)field.value=saved;
 })();
 </script>\n
-<script id="dinliminate-p642-cache-cleanup">
-(()=>{const run=async()=>{try{
-  if(!('serviceWorker'in navigator))return;
-  const regs=await navigator.serviceWorker.getRegistrations();
-  await Promise.all(regs.map(r=>r.unregister().catch(()=>false)));
-  if('caches'in window){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k).catch(()=>false)));}
-}catch(e){console.warn('Dinliminate cache cleanup unavailable',e);}};
-if(document.readyState==='loading')addEventListener('load',run,{once:true});else run();})();
-</script>
+
 
 <script id="dinliminate-p636-final-nonrefactor-layer">
 (()=>{
