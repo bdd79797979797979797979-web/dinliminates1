@@ -423,8 +423,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  };
  card.onpointerup=finish;
  card.onpointercancel=()=>{active=false;pointerId=null;reset();};
- card.onlostpointercapture=()=>{if(active)finish({clientX:downX});};
-}
+ }
 function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
 document.querySelector('#appToast')?.remove();
