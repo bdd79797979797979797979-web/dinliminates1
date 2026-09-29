@@ -567,14 +567,14 @@ function hourStatus(row){
     const nextRow = rows[S.restaurantIndex + 1];
     const nextImage = nextRow?.photo || nextRow?.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
     $('restStage').innerHTML =
-      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3></div></article></div>'+
+      '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3><button class="card-details" id="restDetails" type="button">Details</button></div></article></div>'+
       '<div class="rest-card-extra"><div class="rest-meta">'+
       (row.address ? '<div>'+esc(row.address)+'</div>' : '')+
       (row.cuisine ? '<div>'+esc(row.cuisine)+'</div>' : '')+
       (Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="menu-items"><b>Common</b> · '+esc(row.menuItems.slice(0,4).join(' · '))+'</div>' : '')+
       '<div style="margin-top:7px"><span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown Hours')+'</span></div></div>'+
       '<div class="card-actions"><button class="small" id="restWebsite">Website</button></div></div>'+
-      '<div class="actions"><button class="secondary" id="restBack">Back</button><button class="maybe" id="restMaybe">Maybe</button><button class="cut" id="restCut">Cut</button><button class="secondary" id="restHide">Hide</button></div>';
+      '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
     const current = rows[S.restaurantIndex];
     $('restBack').onclick = restaurantBack;
     $('restMaybe').onclick = () => restaurantMaybe(current);
