@@ -344,6 +344,21 @@ await click('#menu'); await settle(); await click('#settings'); await settle();
 const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.doesNotMatch(settingsFoodText,/Deleted Foods/i); await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
+// Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
+await click('#restart'); await settle(); await click('#restStart'); await settle();
+await page.locator('#address').fill('123'); await page.waitForSelector('#suggestionsBox button',{state:'visible'}); await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
+if ((await page.locator('#hoursToggle').innerText()) !== 'All') { await click('#hoursToggle'); await settle(); }
+while ((await qa()).restaurantPool.length>1) { await click('#restCut'); await settle(); }
+assert.equal((await qa()).restaurantPool.length,1,'Restaurant should reach one remaining choice before final swipe');
+const finalRestaurantId=(await qa()).restaurantPool[0];
+const finalRestBox=await page.locator('#restaurantCard').boundingBox(); if(!finalRestBox) throw new Error('Final restaurant card missing');
+await page.mouse.move(finalRestBox.x+60,finalRestBox.y+finalRestBox.height/2);
+await page.mouse.down();
+await page.mouse.move(finalRestBox.x+finalRestBox.width-20,finalRestBox.y+finalRestBox.height/2,{steps:4});
+await page.mouse.up(); await settle();
+assert.equal(await visible('winner'),true,'Right swipe on final restaurant should open Winner');
+const finalState=await qa(); assert.equal(finalState.winnerType,'restaurant','Final restaurant swipe should produce a restaurant winner'); assert.equal(finalState.winner?.id,finalRestaurantId,'Winner should be the final restaurant');
+
 // History calendar X deletion must remove the saved entry, not just persist it behind a stale render.
 await page.evaluate(() => {
   const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
