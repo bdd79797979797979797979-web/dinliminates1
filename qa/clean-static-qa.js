@@ -16,3 +16,5 @@ assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
+assert(html.includes('foodNextCard') && html.includes('restaurantNextCard'),'Tinder card stacks must be present for both Food and Restaurant');
+assert(app.includes('next-card'),'App must implement shared next-card swipe presentation');
