@@ -20,6 +20,7 @@ await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
 
 const browser = await chromium.launch({headless:true});
 const context = await browser.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true,timezoneId:'America/Chicago'});
+await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:4173'}); await context.setGeolocation({latitude:36.5304,longitude:-87.3601});
 const page = await context.newPage();
 
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
@@ -355,6 +356,11 @@ const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
+await click('#restStart'); await settle();
+await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
+assert.equal(await page.locator('#locationSourceLabel').innerText(),'Using your location','Device location should be labeled as the source');
+const deviceLoc=await qa(); assert.ok(Math.abs(Number(deviceLoc.location?.lat)-36.5304)<0.01,'Device latitude should be persisted');
+assert.ok(Math.abs(Number(deviceLoc.location?.lon)+87.3601)<0.01,'Device longitude should be persisted');
 await click('#restStart'); await settle();
 await page.locator('#address').fill('123'); await page.waitForSelector('#suggestionsBox button',{state:'visible'}); await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 if ((await page.locator('#hoursToggle').innerText()) !== 'All') { await click('#hoursToggle'); await settle(); }
