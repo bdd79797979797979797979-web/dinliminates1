@@ -1,6 +1,6 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": "116",
-  "sourceBranch": "release-hardening-2026-09-29"
+  "build": "117",
+  "sourceBranch": "cp238-launch-hardening"
 }
