@@ -65,3 +65,96 @@
   .swipe-card-stack,.restaurant-card-stack{aspect-ratio:4/5}
   .swipe-card-stack>.card,.restaurant-card-stack>.card{border-radius:21px}
 }
+
+/* CP104 — Dinliminate Tinder-inspired card structure */
+.app-topbar{height:62px;padding:0 2px}
+.brand-mark{display:flex;align-items:center;gap:8px}
+.brand-dot{width:10px;height:10px;border-radius:999px;background:var(--orange);box-shadow:0 0 0 4px #ff7a1a18}
+.brand{font-size:21px;font-weight:850;letter-spacing:-.045em}
+.menu{width:40px;height:40px;border-radius:50%;background:#151515;border:1px solid #2c2c2c;display:grid;place-items:center;gap:3px;padding:0}
+.menu span{display:block;width:15px;height:1.5px;background:#ddd;border-radius:99px}
+
+.screen{min-height:calc(100svh - 62px)}
+.food .heading,.restaurant .heading{padding-top:7px}
+.food .heading h2,.restaurant .heading h2{font-size:24px}
+.food-head-tools{gap:5px}
+.pass-head{height:34px;border-radius:999px;padding:0 10px;font-size:9px;font-weight:800;letter-spacing:.02em}
+.plus{width:36px;height:36px;border-radius:50%;font-size:18px}
+
+.label-row{padding:0 1px}
+.quick{padding:7px 0 4px;gap:8px}
+.photo-chip{width:70px;min-width:70px;height:48px;border-radius:13px}
+
+.stage,.rest-stage{position:relative;flex:1;justify-content:center}
+.stage{padding-top:4px}
+.count{top:0;font-size:10px;padding:5px 8px;background:#151515;border-color:#303030}
+
+.swipe-card-stack,.restaurant-card-stack{width:min(100%,430px);aspect-ratio:3/4.15}
+.swipe-card-stack>.card,.restaurant-card-stack>.card{border-radius:24px}
+.card{border:0;box-shadow:0 22px 65px #0009;background:#0d0d0d}
+.card img{filter:saturate(.98) contrast(1.02)}
+.shade{inset:24% 0 0;background:linear-gradient(180deg,transparent 12%,#0001 34%,#000d 78%,#000f 100%)}
+.card-copy{left:19px;right:19px;bottom:19px}
+.card-copy small{display:inline-flex;align-items:center;min-height:24px;padding:4px 9px;border-radius:999px;background:#ffffff16;border:1px solid #ffffff2b;backdrop-filter:blur(8px);font-size:10px;color:#fff}
+.card-copy h3{font-size:32px;line-height:1;letter-spacing:-.055em;margin:9px 0 0;text-shadow:0 2px 18px #000}
+.next-card{border:0;box-shadow:0 18px 46px #0007}
+
+.rest-stage{min-height:0;padding-top:6px}
+.restaurant-card-stack{flex:0 0 auto}
+.rest-stage>.rest-card-extra{width:min(100%,430px);margin:-1px auto 0;border-radius:0 0 22px 22px;background:#111;padding:7px 17px 12px;box-shadow:0 16px 35px #0006}
+.rest-meta{font-size:10px;line-height:1.35;color:#a7a7a7}
+.rest-meta>div:first-child{color:#d8d8d8}
+.status-badge{padding:4px 7px;font-size:9px}
+.card-actions{grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.card-actions button{height:36px;min-height:36px;border-radius:999px;font-size:10px}
+.rest-stage>.actions{display:none}
+
+.swipe-actions{display:flex;align-items:center;justify-content:center;gap:13px;margin:13px 0 5px;padding:0}
+.round-action{width:56px;height:56px;min-height:56px;border-radius:50%;display:grid;place-items:center;border:1px solid #363636;padding:0;box-shadow:0 8px 20px #0006;transition:transform .12s ease,box-shadow .12s ease}
+.round-action span{font-size:22px;line-height:1;font-weight:800}
+.round-action:active{transform:scale(.94)}
+.round-back,.round-hide{width:44px;height:44px;min-height:44px;background:#121212;color:#a9a9a9;border-color:#303030}
+.round-back span{font-size:23px}
+.round-hide span{font-size:24px}
+.round-maybe{background:#f2ebe3;color:#141414;border-color:#ebe1d6}
+.round-maybe span{font-size:20px}
+.round-cut{width:62px;height:62px;min-height:62px;background:var(--orange);color:#111;border-color:#ff9a4e;box-shadow:0 10px 25px #ff7a1a20}
+.round-cut span{font-size:27px}
+.round-maybe,.round-cut{box-shadow:0 10px 28px #0008}
+
+.round-tools{padding-top:0;padding-bottom:1px}
+.round-tools .text-btn{font-size:9px;color:#666;letter-spacing:.02em}
+
+.restaurant .panel{margin-top:10px;padding:10px 11px;border-radius:16px}
+.restaurant .panel label{margin-bottom:5px;font-size:10px}
+.restaurant .loc-row{gap:6px}
+.restaurant .loc-row input{height:38px}
+.restaurant .small,.restaurant .find{height:38px;border-radius:999px}
+.restaurant .radius-row{margin-top:6px;grid-template-columns:auto 72px 1fr;gap:6px}
+.restaurant .status{font-size:10px;margin-top:6px}
+.restaurant-tools{margin-top:9px}
+.restaurant-tool{height:33px;border-radius:999px;font-size:9px}
+.restaurant-search-box input{height:36px;border-radius:999px}
+
+.winner{padding-top:9px}
+.winner h2{font-size:42px}
+.winner img{border-radius:24px;box-shadow:0 22px 65px #0009}
+.winner-actions button{border-radius:999px}
+
+.home .brand-mark{margin-left:0}
+.home{padding-top:5vh}
+.home-actions{margin-top:6vh}
+.home-card{border-radius:22px}
+.home-icon{border-radius:50%}
+
+@media(max-width:390px){
+  .app-topbar{height:58px}
+  .screen{min-height:calc(100svh - 58px)}
+  .photo-chip{width:67px;min-width:67px;height:46px}
+  .swipe-card-stack,.restaurant-card-stack{aspect-ratio:3/4.1}
+  .round-action{width:52px;height:52px;min-height:52px}
+  .round-cut{width:58px;height:58px;min-height:58px}
+  .round-back,.round-hide{width:42px;height:42px;min-height:42px}
+  .round-action span{font-size:20px}
+  .round-cut span{font-size:25px}
+}
