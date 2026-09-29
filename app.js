@@ -1244,7 +1244,8 @@ async function appDiagnosisView(){
    const missing=required.filter(([id])=>!byId.has(id)).map(([id])=>id);
    const wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
    const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
-   missing.length||wrongCuts.length||frozen?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
+    const cerealRename=byId.get('cheerios')?.name==='Cereal';
+   missing.length||wrongCuts.length||frozen||!cerealRename?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
    const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
    imageMissing.length?fail('Food image catalog','Missing/invalid image URL: '+imageMissing.join(', ')):pass('Food image catalog','Requested foods + Stroganoff have photo URLs.');
    const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
