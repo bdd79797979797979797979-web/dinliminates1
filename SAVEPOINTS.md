@@ -541,3 +541,8 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Build number bumped from 115 to 116.
 - QA now reads the build from release.json.
 - Recovery: checkpoint-cp145-https-links-2026-09-29.
+
+
+## CP157 — Accessibility controls
+- Restaurant address and radius are explicitly named for assistive technology.
+- Static QA guards those names.
