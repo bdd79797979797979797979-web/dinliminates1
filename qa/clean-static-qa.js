@@ -155,3 +155,7 @@ assert(foods.includes('"id":"vegetable-lasagna"')&&foods.includes('"id":"salisbu
 assert(/Food catalog contract/.test(app)&&/Food image catalog/.test(app),'App Diagnosis must provide actionable food catalog/image checks');
 
 assert(css.includes('.icon-action{')&&css.includes('.details-icon{'),'Details must use a professional icon button');
+
+assert(css.includes('.diagnosis-action{')&&css.includes('.diagnosis-refresh.selected{')&&css.includes('.diagnosis-run-status.running{'),'Diagnosis must expose distinct launcher and selected/running states');
+assert(app.includes("setAttribute('aria-pressed','true')")&&app.includes('diagnosisRunStatus'),'Diagnosis Run Again must expose a visible selected/run status');
+assert(html.includes('<rect x="4.75"')&&app.includes('<rect x="4.75"'),'Details icon must use the crisp outlined info mark');
