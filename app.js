@@ -1165,6 +1165,7 @@ function hourStatus(row){
         maybe:[...S.maybe],
         restaurantCuts:[...S.restaurantCuts],
         winner:S.winnerItem ? {...S.winnerItem} : null,
+        location:S.location ? {...S.location} : null,
         pass:S.pass ? JSON.parse(JSON.stringify(S.pass)) : null
       })
     };
