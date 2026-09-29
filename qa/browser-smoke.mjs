@@ -292,13 +292,6 @@ await click('#restaurantSearch'); await settle();
 await page.locator('#restaurantQuery').fill('Pasta');
 await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Restaurant Search should filter current results');
 await page.locator('#restaurantQuery').fill(''); await settle();
-await click('#restHide'); await settle();
-assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal');
-assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i);
-await click('#appConfirmOk'); await settle();
-s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
-
-
 if(!(await page.locator('#restaurantQuery').isVisible())){await click('#restaurantSearch');await settle();}
 await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
@@ -343,6 +336,12 @@ const directWebsite=await page.locator('#restaurantCard .website-action[aria-lab
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .website-action').getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
 await page.locator('#restaurantQuery').fill(''); await settle();
+
+await click('#restHide'); await settle();
+assert.equal(await visible('appConfirmModal'),true,'Restaurant Hide should use the branded confirmation modal');
+assert.match(await page.locator('#appConfirmModal').innerText(),/Hide this restaurant/i);
+await click('#appConfirmOk'); await settle();
+s=await qa(); assert.equal(Object.keys(s.hiddenRestaurants).length>=1,true,'Hide confirmation should persist the restaurant in Settings');
 
 await page.locator('#restaurantMenu').click({force:true});
 await page.locator('#drawer:not(.hidden)').waitFor({state:'visible',timeout:3000});
