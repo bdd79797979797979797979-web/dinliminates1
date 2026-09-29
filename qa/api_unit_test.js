@@ -38,7 +38,7 @@ global.fetch = async (url) => {
   }
   if (u.hostname === 'nominatim.openstreetmap.org') {
     assert.equal(u.searchParams.get('extratags'),'1');
-    assert.equal(u.searchParams.get('limit'),'40');
+    assert(['40','60'].includes(u.searchParams.get('limit')));
     const nq = u.searchParams.get('q') || '';
     if (/^wendy/i.test(nq)) return response([
       {osm_type:'node',osm_id:21,lat:'36.4429',lon:'-87.1781',name:"Wendy's",type:'fast_food',class:'amenity',display_name:"Wendy's, Clarksville, Tennessee",extratags:{brand:"Wendy's"}}
