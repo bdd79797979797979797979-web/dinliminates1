@@ -1,6 +1,3 @@
-/* Dinliminate original 62-food deck restored from the pre-clean rebuild.
-   Photos are curated from the original app source; nutrition is a typical serving estimate,
-   not a medical or packaged-food label. */
 window.DINLIMINATE_FOODS=[
   {
     "id": "spaghetti",
