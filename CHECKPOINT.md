@@ -50,4 +50,15 @@ Verification:
 - Vercel status for this branch is currently blocked by the account build-rate-limit status, not an application test failure.
 - CP95 remains the immediate recovery point; CP96 also has a dedicated savepoint branch.
 
-RECOVERY: `savepoint-cp96-no-all-cut-2026-09-28` / commit `10ce3ef30499fd8048afdf3c18a55611834d363e`.
+## CP96 — Original-scope cleanup final
+Final code/QA commit: `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`
+
+- Removed the non-original Food All Cut control, application function, and all related QA assertions.
+- Hungry/no-choice state remains intact for the legitimate case where normal elimination leaves zero choices.
+- Food and Restaurant remain full Tinder-style decks: horizontal drag/tilt/stamp, swipe-out, left = Cut, right = Maybe, plus matching buttons.
+- CP95 already contained the previously requested custom photo upload, custom Food editing, built-in delete/restore, Food details/notes, restaurant photo fallbacks, provider menu metadata, compact My Location, address suggestions/selection, Pass Around, and Food/Restaurant swipe parity.
+- QA-only PR #23 remains unmerged.
+- Netlify deploy-preview status was green for the earlier CP96 commit; the latest QA commit is currently pending Netlify completion.
+- Vercel checks are currently blocked by the account build-rate-limit status.
+
+RECOVERY: `savepoint-cp96-original-scope-final2-2026-09-28` / commit `aa8e3f256e732e12e6e0fe721ba55da77b5c9303`.
