@@ -229,8 +229,9 @@
       S.cutPrimary.delete(action.primary); // legacy primary-based rounds
     }
     if (action.type === 'maybe') S.maybe.delete(action.id);
-    S.index = action.index || 0;
     buildFood();
+    const restoredIndex = S.pool.findIndex(x => x.id === action.id);
+    S.index = restoredIndex >= 0 ? restoredIndex : Math.max(0, Math.min(action.index || 0, Math.max(0, S.pool.length - 1)));
     foodQuick();
     drawFood();
     save();
@@ -594,7 +595,9 @@ function hourStatus(row){
       if (action.type === 'cut') row._cut = false;
       if (action.type === 'maybe') row._maybe = false;
     }
-    S.restaurantIndex = action.index || 0;
+    const rows = restaurantPoolFiltered();
+    const restoredIndex = rows.findIndex(x => x.id === action.id);
+    S.restaurantIndex = restoredIndex >= 0 ? restoredIndex : Math.max(0, Math.min(action.index || 0, Math.max(0, rows.length - 1)));
     drawRestaurants();
     save();
   }
