@@ -361,7 +361,7 @@ function drawFood(){
  bindFoodSwipe();$('foodDetails').onclick=()=>detailsSheet(item,'food');
 }
 
-function foodCommit(type,item){S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id)});}
+function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
 function foodCut(item=S.pool[S.index]){if(!item)return;foodCommit('cut',item);S.foodCuts.add(item.id);buildFood();resolveFoodAfterDecision();}
 function foodMaybe(item=S.pool[S.index]){
  if(!item)return;
@@ -382,7 +382,7 @@ function foodBack(){
  const action=S.foodActions.pop();if(!action){home();return;}
  if(action.type==='cut')S.foodCuts.delete(action.id);
  if(action.type==='maybe'){if(action.hadMaybe)S.maybe.add(action.id);else S.maybe.delete(action.id);}
- S.foodMaybeRound=!!action.maybeRound;buildFood();
+ S.foodMaybeRound=!!action.maybeRound||!!action.recycleOnUndo;buildFood();
  const restored=S.pool.findIndex(x=>x.id===action.id);S.index=restored>=0?restored:Math.max(0,Math.min(action.index||0,Math.max(0,S.pool.length-1)));drawFood();save();
 }
 
@@ -895,27 +895,6 @@ function bindRestaurantTools(){
  $('hoursToggle').onclick=e=>{e.preventDefault();S.hoursMode=S.hoursMode==='openUnknown'?'all':'openUnknown';S.restaurantIndex=0;renderHours();drawRestaurants();save();};renderHours();
 }
 
-function bindRestaurantTools() {
-$('restaurantSearch').onclick = () => {
-const box = $('restaurantSearchBox');
-box.classList.toggle('hidden');
-$('restaurantQuery').value = S.restaurantQuery;
-if (!box.classList.contains('hidden')) $('restaurantQuery').focus();
-};
-$('restaurantQuery').oninput = () => {
-S.restaurantQuery = $('restaurantQuery').value;
-S.restaurantIndex = 0;
-drawRestaurants();
-save();
-};
-$('hoursToggle').onclick = () => {
-S.hoursMode = S.hoursMode === 'openUnknown' ? 'all' : 'openUnknown';
-renderHours();
-S.restaurantIndex = 0;
-drawRestaurants();
-save();
-};
-}
 function triggerCelebration() {
 const el = $('celebration');
 if (!el) return;
