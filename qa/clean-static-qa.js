@@ -25,6 +25,9 @@ assert(app.includes("const searchTerm = String(S.restaurantQuery||'').trim().sli
 assert(app.includes('scheduleRestaurantProviderSearch') && app.includes("setTimeout(()=>{searchRestaurants();},650)"),'Restaurant Search box must trigger provider-backed search after typing settles');
 assert(api.includes('normAddress') && api.includes('sameRestaurant'),'Restaurant dedupe must normalize provider address variants and compare venue identity');
 assert(app.includes('fetchRestaurantEndpoint') && app.includes('attempt<2'),'Restaurant endpoint retry protection must be present');
+assert(app.includes('function invalidateAddressSuggestions()') && app.includes('suggestController?.abort()'),'Address search must abort stale in-flight suggestion requests before starting a new location search.');
+assert(app.includes('function addressLooksComplete(value)') && app.includes('chooseAddressSuggestion(0)'),'Enter Address must distinguish complete-looking input from partial input with visible suggestions.');
+assert(app.includes("aria-activedescendant") && app.includes("addressSuggestion-"),'Address suggestions must expose keyboard active-descendant semantics.');
 assert(app.includes('const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},14500)'),'Restaurant search client timeout should remain bounded');
 assert(api.includes('const SEARCH_BUDGET_MS=12000') && api.includes('const WIDE_DISCOVERY_RESERVE_MS=4500'),'Restaurant search reliability budget contract must be present');
 assert(api.includes('const MAX_SEARCH_PER_MINUTE=60') && api.includes("mode!=='search'&&rate(req,mode)"),'Restaurant search rate limiter should tolerate normal interactive use and spare cached hits');
