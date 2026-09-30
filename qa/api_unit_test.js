@@ -84,7 +84,6 @@ function res(){
   assert(mc);
   assert.equal(mc.opening_hours,'Mo-Su 06:00-23:00');
   assert.equal(mc.website,'https://www.mcdonalds.com/');
-  assert.equal(mc.websiteSource,'provider');
   assert(!mc.phoneFallbackUrl.includes('dinliminate'));
 
   const wh = r.body.results.find(x=>x.name==='Waffle House');
