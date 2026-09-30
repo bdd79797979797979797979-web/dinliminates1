@@ -1331,7 +1331,7 @@ openModal('privacyModal','Privacy',body);
 }
 function aboutView(){
  const date=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
- const body='<div class="info-copy"><h4>Dinliminate</h4><p>Made for Devona Dunn by Brian Dunn.</p><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+ const body='<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></div>';
  const modal=openModal('aboutModal','About Dinliminate',body);$('privacyFromAbout').onclick=()=>privacyView();return modal;
 }
 function iphoneHelp() {
