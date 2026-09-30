@@ -1,6 +1,6 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
 const MAX_RADIUS=100;
-const API_VERSION='r21';
+const API_VERSION='r22';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
@@ -117,7 +117,11 @@ function queryMany(points,types=DINING_AMENITIES,timeoutSeconds=10){
 function centers(lat,lon,r){
  const radius=clamp(r);
  if(radius<=25)return[{lat,lon,radius}];
- const ring=radius>50?65:30,count=radius>50?8:6,out=[{lat,lon,radius:50}];
+ if(radius<=50)return[{lat,lon,radius:50}];
+ // Overpass is queried in <=50-mile circles. A 12-point ring at 60 miles,
+ // plus the origin circle, covers the requested 100-mile disk with overlap;
+ // final filtering is always done from the true origin distance.
+ const ring=60,count=12,out=[{lat,lon,radius:50}];
  const a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  for(let i=0;i<count;i++){
   const ang=i*2*Math.PI/count;
@@ -187,7 +191,10 @@ function searchQueryMany(points,searchTerm,timeoutSeconds=10){return '[out:json]
 function radiusDiscoveryPlan(lat,lon,radius){
  const r=clamp(radius),coverage=centers(lat,lon,r);
  if(r<=WIDE_RADIUS_THRESHOLD)return {mode:'nearby',reserveMs:0,coveragePoints:coverage.length,groups:[coverage]};
- const groups=[coverage.slice(0,3),coverage.slice(3,6),coverage.slice(6,9)].filter(group=>group.length);
+ // Keep each request small enough for the upstream timeout while covering
+ // the entire requested disk with overlapping <=50-mile circles.
+ const groups=[];
+ for(let i=0;i<coverage.length;i+=4)groups.push(coverage.slice(i,i+4));
  return {mode:'wide',reserveMs:WIDE_DISCOVERY_RESERVE_MS,coveragePoints:coverage.length,groups};
 }
 async function overpassPoints(points,originLat,originLon,radius,types='restaurant|fast_food',searchTerm='',endpoints=OVERPASS,timeout=OVERPASS_HTTP_TIMEOUT_MS){
