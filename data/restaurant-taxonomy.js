@@ -1,0 +1,128 @@
+(() => {
+'use strict';
+
+const RESTAURANT_TAGS = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
+
+const RESTAURANT_SEARCH_ALIASES = {
+  'Fast Food':['fast food','fastfood','quick service','quick-service','drive thru','drive through','drive-thru'],
+  Burgers:['burger','burgers','hamburger','hamburgers','cheeseburger','cheeseburgers'],
+  Pizza:['pizza','pizzeria','pizzerias'],
+  Mexican:['mexican','mexican food','tex mex','tex-mex','taco','tacos','taqueria','burrito','burritos','enchilada','enchiladas','quesadilla','quesadillas','fajita','fajitas'],
+  American:['american','american food','diner'],
+  Italian:['italian','italian food','pasta','pizzeria','trattoria','osteria','ristorante'],
+  Asian:['asian','asian food','chinese','japanese','thai','korean','sushi','vietnamese','ramen','pho','hibachi','teriyaki'],
+  BBQ:['bbq','barbecue','barbeque','smokehouse','smoke shack','pit bbq','bar-b-q','bar-b-que'],
+  Seafood:['seafood','fish house','fish restaurant','fish','shrimp','crab','lobster','oyster','catfish'],
+  Breakfast:['breakfast','breakfast food','brunch','waffle','waffles','pancake','pancakes','omelet','omelette']
+};
+
+const RESTAURANT_IDENTITY_PROFILES = [
+  {pattern:/\bmcdonalds?\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bwendys?\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bburger king\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bfive guys\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bculvers?\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bwhataburger\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bsonic\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bsteak n shake\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bfreddys\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bwhite castle\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bin n out\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\bcarl s jr\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\btaco bell\b|\bdel taco\b|\bchipotle\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\bpanda express\b/,tags:['Fast Food','Asian']},
+  {pattern:/\blittle caesars\b|\bdominos\b|\bpapa johns\b|\bpizza hut\b|\bmarcos pizza\b/,tags:['Fast Food','Pizza','Italian']},
+  {pattern:/\bwingstop\b/,tags:['Fast Food']},
+  {pattern:/\bkfc\b|\bchick fil a\b|\bpopeyes?\b|\barbys?\b|\bsubway\b|\bjimmy johns\b|\bjersey mike\b|\bfirehouse subs\b|\braising canes\b|\bbojangles\b|\bcook out\b|\bdairy queen\b|\bzaxbys\b|\bchurchs chicken\b|\bcaptain ds\b|\blong john silvers\b/,tags:['Fast Food']},
+  {pattern:/\bwaffle house\b|\bihop\b|\bdennys?\b|\bbob evans\b|\bfirst watch\b/,tags:['American','Breakfast']},
+  {pattern:/\bcracker barrel\b/,tags:['American','Breakfast']},
+  {pattern:/\bolive garden\b/,tags:['Italian']},
+  {pattern:/\bred lobster\b/,tags:['Seafood']},
+  {pattern:/\bapplebees?\b|\bchilis\b|\btexas roadhouse\b|\boutback steakhouse\b|\bo charleys\b|\bruby tuesday\b|\bbuffalo wild wings\b|\bgolden corral\b/,tags:['American']},
+  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true}
+];
+
+const RESTAURANT_MENU_SIGNALS = {
+  Pizza:['pizza','calzone','pizzeria'],
+  Mexican:['taco','burrito','enchilada','quesadilla','fajita','tamale','torta','pozole','churro'],
+  Asian:['sushi','sashimi','ramen','pho','hibachi','teriyaki','tempura','bao','dim sum','pad thai','kimchi'],
+  Italian:['pasta','spaghetti','lasagna','ravioli','gnocchi','alfredo','risotto','carbonara'],
+  American:['american'],
+  BBQ:['bbq','barbecue','barbeque','brisket','ribs','pulled pork','smokehouse','smoked'],
+  Seafood:['seafood','shrimp','crab','lobster','oyster','catfish','salmon','tilapia'],
+  Breakfast:['breakfast','brunch','pancakes','waffles','french toast','omelet','omelette','eggs benedict','biscuits and gravy']
+};
+
+const RESTAURANT_NAME_SIGNALS = {
+  Pizza:/\bpizza\b|\bpizzeria\b/,
+  Mexican:/\bmexican\b|\btaqueria\b|\btaco\b|\bburrito\b/,
+  Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bramen\b|\bpho\b|\bhibachi\b|\bteriyaki\b/,
+  Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b|\btrattoria\b|\bosteria\b|\bristorante\b/,
+  Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b/,
+  BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
+  Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\boyster\b|\bcrab house\b|\blobster\b/,
+  Breakfast:/\bbreakfast\b|\bbrunch\b|\bpancake house\b|\bwaffle house\b/,
+  American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b/
+};
+
+const SEARCH_FILLER_WORDS = new Set(['restaurant','restaurants','place','places','food','foodie','near','me']);
+
+function normalizeRestaurantSearch(value){
+  return String(value||'')
+    .toLowerCase()
+    .replace(/['’]/g,'')
+    .replace(/&/g,' and ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .slice(0,100);
+}
+
+const ALIAS_TO_TAG = new Map();
+for(const [tag,aliases] of Object.entries(RESTAURANT_SEARCH_ALIASES)){
+  for(const alias of aliases)ALIAS_TO_TAG.set(normalizeRestaurantSearch(alias),tag);
+}
+
+function restaurantSearchClassification(value){
+  const normalized=normalizeRestaurantSearch(value);
+  if(!normalized)return {kind:'empty',normalized,tag:null};
+  const exact=ALIAS_TO_TAG.get(normalized);
+  if(exact)return {kind:'category',normalized,tag:exact};
+
+  const words=normalized.split(' ').filter(Boolean);
+  const stripped=words.filter(word=>!SEARCH_FILLER_WORDS.has(word)).join(' ');
+  const strippedTag=ALIAS_TO_TAG.get(stripped);
+  if(strippedTag)return {kind:'category',normalized,tag:strippedTag};
+
+  for(const [alias,tag] of ALIAS_TO_TAG.entries()){
+    if(alias.length<4)continue;
+    if(normalized.includes(alias)){
+      const remainder=normalized.replace(alias,' ').split(' ').filter(Boolean).filter(word=>!SEARCH_FILLER_WORDS.has(word));
+      if(remainder.length===0)return {kind:'category',normalized,tag};
+    }
+  }
+  return {kind:'name',normalized,tag:null};
+}
+
+function searchAliasesFor(value){
+  const c=restaurantSearchClassification(value);
+  if(c.kind!=='category'||!c.tag)return [c.normalized];
+  return [...new Set([c.normalized,c.tag,...(RESTAURANT_SEARCH_ALIASES[c.tag]||[])].map(normalizeRestaurantSearch).filter(Boolean))];
+}
+
+const taxonomy={
+  tags:RESTAURANT_TAGS,
+  aliases:RESTAURANT_SEARCH_ALIASES,
+  aliasToTag:Object.fromEntries(ALIAS_TO_TAG),
+  identityProfiles:RESTAURANT_IDENTITY_PROFILES,
+  menuSignals:RESTAURANT_MENU_SIGNALS,
+  nameSignals:RESTAURANT_NAME_SIGNALS,
+  normalizeRestaurantSearch,
+  restaurantSearchClassification,
+  searchAliasesFor,
+  fillerWords:[...SEARCH_FILLER_WORDS]
+};
+
+if(typeof module!=='undefined'&&module.exports)module.exports=taxonomy;
+else window.DINLIMINATE_RESTAURANT_TAXONOMY=taxonomy;
+})();
