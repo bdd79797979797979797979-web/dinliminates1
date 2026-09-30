@@ -45,6 +45,9 @@ jobs:
         run: node qa/restaurant-hybrid-search-smoke.cjs
       - name: Restaurant radius discovery smoke
         run: node qa/restaurant-radius-discovery-smoke.cjs
+      - name: Restaurant search reliability smoke
+        run: node qa/restaurant-search-reliability-smoke.cjs
+
 
 
       - name: Food image smoke
