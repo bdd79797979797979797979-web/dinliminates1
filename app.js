@@ -1170,12 +1170,7 @@ bindCardButton('restBack', restaurantBack);
 bindCardButton('restMaybe', () => restaurantMaybe(current));
 bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
-const restDetailsButton=$('restDetails');
-if(restDetailsButton){
-  restDetailsButton.setAttribute('tabindex','0');
-  restDetailsButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();},{passive:false});
-  restDetailsButton.onclick=e=>{e.preventDefault();e.stopPropagation();detailsSheet(current,'restaurant');};
-}
+bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
 hydrateGoogleRestaurantPhoto(row,'#restStage #restaurantCard');
