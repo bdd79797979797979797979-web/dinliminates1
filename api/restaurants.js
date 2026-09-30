@@ -435,6 +435,16 @@ function restaurantStreetKey(value){
   return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
+function restaurantNameBusinessMatch(a,b,addressA='',addressB=''){
+  const clean=n=>String(n||'').toLowerCase().replace(/[’']/g,'').replace(/\b(?:restaurant|restaurants|location|store|shop|the|llc|inc|co|clarksville|tn|tennessee|sango|downtown|north|south|east|west)\b/g,' ').replace(/\s+/g,' ').trim();
+  const streetWords=(value)=>String(normAddress(value||'').split(' ').slice(0,5).join(' ')).split(' ').filter(Boolean);
+  const aa=new Set(clean(a).split(' ').filter(Boolean)),bb=new Set(clean(b).split(' ').filter(Boolean));
+  const streetA=streetWords(addressA),streetB=streetWords(addressB);
+  for(const w of [...streetA,...streetB]){aa.delete(w);bb.delete(w);}
+  const A=[...aa].join(' '),B=[...bb].join(' ');
+  if(!A||!B)return false;
+  return A===B||(A.length>=5&&(A.startsWith(B+' ')||B.startsWith(A+' ')));
+}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
   const samePlaceId=!!String(x.googlePlaceId||'').trim()&&!!String(r.googlePlaceId||'').trim()&&String(x.googlePlaceId).trim()===String(r.googlePlaceId).trim();
@@ -449,7 +459,8 @@ function sameRestaurant(x,r){
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.10;
   const venueDistanceClose=Number.isFinite(dist)&&dist<=0.75;
-  const sameNameStreet=(sameName||variant||sameBrand)&&sameStreet&&venueDistanceClose&&(originDistanceClose||partialAddress);
+  const businessNamesSame=restaurantNameBusinessMatch(x.name,r.name,x.address,r.address);
+  const sameNameStreet=businessNamesSame&&sameStreet&&venueDistanceClose&&originDistanceClose;
   if(samePlaceId)return true;
   if(sameAddress && (sameName||variant||sameBrand))return true;
   if(sameNameStreet)return true;
@@ -669,5 +680,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,restaurantNameKeys,namesOverlap,restaurantStreetKey,addressHasStreetNumber,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,restaurantNameBusinessMatch,restaurantNameKeys,namesOverlap,restaurantStreetKey,addressHasStreetNumber,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
 module.exports=handler;
