@@ -52,3 +52,16 @@ const countryAddressVariants=[
  {id:'cc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005}
 ];
 assert.equal(dedupe(countryAddressVariants).length,1,"Country/state/road-format variants of the same Wendy's venue must collapse to one result");
+
+
+const sameStreetPartialAddress=[
+ {id:'ws1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
+ {id:'ws2',name:'Wendys',address:'Madison St, Clarksville, TN 37043',lat:36.5312,lon:-87.3590,distance:6.91,source:'Photon'}
+];
+assert.equal(dedupe(sameStreetPartialAddress).length,1,"Same-name restaurants on the same street with one partial street address and matching search distance must collapse to one venue");
+
+const sameStreetTwoFullAddresses=[
+ {id:'sf1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
+ {id:'sf2',name:"Wendy's",address:'2500 Madison St, Clarksville, TN 37043',lat:36.5312,lon:-87.3590,distance:6.91,source:'Photon'}
+];
+assert.equal(dedupe(sameStreetTwoFullAddresses).length,2,"Two separately numbered same-name locations on the same street must remain separate");
