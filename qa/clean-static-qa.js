@@ -128,7 +128,7 @@ for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','S
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
 assert(app.includes('function restaurantPoolBase()') && app.includes('function updateRestaurantStatus()'),'Restaurant filters need a shared pre-hours pool and visible count status.');
-assert(app.includes('function restaurantCuisineTags(row)') && app.includes('return tags.includes(label);'),'Restaurant Quick Cuts must use independent cuisine/category tags.');
+assert(app.includes('function restaurantCuisineTags(row)') && app.includes('restaurantCuisineTags(row,label)')===false && app.includes('restaurantQuickMatches(row,label)') && app.includes('restaurantCuisineTags(row).includes(label)'),'Restaurant Quick Cuts must use independent cuisine/category tags.');
 assert(app.includes('function restaurantIsFastFood(row)') && app.includes("if(/thirsty goat/.test(hay)) return false;"),'Known pizza venue correction must prevent an incorrect Fast Food quick cut from removing the venue.');
 assert(app.includes("if(/thirsty goat/.test(nameHay)) tags.add('Pizza');"),'Known pizza venue correction must add Pizza independently of provider category.');
 for(const label of ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']) {
