@@ -321,15 +321,15 @@ await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants')); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
+await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('9 restaurants')); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
 let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
 await page.locator('#address').fill('456');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
+await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('9 restaurants'));
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
-await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
-s=await qa(); assert.equal(s.allRestaurantIds.length,8,'combined restaurant pool should contain unique restaurant + fast food choices');
+await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('9 restaurants'));
+s=await qa(); assert.equal(s.allRestaurantIds.length,9,'combined restaurant pool should contain unique restaurant + fast food choices');
 assert.equal(s.allRestaurantIds.includes('heads-1')&&s.allRestaurantIds.includes('robert-heads-duplicate'),false,'Provider duplicate Heads BBQ records must collapse to one visible restaurant');
 
 assert.equal(await page.locator('#find').innerText(),'Refresh','Find should act as Refresh after a location is selected');
@@ -344,8 +344,8 @@ assert.equal(await page.locator('#radius').inputValue(),'5','Radius control shou
 assert.equal((await qa()).allRestaurantIds.length,5,'Five-mile search should return only the five unique mocked venues within five miles');
 assert.equal((await qa()).restaurantPool.length,5,'Five-mile radius should filter the active choice pool to five venues');
 await page.locator('#radius').selectOption('10');
-await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
-assert.equal((await qa()).allRestaurantIds.length,8,'Returning to ten miles should restore the full unique radius result set');
+await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('9 restaurants'));
+assert.equal((await qa()).allRestaurantIds.length,9,'Returning to ten miles should restore the full unique radius result set');
 
 await click('#restaurantMenu'); await settle();
 await click('#settings'); await settle();
@@ -597,7 +597,7 @@ await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneMo
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
 await click('#restStart'); await settle();
-await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
+await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('9 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
 assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using your location','Device location should be labeled as the source');
 const deviceLoc=await qa(); assert.ok(Math.abs(Number(deviceLoc.location?.lat)-36.5304)<0.01,'Device latitude should be persisted');
 assert.ok(Math.abs(Number(deviceLoc.location?.lon)+87.3601)<0.01,'Device longitude should be persisted');
