@@ -784,3 +784,9 @@
 #food .swipe-card-stack{aspect-ratio:3/4.8!important;max-height:68svh!important}
 #food .swipe-card-stack>.card{max-height:68svh!important}
 @media(max-width:390px){#food .swipe-card-stack{aspect-ratio:3/4.75!important;max-height:67svh!important}#food .swipe-card-stack>.card{max-height:67svh!important}}
+
+/* CP293 — all three Settings > System actions share one size and type treatment */
+.settings-system-action,.settings-reset-app{width:100%!important;height:46px!important;min-height:46px!important;padding:0 14px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:13px!important;font-size:12px!important;font-weight:850!important;line-height:1!important;letter-spacing:0!important;font-family:inherit!important;box-sizing:border-box!important}
+.settings-reset-app{margin-top:10px}
+.settings-system-action.reset-action{background:linear-gradient(180deg,#8a3b32,#5f2923)!important;color:#fff!important;border-color:#b65f53!important;box-shadow:0 8px 20px #5f292344!important}
+.settings-system-action.reset-action:hover{background:linear-gradient(180deg,#a3483d,#71332c)!important;border-color:#d0796d!important}
