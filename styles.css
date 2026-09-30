@@ -906,3 +906,36 @@
   #detailsModal .restaurant-luxury-stat strong{font-size:10px}
   #detailsModal .restaurant-luxury-actions .restaurant-detail-action{width:44px;height:44px;flex-basis:44px}
 }
+
+/* CP417 — restaurant photo attribution overlays */
+.restaurant-photo-credit{
+  position:absolute;
+  left:11px;
+  bottom:11px;
+  z-index:4;
+  max-width:68%;
+  display:none;
+  align-items:center;
+  gap:3px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#0009;
+  border:1px solid #ffffff1f;
+  backdrop-filter:blur(7px);
+  font-size:7px;
+  line-height:1.25;
+  color:#d9d3ca;
+  box-shadow:0 5px 14px #0007;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.restaurant-photo-credit.is-visible{display:flex}
+.restaurant-photo-credit a{color:#d9d3ca;text-decoration:none}
+.restaurant-photo-credit a:hover{text-decoration:underline}
+#detailsModal .restaurant-detail-hero .restaurant-photo-credit{
+  left:10px;
+  bottom:10px;
+  max-width:82%;
+  font-size:8px;
+}
