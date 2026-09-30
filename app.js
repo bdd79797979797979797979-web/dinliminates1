@@ -311,7 +311,7 @@ function foodQuick() {
 $('foodQuick').innerHTML = foodQuickLabels().map(label => {
 const cut = S.cutCats.has(label);
 const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
+return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(QUICK_IMAGES.American))+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-food-quick] img');
 document.querySelectorAll('[data-food-quick]').forEach(btn => {
@@ -406,7 +406,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
  const next=$(nextId);
  let downX=0,active=false,committed=false,pointerId=null,suppressClickUntil=0;
- card.style.touchAction='none';
+ card.style.touchAction='none';card.style.userSelect='none';card.style.webkitUserSelect='none';card.style.webkitTouchCallout='none';card.querySelectorAll('img').forEach(img=>{img.draggable=false;img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});});
  const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
  const cleanup=()=>{
   try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
@@ -652,7 +652,7 @@ function restaurantQuick() {
 $('restQuick').innerHTML = REST_QUICK.map(label => {
 const cut = S.restaurantCuts.has(label);
 const src=imageProxyUrl(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American);
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
+return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(REST_QUICK_IMAGES.American))+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-rest-quick] img');
 document.querySelectorAll('[data-rest-quick]').forEach(btn => {
@@ -1382,7 +1382,7 @@ function passSetup() {
 const counts=[2,3,4,5,6,7,8];
 const modes=[
  {id:'quick',label:'Quick Pass · Default',desc:'Faster default. A choice survives a majority; the round moves on as soon as the outcome is decided.'},
- {id:'full',label:'Full Pass · Original',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
+ {id:'full',label:'Full Pass · Optional',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
 ];
 S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick';
 const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Use the same Tinder-style Cut / Keep decisions, but let the group narrow the choices together.</p><div class="pass-mode" role="radiogroup" aria-label="Pass Around mode">'+modes.map(m=>'<button type="button" class="pass-mode-option '+(S.passDraftMode===m.id?'selected':'')+'" data-pass-mode="'+m.id+'" aria-pressed="'+(S.passDraftMode===m.id)+'"><strong>'+m.label+'</strong><span>'+m.desc+'</span></button>').join('')+'</div><div class="pass-count-label">People</div><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass')+'</button></div>');
