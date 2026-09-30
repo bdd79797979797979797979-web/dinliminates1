@@ -49,7 +49,11 @@ page.on('console',m=>{
   if(reverseFailure && /Failed to load resource: the server responded with a status of 502/.test(msg)) return;
   consoleErrors.push(msg);
 });
-page.on('response',r=>{if(r.status()>=400)badResponses.push({status:r.status(),url:r.url()})});
+page.on('response',r=>{
+  if(r.status()<400) return;
+  if(reverseFailure && r.status()===502 && /\/api\/restaurant-search\?mode=reverse&lat=36\.5304&lon=-87\.3601/.test(r.url())) return;
+  badResponses.push({status:r.status(),url:r.url()});
+});
 page.on('request',r=>{if(r.url().includes('/api/restaurant-search?mode=search'))requests.push(r.url())});
 
 await page.route('**/*',async route=>{
