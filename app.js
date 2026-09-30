@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '170';
+let APP_BUILD = '171';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -609,7 +609,21 @@ function restaurantAddressFamily(value){
  };
  return normKey(value).split(' ').map(x=>replacements[x]||x).join(' ').replace(/\b(?:usa|united states)\b/g,'').replace(/\s+/g,' ').trim();
 }
-
+function restaurantNameFamily(value){
+ return normKey(String(value||'').replace(/[’']/g,''));
+}
+function restaurantNameFamilyKeys(value){
+ const raw=String(value||'');
+ return [...new Set([
+  normKey(raw),
+  normKey(raw.replace(/[’']s\b/gi,'')),
+  normKey(raw.replace(/[’']/g,''))
+ ].filter(Boolean))];
+}
+function restaurantNamesOverlap(a,b){
+ const A=new Set(restaurantNameFamilyKeys(a)),B=restaurantNameFamilyKeys(b);
+ return [...A].some(x=>B.includes(x));
+}
 function restaurantStreetFamily(value){
  const raw=restaurantAddressFamily(value);
  if(!raw)return '';
@@ -635,10 +649,8 @@ function dedupeRestaurantPool(rows){
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
    const close=Number.isFinite(dist)&&dist<=0.08;
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
-   const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
-   const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameNameStreet=!!sameName&&sameStreet&&partialAddress&&((Number.isFinite(dist)&&dist<=0.15)||originDistanceClose);
-   return sameAddr&&(sameName||variant) || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
+   const sameNameStreet=restaurantNamesOverlap(row.name,x.name)&&sameStreet&&((Number.isFinite(dist)&&dist<=0.20)||(Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05));
+   return sameAddr&&(restaurantNamesOverlap(row.name,x.name)||variant) || sameNameStreet || (restaurantNamesOverlap(row.name,x.name)&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
   if(typeof row.openNow==='boolean' && typeof match.openNow!=='boolean')match.openNow=row.openNow;
