@@ -846,7 +846,7 @@ function restaurantHoursFilter(row){
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
- const radius=Math.min(50,Number($('radius')?.value)||10);
+ const radius=Math.min(100,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
  const states={open:0,unknown:0,closed:0};
  for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
@@ -1149,7 +1149,7 @@ if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !rd.ok) throw new Error(rr.status===429 ? 'Address lookup is temporarily busy. Please try again.' : (rd.message || 'Could not locate that address.'));
 loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = rd.display;
 }
-const radius = Math.min(50,Math.max(1,Number($('radius').value)||10));
+const radius = Math.min(100,Math.max(1,Number($('radius').value)||10));
 const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);
 const searchKey = Number(loc.lat).toFixed(4)+':'+Number(loc.lon).toFixed(4)+':'+radius+':'+normalizeRestaurantSearch(searchTerm);
 const queryParam = searchTerm ? '&q='+encodeURIComponent(searchTerm) : '';
@@ -1732,8 +1732,8 @@ async function appDiagnosisView(existingModal){
    const restVisible=!!document.querySelector('#restaurant:not(.hidden)'),restControls=['restCut','restMaybe','restBack','restDetails'].filter(id=>$(id)).length;
    restVisible&&restControls<4?fail('restaurant','Restaurant decision controls',restControls+'/4 required controls are present.','Cut, Maybe, Back, and Details should all be available.'):pass('restaurant','Restaurant decision controls','Core Restaurant decision and Details controls are wired.');
    S.restaurantSearchDegraded?warn('restaurant','Search quality state','The last restaurant search was marked degraded.','Run a fresh search; if it repeats, inspect the search service/provider path.'):info('restaurant','Search quality state','No degraded-search flag is currently set.');
-   const radiusOptions=[...($('radius')?.options||[])].map(o=>Number(o.value||o.textContent)).filter(Number.isFinite),radiusContract=[1,3,5,10,25,50].every((v,i)=>radiusOptions[i]===v);
-   radiusContract&&radiusOptions.length===6?pass('restaurant','Radius controls','1, 3, 5, 10, 25, and 50 miles are available; 50 miles is the cap.','The previous 75/100-mile ambiguity is no longer part of the Restaurant UI.'):fail('restaurant','Radius controls','Radius options are out of sync with the current 50-mile model.','The Restaurant UI should expose exactly 1, 3, 5, 10, 25, and 50 miles.');
+   const radiusOptions=[...($('radius')?.options||[])].map(o=>Number(o.value||o.textContent)).filter(Number.isFinite),radiusContract=[1,3,5,10,25,50,100].every((v,i)=>radiusOptions[i]===v);
+   radiusContract&&radiusOptions.length===7?pass('restaurant','Radius controls','1, 3, 5, 10, 25, 50, and 100 miles are available; 100 miles is the cap.','Radius filtering is enforced from the final restaurant distance calculation.'):fail('restaurant','Radius controls','Radius options are out of sync with the current 100-mile model.','The Restaurant UI should expose exactly 1, 3, 5, 10, 25, 50, and 100 miles.');
    const searchControl=$('restaurantSearch'),hoursControl=document.querySelector('#hoursToggle');
    searchControl&&!hoursControl?pass('restaurant','Search controls','Compact Restaurant Search is beside Radius; the separate hours filter is removed.','Search opens the restaurant name/cuisine field while Find/Refresh remains the location search action.'):fail('restaurant','Search controls','Restaurant Search or hours-control state is inconsistent.','The compact Search control should coexist with Find/Refresh and no hours toggle.');
    if((S.restaurantPool||[]).length){
