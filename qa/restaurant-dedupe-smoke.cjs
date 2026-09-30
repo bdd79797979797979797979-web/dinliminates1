@@ -11,7 +11,7 @@ const rows=[
  {id:'osm-chris',name:"Chris Pizza",address:'200 College St, Clarksville, TN 37043',lat:36.5310,lon:-87.3390,distance:.3,source:'OpenStreetMap',fastFood:false,menuItems:[],photo:''},
  {id:'pho-chris',name:"Chris's Pizza",address:'200 College St, Clarksville, TN 37043',lat:36.5314,lon:-87.3392,distance:.3,source:'Photon POI',fastFood:false,menuItems:['pizza'],photo:''},
  {id:'other',name:'Heads BBQ Express',address:'500 Rural Rd, Clarksville, TN 37043',lat:36.5400,lon:-87.3500,distance:.8,source:'ArcGIS POI',fastFood:false,menuItems:[],photo:''},
- {id:'heads-road-spelling',name:"Head's BBQ",address:'100 Main Road, Clarksville, TN 37043',lat:36.5450,lon:-87.3500,distance:1.1,source:'Photon POI',fastFood:false,menuItems:[],photo:''},
+ {id:'heads-road-spelling',name:"Head's BBQ",address:'100 Main Rd, Clarksville, TN 37043',lat:36.5450,lon:-87.3500,distance:1.1,source:'Photon POI',fastFood:false,menuItems:[],photo:''},
  {id:'far-variant',name:"Head's BBQ",address:'900 River Rd, Clarksville, TN 37043',lat:36.7200,lon:-87.3500,distance:12,source:'ArcGIS POI',fastFood:false,menuItems:[],photo:''}
 ];
 assert.equal(t.nameVariantMatch("Head's BBQ",'Robert Head’s BBQ'),true,'Robert Head’s BBQ should be recognized as a nearby name variant');
