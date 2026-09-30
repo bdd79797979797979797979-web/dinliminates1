@@ -137,11 +137,11 @@ for(const r of radii){
   await page.waitForFunction(expected=>Number(document.querySelector('#radius')?.value)===expected,[r]);
   await waitForRestaurant();
   const snapNow=await snap();
-  assert.equal(Number(page.locator('#radius').inputValue()),r);
+  assert.equal(Number(await page.locator('#radius').inputValue()),r);
   assert.equal(Number(snapNow.restaurantSearchOrigin?.lat),36.5298);
   const ids=snapNow.allRestaurantIds;
   assert.equal(new Set(ids).size,ids.length);
-  const outOfRange=await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot()).then(x=>x.restaurantPool);
+  const outOfRange=(await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot())).restaurantPool;
   const expected=allResults.filter(x=>x.distance<=r).map(x=>x.id);
   assert.deepEqual(new Set(ids),new Set(expected));
   const searchUrl=requests.at(-1)||'';
