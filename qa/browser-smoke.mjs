@@ -35,7 +35,7 @@ page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) reque
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/release')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:String(releaseMeta.build),sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:String(releaseMeta.build),sourceBranch:releaseMeta.sourceBranch,commit:null,branch:releaseMeta.sourceBranch,environment:'test',expectedBranch:releaseMeta.sourceBranch})});
   }
   if (u.includes('/api/restaurant-search?mode=health')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
@@ -54,15 +54,19 @@ await page.route('**/*', async route => {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,display:'Current location (QA)'})});
   }
   if (u.includes('/api/restaurant-search?mode=search')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:10,total:7,fastFoodCount:2,results:[
-      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',phone:'(931) 555-0101',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
-      {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
-      {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
-      {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
-      {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'},
-      {id:'asian-1',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:5.8,address:'600 Madison St, Clarksville, TN',website:'',opening_hours:'24/7',photo:'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=85'},
-      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'closed',photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
-    ]})});
+    const searchUrl=new URL(u);
+    const radius=Number(searchUrl.searchParams.get('radius')||10);
+    const allResults=[
+      {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',phone:'(931) 555-0101',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
+      {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
+      {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
+      {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
+      {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'},
+      {id:'asian-1',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:5.8,address:'600 Madison St, Clarksville, TN',website:'',opening_hours:'',photo:'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=85'},
+      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:false,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
+    ];
+    const results=allResults.filter(x=>Number(x.distance)<=radius);
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:radius,total:results.length,fastFoodCount:results.filter(x=>x.fastFood).length,timezone:'America/Chicago',results})});
   }
   if (u.includes('/api/image?url=')) {
     return route.fulfill({status:200,contentType:'image/jpeg',body:png1x1});
@@ -293,6 +297,21 @@ await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction((
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
+assert.equal(await page.locator('#find').innerText(),'Refresh','Find should act as Refresh after a location is selected');
+const searchRequests=[];
+page.on('request',req=>{if(req.url().includes('/api/restaurant-search?mode=search'))searchRequests.push(req.url());});
+const requestsBeforeRadius=searchRequests.length;
+await page.locator('#radius').selectOption('5');
+await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.innerText.includes('3 choices')||document.querySelector('#status')?.textContent.includes('4 restaurants'));
+await settle();
+assert.ok(searchRequests.length>requestsBeforeRadius,'Changing radius should automatically trigger a restaurant search');
+assert.equal(await page.locator('#radius').inputValue(),'5','Radius control should retain the selected value');
+assert.equal((await qa()).allRestaurantIds.length,4,'Five-mile search should return only the four mocked venues within five miles');
+assert.equal((await qa()).restaurantPool.length,4,'Five-mile radius should filter the active choice pool to four venues');
+await page.locator('#radius').selectOption('10');
+await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
+assert.equal((await qa()).allRestaurantIds.length,7,'Returning to ten miles should restore the full radius result set');
+
 await click('#restaurantMenu'); await settle();
 await click('#settings'); await settle();
 await click('#appDiagnosis'); await settle();
@@ -355,6 +374,7 @@ assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https:
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
 const cuisineBoxSummary=await page.locator('#restaurantCard .cuisine-line').boundingBox(); const detailsBoxSummary=await page.locator('#restaurantCard #restDetails').boundingBox(); assert.ok(cuisineBoxSummary&&detailsBoxSummary&&detailsBoxSummary.x>=cuisineBoxSummary.x+cuisineBoxSummary.width-2,'Restaurant Details icon should sit to the right of cuisine');  assert.ok(detailsBoxSummary&&detailsBoxSummary.width<=30&&detailsBoxSummary.height<=30,'Restaurant Details icon should stay compact and clear of card text'); assert.ok(await page.locator('#restaurantCard #restDetails .details-icon').evaluate(el=>getComputedStyle(el).width)==='14px','Details icon should use the crisp compact glyph size');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
+assert.equal(await page.locator('#restaurantCard').getByText(/Directions|Google Maps/i).count(),0,'Restaurant card must not show Directions; it belongs inside Details');
 assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).count(),1,'Restaurant Website action should use a symbol');
 assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details should use an accessible icon label'); assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details should render the crisp icon');
 const cuisineBox=await page.locator('#restaurantCard .card-cuisine-row .cuisine-line').boundingBox(); const detailsInlineBox=await page.locator('#restaurantCard #restDetails').boundingBox();
@@ -388,13 +408,15 @@ s=await qa(); assert.equal(s.restaurantActions.length,0,'Restaurant Back should 
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill("McDonald's"); await settle();
 assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac · Fries'),true,'restaurant card should show provider-supplied common menu items');
-await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.equal(await page.locator('#detailsModal h3').innerText(),'Restaurant Details','Restaurant Details modal should have an explicit title'); assert.match(await page.locator('#detailsModal').innerText(),/COMMON MENU ITEMS/i,'Restaurant Details should show common menu items when supplied'); assert.equal(await page.locator('#detailsModal #detailWeb').count(),1,'Restaurant Details should expose the Website/Google action'); assert.equal(await page.locator('#detailsModal .restaurant-detail-contact').count(),1,'Restaurant Details should show the contact and directions section'); assert.match(await page.locator('#detailsModal').innerText(),/PHONE/i,'Restaurant Details should visibly show a Phone label'); assert.match(await page.locator('#detailsModal').innerText(),/GOOGLE MAPS/i,'Restaurant Details should visibly show Google Maps directions');
-assert.equal(await page.locator('#detailsModal #detailDirections').count(),1,'Restaurant Details should expose Google Maps directions');
-assert.match(await page.locator('#detailsModal #detailDirections').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Restaurant Details directions should use Google Maps');
-assert.ok(await page.locator('#detailsModal .restaurant-detail-contact-link').count()>=1,'Restaurant Details should expose a tap-to-call phone number');
-assert.equal(await page.locator('#detailsModal .restaurant-detail-contact-link').getAttribute('href'),'tel:+19315550101','Restaurant Details phone should be a tappable tel link');
-assert.match(await page.locator('#detailsModal #detailDirections').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Restaurant Details directions should use Google Maps');
-await page.locator('#detailsModal #detailWeb').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
+await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.equal(await page.locator('#detailsModal h3').innerText(),'Restaurant Details','Restaurant Details modal should have an explicit title'); assert.match(await page.locator('#detailsModal').innerText(),/COMMON MENU ITEMS/i,'Restaurant Details should show common menu items when supplied'); assert.equal(await page.locator('#detailsModal .detail-website-action').count(),1,'Restaurant Details should expose the Website/Google icon action'); assert.equal(await page.locator('#detailsModal .restaurant-luxury-contact-card').count(),1,'Restaurant Details should show the premium contact section'); assert.match(await page.locator('#detailsModal').innerText(),/PHONE/i,'Restaurant Details should visibly show a Phone label'); assert.match(await page.locator('#detailsModal').innerText(),/GOOGLE MAPS/i,'Restaurant Details should visibly show Google Maps directions');
+assert.equal(await page.locator('#detailsModal .detail-directions-action').count(),1,'Restaurant Details should expose Google Maps directions');
+assert.match(await page.locator('#detailsModal .detail-directions-action').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Restaurant Details directions should use Google Maps');
+assert.ok(await page.locator('#detailsModal .restaurant-luxury-contact-row[href^="tel:"]').count()>=1,'Restaurant Details should expose a tap-to-call phone number');
+assert.equal(await page.locator('#detailsModal .restaurant-luxury-contact-row[href^="tel:"]').getAttribute('href'),'tel:+19315550101','Restaurant Details phone should be a tappable tel link');
+const detailActionMetrics=await page.locator('#detailsModal .restaurant-luxury-actions .detail-icon-button').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {w:Math.round(r.width),h:Math.round(r.height)}}));
+assert.equal(detailActionMetrics.length,2,'Website and Directions should share the same compact action row');
+assert.equal(new Set(detailActionMetrics.map(x=>x.w+"x"+x.h)).size,1,'Website and Directions should use the same button dimensions');
+await page.locator('#detailsModal .detail-website-action').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
 const directWebsite=await page.locator('#restaurantCard .card-card-action[aria-label="Open restaurant website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
