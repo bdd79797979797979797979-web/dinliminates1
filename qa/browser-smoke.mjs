@@ -368,6 +368,9 @@ await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
 assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should no longer be shown');
+assert.equal(await page.locator('.restaurant .location-sub #restaurantSearch').count(),1,'Restaurant Search must share the Radius row.');
+assert.equal(await page.locator('.restaurant .restaurant-tools').count(),0,'Restaurant Search must not render in a separate tools row.');
+
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
 // Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
