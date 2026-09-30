@@ -218,6 +218,8 @@ assert.equal(await visible('settingsModal'),true,'App Diagnosis should stay insi
 assert.equal(await page.locator('#diagnosisModal').count(),0,'App Diagnosis should not create a second modal element');
 assert.ok((await page.locator('#settingsModal').getAttribute('class')||'').includes('diagnosis-modal'),'Settings shell should switch to the full-size diagnosis layout before rendering');
 assert.equal(await page.locator('#settingsModal .modal-head h3').innerText(),'App Diagnosis','The existing modal title should change to App Diagnosis');
+assert.equal(await page.locator('#settingsModal .diagnosis-loading').count(),0,'App Diagnosis must not show a centered loading screen');
+assert.equal(await page.locator('#settingsModal .diagnosis-section').count(),5,'App Diagnosis should render all diagnostic sections immediately');
 assert.ok((await page.locator('#settingsModal').boundingBox())?.height>500,'App Diagnosis should open at full size without a small-to-large flash');
 assert.match(await page.locator('#settingsModal').innerText(),/Core app/i,'App Diagnosis should show grouped diagnostic sections');
 assert.match(await page.locator('#settingsModal').innerText(),/Food system/i,'App Diagnosis should report Food system health');
@@ -226,6 +228,7 @@ assert.match(await page.locator('#settingsModal').innerText(),/Device & runtime/
 assert.match(await page.locator('#settingsModal').innerText(),/Build & deployment/i,'App Diagnosis should report build/deployment health');
 assert.match(await page.locator('#settingsModal').innerText(),/Pass Around/i,'App Diagnosis should confirm the removed Pass Around feature');
 assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
+await page.waitForFunction(()=>document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'),'',{timeout:12000});
 await click('#diagnosisRefresh'); assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'true','Run again should visibly enter a selected/running state'); assert.equal(await page.locator('#diagnosisRefresh').isDisabled(),true,'Run again should disable while diagnostics are running'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
 assert.equal(await visible('settingsModal'),true,'App Diagnosis should remain open after Run again');
 assert.ok((await page.locator('#diagnosisRunStatus').innerText()).includes('complete'),'Diagnosis should show which run just completed');
