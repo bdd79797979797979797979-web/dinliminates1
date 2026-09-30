@@ -187,7 +187,7 @@ function searchQueryMany(points,searchTerm,timeoutSeconds=10){return '[out:json]
 function radiusDiscoveryPlan(lat,lon,radius){
  const r=clamp(radius),coverage=centers(lat,lon,r);
  if(r<=WIDE_RADIUS_THRESHOLD)return {mode:'nearby',reserveMs:0,coveragePoints:coverage.length,groups:[coverage]};
- const groups=r<=50?[coverage]:[coverage.slice(0,3),coverage.slice(3,6),coverage.slice(6,9)];
+ const groups=[coverage.slice(0,3),coverage.slice(3,6),coverage.slice(6,9)].filter(group=>group.length);
  return {mode:'wide',reserveMs:WIDE_DISCOVERY_RESERVE_MS,coveragePoints:coverage.length,groups};
 }
 async function overpassPoints(points,originLat,originLon,radius,types='restaurant|fast_food',searchTerm='',endpoints=OVERPASS,timeout=OVERPASS_HTTP_TIMEOUT_MS){
@@ -523,7 +523,16 @@ if(mode==='search'){
  const discoveryPlan=radiusDiscoveryPlan(lat,lon,radius);
  const primaryBudget=Math.max(9000,SEARCH_BUDGET_MS-(wideSearch?discoveryPlan.reserveMs:0));
  const discoveryPromise=wideSearch||searchTerm ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
- const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]),Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
+ const primaryPromise=Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]);
+ let primaryBatch,parallelWide=null;
+ if(wideSearch){
+   [primaryBatch,parallelWide]=await Promise.all([
+     withinBudget(primaryPromise,7600,'Primary restaurant providers timed out'),
+     withinBudget(discoveryPromise,7600,'Wide radius discovery timed out')
+   ]);
+ }else{
+   primaryBatch=await withinBudget(primaryPromise,Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
+ }
  const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const googleResult=Array.isArray(primaryBatch)?primaryBatch[2]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
@@ -535,13 +544,19 @@ if(mode==='search'){
  let osmOut={rows:[],errors:[]};
  const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
  if(discoveryPromise){
-   const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
-   const discoveryBudget=wideSearch?Math.min(discoveryPlan.reserveMs,remaining):Math.min(5000,remaining);
-   if(discoveryBudget>1200){
-     const got=await withinBudget(discoveryPromise,discoveryBudget,wideSearch?'Wide radius discovery timed out':'Provider-backed query expansion timed out');
+   if(wideSearch){
+     const got=parallelWide;
      if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
-     else osmOut.errors.push(wideSearch?'Wide radius discovery timed out':'Provider-backed query expansion timed out');
-   }else osmOut.errors.push('Search budget reached before provider expansion.');
+     else osmOut.errors.push('Wide radius discovery timed out');
+   }else{
+     const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+     const discoveryBudget=Math.min(5000,remaining);
+     if(discoveryBudget>1200){
+       const got=await withinBudget(discoveryPromise,discoveryBudget,'Provider-backed query expansion timed out');
+       if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
+       else osmOut.errors.push('Provider-backed query expansion timed out');
+     }else osmOut.errors.push('Search budget reached before provider expansion.');
+   }
  }else if(needsOverpass){
    const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
    if(remaining>1200){
