@@ -1497,7 +1497,7 @@ save();
 }
 function endPass(){
 const p=S.pass;if(!p)return;
-S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
+S.pass=null;removePassSurface();
 if(p.type==='restaurant'){S.restaurantIndex=Math.min(S.restaurantIndex,Math.max(0,S.restaurantPool.length-1));}
 else {S.index=Math.min(S.index,Math.max(0,S.pool.length-1));}
 save();
