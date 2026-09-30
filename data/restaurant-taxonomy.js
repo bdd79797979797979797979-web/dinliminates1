@@ -80,7 +80,7 @@ function normalizeRestaurantSearch(value){
 
 const ALIAS_TO_TAG = new Map();
 for(const [tag,aliases] of Object.entries(RESTAURANT_SEARCH_ALIASES)){
-  for(const alias of aliases)ALIAS_TO_TAG.set(normalizeRestaurantSearch(alias),tag);
+  for(const alias of aliases){const key=normalizeRestaurantSearch(alias);if(!ALIAS_TO_TAG.has(key))ALIAS_TO_TAG.set(key,tag);}
 }
 
 function restaurantSearchClassification(value){
