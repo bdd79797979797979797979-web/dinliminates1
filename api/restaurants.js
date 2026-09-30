@@ -416,6 +416,13 @@ function sameContact(x,r){
   return false;
 }
 function restaurantNameKey(value){return norm(String(value||'').replace(/[’']s\b/gi,'s'));}
+function restaurantStreetKey(value){
+  const raw=normAddress(value||'');
+  if(!raw)return '';
+  const first=raw.split(',')[0].trim();
+  return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
+}
+function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
   const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
@@ -425,7 +432,12 @@ function sameRestaurant(x,r){
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
   const sameAddress=!!ax&&!!ar&&ax===ar;
   const conflictingAddress=!!ax&&!!ar&&!sameAddress;
+  const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
+  const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
+  const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
+  const sameNameStreet=sameName&&sameStreet&&partialAddress&&((Number.isFinite(dist)&&dist<=0.15)||originDistanceClose);
   if(sameAddress && (sameName||variant||sameBrand))return true;
+  if(sameNameStreet)return true;
   if(sameName && !conflictingAddress && dist<=0.08)return true;
   if(sameContact(x,r) && !conflictingAddress && dist<=0.12)return true;
   if(variant && sameBrand && !conflictingAddress && dist<=0.12)return true;
@@ -637,5 +649,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,restaurantStreetKey,addressHasStreetNumber,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
 module.exports=handler;
