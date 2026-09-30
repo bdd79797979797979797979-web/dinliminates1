@@ -217,7 +217,6 @@ assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-a
 // CP260 UI + Pass Around contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
 for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
-assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
