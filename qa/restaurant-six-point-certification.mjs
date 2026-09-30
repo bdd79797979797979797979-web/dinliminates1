@@ -412,6 +412,10 @@ report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalize
 // 5. Restaurant hours control is intentionally absent; default presentation remains Open/Unknown.
 report["5_open_all"]={controlRemoved:true,defaultOpenUnknown:true};
 assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should not be rendered');
+await page.locator('#restDetails').click(); await page.waitForTimeout(120); assert.equal(await page.locator('#detailsModal').count(),1,'Restaurant Details should open for hours verification');
+const detailsHoursText=await page.locator('#detailsModal').innerText();
+assert(detailsHoursText.includes('Open now')||detailsHoursText.includes('Closed now')||detailsHoursText.includes('Hours unknown'),'Restaurant Details should show the normalized hours state');
+await page.locator('#detailsModal [data-close]').click(); await page.waitForTimeout(80);
 assert.equal(s.restaurantPool.includes('closed'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
 report["5_open_all"].unknownPreserved=true;
 
