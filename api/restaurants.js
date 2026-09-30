@@ -447,8 +447,9 @@ function sameRestaurant(x,r){
   const conflictingAddress=!!ax&&!!ar&&!sameAddress;
   const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
-  const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameNameStreet=(sameName||variant||sameBrand)&&sameStreet&&((Number.isFinite(dist)&&dist<=0.20)||originDistanceClose);
+  const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.10;
+  const venueDistanceClose=Number.isFinite(dist)&&dist<=0.75;
+  const sameNameStreet=(sameName||variant||sameBrand)&&sameStreet&&venueDistanceClose&&(originDistanceClose||partialAddress);
   if(samePlaceId)return true;
   if(sameAddress && (sameName||variant||sameBrand))return true;
   if(sameNameStreet)return true;
