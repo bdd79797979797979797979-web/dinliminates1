@@ -409,29 +409,13 @@ assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHour
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknownFixture),'unknown');
 report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
 
-// 5. Hours: Open/Unknown excludes explicit closed; one toggle restores All.
-report["5_open_all"]={};
-assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'Open/Unknown');
-await page.locator('#hoursToggle').click(); await settle();
-s=await snap();
-assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'All');
-assert.ok(s.restaurantPool.includes('closed'));
-const allCount=s.restaurantPool.length;
-const allVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
-assert.equal(allVisibleCount,allCount,'All mode count must include both open/unknown and closed restaurants.');
-await page.locator('#hoursToggle').click(); await settle();
-s=await snap();
-assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'Open/Unknown');
-assert.equal(s.restaurantPool.includes('closed'),false);
-const openVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
-assert.equal(openVisibleCount,allCount-1,'Open/Unknown mode must exclude only the explicit closed fixture.');
-report["5_open_all"].allCount=allCount;
-report["5_open_all"].allVisibleCount=allVisibleCount;
-report["5_open_all"].openVisibleCount=openVisibleCount;
-report["5_open_all"].toggleVerified=true;
+// 5. Restaurant hours control is intentionally absent; default presentation remains Open/Unknown.
+report["5_open_all"]={controlRemoved:true,defaultOpenUnknown:true};
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should not be rendered');
+assert.equal(s.restaurantPool.includes('closed'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
 report["5_open_all"].unknownPreserved=true;
 
-// // 6. All ten Quick Cuts: verify they render as photos and each toggled cut changes the active filter.
+// 6. All ten Quick Cuts: verify they render as photos and each toggled cut changes the active filter.
 report["6_quick_cuts"]={};
 const labels=['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10);
