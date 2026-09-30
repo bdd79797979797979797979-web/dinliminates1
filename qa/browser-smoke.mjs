@@ -33,7 +33,7 @@ page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) reque
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/release')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'125',sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'127',sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
   }
   if (u.includes('/api/restaurant-search?mode=health')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,67,'Restored 65-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,90,'Restored 65-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
@@ -103,11 +103,11 @@ assert.equal((await page.evaluate(()=>window.DINLIMINATE_FOODS||[])).some(x=>x.i
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the refreshed accurate photo');
+assert.equal(await page.evaluate(()=>window.DINLIMINATE_FOODS.find(x=>x.id==='stir-fry')?.name),'Fajitas');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
-let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,67,'expected restored food catalog');
+let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,90,'expected restored food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,67,'Food data should expose 65 image-backed choices');
+assert.equal(foodImageSources.length,90,'Food data should expose 90 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
 const refreshedExpected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/6525832/, 'potato-soup':/29653177/, 'stuffed-peppers':/goodnes\.com.*stouffers-hwe4pryaocyufr0fchw5/i, stroganoff:/20234576/, 'health-shake':/7974814/};
@@ -387,7 +387,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'],'Food editor should expose all Quick Cut categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
@@ -626,3 +626,5 @@ assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.strin
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
+
+console.log('CP258 browser assertions: 90-food catalog, Fajitas rename, no Food Greek Quick Cut, and new food mappings are covered by static QA.');
