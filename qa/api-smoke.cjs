@@ -8,14 +8,14 @@ function call(query){
 }
 (async()=>{
  const health=await call({mode:'health'});
- if(health.statusCode!==200||!health.body?.ok||health.body.version!=='r14')throw new Error('health failed: '+JSON.stringify(health.body));
+ if(health.statusCode!==200||!health.body?.ok||health.body.version!=='r16')throw new Error('health failed: '+JSON.stringify(health.body));
  const suggestion=await call({mode:'suggest',q:'37040'});
  if(suggestion.statusCode!==200||!suggestion.body?.ok||!suggestion.body.results?.length)throw new Error('address suggestions failed');
  const resolved=await call({mode:'resolve',q:'Clarksville, TN 37040'});
  if(resolved.statusCode!==200||!resolved.body?.ok)throw new Error('address resolve failed: '+JSON.stringify(resolved.body));
  const search=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'10'});
  if(search.statusCode!==200||!search.body?.ok)throw new Error('restaurant search failed: '+JSON.stringify(search.body));
- if(search.body.version!=='r14')throw new Error('search version mismatch: '+search.body.version);
+ if(search.body.version!=='r16')throw new Error('search version mismatch: '+search.body.version);
  if(typeof search.body.timezone!=='string')throw new Error('search timezone field missing');
  const falseFast=(search.body.results||[]).filter(x=>/(ruby tuesday|applebee|chili.?s|olive garden|longhorn|outback|cracker barrel|texas roadhouse|red lobster|panera)/i.test(String(x.name||''))&&x.fastFood);
  if(falseFast.length)throw new Error('full-service chain incorrectly classified as fast food: '+falseFast.map(x=>x.name).join(', '));
@@ -44,13 +44,20 @@ function call(query){
  const wide=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'100'}); if(wide.statusCode!==200||!wide.body?.ok||wide.body.radiusMiles!==100)throw new Error('100-mile radius failed: '+JSON.stringify(wide.body));
  
  const radiusChecks=[];
+ const radiusTotals=[];
  for(const radius of [1,3,5,10,25,50,100]){
    const rr=await call({mode:'search',lat:36.5304,lon:-87.3601,radius:String(radius)});
    if(rr.statusCode!==200||!rr.body?.ok||rr.body.radiusMiles!==radius)throw new Error('radius contract failed at '+radius+'mi: '+JSON.stringify(rr.body));
    const outOfRange=(rr.body.results||[]).filter(x=>Number(x.distance)>radius+0.2);
    if(outOfRange.length)throw new Error('radius leakage at '+radius+'mi: '+outOfRange.slice(0,3).map(x=>x.name).join(', '));
    if(!(Number(rr.body.fastFoodCount)>=1))throw new Error('fast food missing at '+radius+'mi');
+   const signatures=(rr.body.results||[]).map(x=>String(x.name||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()+'|'+String(x.address||'').toLowerCase().replace(/\b(street|road|avenue|boulevard)\b/g,'').replace(/[^a-z0-9]+/g,' ').trim());
+   const duplicateSignatures=signatures.filter((x,i,a)=>a.indexOf(x)!==i);
+   if(duplicateSignatures.length)throw new Error('duplicate venue signatures at '+radius+'mi: '+duplicateSignatures.slice(0,3).join(' · '));
    radiusChecks.push({radius,total:rr.body.total,fastFoodCount:rr.body.fastFoodCount});
+   radiusTotals.push({radius,total:Number(rr.body.total)||0});
  }
+ for(let i=1;i<radiusTotals.length;i++) if(radiusTotals[i].total<radiusTotals[i-1].total) throw new Error('radius results decreased from '+radiusTotals[i-1].radius+'mi ('+radiusTotals[i-1].total+') to '+radiusTotals[i].radius+'mi ('+radiusTotals[i].total+')');
+
  console.log(JSON.stringify({health:health.body,suggestions:suggestion.body.results.length,resolved:resolved.body.display,restaurantCount:search.body.total,fastFoodCount:search.body.fastFoodCount,providers:search.body.providers,ironWorkers:{display:exact.body.display,total:local.body.total,names:(local.body.results||[]).filter(x=>required.some(n=>String(x.name||'').toLowerCase().includes(n))).map(x=>x.name)}}));
 })().catch(err=>{console.error(err);process.exit(1)});
