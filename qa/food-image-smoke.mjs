@@ -6,10 +6,10 @@ const src=fs.readFileSync(new URL('../data/foods.js',import.meta.url),'utf8');
 const sandbox={window:{},self:{},globalThis:{}};
 vm.createContext(sandbox); vm.runInContext(src,sandbox);
 const foods=sandbox.window.DINLIMINATE_FOODS||[];
-assert.equal(foods.length,67,'Food image smoke requires the 67-food catalog');
+assert.equal(foods.length,90,'Food image smoke requires the 90-food catalog');
 const foodUrls=foods.map(x=>String(x.image||'').trim());
-assert.equal(foodUrls.length,67,'Each built-in food should be present in the image audit');
-assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,67,'Each built-in food should have an external image URL');
+assert.equal(foodUrls.length,90,'Each built-in food should be present in the image audit');
+assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,90,'Each built-in food should have an external image URL');
 const urls=[...new Set(foodUrls.filter(x=>/^https?:\/\//.test(x)))];
 
 const bad=[];
@@ -43,3 +43,6 @@ assert.equal(foods.some(x=>x.id==='frozen'||/stouffer/i.test(x.name||'')),false,
 assert.match(String((foods.find(x=>x.id==='pork-tenderloin')||{}).image||''),/341044/,'Pork Tenderloin should use an accurate photo');
 assert.match(String((foods.find(x=>x.id==='white-fish')||{}).image||''),/36378584/,'White Fish should use an accurate photo');
 assert.equal((foods.find(x=>x.id==='mashed-potatoes')||{}).name,'Mashed Potatoes','Mashed Potatoes should be plain without gravy');
+
+const cp258Ids=['pot-pie','blt','reuben','hot-dog','corn-dog','nachos','orange-chicken','chicken-teriyaki','sushi','pancakes','omelet','oatmeal','shrimp','crab-cakes','gumbo','chicken-nuggets','ramen','pimento-cheese-sandwich','ice-cream','protein-bar','candy-bar','banana','apple'];
+for(const id of cp258Ids) assert.equal(/^https?:\/\//.test(String(foods.find(x=>x.id===id)?.image||'')),true,id+' should have an image URL');
