@@ -546,3 +546,15 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 ## CP157 — Accessibility controls
 - Restaurant address and radius are explicitly named for assistive technology.
 - Static QA guards those names.
+
+
+## CP257 — Food catalog/photo/UI cleanup
+- Working branch: `cp257-food-catalog-refresh-2026-09-29`
+- Starting recovery: `recovery-cp256-user-request-before-food-refresh-2026-09-29`
+- Pre-QA checkpoint: `checkpoint-cp257-catalog-and-details-2026-09-29` at `e4bab69f493a7eb42045ff829d37cda9594b8882`
+- QA checkpoint: `checkpoint-cp257-qa-synced-2026-09-29` at `aabc513c84448b7f2b7d08ff4ec6ed65739dbd23`
+- Catalog: 67 foods, including Pork Tenderloin and White Fish.
+- Quick Cuts: Italian added; Pork removed from Food Quick Cuts.
+- Categories: Pizza, Meatball Sub, and Sausage & Peppers → Italian; Biscuits & Gravy → Breakfast; Pork Chops and Pork Tenderloin → Southern; White Fish → Healthy.
+- UI: Details sheet starts directly below the decision header; Food Delete controls removed; Settings Food Choices section removed; Hide/Restore is the Food management path.
+- Do not delete prior recovery branches. Use the pre-QA checkpoint if QA-only changes destabilize the release candidate.
