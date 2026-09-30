@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '172';
+let APP_BUILD = '173';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -663,6 +663,8 @@ function dedupeRestaurantPool(rows){
   if(typeof row.openNow==='boolean' && typeof match.openNow!=='boolean')match.openNow=row.openNow;
   for(const key of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!match[key]&&row[key])match[key]=row[key];
   match.menuItems=[...new Set([...(Array.isArray(match.menuItems)?match.menuItems:[]),...(Array.isArray(row.menuItems)?row.menuItems:[])])].slice(0,10);
+  match.quickCutTags=[...new Set([...(Array.isArray(match.quickCutTags)?match.quickCutTags:[]),...(Array.isArray(row.quickCutTags)?row.quickCutTags:[])])];
+  match.quickCutEvidence={...(match.quickCutEvidence||{}),...(row.quickCutEvidence||{})};
   match.distance=Math.min(Number(match.distance)||Infinity,Number(row.distance)||Infinity);
  }
  return out.sort((a,b)=>Number(a.distance)-Number(b.distance));
@@ -702,7 +704,8 @@ function restaurantIsFastFood(row){
 }
 function restaurantCuisineTags(row){
  const classified=RESTAURANT_TAXONOMY.classifyRestaurant(row).tags||[];
- return [...new Set(classified)];
+ const fromApi=Array.isArray(row?.quickCutTags)?row.quickCutTags:[];
+ return [...new Set([...fromApi,...classified])].filter(tag=>RESTAURANT_TAXONOMY.tags.includes(tag));
 }
 function restaurantCuisineEvidence(row){
  return RESTAURANT_TAXONOMY.classifyRestaurant(row).evidence;
