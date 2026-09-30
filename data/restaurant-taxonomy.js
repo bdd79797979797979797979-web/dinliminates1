@@ -17,6 +17,9 @@ const RESTAURANT_SEARCH_ALIASES = {
 };
 
 const RESTAURANT_IDENTITY_PROFILES = [
+  {pattern:/\b(?:the )?heads bbq\b/,tags:['BBQ']},
+  {pattern:/\brobert heads bbq\b/,tags:['BBQ']},
+  {pattern:/\bexcell bbq\b/,tags:['BBQ']},
   {pattern:/\bmcdonalds?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bwendys?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bburger king\b/,tags:['Fast Food','Burgers']},
@@ -206,7 +209,9 @@ function classifyRestaurant(row){
     for(const [tag,re] of Object.entries(fallbackSignals))if(re.test(nameHay)||re.test(primary))add(tag,'fallback identity');
   }
 
-  return {tags:[...tags],evidence};
+  const primaryOrder=['Fast Food','Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','American'];
+  const primary=primaryOrder.find(tag=>tags.has(tag))||null;
+  return {tags:[...tags],primary,evidence};
 }
 
 const taxonomy={
@@ -222,6 +227,10 @@ const taxonomy={
   identityHay,
   isFastFood,
   classifyRestaurant,
+  primaryCategory:row=>{
+    const c=classifyRestaurant(row);
+    return c.primary || 'American';
+  },
   fillerWords:[...SEARCH_FILLER_WORDS]
 };
 
