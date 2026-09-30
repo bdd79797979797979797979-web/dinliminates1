@@ -165,7 +165,7 @@ const associationCases=[
  {name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',menuItems:['Waffles'],yes:['American','Breakfast'],no:['Mexican','Pizza']},
  {name:'Olive Garden',category:'Restaurant',fastFood:false,cuisine:'italian',menuItems:['Pasta'],yes:['Italian'],no:['Seafood','Mexican']},
  {name:'Red Lobster',category:'Restaurant',fastFood:false,cuisine:'seafood',menuItems:['Shrimp'],yes:['Seafood'],no:['Italian','Mexican']},
- {name:'Joe\\'s Pizza',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Pizza'],no:['Mexican','Seafood']},
+ {name:"Joe's Pizza",category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Pizza'],no:['Mexican','Seafood']},
  {name:'American Grill',category:'American',fastFood:false,cuisine:'american',menuItems:['Burger'],yes:['American'],no:['Burgers']},
  {name:'Main Street Restaurant',category:'American',fastFood:false,cuisine:'american',menuItems:['Shrimp'],yes:['American'],no:['Seafood']},
  {name:'The Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',menuItems:[],yes:['Pizza'],no:['Fast Food']},
