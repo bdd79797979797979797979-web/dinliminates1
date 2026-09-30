@@ -620,9 +620,15 @@ function restaurantNameFamilyKeys(value){
   normKey(raw.replace(/[’']/g,''))
  ].filter(Boolean))];
 }
+function restaurantNameCore(value){
+ const fillers=new Set(['restaurant','restaurants','location','store','shop','the','llc','inc','co','clarksville','tn','tennessee','sango','downtown','north','south','east','west']);
+ return normKey(String(value||'').replace(/[’']s\b/gi,'s')).split(' ').filter(Boolean).filter(x=>!fillers.has(x)).join(' ');
+}
 function restaurantNamesOverlap(a,b){
- const A=new Set(restaurantNameFamilyKeys(a)),B=restaurantNameFamilyKeys(b);
- return [...A].some(x=>B.includes(x));
+ const A=new Set(restaurantNameFamilyKeys(a)),B=new Set(restaurantNameFamilyKeys(b));
+ if([...A].some(x=>B.includes(x)))return true;
+ const ca=restaurantNameCore(a),cb=restaurantNameCore(b);
+ return !!ca&&!!cb&&(ca===cb||(Math.min(ca.length,cb.length)>=5&&(ca.startsWith(cb+' ')||cb.startsWith(ca+' '))));
 }
 function restaurantStreetFamily(value){
  const raw=restaurantAddressFamily(value);
@@ -649,7 +655,8 @@ function dedupeRestaurantPool(rows){
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
    const close=Number.isFinite(dist)&&dist<=0.08;
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
-   const sameNameStreet=restaurantNamesOverlap(row.name,x.name)&&sameStreet&&((Number.isFinite(dist)&&dist<=0.20)||(Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05));
+   const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.10;
+   const sameNameStreet=restaurantNamesOverlap(row.name,x.name)&&sameStreet&&Number.isFinite(dist)&&dist<=0.75&&(originDistanceClose||!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address));
    return sameAddr&&(restaurantNamesOverlap(row.name,x.name)||variant) || sameNameStreet || (restaurantNamesOverlap(row.name,x.name)&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
