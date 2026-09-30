@@ -263,7 +263,7 @@ const OFFICIAL_RESTAURANT_WEBSITES = Object.freeze({
   "krystal": "https://www.krystal.com",
   "steak n shake": "https://www.steaknshake.com",
   "white castle": "https://www.whitecastle.com",
-  "freddys": "https://www.fredds.com",
+  "freddys": "https://www.freddys.com",
   "in n out": "https://www.in-n-out.com",
   "carls jr": "https://www.carlsjr.com",
   "el pollo loco": "https://www.elpolloloco.com",
@@ -769,6 +769,7 @@ async function doSearch(lat, lon, radiusMi, query='') {
     const qTerms=searchTerms(searchQuery);
     const needsBroadSemantic=qTerms.some(t=>semanticTerms.has(t));
     const direct=await Promise.all([
+      googleSearch(lat,lon,coverageRadiusMi,searchQuery),
       photonSearchProvider(lat,lon,coverageRadiusMi,searchQuery),
       nominatimSearchProvider(lat,lon,coverageRadiusMi,searchQuery),
       overpassProvider(OVERPASS_ENDPOINTS[0],lat,lon,coverageRadiusMi,searchQuery),
@@ -784,7 +785,7 @@ async function doSearch(lat, lon, radiusMi, query='') {
     let merged=dedupeRestaurantRows(direct.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(enrichRestaurantContact(r),searchQuery))).map(enrichRestaurantContact);
     if(!merged.length){
       for(const alternate of searchQueryAlternates(searchQuery)){
-        const pair=await Promise.all([photonSearchProvider(lat,lon,radiusMi,alternate),nominatimSearchProvider(lat,lon,radiusMi,alternate)]);
+        const pair=await Promise.all([googleSearch(lat,lon,radiusMi,alternate),photonSearchProvider(lat,lon,radiusMi,alternate),nominatimSearchProvider(lat,lon,radiusMi,alternate)]);
         direct.push(...pair);
         merged=dedupeRestaurantRows(pair.flatMap(x=>x.rows||[]).filter(r=>restaurantMatchesSearch(r,searchQuery)));
         if(merged.length)break;
@@ -836,13 +837,21 @@ async function doSearch(lat, lon, radiusMi, query='') {
     const nameKey=String(row.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const addressKey=String(row.address || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const keyRow=addressKey ? nameKey+'|'+addressKey : nameKey+'|'+Number(row.lat).toFixed(4)+'|'+Number(row.lon).toFixed(4);
-    if (!mergedMap.has(keyRow)) mergedMap.set(keyRow, row);
+    let existing=mergedMap.get(keyRow);
+    if(!existing) existing=[...mergedMap.values()].find(candidate=>providerRowsMatch(candidate,row));
+    if (!existing) mergedMap.set(keyRow, row);
     else {
-      const existing=mergedMap.get(keyRow);
-      existing.fastFood=existing.fastFood||row.fastFood;
-      existing.tags=[...new Set([...(existing.tags||[]),...(row.tags||[])])];
-      if((existing.source||'').startsWith('OpenStreetMap')&&row.source==='Google Places')Object.assign(existing,{...existing,...row});
-      for(const k of ['address','phone','website','opening_hours','cuisine','brand','operator','photo','menuUrl'])if(!existing[k]&&row[k])existing[k]=row[k];
+      mergeProviderContactFields(existing,row);
+      if(row.source==='Google Places'){
+        if(row.website && (!existing.website || existing.websiteSource==='google-search-fallback')){
+          existing.website=row.website;
+          existing.websiteSource='Google Places';
+        }
+        if(row.phone && (!existing.phone || existing.phoneSource==='google-search-fallback')){
+          existing.phone=row.phone;
+          existing.phoneSource='Google Places';
+        }
+      }
     }
   }
   const coverageMerged=[...mergedMap.values()]
