@@ -300,6 +300,39 @@ assert.deepEqual(s.restaurantPool,['mcd']);
 assert.ok(requests.some(u=>String(new URL(u).searchParams.get('q')||'').toLowerCase()==='mcdonalds'),'Explicit restaurant search was not sent to provider search');
 report["4_search_restaurants"].mcdonalds={matched:s.restaurantPool,providerQuery:requests.at(-1)};
 
+// Restaurant card certification: decision-first hierarchy, compact utilities, and small-iPhone bounds.
+const cardSummary=await page.evaluate(()=>({
+  width:document.querySelector('#restaurantCard')?.getBoundingClientRect().width||0,
+  cardRight:document.querySelector('#restaurantCard')?.getBoundingClientRect().right||0,
+  cardBottom:document.querySelector('#restaurantCard')?.getBoundingClientRect().bottom||0,
+  viewportWidth:window.innerWidth,
+  viewportHeight:window.innerHeight,
+  cardDetailLines:document.querySelectorAll('#restaurantCard .card-detail-line,#restaurantCard .card-status,#restaurantCard .card-card-actions').length,
+  utilities:document.querySelectorAll('#restaurantCard .restaurant-card-utility').length,
+  scrollWidth:document.documentElement.scrollWidth
+}));
+assert.equal(cardSummary.cardDetailLines,0,'Restaurant card should not contain directory-style detail blocks.');
+assert.equal(cardSummary.utilities,3,'Restaurant card should contain Details, Phone, and Website utilities.');
+assert.equal(await page.locator('#restDetails').count(),1,'Restaurant Details utility must exist.');
+assert.equal(await page.locator('#restaurantCard .restaurant-card-utility[href^="tel:"]').count(),1,'Restaurant card must keep direct phone access when available.');
+assert.ok(await page.locator('#restaurantCard .restaurant-card-utility[target="_blank"]').count()>=1,'Restaurant card must keep an external Website/lookup utility.');
+report["4_search_restaurants"].cardHierarchy=cardSummary;
+
+for(const width of [320,375,390]){
+  await page.setViewportSize({width,height:852});
+  await settle();
+  await page.waitForSelector('#restaurantCard');
+  const v=await page.evaluate(()=>{const r=document.querySelector('#restaurantCard')?.getBoundingClientRect();return r?{vw:innerWidth,vh:innerHeight,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,scrollWidth:document.documentElement.scrollWidth}:null;});
+  assert.ok(v && v.left>=-1 && v.right<=v.vw+1,'Restaurant card exceeds horizontal viewport at '+width+'px.');
+  assert.ok(v && v.width<=v.vw-20,'Restaurant card is too wide at '+width+'px.');
+  assert.ok(v && v.top>=0 && v.bottom<=v.vh+1,'Restaurant card exceeds viewport height at '+width+'px.');
+  assert.ok(v && v.scrollWidth<=v.vw+1,'Horizontal page overflow at '+width+'px.');
+  report["4_search_restaurants"].smallPhone=report["4_search_restaurants"].smallPhone||{};
+  report["4_search_restaurants"].smallPhone[String(width)]=v;
+}
+await page.setViewportSize({width:393,height:852});
+await settle();
+
 // Photo pipeline: a Google-backed venue should hydrate its current Tinder card and Details image,
 // retain an immediate fallback while loading, and surface the required author attribution.
 await page.locator('#restaurantQuery').fill('Google Photo Test');
