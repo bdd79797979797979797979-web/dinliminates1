@@ -161,3 +161,6 @@ Deployment:
 - App Diagnosis is green.
 - Quick Pass is the default; Full Pass is the optional original mode.
 - Recovery point: `checkpoint-cp260-pass-around-tested-2026-09-30` and final CP260 commit below.
+
+- **Final verified CP260 commit:** `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
+- **Final recovery branch:** `checkpoint-cp260-final-verified-2026-09-30`.
