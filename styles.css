@@ -773,3 +773,6 @@
 .settings-system-action.restore-action{background:linear-gradient(180deg,#b87727,#704715)!important;color:#fff!important;border-color:#d69b50!important;box-shadow:0 10px 24px #70471544!important}
 .settings-system-action.restore-action:hover{background:linear-gradient(180deg,#cc8a31,#87541b)!important;border-color:#e5b66f!important}
 @media(max-width:390px){.diagnosis-modal{min-height:80svh!important}.diagnosis-section-head{padding:8px 9px}.diagnosis-section .diagnosis-row{padding:8px 9px}}
+
+/* CP288 — never show the obsolete centered Diagnosis loading screen */
+.diagnosis-loading{display:none!important}
