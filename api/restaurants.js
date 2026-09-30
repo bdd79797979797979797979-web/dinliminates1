@@ -458,7 +458,6 @@ const CATEGORY_IMAGES={
 };
 function restaurantPhotoMeta(r){
   const raw=String(r?.photo||'').trim();
-  if(/^https:\/\//i.test(raw))return{photo:raw,photoFallback:'',photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
   const knownFallback=()=>{
     const byName=namedImage(r?.name); if(byName)return byName;
     const byBrand=namedImage(r?.brand); if(byBrand)return byBrand;
@@ -470,7 +469,10 @@ function restaurantPhotoMeta(r){
     }
     return CATEGORY_IMAGES.American;
   };
-  if(String(r?.googlePlaceId||'').trim())return{photo:'',photoFallback:knownFallback(),photoSource:'google-places',photoIsGeneric:false,photoConfidence:0.95};
+  // A verified Google Place photo is preferred over any provider/generic image.
+  // Keep the provider image as the immediate fallback if Google photo hydration fails.
+  if(String(r?.googlePlaceId||'').trim())return{photo:'',photoFallback:/^https:\/\//i.test(raw)?raw:knownFallback(),photoSource:'google-places',photoIsGeneric:false,photoConfidence:0.95};
+  if(/^https:\/\//i.test(raw))return{photo:raw,photoFallback:'',photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
   const fallback=knownFallback(),named=String(r?.name||'').trim();
   const matchedKnown=!!namedImage(named)||!!namedImage(r?.brand)||!!namedImage(r?.operator);
   if(matchedKnown)return{photo:fallback,photoFallback:'',photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
