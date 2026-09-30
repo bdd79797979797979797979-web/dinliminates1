@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=461'),'App script must use the CP455 cache-busting query');
-assert(release.build===166 && release.checkpoint==='CP461','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=462'),'App script must use the CP455 cache-busting query');
+assert(release.build===167 && release.checkpoint==='CP462','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -275,7 +275,7 @@ console.log('Dinliminate CP259 food catalog QA: PASS');
 
 // CP428-433 Restaurant overall release contracts.
 assert(app.includes('restaurant-card-meta-row') && app.includes('restaurant-card-location') && app.includes('restaurant-card-utilities'),'Restaurant Tinder card must use the simplified decision-first information hierarchy.');
-assert(app.includes('cardPhoneAction') && app.includes('cardWebsite') && app.includes('cardDetailsAction'),'Restaurant Tinder card must retain compact Phone, Website, and Details utility actions.');
+assert(!app.includes('cardPhoneAction') && app.includes('cardWebsite') && app.includes('cardDetailsAction'),'Restaurant Tinder card must retain compact Details and Website actions without a phone icon.');
 assert(!app.includes('cardCommon') && !app.includes('cardHours'),'Restaurant Tinder card should not render directory-style menu and hours blocks on-card.');
 assert(app.includes("photoFallback:item.photoFallback||''") && app.includes("googlePlaceId:item.googlePlaceId||''") && app.includes("opening_hours:item.opening_hours||''"),'Restaurant History must persist venue-photo identity and core Details metadata.');
 assert(app.includes("if ($('celebration')) $('celebration').classList.toggle('hidden', hungry)") && app.includes("if (!hungry) {") && app.includes("hydrateGoogleRestaurantPhoto(item,'#winner')"),'Restaurant Winner must use the same celebration behavior and photo hydration path as Food.');
