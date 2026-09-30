@@ -724,3 +724,6 @@ body.pass-active{overflow:hidden}
 
 /* CP261 — restore the original App Diagnosis styling; make System Restore teal */
 .settings-system-action.restore-action{background:linear-gradient(180deg,#228b8f,#155e63)!important;color:#fff!important;border-color:#58bfc3!important;box-shadow:0 10px 24px #155e6340!important}
+
+/* CP262 — App Diagnosis opens at final size; prevents the small-to-large modal flash. */
+#diagnosisModal{min-height:78svh;overflow:auto}
