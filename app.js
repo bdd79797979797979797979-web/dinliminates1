@@ -1298,6 +1298,8 @@ S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
 if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
 show('winner');
 const hungry = item?.category === 'Hungry';
+const detailsBtn=$('details');
+if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
 $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
 if (!winImg) return;
