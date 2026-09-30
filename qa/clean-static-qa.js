@@ -18,7 +18,7 @@ assert(app.includes("$('radius').addEventListener('change'"),'Radius changes mus
 assert(app.includes('renderFindButton') && app.includes("S.location?'Refresh':'Find'"),'Find control must act as Refresh once a location is selected');
 assert(app.includes("if(row&&typeof row.openNow==='boolean')return row.openNow?'open':'closed';"),'Hours filtering must honor provider current open state when available');
 assert(api.includes("currentOpeningHours.openNow") && api.includes('openNow'),'Restaurant API must request and preserve current opening status');
-assert(api.includes("function googleSearchPlaces") && api.includes("textQuery:term+' restaurant'"),'Restaurant provider-backed search must use Google text search for non-empty queries');
+assert(api.includes("function googleSearchPlaces") && api.includes("textQuery:termVariant+' restaurant'"),'Restaurant provider-backed search must use shared taxonomy provider variants for non-empty queries');
 assert(api.includes('searchQueryMany') && api.includes('cuisine~') && api.includes('brand~'),'Restaurant provider-backed fallback must search OSM name, brand, operator, and cuisine');
 assert(api.includes("searchTerm=normalizeSearchQuery(q.get('q')||'')") && api.includes("+':'+searchTerm,hit=cache.get(key)"),'Restaurant API search cache must vary by search query');
 assert(app.includes("const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);") && app.includes("searchTerm ? '&q='+encodeURIComponent(searchTerm) : ''"),'Restaurant Search box must send its query to the restaurant API');
