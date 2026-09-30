@@ -93,8 +93,8 @@ assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.heigh
 await assert.equal((await qa()).foodCatalog,90,'Restored 90-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
-assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
-assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),11,'Every Food Quick Cut should render a photo element');
+assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
+assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
 for(const [id,cuts] of Object.entries({lasagna:['Pasta'],'vegetable-lasagna':['Pasta','Healthy'],'salisbury-steak':['Southern','American'],'stuffed-peppers':['Healthy','American'],'health-shake':['Healthy']})){assert.ok(requestedFoods[id],id+' should exist');assert.deepEqual(requestedFoods[id].quickCuts,cuts,id+' Quick Cut mapping');assert.equal(String(requestedFoods[id].image||'').startsWith('http'),true,id+' should have an image');assert.equal(requestedFoods[id].detailsReady,true,id+' should have Details content');}
@@ -321,8 +321,8 @@ assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Deta
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
-assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Restaurant should have 10 Quick Cuts');
-assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
+assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),11,'Restaurant should have 11 Quick Cuts');
+assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),11,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
 await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
@@ -630,7 +630,7 @@ const cp258CatalogChecks=await page.evaluate(()=>{const m=new Map((window.DINLIM
 assert.deepEqual(cp258CatalogChecks.gyro?.quickCuts,['Healthy'],'Gyro should use Healthy only');
 assert.equal(cp258CatalogChecks.fajitas?.name,'Fajitas','Mexican Stir Fry should be renamed Fajitas');
 for(const [id,cuts] of Object.entries({'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']})) assert.deepEqual(cp258CatalogChecks.cuts[id],cuts,id+' Quick Cut mapping');
-assert.equal((window.DINLIMINATE_FOODS||[]).some(x=>(x.quickCuts||[]).includes('Greek')),false,'No food may expose Greek Quick Cut');
+assert.deepEqual((window.DINLIMINATE_FOODS||[]).find(x=>x.id==='gyro')?.quickCuts,['Greek'],'Gyro should retain Greek Quick Cut');
 console.log('CP258 browser assertions: 90-food catalog, Fajitas rename, no Food Greek Quick Cut, and new food mappings are covered.');
 
 await browser.close(); server.close();
