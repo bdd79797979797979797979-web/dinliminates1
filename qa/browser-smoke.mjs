@@ -33,7 +33,7 @@ page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) reque
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/release')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'125',sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:'130',sourceBranch:'release-hardening-2026-09-29',commit:null,branch:'release-hardening-2026-09-29',environment:'test',expectedBranch:'release-hardening-2026-09-29'})});
   }
   if (u.includes('/api/restaurant-search?mode=health')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
@@ -90,11 +90,12 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,65,'Restored 65-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,116,'Restored 116-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
-assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
-assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
+assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
+assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
+assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),11,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
 for(const [id,cuts] of Object.entries({lasagna:['Pasta'],'vegetable-lasagna':['Pasta','Healthy'],'salisbury-steak':['Southern','American'],'stuffed-peppers':['Healthy','American'],'health-shake':['Healthy']})){assert.ok(requestedFoods[id],id+' should exist');assert.deepEqual(requestedFoods[id].quickCuts,cuts,id+' Quick Cut mapping');assert.equal(String(requestedFoods[id].image||'').startsWith('http'),true,id+' should have an image');assert.equal(requestedFoods[id].detailsReady,true,id+' should have Details content');}
@@ -103,23 +104,50 @@ assert.equal((await page.evaluate(()=>window.DINLIMINATE_FOODS||[])).some(x=>x.i
 assert.equal((await page.locator('[data-food-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Food Quick Cut should have a photo source');
 const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['popcorn','stir-fry'].includes(x.id)).map(x=>[x.id,x.image])));
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
-assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the refreshed accurate photo');
+assert.equal(await page.evaluate(()=>window.DINLIMINATE_FOODS.find(x=>x.id==='stir-fry')?.name),'Fajitas');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
-let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected restored food catalog');
+let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,116,'expected restored food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
+assert.equal(foodImageSources.length,116,'Food data should expose 116 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
-const refreshedExpected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/36863862/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/28503619/, 'health-shake':/7974814/};
+const refreshedExpected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/6525832/, 'potato-soup':/29653177/, 'stuffed-peppers':/goodnes\.com.*stouffers-hwe4pryaocyufr0fchw5/i, stroganoff:/20234576/, 'health-shake':/7974814/};
 for(const [id,re] of Object.entries(refreshedExpected))assert.match(refreshedImageChecks[id]||'',re,id+' should use its refreshed image mapping');
+const requestedCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['homemade-pizza','meatball-subs','sausage-peppers','buttermilk-cornbread','grilled-salmon','bbq-pulled-pork','pork-chops','pork-tenderloin','white-fish','mashed-potatoes','biscuits-gravy','stuffed-peppers','stroganoff'].includes(x.id)).map(x=>[x.id,{name:x.name,category:x.category,quickCuts:x.quickCuts,image:x.image}])));
+assert.deepEqual(requestedCatalog['homemade-pizza'].quickCuts,['Italian'],'Pizza should be associated with Italian only');
+assert.deepEqual(requestedCatalog['meatball-subs'].quickCuts,['Italian'],'Meatball Sub should be associated with Italian');
+assert.deepEqual(requestedCatalog['sausage-peppers'].quickCuts,['Italian'],'Sausage & Peppers should be associated with Italian');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']){
+ const row=await page.evaluate(id=>window.DINLIMINATE_FOODS.find(x=>x.id===id),id);
+ assert.deepEqual(row?.quickCuts,['Pasta','Italian'],id+' should be associated with Pasta + Italian');
+}
+const liver=await page.evaluate(()=>window.DINLIMINATE_FOODS.find(x=>x.id==='liver-and-onions'));
+assert.deepEqual(liver?.quickCuts,['Southern','Healthy'],'Liver & Onions should be Southern + Healthy');
+assert.deepEqual(requestedCatalog['pork-chops'].quickCuts,['Southern'],'Pork Chops should be associated with Southern');
+assert.deepEqual(requestedCatalog['pork-tenderloin'].quickCuts,['Southern'],'Pork Tenderloin should be associated with Southern');
+assert.deepEqual(requestedCatalog['white-fish'].quickCuts,['Healthy'],'White Fish should be associated with Healthy');
+assert.deepEqual(requestedCatalog['biscuits-gravy'].quickCuts,['Breakfast'],'Biscuits & Gravy should be Breakfast');
+assert.deepEqual(requestedCatalog['stuffed-peppers'].category,'American');
+assert.equal(requestedCatalog['mashed-potatoes'].name,'Mashed Potatoes','Mashed Potatoes should not include gravy in its title');
+assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork')),false,'No Food Quick Cut should include Pork');
+
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only Potato-mapped foods');
+assert.equal(s.foodPool.length,87,'Potato Quick Cut should remove only Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Quick Cut should restore');
+s=await qa(); assert.equal(s.foodPool.length,116,'Quick Cut should restore');
+await click('[data-food-quick="Pasta"]'); await settle();
+s=await qa(); assert.ok(s.foodPool.length<116 && s.foodPool.length>0,'Pasta Quick Cut should leave an active food deck');
+const pastaCard=await page.locator('#foodCard').boundingBox(); if(!pastaCard) throw new Error('Food card missing after Pasta Quick Cut');
+await page.mouse.move(pastaCard.x+pastaCard.width/2,pastaCard.y+pastaCard.height/2); await page.mouse.down(); await page.mouse.move(pastaCard.x+60,pastaCard.y+pastaCard.height/2,{steps:5}); assert.equal(await page.locator('#foodCard').getAttribute('data-swipe'),'cut','Food swipe should still work after Pasta Quick Cut'); await page.mouse.up(); await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should work after Pasta Quick Cut'); await click('#foodBack'); await settle();
+const pastaCard2=await page.locator('#foodCard').boundingBox(); if(!pastaCard2) throw new Error('Food card missing for Pasta right-swipe QA');
+await page.mouse.move(pastaCard2.x+50,pastaCard2.y+pastaCard2.height/2); await page.mouse.down(); await page.mouse.move(pastaCard2.x+pastaCard2.width-18,pastaCard2.y+pastaCard2.height/2,{steps:5}); await page.mouse.up(); await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should work after Pasta Quick Cut'); await click('#foodBack'); await settle();
+await click('[data-food-quick="Pasta"]'); await settle();
 
 const foodBox=await page.locator('#foodCard').boundingBox();
 if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
@@ -133,7 +161,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore left swipe');
+s=await qa(); assert.equal(s.foodPool.length,116,'Food Back should restore left swipe');
 
 const foodBox2=await page.locator('#foodCard').boundingBox();
 if(!foodBox2) throw new Error('Food card bounding box missing for right swipe QA');
@@ -144,7 +172,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should Maybe');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore right swipe');
+s=await qa(); assert.equal(s.foodPool.length,116,'Food Back should restore right swipe');
 const beforeCut=s.foodPool.length;
 await click('#foodCut'); await settle();
 let afterCut=await qa(); assert.equal(afterCut.foodPool.length < beforeCut,true);
@@ -155,14 +183,14 @@ s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should res
 
 await click('#foodMaybe'); await settle();
 s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling');
-assert.equal(s.foodPool.length,65,'Maybe should move the current card to the recycle queue for this pass');
+assert.equal(s.foodPool.length,116,'Maybe should move the current card to the recycle queue for this pass');
 while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
 assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
 await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
-assert.equal((await qa()).foodPool.length,65,'Starting a new food round should reset the Maybe recycle cycle');
+assert.equal((await qa()).foodPool.length,116,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
@@ -205,13 +233,18 @@ await page.locator('#detailsModal [data-close]').click(); await settle();
 
 await click('#foodPassAround'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around setup should use the full page, not a popup');
+assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('pass-active')),true,'Pass Around should lock background page scrolling on iPhone');
 assert.equal(await page.locator('#passModal').count(),0,'Pass Around should not open a modal');
+assert.equal(await page.locator('[data-pass-mode="quick"]').getAttribute('aria-pressed'),'true','Quick Pass should be the default');
+assert.equal(await page.locator('[data-pass-mode="full"]').getAttribute('aria-pressed'),'false','Full Pass should start as the optional mode');
+assert.match(await page.locator('#passBegin').innerText(),/Start Quick Pass/i,'Quick Pass should be the default start action');
 await click('[data-pass-count="3"]'); await settle();
 const names=page.locator('[data-pass-name]');
 await names.nth(0).fill('Brian'); await names.nth(1).fill('Devona'); await names.nth(2).fill('Guest');
 await click('#passBegin'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around voting should remain full page');
 let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
+assert.equal(pass.pass.mode,'quick','Quick Pass should be active after starting the default mode');
 assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
 assert.equal(await page.locator('#passGestureHit').getAttribute('data-pass-swipe-bound'),'true','Pass Around gesture layer should be bound when the page is created');
 const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
@@ -219,15 +252,28 @@ const passTarget=await page.locator('#passGestureHit').evaluate(el=>{const r=el.
 const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
 assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must be the topmost pointer target');
 assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
-await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8});
-await page.waitForTimeout(20);
+await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8}); await page.waitForTimeout(20);
 assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should enter the right-swipe Keep state during the drag');
 await page.mouse.up(); await settle();
-pass=await qa(); assert.ok(pass.pass?.history?.length,'Pass Around right swipe should create a vote history entry'); assert.equal(pass.pass.history.at(-1)?.keep,true,'Pass Around right swipe should record Keep'); assert.equal(pass.pass.voterIndex,1,'Pass Around right swipe should Keep for the current voter');
-const passBox2=await page.locator('#passCard').boundingBox(); await page.mouse.move(passBox2.x+passBox2.width-55,passBox2.y+passBox2.height/2); await page.mouse.down(); await page.mouse.move(passBox2.x+18,passBox2.y+passBox2.height/2,{steps:4}); await page.mouse.up(); await settle();
-assert.ok(await qa(), 'Pass Around should remain active after swipe');
-await click('#passBack'); await settle(); pass=await qa(); assert.equal(pass.pass.poolIds.includes(firstPassId),true,'Pass Around Back should restore the exact choice');
+pass=await qa(); assert.equal(pass.pass.history.length,1,'Quick Pass should record the first vote'); assert.equal(pass.pass.voterIndex,1,'Quick Pass should advance to the next voter when the outcome is not decided');
+const keepBox=await page.locator('#passGestureHit').boundingBox(); if(!keepBox) throw new Error('Pass gesture surface missing after first vote');
+await page.mouse.move(keepBox.x+50,keepBox.y+keepBox.height/2); await page.mouse.down(); await page.mouse.move(keepBox.x+keepBox.width-45,keepBox.y+keepBox.height/2,{steps:6}); await page.mouse.up(); await settle();
+pass=await qa(); assert.equal(pass.pass.choiceIndex,1,'Quick Pass should finish a choice as soon as a 3-person majority is reached'); assert.equal(pass.pass.voterIndex,0,'Quick Pass should reset to the first voter for the next choice'); assert.equal(pass.pass.history.length,2,'Quick Pass should preserve both votes in history');
+await click('#passBack'); await settle(); pass=await qa(); assert.equal(pass.pass.choiceIndex,0,'Pass Around Back should restore the prior choice position'); assert.equal(pass.pass.voterIndex,1,'Pass Around Back should restore the prior voter position'); assert.equal(pass.pass.votes[firstPassId]?.keep,1,'Pass Around Back should restore the prior vote tally'); assert.equal(pass.pass.poolIds.includes(firstPassId),true,'Pass Around Back should restore the exact choice');
 await click('#passClose'); await settle(); assert.equal(await page.locator('#passSurface').count(),0,'Ending Pass Around should return to the normal decision deck');
+
+await click('#foodPassAround'); await settle();
+await click('[data-pass-mode="full"]'); await settle();
+assert.equal(await page.locator('[data-pass-mode="full"]').getAttribute('aria-pressed'),'true','Full Pass should be selectable');
+await click('[data-pass-count="3"]'); await settle();
+const fullNames=page.locator('[data-pass-name]'); await fullNames.nth(0).fill('Brian'); await fullNames.nth(1).fill('Devona'); await fullNames.nth(2).fill('Guest');
+await click('#passBegin'); await settle();
+pass=await qa(); assert.equal(pass.pass.mode,'full','Full Pass should activate the original round-robin mode');
+assert.match(await page.locator('#passCard .pass-rule').innerText(),/Everyone must keep/i,'Full Pass should explain its unanimous rule');
+const fullBox=await page.locator('#passGestureHit').boundingBox(); if(!fullBox) throw new Error('Full Pass gesture surface missing');
+await page.mouse.move(fullBox.x+50,fullBox.y+fullBox.height/2); await page.mouse.down(); await page.mouse.move(fullBox.x+fullBox.width-45,fullBox.y+fullBox.height/2,{steps:6}); await page.mouse.up(); await settle();
+pass=await qa(); assert.equal(pass.pass.mode,'full','Full Pass should remain active after a vote'); assert.equal(pass.pass.voterIndex,1,'Full Pass should advance voter-by-voter like the original mode');
+await click('#passClose'); await settle(); assert.equal(await page.locator('#passSurface').count(),0,'Ending Full Pass should return cleanly to the normal deck');
 
 await click('#foodBackTop'); await settle();
 await click('#restStart'); await settle();
@@ -302,15 +348,19 @@ assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restauran
 assert.equal(await page.locator('#restaurantCard .card-phone').getAttribute('href'),'tel:+19315550101','Restaurant phone should be a tappable tel link');
 assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https://mcdonalds.com"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
-const detailsBox=await page.locator('#restaurantCard #restDetails').boundingBox(); assert.ok(detailsBox&&detailsBox.width<=30&&detailsBox.height<=30,'Restaurant Details icon should stay compact and clear of card text'); assert.ok(await page.locator('#restaurantCard #restDetails .details-icon').evaluate(el=>getComputedStyle(el).width)==='14px','Details icon should use the crisp compact glyph size');
+const cuisineBox=await page.locator('#restaurantCard .cuisine-line').boundingBox(); const detailsBox=await page.locator('#restaurantCard #restDetails').boundingBox(); assert.ok(cuisineBox&&detailsBox&&detailsBox.x>=cuisineBox.x+cuisineBox.width-2,'Restaurant Details icon should sit to the right of cuisine');  assert.ok(detailsBox&&detailsBox.width<=30&&detailsBox.height<=30,'Restaurant Details icon should stay compact and clear of card text'); assert.ok(await page.locator('#restaurantCard #restDetails .details-icon').evaluate(el=>getComputedStyle(el).width)==='14px','Details icon should use the crisp compact glyph size');
 assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
 assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).count(),1,'Restaurant Website action should use a symbol');
 assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details should use an accessible icon label'); assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details should render the crisp icon');
+const cuisineBox=await page.locator('#restaurantCard .card-cuisine-row .cuisine-line').boundingBox(); const detailsInlineBox=await page.locator('#restaurantCard #restDetails').boundingBox();
+assert.ok(cuisineBox&&detailsInlineBox&&detailsInlineBox.x>=cuisineBox.x+cuisineBox.width-1,'Restaurant Details icon should sit to the right of the cuisine text');
+assert.ok(cuisineBox&&detailsInlineBox&&Math.abs(detailsInlineBox.y-cuisineBox.y)<=8,'Restaurant Details icon should stay aligned with the cuisine row');
+
 assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
-assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),12,'Restaurant should have 12 Quick Cuts');
-assert.equal(await page.locator('[data-rest-quick] .quick-chip-photo').count(),12,'Every Restaurant Quick Cut should render a photo element');
+assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Restaurant should have 10 Quick Cuts');
+assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
 await click('#hoursToggle'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
@@ -363,10 +413,11 @@ await click('[data-food-hide="popcorn"]'); await settle();
 s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
 await page.locator('#manageFoodsModal .modal-head [data-close]').click(); await settle();
 await page.locator('#foodMenu').click(); await settle(); await page.locator('#settings').click(); await settle();
-assert.equal((await page.locator('#settingsModal').innerText()).toLowerCase().includes('popcorn'),true,'Settings should list hidden built-in food');
-assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),1,'Settings should place Delete beside hidden-food Restore');
-await page.locator('[data-setting-food-delete="popcorn"]').click(); await settle(); assert.equal(await visible('appConfirmModal'),true,'Settings food removal should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),false,'Settings Delete should remove the hidden food');
+const settingsFoodText=await page.locator('#settingsModal').innerText();
+assert.equal(/Food Choices/i.test(settingsFoodText),false,'Settings should no longer contain a Food Choices section');
+assert.equal(settingsFoodText.toLowerCase().includes('popcorn'),false,'Settings should not list hidden foods');
+assert.equal(await page.locator('[data-setting-food-delete]').count(),0,'Settings should expose no food Delete control');
+assert.equal(await page.locator('[data-setting-food]').count(),0,'Settings should expose no food Restore/Hide control');
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'closing Settings should leave no stale Manage Foods modal');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'closing Settings should leave no stale Food editor modal');
@@ -374,7 +425,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food editor should expose all food categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
@@ -382,13 +433,19 @@ await page.locator('#editFoodFile').setInputFiles({
 });
 await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.startsWith('data:image/'),'',{timeout:5000});
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
-await page.locator('input[name="editQuickCut"][value="Pasta"]').check();
-await page.locator('input[name="editQuickCut"][value="Healthy"]').check();
+const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,12,'Custom Food editor should render the 11 standard Food Quick Cuts plus Other');
+assert.ok(editorDiag.values.includes('Other'),'Custom Food editor should expose Other as an optional Quick Cut');
+await page.locator('input[name="editQuickCut"][value="Pasta"]').check({force:true});
+await page.locator('input[name="editQuickCut"][value="Other"]').check({force:true});
+await page.locator('input[name="editQuickCut"][value="Healthy"]').check({force:true});
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
 const customRow=s.custom.find(x=>x.id==='qa-special'); assert.equal(customRow.quickCuts.includes('Pasta'),true,'Custom food should support multiple Quick Cuts'); assert.equal(customRow.quickCuts.includes('Healthy'),true,'Custom food should support multiple Quick Cuts');
+assert.equal(customRow.quickCuts.includes('Other'),true,'Custom food should persist the optional Other Quick Cut');
+assert.equal(await page.locator('[data-food-quick="Other"]').count(),1,'Other Quick Cut should appear only after a custom food adds it');
 assert.equal(await visible('manageFoodsModal'),false,'saving a custom food from the Food deck should return to the swipe deck');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'saving a custom food should close the editor');
+await click('[data-food-quick="Other"]'); await settle(); s=await qa(); assert.equal(s.foodPool.includes('qa-special'),false,'Other Quick Cut should eliminate only foods explicitly tagged Other'); await click('[data-food-quick="Other"]'); await settle();
 await page.locator('#foodMenu').click({force:true}); await settle();
 await page.locator('#manage').click({force:true}); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Manage Foods should expose the saved custom food for editing');
@@ -399,23 +456,17 @@ s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='E
 const storedCustomPhoto=await page.evaluate(()=>JSON.parse(localStorage.getItem('dinliminate.clean.cp1')||'{}').custom?.find(x=>x.id==='qa-special')?.image||'');
 assert.equal(storedCustomPhoto,'idb:qa-special','Custom food photo should be stored as an IndexedDB reference in localStorage');
 
-await page.locator('[data-food-delete="qa-special"]').focus(); await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal');
-assert.equal(await page.locator('#appConfirmModal').getAttribute('role'),'dialog','Confirmation modal should expose dialog semantics');
-assert.equal(await page.locator('#appConfirmModal').getAttribute('aria-modal'),'true','Confirmation modal should be modal');
-assert.equal(await page.locator('#appConfirmCancel').evaluate(el=>el===document.activeElement),true,'Confirmation modal should default focus to Cancel');
-await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmOk').evaluate(el=>el===document.activeElement),true,'Confirmation modal focus should move through the primary action');
-await page.keyboard.press('Escape'); await settle(); assert.equal(await visible('appConfirmModal'),false,'Escape should close the confirmation modal');
-assert.equal(await page.locator('[data-food-delete="qa-special"]').evaluate(el=>el===document.activeElement),true,'Closing confirmation should restore focus to launcher');
-await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
-
-await click('[data-food-delete="popcorn"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Built-in delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-s=await qa(); assert.equal(s.foodPool.includes('popcorn'),false,'built-in delete should remove the food from choices');
-assert.equal((await page.locator('[data-food-quick]').count())>0,true,'Quick Cuts should remain intact after food deletion');
-await click('[data-food-restore-deleted="popcorn"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.includes('popcorn'),true,'deleted built-in restore should work');
-assert.equal(await page.locator('#manageFoodsModal').count(),0,'Restoring a deleted built-in should close Manage Foods automatically');
-
+assert.equal(await page.locator('[data-food-delete]').count(),0,'Manage Foods should expose no food Delete controls');
+assert.equal(await page.locator('#manageFoodsModal .danger-lite').count(),0,'Manage Foods should expose no food delete-style action');
+await page.locator('[data-food-hide="popcorn"]').count();
+await page.locator('#manageFoodsModal [data-close]').click(); await settle();
+await page.locator('#foodMenu').click({force:true}); await settle();
+await page.locator('#manage').click({force:true}); await settle();
+assert.equal(await page.locator('[data-food-restore="popcorn"]').count(),1,'Hidden built-in food should be restorable only through Manage Foods');
+await page.locator('[data-food-restore="popcorn"]').click(); await settle();
+s=await qa(); assert.equal(s.hiddenFoods.includes('popcorn'),false,'Manage Foods Restore should unhide the food');
+assert.equal(await page.locator('#manageFoodsModal').count(),1,'Manage Foods should remain available after Restore');
+await page.locator('#manageFoodsModal [data-close]').click(); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal((await qa()).foodPool.length,1,'Food should be able to reach one remaining choice');
 await click('#foodCut'); await settle();
@@ -426,6 +477,10 @@ const bg=await page.locator('#winner').evaluate(el=>getComputedStyle(el).backgro
 assert.equal(bg,'rgb(9, 9, 9)','winner should use the black Hungry/winner window');
 assert.equal(await page.locator('#winImg').getAttribute('class'),'hungry-image','Hungry winner should use the dedicated black hungry artwork');
 assert.ok((await page.locator('#winImg').getAttribute('src')||'').startsWith('data:image/svg'),'Hungry winner should use the built-in frown artwork');
+assert.equal(await page.locator('#hungryNote').innerText(),'Fish Sticks?','Hungry winner should show the Fish Sticks? prompt');
+await page.locator('#details').click(); await settle();
+assert.equal(await page.locator('#detailsModal #detailHide').count(),0,'Hungry Details should not include Hide');
+await page.locator('#detailsModal [data-close]').click(); await settle();
 await click('#restart'); await settle();
 await click('#foodStart'); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
@@ -446,7 +501,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+125/i);
+assert.match(aboutText,/Build\s+130/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
@@ -456,7 +511,7 @@ await click('#privacyFromAbout'); await settle(); assert.equal(await visible('pr
 await page.locator('#privacyModal [data-close]').click(); await settle();
 await page.locator('[data-close]').click(); await settle();
 await click('#menu'); await settle(); await click('#settings'); await settle();
-const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Hidden and deleted foods should share one Settings section'); await page.locator('#settingsModal [data-close]').click(); await settle();
+const settingsFoodText2=await page.locator('#settingsModal').innerText(); assert.equal(/Food Choices/i.test(settingsFoodText2),false,'Settings should not contain a Food Choices section'); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Settings should contain no deleted-food section'); await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
@@ -617,5 +672,14 @@ console.log('Browser HTTP failures:',JSON.stringify(badResponses));
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.stringify(badResponses));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
+
+const cp258CatalogChecks=await page.evaluate(()=>{const m=new Map((window.DINLIMINATE_FOODS||[]).map(x=>[x.id,x]));return {gyro:m.get('gyro'),fajitas:m.get('stir-fry'),cuts:Object.fromEntries(['pot-pie','blt','reuben','hot-dog','corn-dog','nachos','orange-chicken','chicken-teriyaki','sushi','pancakes','omelet','oatmeal','shrimp','crab-cakes','gumbo','chicken-nuggets','ramen','pimento-cheese-sandwich','ice-cream','protein-bar','candy-bar','banana','apple'].map(id=>[id,m.get(id)?.quickCuts||[]]))};});
+assert.deepEqual(cp258CatalogChecks.gyro?.quickCuts,['Healthy'],'Gyro should use Healthy only');
+assert.equal(cp258CatalogChecks.fajitas?.name,'Fajitas','Mexican Stir Fry should be renamed Fajitas');
+for(const [id,cuts] of Object.entries({'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']})) assert.deepEqual(cp258CatalogChecks.cuts[id],cuts,id+' Quick Cut mapping');
+assert.deepEqual((window.DINLIMINATE_FOODS||[]).find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
+console.log('CP258 browser assertions: 116-food catalog, Fajitas rename, no Food Greek Quick Cut, and new food mappings are covered.');
+
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
+
