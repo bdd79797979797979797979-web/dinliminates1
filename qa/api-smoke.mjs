@@ -58,8 +58,8 @@ const api=loadWithFetch(async(url)=>{
 let res=resCapture();
 await api({query:{mode:'health'},headers:{'x-forwarded-for':'qa-health'}},res);
 assert.equal(res.statusCode,200);
-assert.equal(res.body.version,'clean-r9');
-assert.equal(res.body.maxRadiusMiles,100);
+assert.equal(res.body.version,'r19');
+assert.equal(res.body.maxRadiusMiles,50);
 
 res=resCapture();
 await api({query:{mode:'search',lat:'36.5',lon:'-87.3',radius:'10'},headers:{'x-forwarded-for':'qa-search'}},res);
@@ -79,9 +79,9 @@ const apiWide=loadWithFetch(async(url)=>{
   throw new Error('wide search should not need Overpass when Photon has restaurant results');
 });
 res=resCapture();
-await apiWide({query:{mode:'search',lat:'40',lon:'-80',radius:'100'},headers:{'x-forwarded-for':'qa-wide'}},res);
+await apiWide({query:{mode:'search',lat:'40',lon:'-80',radius:'50'},headers:{'x-forwarded-for':'qa-wide'}},res);
 assert.equal(res.statusCode,200);
-assert.equal(res.body.radiusMiles,100);
+assert.equal(res.body.radiusMiles,50);
 assert.equal(res.body.results[0].photo.includes('1572802419224'),'Burger King name mapping should win over a contradictory brand');
 
 const apiError=loadWithFetch(async()=>{throw new Error('provider down');});
