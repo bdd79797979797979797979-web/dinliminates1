@@ -1153,3 +1153,17 @@
   .restaurant .restaurant-tools{gap:5px!important}
   .restaurant .restaurant-tool{height:34px;font-size:9px;padding:0 5px}
 }
+/* CP444 — hard-scope Restaurant controls and restore red/green decision circles */
+#restaurant .restaurant-tool{background:linear-gradient(180deg,#1d1b18,#131210)!important;color:#d8c7a7!important;border:1px solid #514635!important;box-shadow:0 5px 14px #0007!important}
+#restaurant .restaurant-tool.active-tool{background:linear-gradient(180deg,#e8ddc7,#cdbb96)!important;color:#17130f!important;border-color:#e2cc9d!important;box-shadow:0 7px 16px #0008!important}
+#restaurant .restaurant-tool:hover{background:linear-gradient(180deg,#26231e,#171512)!important;border-color:#756444!important;color:#f1e5cf!important}
+#restaurant .restaurant-tool.active-tool:hover{background:linear-gradient(180deg,#efe5d2,#d5c39d)!important;color:#17130f!important}
+#restaurant .find{background:linear-gradient(180deg,#e7dcc4,#c9b68d)!important;color:#181410!important;border:1px solid #e1ca98!important;box-shadow:0 7px 17px #0008!important;font-weight:850!important}
+#restaurant .find:hover{background:linear-gradient(180deg,#efe5d2,#d7c39d)!important}
+#restaurant .location-btn{background:#171614!important;color:#d3bd93!important;border:1px solid #4b4235!important}
+#restaurant .location-btn:hover{background:#211e19!important;border-color:#6e5b3f!important}
+#restaurant .round-cut{background:#ef3340!important;color:#fff!important;border-color:#ff6470!important}
+#restaurant .round-maybe{background:#28c76f!important;color:#071a0f!important;border-color:#54e397!important}
+#restaurant .round-back,#restaurant .round-hide{background:#171717!important;color:#ddd!important;border-color:#363636!important}
+#restaurant .restaurant-card-utilities,#restaurant .restaurant-card-utility{position:relative!important;z-index:40!important;pointer-events:auto!important;touch-action:manipulation!important}
+#restaurant .restaurant-card-utility{cursor:pointer}
