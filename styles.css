@@ -756,3 +756,10 @@ body.pass-active{overflow:hidden}
 .card-cuisine-row{display:flex;align-items:center;justify-content:flex-start;gap:7px;min-width:0}
 .card-cuisine-row .cuisine-line{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-cuisine-row .card-details-action{flex:0 0 28px;margin:0!important}
+
+
+/* CP267 — keep Food and Restaurant Details controls immediately beside their category labels */
+.food-cuisine-row{justify-content:flex-start;align-items:center;gap:7px;margin-top:3px}
+.food-cuisine-row #foodCat{flex:0 1 auto;min-width:0;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-cuisine-row #foodDetails{flex:0 0 28px;margin:0!important}
+.card-cuisine-row .card-details-action{flex:0 0 28px;margin:0!important}
