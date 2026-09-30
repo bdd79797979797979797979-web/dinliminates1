@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 167,
-  "sourceBranch": "cp462-frontend-address-finalize-2026-09-30",
-  "checkpoint": "CP462"
+  "build": 168,
+  "sourceBranch": "cp463-manage-delete-default-food-image-2026-09-30",
+  "checkpoint": "CP463"
 }
