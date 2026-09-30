@@ -59,6 +59,7 @@ await page.route('**/*', async route => {
     const allResults=[
       {id:'mcd-1',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],distance:1.2,address:'100 Main St, Clarksville, TN',website:'https://mcdonalds.com',phone:'(931) 555-0101',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
       {id:'waffle-1',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.1,address:'200 Riverside Dr, Clarksville, TN',website:'https://wafflehouse.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
+      {id:'burger-barn-1',name:'Burger Barn',category:'American',fastFood:false,cuisine:'burgers',menuItems:['Cheeseburger','Fries'],distance:2.8,address:'250 Riverside Dr, Clarksville, TN',website:'',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=85'},
       {id:'taco-1',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:3.4,address:'300 Madison St, Clarksville, TN',website:'https://tacobell.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
       {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
       {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'},
@@ -101,6 +102,24 @@ assert.equal(hourContract.open,'open','Provider openNow=true should win over con
 assert.equal(hourContract.closed,'closed','Provider openNow=false should win over conflicting opening-hours text');
 assert.equal(hourContract.unknown,'unknown','Missing hours should remain unknown');
 
+const restaurantSearchContract=await page.evaluate(()=>{
+ const t=window.__DINLIMINATE_TEST__;
+ const mcd={name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac']};
+ const taco={name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',menuItems:['Tacos']};
+ const burger={name:'Burger Barn',category:'American',fastFood:false,cuisine:'burgers',menuItems:['Cheeseburger']};
+ const waffle={name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',menuItems:['Waffles']};
+ return {
+  mcdNormalized:t.normalizeRestaurantSearch("McDonald's"),
+  mcdSearch:t.restaurantSearchTermMatches(mcd,'Mcdonalds',t.normalizeRestaurantSearch("McDonald's Fast Food burger")),
+  burgerFastFood:t.restaurantSearchTermMatches(mcd,'burger',t.normalizeRestaurantSearch("McDonald's Fast Food burger Big Mac")),
+  burgerDedicated:t.restaurantSearchTermMatches(burger,'burger',t.normalizeRestaurantSearch("Burger Barn American burgers cheeseburger")),
+  burgerUnrelated:t.restaurantSearchTermMatches(waffle,'burger',t.normalizeRestaurantSearch("Waffle House American breakfast waffles")),
+  mexicanCategory:t.restaurantSearchTermMatches(taco,'mexican',t.normalizeRestaurantSearch("Taco Bell Fast Food mexican tacos")),
+  quickBurger:t.restaurantQuickMatches(burger,'Burgers'),
+  quickPizza:t.restaurantQuickMatches({name:'Dominos Pizza',category:'Fast Food',fastFood:true,cuisine:'',menuItems:[]},'Pizza'),
+  quickBreakfast:t.restaurantQuickMatches(waffle,'Breakfast')
+ };
+});
 const contactLinkGuards=await page.evaluate(()=>{
   const t=window.__DINLIMINATE_TEST__;
   return {
@@ -302,15 +321,15 @@ await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants')); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
+await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants')); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
 let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
 await page.locator('#address').fill('456');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
+await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
-await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
-s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain unique restaurant + fast food choices');
+await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
+s=await qa(); assert.equal(s.allRestaurantIds.length,8,'combined restaurant pool should contain unique restaurant + fast food choices');
 assert.equal(s.allRestaurantIds.includes('heads-1')&&s.allRestaurantIds.includes('robert-heads-duplicate'),false,'Provider duplicate Heads BBQ records must collapse to one visible restaurant');
 
 assert.equal(await page.locator('#find').innerText(),'Refresh','Find should act as Refresh after a location is selected');
@@ -322,11 +341,11 @@ await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.inner
 await settle();
 assert.ok(searchRequests.length>requestsBeforeRadius,'Changing radius should automatically trigger a restaurant search');
 assert.equal(await page.locator('#radius').inputValue(),'5','Radius control should retain the selected value');
-assert.equal((await qa()).allRestaurantIds.length,4,'Five-mile search should return only the four unique mocked venues within five miles');
-assert.equal((await qa()).restaurantPool.length,4,'Five-mile radius should filter the active choice pool to four venues');
+assert.equal((await qa()).allRestaurantIds.length,5,'Five-mile search should return only the five unique mocked venues within five miles');
+assert.equal((await qa()).restaurantPool.length,5,'Five-mile radius should filter the active choice pool to five venues');
 await page.locator('#radius').selectOption('10');
-await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
-assert.equal((await qa()).allRestaurantIds.length,7,'Returning to ten miles should restore the full unique radius result set');
+await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants'));
+assert.equal((await qa()).allRestaurantIds.length,8,'Returning to ten miles should restore the full unique radius result set');
 
 await click('#restaurantMenu'); await settle();
 await click('#settings'); await settle();
@@ -372,15 +391,28 @@ await click('#restaurantBackTop'); await settle(); await click('#restStart'); aw
 assert.equal((await qa()).restaurantMaybeRound,false,'Starting a new restaurant round should reset the Maybe recycle cycle');
 
 await click('[data-rest-quick="Fast Food"]'); await settle();
-s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false); assert.equal(s.restaurantPool.includes('taco-1'),false); assert.equal(s.restaurantPool.includes('waffle-1'),true);
+s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false,'Fast Food Quick Cut should remove McDonald\'s'); assert.equal(s.restaurantPool.includes('taco-1'),false,'Fast Food Quick Cut should remove Taco Bell'); assert.equal(s.restaurantPool.includes('waffle-1'),true,'Fast Food Quick Cut should keep Waffle House');
 await click('[data-rest-quick="Fast Food"]'); await settle();
-await click('[data-rest-quick="Potato"]'); await settle();
-s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false,'Potato Quick Cut should remove fries-bearing restaurants'); assert.equal(s.restaurantPool.includes('ital-1'),true,'Potato Quick Cut should not remove unrelated restaurants');
-await click('[data-rest-quick="Potato"]'); await settle();
+await click('[data-rest-quick="Burgers"]'); await settle();
+s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),false,'Burgers Quick Cut should remove McDonald\'s'); assert.equal(s.restaurantPool.includes('burger-barn-1'),false,'Burgers Quick Cut should remove burger restaurants'); assert.equal(s.restaurantPool.includes('taco-1'),true,'Burgers Quick Cut should not remove non-burger fast food');
+await click('[data-rest-quick="Burgers"]'); await settle();
+await click('[data-rest-quick="Pizza"]'); await settle();
+s=await qa(); assert.equal(s.restaurantPool.includes('ital-1'),false,'Pizza Quick Cut should remove pizza/pizzeria restaurants'); assert.equal(s.restaurantPool.includes('burger-barn-1'),true,'Pizza Quick Cut should keep burger restaurants');
+await click('[data-rest-quick="Pizza"]'); await settle();
 
 await click('#restaurantSearch'); await settle();
+await page.locator('#restaurantQuery').fill('Mcdonalds');
+await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['mcd-1'],'Restaurant Search should normalize apostrophes so McDonalds finds McDonald\'s');
+await page.locator('#restaurantQuery').fill('burger');
+await settle(); s=await qa(); assert.equal(s.restaurantPool.includes('mcd-1'),true,'Burger Search should include fast-food restaurants such as McDonald\'s'); assert.equal(s.restaurantPool.includes('taco-1'),true,'Burger Search should include fast-food restaurants even when the name is not burger-specific'); assert.equal(s.restaurantPool.includes('burger-barn-1'),true,'Burger Search should include dedicated burger restaurants'); assert.equal(s.restaurantPool.includes('waffle-1'),false,'Burger Search should not include unrelated breakfast restaurants');
+await page.locator('#restaurantQuery').fill('mexican');
+await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['taco-1'],'Cuisine Search should match restaurant cuisine');
+await page.locator('#restaurantQuery').fill('fast food');
+await settle(); s=await qa(); assert.deepEqual([...s.restaurantPool].sort(),['mcd-1','taco-1'].sort(),'Category Search should match all Fast Food restaurants');
+await page.locator('#restaurantQuery').fill('pizza');
+await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Category/cuisine Search should match pizza restaurants');
 await page.locator('#restaurantQuery').fill('Pasta');
-await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Restaurant Search should filter current results');
+await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Italian/Pasta alias Search should match pasta restaurants');
 await page.locator('#restaurantQuery').fill(''); await settle();
 
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
@@ -400,6 +432,7 @@ assert.ok(cuisineBox&&detailsInlineBox&&Math.abs(detailsInlineBox.y-cuisineBox.y
 assert.ok(currentRestaurantImg && (/^https?:\/\//.test(currentRestaurantImg) || currentRestaurantImg.startsWith('/api/image?url=https%3A%2F%2F')),'Restaurant card should always use a real or securely proxied photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Restaurant should have 10 Quick Cuts');
+assert.deepEqual(await page.locator('#restQuick [data-rest-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'],'Restaurant Quick Cuts should use restaurant categories rather than food types');
 assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
 assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown');
@@ -564,7 +597,7 @@ await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneMo
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
 await click('#restStart'); await settle();
-await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
+await click('#locate'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('8 restaurants') || document.querySelector('#status')?.textContent.includes('restaurants found')); await settle();
 assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using your location','Device location should be labeled as the source');
 const deviceLoc=await qa(); assert.ok(Math.abs(Number(deviceLoc.location?.lat)-36.5304)<0.01,'Device latitude should be persisted');
 assert.ok(Math.abs(Number(deviceLoc.location?.lon)+87.3601)<0.01,'Device longitude should be persisted');
