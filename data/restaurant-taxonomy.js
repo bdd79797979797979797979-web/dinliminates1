@@ -167,7 +167,7 @@ function classifyRestaurant(row){
   const providerTypeHay=normalizeRestaurantSearch([row?.providerType,row?.primaryType,row?.types?.join?.(' ')].join(' '));
   const primary=rawCategory+' '+cuisineHay+' '+providerTypeHay;
   const providerRules={
-    Fast Food:/\b(fast food|fast_food_restaurant|fast food restaurant|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
+    'Fast Food':/\b(fast food|fast_food_restaurant|fast food restaurant|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
     Burgers:/\b(burger restaurant|burger restaurants|burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
     Pizza:/\b(pizza restaurant|pizzeria|pizza|calzone)\b/,
     Mexican:/\b(mexican restaurant|mexican|tex mex|taqueria|taco shop|burrito|quesadilla|enchilada|fajita)\b/,
@@ -201,7 +201,7 @@ function classifyRestaurant(row){
       Breakfast:/\b(breakfast|brunch|pancake|waffle|omelet|omelette|eggs benedict|biscuits and gravy)\b/,
       Southern:/\b(southern|soul food|country cooking|meat and three|comfort food)\b/,
       American:/\b(diner|steakhouse|roadhouse|grill|bistro|pub|tavern|american)\b/,
-      Fast Food:/\b(fast food|quick service|drive thru|drive through)\b/
+    'Fast Food':/\b(fast food|quick service|drive thru|drive through)\b/
     };
     for(const [tag,re] of Object.entries(fallbackSignals))if(re.test(nameHay)||re.test(primary))add(tag,'fallback identity');
   }
