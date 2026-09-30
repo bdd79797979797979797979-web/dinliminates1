@@ -98,7 +98,7 @@ let s=await snap();
 assert.equal(s.locationSource,'device');
 assert.ok(Math.abs(Number(s.location?.lat)-36.5304)<0.001);
 assert.ok(Math.abs(Number(s.location?.lon)+87.3601)<0.001);
-assert.equal(await page.locator('#locationSourceLabel').innerText(),'Using your location');
+assert.equal((await page.locator('#locationSourceLabel').textContent()).trim(),'Using your location');
 report["1_use_location"].success=true;
 report["1_use_location"].coordinates=s.location;
 report["1_use_location"].source=await page.locator('#locationSourceLabel').innerText();
