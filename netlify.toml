@@ -10,6 +10,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/image"
+  to = "/.netlify/functions/image"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/api/restaurant-search"
   [headers.values]
