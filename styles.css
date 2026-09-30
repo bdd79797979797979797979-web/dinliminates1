@@ -1169,13 +1169,15 @@
 #restaurant .restaurant-card-utility{cursor:pointer}
 
 
-/* CP449 — compact restaurant Radius + Search row; recover Tinder card height */
+/* CP449 — compact restaurant Radius + Search row; recover and slightly enlarge Tinder card */
 .restaurant .location-sub{position:relative;display:grid;grid-template-columns:auto 64px 56px minmax(0,1fr);align-items:center;gap:5px}
 .restaurant .location-sub .restaurant-tool{width:56px;height:24px;min-width:56px;padding:0 7px;border-radius:999px;font-size:8px;font-weight:850}
 .restaurant .location-sub .status{grid-column:4;min-width:0;margin:0!important;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .restaurant .location-source-label{position:absolute;right:0;top:-13px;max-width:145px;font-size:7px;line-height:10px}
 .restaurant .location-sub{margin-top:10px}
-.restaurant .restaurant-tools{display:none!important}
+ .restaurant .restaurant-tools{display:none!important}
+.restaurant .restaurant-card-stack{aspect-ratio:3/4.65}
+.restaurant .restaurant-card-stack>.card{height:100%;max-height:none}
 @media(max-width:390px){
   .restaurant .location-sub{grid-template-columns:auto 66px 54px minmax(0,1fr);gap:4px}
   .restaurant .location-sub .restaurant-tool{width:54px;min-width:54px;font-size:7px;padding:0 5px}
