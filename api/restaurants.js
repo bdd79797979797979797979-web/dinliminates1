@@ -395,9 +395,10 @@ function sameContact(x,r){
   if(xw&&rw&&xw===rw)return true;
   return false;
 }
+function restaurantNameKey(value){return norm(String(value||'').replace(/[’']s\b/gi,'s'));}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
-  const sameName=norm(x.name)===norm(r.name);
+  const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
   const variant=nameVariantMatch(x.name,r.name);
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
