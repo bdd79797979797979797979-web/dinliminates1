@@ -1167,3 +1167,22 @@
 #restaurant .round-back,#restaurant .round-hide{background:#171717!important;color:#ddd!important;border-color:#363636!important}
 #restaurant .restaurant-card-utilities,#restaurant .restaurant-card-utility{position:relative!important;z-index:40!important;pointer-events:auto!important;touch-action:manipulation!important}
 #restaurant .restaurant-card-utility{cursor:pointer}
+
+
+/* CP449 — compact restaurant Radius + Search row; recover Tinder card height */
+.restaurant .location-sub{position:relative;display:grid;grid-template-columns:auto 64px 56px minmax(0,1fr);align-items:center;gap:5px}
+.restaurant .location-sub .restaurant-tool{width:56px;height:24px;min-width:56px;padding:0 7px;border-radius:999px;font-size:8px;font-weight:850}
+.restaurant .location-sub .status{grid-column:4;min-width:0;margin:0!important;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.restaurant .location-source-label{position:absolute;right:0;top:-13px;max-width:145px;font-size:7px;line-height:10px}
+.restaurant .location-sub{margin-top:10px}
+.restaurant .restaurant-tools{display:none!important}
+@media(max-width:390px){
+  .restaurant .location-sub{grid-template-columns:auto 66px 54px minmax(0,1fr);gap:4px}
+  .restaurant .location-sub .restaurant-tool{width:54px;min-width:54px;font-size:7px;padding:0 5px}
+  .restaurant .location-source-label{top:-11px;max-width:130px;font-size:6.5px}
+}
+@media(max-width:340px){
+  .restaurant .location-sub{grid-template-columns:auto 62px 51px minmax(0,1fr);gap:3px}
+  .restaurant .location-sub .restaurant-tool{width:51px;min-width:51px;font-size:7px}
+  .restaurant .location-source-label{display:none}
+}
