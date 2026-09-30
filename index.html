@@ -7139,7 +7139,7 @@ function safeExternalUrl(value){
     if(!['http:','https:'].includes(u.protocol))return '';
     const host=String(u.hostname||'').toLowerCase();
     const appHost=String(window.location?.hostname||'').toLowerCase();
-    if(host===appHost || /(?:^|\\.)(?:dinliminate|dinlimate|dinliminates1)(?:\\.|-)(?:vercel\\.app|netlify\\.app)$/i.test(host))return '';
+    if(host===appHost || /(?:^|\.)(?:dinliminate|dinlimate|dinliminates1)(?:\.|-)(?:vercel\.app|netlify\.app)$/i.test(host))return '';
     return u.href;
   }catch{return '';}
 }
