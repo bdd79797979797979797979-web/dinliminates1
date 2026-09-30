@@ -403,10 +403,11 @@ function sameRestaurant(x,r){
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
   const sameAddress=!!ax&&!!ar&&ax===ar;
-  if(sameName && (dist<=0.35 || sameAddress))return true;
-  if(sameContact(x,r) && dist<=0.35)return true;
-  if(sameAddress && (variant||sameBrand))return true;
-  if(variant && sameBrand && dist<=0.5)return true;
+  const conflictingAddress=!!ax&&!!ar&&!sameAddress;
+  if(sameAddress && (sameName||variant||sameBrand))return true;
+  if(sameName && !conflictingAddress && dist<=0.35)return true;
+  if(sameContact(x,r) && !conflictingAddress && dist<=0.35)return true;
+  if(variant && sameBrand && !conflictingAddress && dist<=0.5)return true;
   return false;
 }
 function dedupe(rows){
