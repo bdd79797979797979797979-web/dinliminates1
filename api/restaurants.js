@@ -72,7 +72,7 @@ async function arcgisPlaces(lat,lon,radius){
  const categories=['Restaurant','Fast Food'];
  const rows=[],errors=[];
  const results=await Promise.allSettled(categories.map(async category=>{
-   const params=new URLSearchParams({SingleLine:'',category,location:lon+','+lat,searchExtent:extent,maxLocations:'50',outFields:'PlaceName,Type,Place_addr,City,Region,Country',forStorage:'false',f:'json'});
+   const params=new URLSearchParams({SingleLine:'',category,location:lon+','+lat,searchExtent:extent,maxLocations:'50',outFields:'PlaceName,Type,Place_addr,City,Region,Country,Phone,URL',forStorage:'false',f:'json'});
    return {category,data:await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},7000)};
  }));
  for(const result of results){
@@ -82,7 +82,7 @@ async function arcgisPlaces(lat,lon,radius){
      const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},name=String(attrs.PlaceName||cand.address||'').trim();
      if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
      const fast=category==='Fast Food'||isFastFoodName(name,String(attrs.Type||''));
-     const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',address:String(attrs.Place_addr||cand.address||''),phone:'',website:'',opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS POI'};
+     const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS POI'};
      if(row.distance<=r)rows.push(row);
    }
  }
