@@ -378,7 +378,8 @@ function nameVariantMatch(a,b){
   if(as.size===bs.size&&shared===as.size)return true;
   if(shared!==shorter || shared/union<0.6)return false;
   const longer=aa.length>=bb.length?aa:bb;
-  const extras=longer.filter(token=>!((aa.length>=bb.length?as:bs).has(token)));
+  const shorterSet=aa.length>=bb.length?bs:as;
+  const extras=longer.filter(token=>!shorterSet.has(token));
   return !extras.some(token=>RESTAURANT_NAME_VARIANT_BLOCKERS.has(token));
 }
 function normAddress(s){
