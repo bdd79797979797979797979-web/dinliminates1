@@ -217,10 +217,12 @@ assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-a
 // CP260 UI + Pass Around contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
 for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
-assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#2f8f5b,#236e45)'),'App Diagnosis should use the green system action treatment');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
 assert(app.includes("label:'Quick Pass · Default'"),'Quick Pass should be the default labeled mode');
 assert(app.includes("label:'Full Pass · Original'"),'Full Pass should remain the optional original mode');
 assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
@@ -230,3 +232,4 @@ assert(app.includes('Back = Undo') && app.includes('p.history.push(before)'),'Pa
 assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly');
 assert(app.includes('S.pass=null;removePassSurface();') && !app.includes('S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);'),'Canceling Pass Around should not advance the starting voter');
 assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
+assert(app.includes("quickCats=[...cats,'Other']") && app.includes("x.value"),'Custom Food Quick Cut editor should include optional Other');
