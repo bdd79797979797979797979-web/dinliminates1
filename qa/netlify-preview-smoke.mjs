@@ -17,4 +17,5 @@ assert.equal(result.status,200,'Netlify preview must return HTTP 200');
 assert.equal(result.homeVisible,true,'Home screen must be visible on the live Netlify preview');
 assert.equal(result.homeText,'what sounds good tonight?','Live Netlify preview must render the current home screen');
 assert.equal(pageErrors.length,0,'Live Netlify preview must have no page errors');
+assert.equal(result.badResponses.length,0,'Live Netlify preview must not request missing assets or receive HTTP errors');
 await browser.close();
