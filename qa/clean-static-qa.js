@@ -212,3 +212,15 @@ console.log('Dinliminate CP259 food catalog QA: PASS');
 
 assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=hungry?'Fish Sticks?':''"),'Hungry winner must show the Fish Sticks? prompt');
 assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-action\" id=\"detailHide\">Hide</button>'"),'Hungry Details must omit Hide');
+
+
+// CP260 UI + Pass Around contracts.
+assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
+assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#2f8f5b,#236e45)'),'App Diagnosis should use the green system action treatment');
+assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
+assert(app.includes("mode:S.passDraftMode") && app.includes("p.mode==='quick'"),'Pass Around should persist the selected mode and branch behavior');
+assert(app.includes('majority decides early') && app.includes('Everyone must keep a choice.'),'Pass Around modes should clearly explain Quick vs Full behavior');
+assert(app.includes('Back = Undo') && app.includes('p.history.push(before)'),'Pass Around must support deterministic undo');
+assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly')
