@@ -140,6 +140,49 @@ async function googlePlaces(lat,lon,radius){
  }catch(e){errors.push(String(e?.message||e||'Google Places failed'));}
  return{rows,errors};
 }
+async function googleContactEnrichment(rows,originLat,originLon){
+ if(!GOOGLE_KEY)return{rows:[],errors:[]};
+ const targets=(rows||[]).filter(r=>!r.phone||!r.website).slice(0,12);
+ if(!targets.length)return{rows:[],errors:[]};
+ const errors=[],out=[];
+ let cursor=0;
+ async function one(r){
+  const q=[r.name,r.address].filter(Boolean).join(', ');
+  try{
+   const data=await json('https://places.googleapis.com/v1/places:searchText',{
+    method:'POST',
+    headers:{
+     'Content-Type':'application/json',
+     'X-Goog-Api-Key':GOOGLE_KEY,
+     'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types'
+    },
+    body:JSON.stringify({
+     textQuery:q+' restaurant',
+     pageSize:3,
+     locationBias:{circle:{center:{latitude:originLat,longitude:originLon},radius:Math.min(25000,Math.max(3000,Number(r.distance||0)*1609+5000))}},
+     regionCode:'US'
+    })
+   },5200);
+   const candidates=Array.isArray(data?.places)?data.places:[];
+   const baseLat=Number(r.lat),baseLon=Number(r.lon);
+   const best=candidates.map(p=>{
+    const loc=p?.location||{},lat=n(loc.latitude),lon=n(loc.longitude),name=String(p?.displayName?.text||'').trim();
+    if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+    const types=Array.isArray(p?.types)?p.types.map(String):[];
+    const distance=Number.isFinite(baseLat)&&Number.isFinite(baseLon)?miles(baseLat,baseLon,lat,lon):miles(originLat,originLon,lat,lon);
+    const target=norm(r.name),candidate=norm(name);
+    const nameMatch=target===candidate||candidate.includes(target)||target.includes(candidate);
+    return !nameMatch||distance>1.5?null:{id:p.id?'google-contact-'+p.id:'google-contact-'+norm(name),name,address:String(p?.formattedAddress||r.address||''),phone:String(p?.nationalPhoneNumber||''),website:String(p?.websiteUri||''),lat,lon,distance:miles(originLat,originLon,lat,lon),category:types.includes('fast_food')?'Fast Food':(r.category||'Restaurant'),fastFood:types.includes('fast_food')||!!r.fastFood,cuisine:r.cuisine||'',opening_hours:r.opening_hours||'',photo:'',menuItems:r.menuItems||[],brand:r.brand||'',source:'Google Places Search'};
+   }).filter(Boolean).sort((a,b)=>Number(a.distance)-Number(b.distance))[0];
+   if(best)out.push(best);
+  }catch(e){errors.push(String(e?.message||e||'Google contact lookup failed'));}
+ }
+ const workers=Array.from({length:Math.min(3,targets.length)},async()=>{
+  while(cursor<targets.length){const i=cursor++;await one(targets[i]);}
+ });
+ await Promise.all(workers);
+ return{rows:dedupe(out),errors};
+}
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 function restaurantNameTokens(value){
   return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
@@ -259,7 +302,7 @@ function requestQuery(req){
  try{return new URL(String(req?.url||'/'),'https://dinliminate.local').searchParams}catch{return new URLSearchParams()}
 }
 async function handler(req,res){const q=requestQuery(req),mode=String(q.get('mode')||'health').toLowerCase();if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Too many requests. Try again shortly.'});try{
-if(mode==='health'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=60, s-maxage=60, stale-while-revalidate=120');return res.status(200).json({ok:true,version:'r15',maxRadiusMiles:MAX_RADIUS,googlePlacesConfigured:!!GOOGLE_KEY,providers:['OpenStreetMap Overpass','ArcGIS','Photon','Open-Meteo timezone']});}
+if(mode==='health'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=60, s-maxage=60, stale-while-revalidate=120');return res.status(200).json({ok:true,version:'r15',maxRadiusMiles:MAX_RADIUS,googlePlacesConfigured:!!GOOGLE_KEY,providers:['OpenStreetMap Overpass','ArcGIS','Photon',...(GOOGLE_KEY?['Google Places']:[]),'Open-Meteo timezone']});}
 if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');return res.status(200).json({ok:true,results:await suggest(q.get('q'))});}
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(q.get('lat')),lon=n(q.get('lon'));if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
@@ -314,13 +357,19 @@ if(mode==='search'){
    const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),expandedNames),contactRemaining,'Restaurant contact enrichment timed out');
    if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
   }
- const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
+ let googleContactOut={rows:[],errors:[]};
+ const contactRemaining2=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+ if(GOOGLE_KEY&&contactRemaining2>3000){
+   const got=await withinBudget(googleContactEnrichment(dedupe([...contactCandidates,...contactOut.rows]),lat,lon),contactRemaining2,'Google contact enrichment timed out');
+   if(got&&!got.__timeout)googleContactOut=got; else googleContactOut.errors.push('Google contact enrichment timed out');
+ }
+ const rows=dedupe([...contactCandidates,...contactOut.rows,...googleContactOut.rows]).map(r=>{
    const website=r.website||knownRestaurantWebsite(r);
    const phone=String(r.phone||'').trim();
    return {...r,photo:image(r),website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'};
   });
  const zone=await timezonePromise;
- const data={ok:true,version:'r15',googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{google:(googleOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors].slice(0,8),results:rows};
+ const data={ok:true,version:'r15',googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-r15',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
