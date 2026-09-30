@@ -211,6 +211,8 @@ assert.equal(await visible('drawer'),true,'Food Menu should open the drawer');
 await click('#settings'); await settle();
 assert.equal(await visible('settingsModal'),true,'Settings should open');
 assert.equal(await page.locator('#appDiagnosis').count(),1,'Settings should include App Diagnosis');
+const systemButtons=await page.locator('#settingsModal .settings-system-action').count(); assert.equal(systemButtons,3,'Settings System should have exactly three action buttons');
+const systemButtonMetrics=await page.locator('#settingsModal .settings-system-action').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect(),cs=getComputedStyle(el);return {id:el.id,width:Math.round(r.width),height:Math.round(r.height),fontSize:cs.fontSize,fontWeight:cs.fontWeight,lineHeight:cs.lineHeight,fontFamily:cs.fontFamily}})); assert.ok(systemButtonMetrics.every(x=>x.height===46),'All Settings System buttons should be the same height'); assert.ok(systemButtonMetrics.every(x=>x.width===systemButtonMetrics[0].width),'All Settings System buttons should be the same width'); assert.ok(systemButtonMetrics.every(x=>x.fontSize===systemButtonMetrics[0].fontSize&&x.fontWeight===systemButtonMetrics[0].fontWeight&&x.fontFamily===systemButtonMetrics[0].fontFamily),'All Settings System buttons should use the same text styling');
 await click('#appDiagnosis'); await settle();
 assert.equal(await visible('settingsModal'),true,'App Diagnosis should stay inside the existing Settings window without opening a second window');
 assert.equal(await page.locator('#diagnosisModal').count(),0,'App Diagnosis should not create a second modal element');
