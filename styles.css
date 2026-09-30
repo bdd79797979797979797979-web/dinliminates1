@@ -891,9 +891,12 @@
 #detailsModal .restaurant-luxury-contact-row strong{min-width:0;font-size:10px;line-height:1.35;text-align:right;color:#e8e3dc;overflow-wrap:anywhere}
 #detailsModal .restaurant-luxury-contact-row:first-child strong{color:#a9d4e6}
 #detailsModal .restaurant-luxury-contact-row .contact-arrow{font-size:12px;color:#8baec8}
-#detailsModal .restaurant-luxury-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:9px}
-#detailsModal .restaurant-luxury-actions .detail-icon-button{flex:0 0 46px}
-#detailsModal .restaurant-luxury-actions .restaurant-directions-pill{min-width:112px}
+#detailsModal .restaurant-luxury-actions{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-top:9px}
+#detailsModal .restaurant-luxury-actions .restaurant-detail-action{flex:0 0 46px;width:46px;height:46px;display:grid;place-items:center;padding:0;border-radius:14px;background:linear-gradient(145deg,#1c2428,#161b1d);border:1px solid #38515b;color:#bfe4f3;box-shadow:0 8px 18px #0006;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#detailsModal .restaurant-luxury-actions .restaurant-detail-action:hover{transform:translateY(-1px);border-color:#5b7884;box-shadow:0 11px 22px #0007}
+#detailsModal .restaurant-luxury-actions .restaurant-detail-action:active{transform:translateY(0)}
+#detailsModal .restaurant-luxury-actions .restaurant-detail-action .detail-action-icon{width:19px;height:19px;display:block}
+#detailsModal .restaurant-luxury-details .restaurant-detail-action.detail-directions-action{margin:0}
 #detailsModal .restaurant-luxury-details .detail-body-copy{font-size:11px;line-height:1.55;color:#d5d0c8}
 #detailsModal .restaurant-luxury-details .detail-section + .detail-section{margin-top:11px}
 @media(max-width:390px){
@@ -901,5 +904,5 @@
   #detailsModal .restaurant-luxury-title h2{font-size:28px!important}
   #detailsModal .restaurant-luxury-stat{padding:9px 9px}
   #detailsModal .restaurant-luxury-stat strong{font-size:10px}
-  #detailsModal .restaurant-luxury-actions .restaurant-directions-pill{min-width:104px}
+  #detailsModal .restaurant-luxury-actions .restaurant-detail-action{width:44px;height:44px;flex-basis:44px}
 }
