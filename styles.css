@@ -750,3 +750,9 @@ body.pass-active{overflow:hidden}
   background:linear-gradient(180deg,#ce8a2c,#87541a)!important;
   border-color:#e5b46f!important;
 }
+
+
+/* CP267 — keep Restaurant Details immediately beside the cuisine label */
+.card-cuisine-row{display:flex;align-items:center;justify-content:flex-start;gap:7px;min-width:0}
+.card-cuisine-row .cuisine-line{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-cuisine-row .card-details-action{flex:0 0 28px;margin:0!important}
