@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 140,
-  "sourceBranch": "cp344-restaurant-hours-toggle-2026-09-30",
+  "build": 141,
+  "sourceBranch": "cp345-hybrid-restaurant-search-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP344"
+  "checkpoint": "CP345"
 }
