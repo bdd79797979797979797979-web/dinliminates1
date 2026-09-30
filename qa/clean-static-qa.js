@@ -238,7 +238,7 @@ assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.d
 
 assert(app.includes("const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Food editor cuisine/category dropdown must include Other');
 assert(app.includes('restaurantDirectionsUrl') && app.includes('detailDirections') && app.includes('Get Google Maps directions'),'Restaurant Details must include Google Maps directions');
-assert(app.includes('Call restaurant') && app.includes('detail-info-link'),'Restaurant Details must include a tap-to-call phone number');
+assert(app.includes('restaurant-detail-contact-link') && app.includes('phoneHref(item.phone)'),'Restaurant Details must include a tap-to-call phone number');
 assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
 assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('How to add to your phone'),'Current Home copy must be present');
 
