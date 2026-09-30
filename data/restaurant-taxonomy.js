@@ -39,7 +39,25 @@ const RESTAURANT_IDENTITY_PROFILES = [
   {pattern:/\bolive garden\b/,tags:['Italian']},
   {pattern:/\bred lobster\b/,tags:['Seafood']},
   {pattern:/\bapplebees?\b|\bchilis\b|\btexas roadhouse\b|\boutback steakhouse\b|\bo charleys\b|\bruby tuesday\b|\bbuffalo wild wings\b|\bgolden corral\b/,tags:['American']},
-  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true}
+  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true},
+  {pattern:/\btaco johns?\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\bdel taco\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\bqdoba\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\bmoes(?: southwest)?\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\bwhataburger\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\braaising cane'?s\b/,tags:['Fast Food']},
+  {pattern:/\bzaxby'?s\b/,tags:['Fast Food']},
+  {pattern:/\bchurch'?s chicken\b/,tags:['Fast Food']},
+  {pattern:/\bcook out\b/,tags:['Fast Food']},
+  {pattern:/\bsonic drive in\b/,tags:['Fast Food','Burgers']},
+  {pattern:/\btexas roadhouse\b/,tags:['American']},
+  {pattern:/\boutback steakhouse\b/,tags:['American']},
+  {pattern:/\btexas roadhouse\b/,tags:['American']},
+  {pattern:/\blos compadres\b|\blos amigos\b|\bel pollo loco\b/,tags:['Mexican']},
+  {pattern:/\bchina (one|garden|wok|house)\b|\bpeking\b|\bgolden dragon\b/,tags:['Asian']},
+  {pattern:/\bthai\b|\bbangkok\b|\bsushi\b|\bhibachi\b/,tags:['Asian']},
+  {pattern:/\bcatfish\b|\bfish house\b|\bseafood\b|\bred lobster\b|\blong john silver'?s\b|\bcaptain d\b/,tags:['Seafood']},
+  {pattern:/\bbiscuits? (?:n|and|&) gravy\b|\bpancake house\b|\bwaffle house\b/,tags:['Breakfast','American']}
 ];
 
 const RESTAURANT_MENU_SIGNALS = {
@@ -156,10 +174,12 @@ function classifyRestaurant(row){
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
   const primary=rawCategory+' '+cuisineHay;
   const providerRules={
-    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?)\b/,
+    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
+    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
     Pizza:/\bpizza\b|\bpizzeria\b/,
-    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b/,
-    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b/,
+    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
+    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b|\bcomfort food\b/,
+    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b|\bhibachi\b|\bramen\b|\bpho\b|\bteriyaki\b/,
     Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b/,
     Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b/,
     BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b/,
@@ -173,6 +193,22 @@ function classifyRestaurant(row){
 
   for(const tag of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast']){
     if(menuSignalCount(row,tag)>=2)add(tag,'menu corroboration');
+  }
+  // Generic provider labels such as "restaurant" should not block useful identity.
+  if(tags.size===0 && /\b(restaurant|eatery|food)\b/.test(rawCategory+' '+cuisineHay)){
+    const fallbackSignals={
+      Burgers:/\b(burger|hamburger|cheeseburger|smashburger)\b/,
+      Pizza:/\b(pizza|pizzeria)\b/,
+      Mexican:/\b(mexican|taco|burrito|taqueria)\b/,
+      Asian:/\b(asian|chinese|japanese|thai|korean|sushi|ramen|pho|hibachi|teriyaki)\b/,
+      Italian:/\b(italian|pasta|trattoria|ristorante)\b/,
+      BBQ:/\b(bbq|barbecue|smokehouse|smoked|brisket|ribs)\b/,
+      Seafood:/\b(seafood|fish house|catfish|shrimp|crab|lobster|oyster)\b/,
+      Breakfast:/\b(breakfast|brunch|pancake|waffle|omelet|eggs benedict)\b/,
+      Southern:/\b(southern|soul food|country cooking)\b/,
+      American:/\b(diner|steakhouse|grill|bistro|american)\b/
+    };
+    for(const [tag,re] of Object.entries(fallbackSignals))if(re.test(nameHay))add(tag,'name fallback');
   }
   return {tags:[...tags],evidence};
 }
