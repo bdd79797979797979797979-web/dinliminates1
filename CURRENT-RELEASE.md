@@ -4,7 +4,7 @@
 - Runtime target: Vercel
 - Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
 - Candidate promotion target: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 132
+- Current app build: Version 1.0 / Build 133
 - CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
@@ -119,3 +119,16 @@ Do not promote this candidate to Vercel production until the exact release commi
 - Pass Around: Quick Pass is the default faster majority mode; Full Pass is the optional original unanimous mode. Back undoes votes; the full-card swipe is preserved; Cancel exits without altering the main deck; the next completed pass rotates the starting voter.
 - Recovery: `checkpoint-cp260-current-pre-new-edits-2026-09-30`, `checkpoint-cp260-final-code-verified-2026-09-30`, `checkpoint-cp260-final-pre-test-2026-09-30`.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+
+## CP262 — UI, swipe, Pass Around, and image reliability
+- Food Quick Cuts reordered for the phone flow: American, Southern, Mexican, Italian, Asian, Pasta, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Liver & Onions: Southern + Healthy.
+- Spaghetti, Pasta Alfredo, Lasagna, and Chicken Parmesan: Pasta + Italian.
+- Add Food: Other remains optional and only appears as a Quick Cut after a custom food uses it.
+- Hungry winner: no Hide action; displays small `Fish Sticks?` text.
+- Restaurant Details icon remains inline to the right of cuisine.
+- App Diagnosis opens at a fixed final size to remove the small-to-large flash and uses teal styling.
+- Tinder card swipe surfaces suppress image dragging on phones.
+- Quick Pass remains the default; Full Pass is the optional original round-robin mode.
+- Build: **133**.
