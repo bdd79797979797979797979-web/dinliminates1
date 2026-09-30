@@ -1315,7 +1315,7 @@ function passCandidates() {
 return S.screen === 'restaurant' ? restaurantPoolFiltered() : S.pool;
 }
 function removePassSurface(){
-const el=document.querySelector('#passSurface'); if(!el)return; el._passSwipeCleanup?.(); el.remove();
+const el=document.querySelector('#passSurface'); if(el){el._passSwipeCleanup?.(); el.remove();} document.body.classList.remove('pass-active');
 }
 function openPassSurface(inner){
 removePassSurface();
@@ -1323,7 +1323,7 @@ const surface=document.createElement('section');
 surface.id='passSurface';
 surface.className='pass-surface';
 surface.innerHTML=inner;
-document.body.appendChild(surface);
+document.body.appendChild(surface); document.body.classList.add('pass-active');
 const gesture=surface.querySelector('#passGestureHit'),card=surface.querySelector('#passCard'),next=surface.querySelector('#passNextCard');
 if(gesture&&card){
 gesture.dataset.passSwipeBound='true';
