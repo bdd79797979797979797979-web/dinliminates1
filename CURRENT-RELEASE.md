@@ -2,11 +2,30 @@
 
 ## Source of truth
 - Runtime target: Vercel
-- Working/release branch: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 126
-- CP254 is the current green food-catalog and UI polish line.
+- Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
+- Candidate promotion target: `release-hardening-2026-09-29`
+- Current app build: Version 1.0 / Build 127
+- CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
+
+## CP258 changes
+- Expanded the built-in Food catalog from 67 to 90 choices.
+- Added Pot Pie, BLT, Reuben, Hot Dog, Corn Dog, Nachos, Orange Chicken, Chicken Teriyaki, Sushi, Pancakes, Omelet, Oatmeal, Shrimp, Crab Cakes, Gumbo, Chicken Nuggets, Ramen, Pimento Cheese Sandwich, Ice Cream, Protein Bar, Candy Bar, Banana, and Apple.
+- Renamed Mexican Stir Fry to Fajitas and kept it on the Mexican Quick Cut.
+- Removed the Food Greek Quick Cut and moved Gyro to Healthy only.
+- Added the requested 1–2 Quick Cut mappings for all new foods; sweets are included in Snack.
+- Updated Food editor/static/browser/image QA for the 90-food catalog.
+- Build metadata is now Version 1.0 / Build 127.
+
+## CP258 release gates
+- Static/data contract: updated; automated run pending.
+- Food image smoke: updated for 90 foods; automated run pending.
+- Browser smoke: updated for the 90-food catalog and new Quick Cut mappings; automated run pending.
+- Hosted Netlify smoke: pending CP258 preview confirmation.
+- Vercel preview: still subject to the account deployment-rate limit.
+- iPhone Safari certification: still required.
+- Third-party image rights review: still required.
 
 ## CP257 changes
 - Expanded the built-in Food catalog from 65 to 67 choices with Pork Tenderloin and White Fish.
