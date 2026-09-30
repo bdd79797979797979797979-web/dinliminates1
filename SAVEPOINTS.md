@@ -578,3 +578,9 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Fish Sticks moved to final catalog position; Gumbo and Roast Beef Sandwich + Chips are not duplicated.
 - Recovery: `checkpoint-cp259-food-catalog-added-2026-09-30`; `checkpoint-cp259-qa-ready-2026-09-30`.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+## CP260 — Quick Cut / Hungry cleanup
+- Liver & Onions now uses Southern + Healthy.
+- Food Quick Cuts reordered to American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Hungry winner shows “Fish Sticks?” and its Details view omits Hide.
+- Build 129; recovery points saved before and after product edits.
