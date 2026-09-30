@@ -44,3 +44,11 @@ const wendyAddressVariants=[
  {id:'wc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005,source:'ArcGIS'}
 ];
 assert.equal(dedupe(wendyAddressVariants).length,1,"Equivalent Wendy's addresses with state/road formatting differences must collapse to one venue");
+
+
+const countryAddressVariants=[
+ {id:'ca',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600},
+ {id:'cb',name:"Wendys",address:'2330 Madison Street, Clarksville, Tennessee, 37043 United States',lat:36.5302,lon:-87.3601},
+ {id:'cc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005}
+];
+assert.equal(dedupe(countryAddressVariants).length,1,"Country/state/road-format variants of the same Wendy's venue must collapse to one result");
