@@ -10,7 +10,7 @@ const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
 let APP_BUILD = '128';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
-const FOOD_QUICK = ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Snack','Potato'];
+const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
 const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','BBQ'];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
@@ -958,7 +958,9 @@ if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
 winImg.src = item.image || item.photo || HUNGRY_IMAGE;
 winImg.alt = item.name || 'Hungry';
-if ($('celebration')) $('celebration').classList.toggle('hidden', hungry || S.winnerType === 'restaurant'); if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
+if ($('celebration')) $('celebration').classList.toggle('hidden', hungry || S.winnerType === 'restaurant');
+ const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
+ if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
 save();
 }
 function openModal(id, title, body) {
@@ -1002,9 +1004,9 @@ function detailsSheet(item,type){
  const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
  const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div>'+(item.phone?'<div><span>Phone</span><b>'+esc(item.phone)+'</b></div>':'')+(item.address?'<div class="wide"><span>Address</span><b>'+esc(item.address)+'</b></div>':'')+'</div></div>':'';
  const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE,web=type==='restaurant'?(safeExternalUrl(item.website)||restaurantWebsiteUrl(item)):'';
- const body='<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+'<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+(type==='restaurant'?'<a class="detail-web-action" id="detailWeb" href="'+esc(web)+'" target="_blank" rel="noopener noreferrer" aria-label="Website">Website ↗</a>':'')+'</div></div>';
+ const body='<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+'<div class="detail-actions-row">'+(item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>')+(type==='restaurant'?'<a class="detail-web-action" id="detailWeb" href="'+esc(web)+'" target="_blank" rel="noopener noreferrer" aria-label="Website">Website ↗</a>':'')+'</div></div>';
  const modal=openModal('detailsModal','Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?(item.photo||item.image||''):foodPhoto(item),final);
- $('detailHide').onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
+ const detailHide=$('detailHide'); if(detailHide) detailHide.onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
 }
 function recordHistory(item, type) {
 const history = readHistory();
@@ -1108,7 +1110,7 @@ const isEdit=!!item;
 
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=['American','Southern','Pasta','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'];
+const cats=['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
 '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
