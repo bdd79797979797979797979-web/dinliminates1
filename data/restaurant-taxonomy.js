@@ -136,7 +136,7 @@ function searchAliasesFor(value){
 }
 
 function identityHay(row){
-  return normalizeRestaurantSearch([row?.category,row?.cuisine,row?.name,row?.brand,row?.operator].join(' '));
+  return normalizeRestaurantSearch([row?.category,row?.cuisine,row?.providerType,row?.primaryType,row?.types?.join?.(' '),row?.name,row?.brand,row?.operator].join(' '));
 }
 function isFastFood(row){
   const identity=identityHay(row);
@@ -164,9 +164,10 @@ function classifyRestaurant(row){
   if(profile)for(const tag of profile.tags)add(tag,'known identity');
 
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
-  const primary=rawCategory+' '+cuisineHay;
+  const providerTypeHay=normalizeRestaurantSearch([row?.providerType,row?.primaryType,row?.types?.join?.(' ')].join(' '));
+  const primary=rawCategory+' '+cuisineHay+' '+providerTypeHay;
   const providerRules={
-    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
+    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru|fast food restaurant|fast_food_restaurant)\b/,
     Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
     Pizza:/\bpizza\b|\bpizzeria\b|\bcalzone\b/,
     Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
