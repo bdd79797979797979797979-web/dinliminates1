@@ -234,22 +234,23 @@ async function googleSearchPlaces(lat,lon,radius,searchTerm){
  const term=normalizeSearchQuery(searchTerm),meters=Math.round(Math.min(50000,Math.max(1609,radius*1609.344))),rows=[],errors=[];
  if(!term)return googlePlaces(lat,lon,radius);
  const terms=providerSearchTerms(term);
- for(const termVariant of terms){
-  try{
-   const data=await json('https://places.googleapis.com/v1/places:searchText',{
-    method:'POST',
-    headers:{
+ const requests=await Promise.allSettled(terms.map(termVariant=>json('https://places.googleapis.com/v1/places:searchText',{
+   method:'POST',
+   headers:{
      'Content-Type':'application/json',
      'X-Goog-Api-Key':GOOGLE_KEY,
      'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types,places.currentOpeningHours.openNow,places.businessStatus'
-    },
-    body:JSON.stringify({
+   },
+   body:JSON.stringify({
      textQuery:termVariant+' restaurant',
      pageSize:20,
      locationBias:{circle:{center:{latitude:lat,longitude:lon},radius:meters}},
      regionCode:'US'
-    })
-   },6500);
+   })
+ },6500)));
+ for(const result of requests){
+   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'Google text search failed'));continue}
+   const data=result.value;
    for(const p of data?.places||[]){
     const loc=p?.location||{},plat=n(loc.latitude),plon=n(loc.longitude),name=String(p?.displayName?.text||'').trim();
     if(!name||!Number.isFinite(plat)||!Number.isFinite(plon))continue;
@@ -262,7 +263,6 @@ async function googleSearchPlaces(lat,lon,radius,searchTerm){
     if(distance>radius)continue;
     rows.push({id:p.id?'google-search-'+p.id:'google-search-'+norm(name)+'-'+plat.toFixed(5)+'-'+plon.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',address:String(p?.formattedAddress||''),phone:String(p?.nationalPhoneNumber||''),website:String(p?.websiteUri||''),opening_hours:'',openNow,hoursSource:typeof openNow==='boolean'?'Google Places':'',lat:plat,lon:plon,distance,photo:'',menuItems:[],brand:'',source:'Google Places Search'});
    }
-  }catch(e){errors.push(String(e?.message||e||'Google text search failed'));}
  }
  return{rows:dedupe(rows),errors};
 }
