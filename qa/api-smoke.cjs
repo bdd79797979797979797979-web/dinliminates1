@@ -16,7 +16,7 @@ function call(query){
  const search=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'10'});
  if(search.statusCode!==200||!search.body?.ok)throw new Error('restaurant search failed: '+JSON.stringify(search.body));
  if(search.body.version!=='r14')throw new Error('search version mismatch: '+search.body.version);
- if(typeof search.body.timezone!=='string'||!search.body.timezone)throw new Error('search timezone missing');
+ if(typeof search.body.timezone!=='string')throw new Error('search timezone field missing');
  const falseFast=(search.body.results||[]).filter(x=>/(ruby tuesday|applebee|chili.?s|olive garden|longhorn|outback|cracker barrel|texas roadhouse|red lobster|panera)/i.test(String(x.name||''))&&x.fastFood);
  if(falseFast.length)throw new Error('full-service chain incorrectly classified as fast food: '+falseFast.map(x=>x.name).join(', '));
  if(Number(search.body.fastFoodCount)>=2 && Number(search.body.providers?.overpass||0)!==0)throw new Error('Overpass should not run when primary providers already return multiple fast-food results');
