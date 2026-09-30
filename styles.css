@@ -1226,3 +1226,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 #restaurant .restaurant-card-details-utility:hover{color:#f1ddb0!important;border-color:#806942!important}
 #restaurant .restaurant-card-website-utility:hover{color:#d5edf6!important;border-color:#5c7887!important}
 @media(max-width:390px){#restaurant .restaurant-card-utilities{gap:6px!important}}
+
+/* CP463 — custom meal delete action */
+#manageFoodsModal .manage-delete{color:#d2a8a1!important;border-color:#5c3b37!important;background:linear-gradient(180deg,#211817,#151211)!important}
+#manageFoodsModal .manage-delete:hover{color:#efc6bf!important;border-color:#79504a!important;background:linear-gradient(180deg,#281c1a,#171311)!important}
+#manageFoodsModal .manage-delete:active{transform:translateY(1px) scale(.99)}
+#manageFoodsModal .manage-row-action{font-size:8.5px!important}
+@media(max-width:390px){#manageFoodsModal .manage-row-action{padding:0 7px!important;font-size:8px!important}}
