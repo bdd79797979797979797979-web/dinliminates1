@@ -6,10 +6,11 @@ const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi
 const TARGETED_FAST=["McDonald's","Taco Bell","Wendy's","Burger King","KFC","Chick-fil-A","Popeyes","Subway","Sonic","Arby's","Whataburger","Five Guys","Raising Cane's","Wingstop","Bojangles","Cook Out","Dairy Queen","Zaxby's","Church's Chicken","Captain D's","Long John Silver's","Jimmy John's","Jersey Mike's","Firehouse Subs","Little Caesars","Domino's","Papa John's","Pizza Hut","Marco's Pizza","Krystal","Steak 'n Shake","White Castle","Freddy's","In-N-Out","Carl's Jr.","Panda Express","Jack in the Box","Hardee's","Del Taco","Checkers","Rally's"];
 const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle)\b/i;
 const timezoneCache=new Map(),cache=new Map(),buckets=new Map();
-const SEARCH_BUDGET_MS=19000;
-const WIDE_DISCOVERY_RESERVE_MS=7000;
+const SEARCH_BUDGET_MS=12000;
+const WIDE_DISCOVERY_RESERVE_MS=4500;
 const WIDE_RADIUS_THRESHOLD=25;
-const OVERPASS_HTTP_TIMEOUT_MS=6200;
+const OVERPASS_HTTP_TIMEOUT_MS=4800;
+const MAX_SEARCH_PER_MINUTE=60;
 const GOOGLE_KEY=String(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY||'').trim();
 async function withinBudget(promise,ms,label){
  const wait=Math.max(250,ms);
@@ -34,7 +35,7 @@ function normalizeSearchQuery(s){return String(s||'').toLowerCase().replace(/[\u
 function searchRegex(value){return normalizeSearchQuery(value).split(' ').filter(Boolean).map(word=>word.split('').map(ch=>escapeOverpassRegex(ch)).join('[^a-z0-9]*')).join('[^a-z0-9]+')}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
 async function json(url,opt={},timeout=9000){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),timeout);try{const r=await fetch(url,{...opt,signal:ctl.signal,headers:{Accept:'application/json',...(opt.headers||{})}});const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}if(!r.ok)throw new Error('HTTP '+r.status);return data}finally{clearTimeout(t)}}
-function rate(req,mode){const headers=req?.headers||{},client=String(headers['x-forwarded-for']||headers['client-ip']||headers['x-nf-client-connection-ip']||headers['cf-connecting-ip']||'anon').split(',')[0].trim()||'anon',key=mode+':'+client,now=Date.now(),old=buckets.get(key),max=(mode==='suggest'||mode==='reverse'||mode==='resolve')?40:18;if(!old||now-old.t>60000){buckets.set(key,{t:now,c:1});return false}old.c++;return old.c>max}
+function rate(req,mode){const headers=req?.headers||{},client=String(headers['x-forwarded-for']||headers['client-ip']||headers['x-nf-client-connection-ip']||headers['cf-connecting-ip']||'anon').split(',')[0].trim()||'anon',key=mode+':'+client,now=Date.now(),old=buckets.get(key),max=(mode==='suggest'||mode==='reverse'||mode==='resolve')?40:(mode==='search'?MAX_SEARCH_PER_MINUTE:18);if(!old||now-old.t>60000){buckets.set(key,{t:now,c:1});return false}old.c++;return old.c>max}
 function osmRow(el,origin){const t=el?.tags||{},lat=n(el?.lat??el?.center?.lat),lon=n(el?.lon??el?.center?.lon),name=String(t.name||'').trim();if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;const amen=String(t.amenity||'restaurant').toLowerCase(),fast=amen==='fast_food'||isFastFoodName(name,String(t.brand||''),String(t.operator||''));let website=String(t.website||t['contact:website']||'').trim();if(website&&!/^https?:\/\//i.test(website))website='https://'+website;const key=norm(name)+'|'+lat.toFixed(4)+'|'+lon.toFixed(4);return{id:el?.osm_id?'osm-'+el.osm_id:'osm-'+key.replace(/ /g,'-'),name,category:fast?'Fast Food':(String(t.cuisine||'').trim()||'Restaurant'),fastFood:fast,cuisine:String(t.cuisine||''),address:[t['addr:housenumber'],t['addr:street'],t['addr:city'],t['addr:state'],t['addr:postcode']].filter(Boolean).join(', '),phone:String(t.phone||t['contact:phone']||''),website,opening_hours:String(t.opening_hours||''),lat,lon,distance:miles(origin.lat,origin.lon,lat,lon),photo:String(t.image||t.image_url||''),menuItems:[t.dish,t['dish:name'],t['menu:items'],t.menu_items].flatMap(v=>String(v||'').split(/[|;•,]/)).map(x=>x.trim()).filter(Boolean).slice(0,10),brand:String(t.brand||''),source:'OpenStreetMap'} }
 function queryClause(lat,lon,radius,types=DINING_AMENITIES){
  const m=Math.round(Math.min(50,radius)*1609.344);
@@ -401,7 +402,7 @@ function requestQuery(req){
  }
  try{return new URL(String(req?.url||'/'),'https://dinliminate.local').searchParams}catch{return new URLSearchParams()}
 }
-async function handler(req,res){const q=requestQuery(req),mode=String(q.get('mode')||'health').toLowerCase();if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Too many requests. Try again shortly.'});try{
+async function handler(req,res){const q=requestQuery(req),mode=String(q.get('mode')||'health').toLowerCase();if(mode!=='search'&&rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Too many requests. Try again shortly.'});try{
 if(mode==='health'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=60, s-maxage=60, stale-while-revalidate=120');return res.status(200).json({ok:true,version:API_VERSION,maxRadiusMiles:MAX_RADIUS,googlePlacesConfigured:!!GOOGLE_KEY,providers:['OpenStreetMap Overpass','ArcGIS','Photon',...(GOOGLE_KEY?['Google Places']:[]),'Open-Meteo timezone']});}
 if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');return res.status(200).json({ok:true,results:await suggest(q.get('q'))});}
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
@@ -412,11 +413,13 @@ if(mode==='search'){
  if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});
  const key=lat.toFixed(4)+':'+lon.toFixed(4)+':'+radius+':'+searchTerm,hit=cache.get(key);
  if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);
+ if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Restaurant search is temporarily busy. Please try again.',' Retry-After':'5'});
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');
  const timezonePromise=timezone(lat,lon);
  const wideSearch=radius>WIDE_RADIUS_THRESHOLD;
  const discoveryPlan=radiusDiscoveryPlan(lat,lon,radius);
  const primaryBudget=Math.max(9000,SEARCH_BUDGET_MS-(wideSearch?discoveryPlan.reserveMs:0));
+ const discoveryPromise=wideSearch||searchTerm ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
  const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]),Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
  const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
@@ -428,14 +431,21 @@ if(mode==='search'){
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
  let osmOut={rows:[],errors:[]};
  const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
- if(needsOverpass){
-  const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
-  const discoveryBudget=wideSearch?Math.min(discoveryPlan.reserveMs,remaining):remaining;
-  if(discoveryBudget>1200){
-    const got=await withinBudget(wideSearch?wideRadiusOverpass(lat,lon,radius,searchTerm):overpass(lat,lon,radius,'restaurant|fast_food',searchTerm),discoveryBudget,wideSearch?'Wide radius discovery timed out':'Overpass expansion timed out');
-    if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
-    else osmOut.errors.push(wideSearch?'Wide radius discovery timed out':'Overpass expansion timed out');
-  }else osmOut.errors.push('Search budget reached before restaurant discovery expansion.');
+ if(discoveryPromise){
+   const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+   const discoveryBudget=wideSearch?Math.min(discoveryPlan.reserveMs,remaining):Math.min(5000,remaining);
+   if(discoveryBudget>1200){
+     const got=await withinBudget(discoveryPromise,discoveryBudget,wideSearch?'Wide radius discovery timed out':'Provider-backed query expansion timed out');
+     if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
+     else osmOut.errors.push(wideSearch?'Wide radius discovery timed out':'Provider-backed query expansion timed out');
+   }else osmOut.errors.push('Search budget reached before provider expansion.');
+ }else if(needsOverpass){
+   const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+   if(remaining>1200){
+     const got=await withinBudget(overpass(lat,lon,radius,'restaurant|fast_food',searchTerm),Math.min(5000,remaining),'Overpass expansion timed out');
+     if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
+     else osmOut.errors.push('Overpass expansion timed out');
+   }else osmOut.errors.push('Search budget reached before restaurant discovery expansion.');
  }
  let contactOut={rows:[],errors:[]};
  const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
@@ -448,14 +458,14 @@ if(mode==='search'){
    .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
    .slice(0,12);
  const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
- if(contactAllowed&&missingContactNames.length&&contactRemaining>2200){
+ if(contactAllowed&&missingContactNames.length&&contactRemaining>2600){
    const expandedNames=[...new Set(contactCandidates.filter(r=>missingContactNames.some(n=>norm(n)===norm(r.name))).flatMap(r=>[r.name,r.brand,r.operator]).filter(Boolean))].slice(0,24);
    const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),expandedNames),contactRemaining,'Restaurant contact enrichment timed out');
    if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
   }
  let googleContactOut={rows:[],errors:[]};
  const contactRemaining2=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
- if(contactAllowed&&GOOGLE_KEY&&contactRemaining2>3000){
+ if(contactAllowed&&GOOGLE_KEY&&contactRemaining2>3600){
    const got=await withinBudget(googleContactEnrichment(dedupe([...contactCandidates,...contactOut.rows]),lat,lon),contactRemaining2,'Google contact enrichment timed out');
    if(got&&!got.__timeout)googleContactOut=got; else googleContactOut.errors.push('Google contact enrichment timed out');
  }
@@ -469,5 +479,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchQueryClause};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchQueryClause,rate};
 module.exports=handler;
