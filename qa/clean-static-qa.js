@@ -5,7 +5,7 @@ for(const s of ['Dinner Decisions Simplified','Choose a food','Find a restaurant
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r16'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r17'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
@@ -69,7 +69,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r16'"),'Restaurant API should report r16 after the search hardening pass');
+assert(api.includes("const API_VERSION='r17'"),'Restaurant API should report r16 after the search hardening pass');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
@@ -159,7 +159,7 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '137'"),'Current release build should be 137');
+assert(app.includes("let APP_BUILD = '138'"),'Current release build should be 138');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
 assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
 
