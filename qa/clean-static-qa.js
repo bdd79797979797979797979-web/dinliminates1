@@ -237,5 +237,5 @@ console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
 
 assert(fs.readFileSync('vercel.json','utf8').includes('"api/image.js"') && fs.readFileSync('vercel.json','utf8').includes('"maxDuration": 10'),'Vercel image proxy function must have a 10-second max duration');
 
-assert(css.includes('#diagnosisModal{min-height:78svh'),'App Diagnosis must open at its final size without a small-to-large flash');
+assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classList.add('diagnosis-modal')"),'App Diagnosis must use only the existing Settings modal shell');
 assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
