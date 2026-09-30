@@ -214,8 +214,11 @@ await click('#settings'); await settle();
 assert.equal(await visible('settingsModal'),true,'Settings should open');
 assert.equal(await page.locator('#appDiagnosis').count(),1,'Settings should include App Diagnosis');
 await click('#appDiagnosis'); await settle();
-assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Settings'); assert.equal(await page.locator('#settingsModal').count(),0,'Settings overlay should close before App Diagnosis opens');
-assert.ok((await page.locator('#diagnosisModal').boundingBox())?.height>500,'App Diagnosis should open at its full-size layout without a small flash'); assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
+assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Settings');
+assert.equal(await page.locator('#settingsModal').count(),0,'App Diagnosis should replace the Settings modal shell rather than leaving a second window');
+assert.equal(await page.locator('#diagnosisModal').count(),1,'App Diagnosis should use exactly one modal element');
+assert.ok((await page.locator('#diagnosisModal').boundingBox())?.height>500,'App Diagnosis should open at its full-size layout without a small flash');
+assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
 assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
@@ -223,7 +226,8 @@ await click('#diagnosisRefresh'); assert.equal(await page.locator('#diagnosisRef
 assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should remain open after Run again');
 assert.ok((await page.locator('#diagnosisRunStatus').innerText()).includes('complete'),'Diagnosis should show which run just completed');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
-await page.locator('#settingsModal [data-close]').click(); await settle();
+assert.equal(await page.locator('#diagnosisModal').count(),0,'Closing App Diagnosis should remove the single modal cleanly');
+assert.equal(await page.locator('#settingsModal').count(),0,'Closing App Diagnosis should not leave a stale Settings modal');
 await click('#foodMenu'); await settle();
 
 await click('#drawerClose'); await settle();
@@ -301,7 +305,8 @@ assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant dupli
 assert.match(await page.locator('#diagnosisModal').innerText(),/Current restaurant pool/i,'Restaurant App Diagnosis should report the current pool');
 assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
 await page.locator('#diagnosisModal [data-close]').click(); await settle();
-await page.locator('#settingsModal [data-close]').click(); await settle();
+assert.equal(await page.locator('#diagnosisModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
+assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
 const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
 const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
 assert.equal(restaurantCountStyle.background,'rgba(0, 0, 0, 0)','Restaurant count should not render as a colored pill');
