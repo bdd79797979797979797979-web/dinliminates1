@@ -149,6 +149,31 @@ assert.equal(s.locationSource,'address');
 assert.equal(await page.locator('#address').inputValue(),'801 Iron Workers Rd, Clarksville, TN 37043');
 report["2_search_address"].directEnter=true;
 
+// Enter Address behavior: a partial/ambiguous-looking input with visible suggestions should choose the top suggestion;
+// a complete-looking street address should resolve the typed value directly.
+assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron'),false);
+assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron Workers Rd, Clarksville, TN 37043'),true);
+
+await page.locator('#address').fill('801 Iron');
+await page.waitForSelector('#suggestionsBox button',{state:'visible'});
+await page.locator('#address').press('Enter');
+await waitForRestaurant();
+s=await snap();
+assert.equal(s.locationSource,'address');
+assert.equal(await page.locator('#address').inputValue(),'801 Iron Workers Rd, Clarksville, TN 37043');
+report["2_search_address"].partialEnterSelectsTopSuggestion=true;
+
+await page.locator('#address').fill('801 Iron Workers Rd, Clarksville, TN 37043');
+await page.waitForSelector('#suggestionsBox button',{state:'visible'});
+await page.locator('#address').press('Enter');
+await waitForRestaurant();
+s=await snap();
+assert.equal(s.locationSource,'address');
+assert.equal(await page.locator('#address').inputValue(),'801 Iron Workers Rd, Clarksville, TN 37043');
+assert.ok((await page.locator('#suggestionsBox').getAttribute('hidden'))!==null,'Suggestions should be dismissed after direct Enter resolution.');
+report["2_search_address"].completeEnterResolvesDirectly=true;
+report["2_search_address"].enterBehavior='Partial/ambiguous-looking input selects visible top suggestion; complete-looking street address resolves directly.';
+
 // 2b. Cuisine/category regression: Thirsty Goat may be tagged fast food by a provider but is a pizza venue.
 const thirstyGoat=allResults.find(x=>x.id==='thirsty-goat');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),thirstyGoat),'Pizza');
