@@ -116,6 +116,7 @@ Recovery rule: return to `checkpoint-cp257-catalog-and-details-2026-09-29` if a 
 ## CP258 — Expanded Food catalog and Quick Cut cleanup
 Working branch: `cp258-food-catalog-expansion-2026-09-30`
 Build: 1.0 / 127
+CI trigger: CP258 is included in the full clean-qa push trigger.
 
 Recovery points:
 - Pre-edit: `recovery-cp258-before-new-foods-2026-09-30`
