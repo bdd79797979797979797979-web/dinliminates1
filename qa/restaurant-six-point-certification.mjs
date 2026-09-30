@@ -157,6 +157,38 @@ assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuic
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),false);
 report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Quick Cut matches while the incorrect provider fast-food tag is ignored for this known venue.';
 
+// 2c. Deep Restaurant Quick Cut association matrix.
+// Identity/category/cuisine should drive primary associations; one incidental menu item must not create a cuisine tag.
+const associationCases=[
+ {name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',menuItems:['Big Mac','Fries'],yes:['Fast Food','Burgers'],no:['Pizza','Italian','Seafood']},
+ {name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',menuItems:['Tacos'],yes:['Fast Food','Mexican'],no:['Italian','Seafood']},
+ {name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',menuItems:['Waffles'],yes:['American','Breakfast'],no:['Mexican','Pizza']},
+ {name:'Olive Garden',category:'Restaurant',fastFood:false,cuisine:'italian',menuItems:['Pasta'],yes:['Italian'],no:['Seafood','Mexican']},
+ {name:'Red Lobster',category:'Restaurant',fastFood:false,cuisine:'seafood',menuItems:['Shrimp'],yes:['Seafood'],no:['Italian','Mexican']},
+ {name:'Joe\\'s Pizza',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Pizza'],no:['Mexican','Seafood']},
+ {name:'American Grill',category:'American',fastFood:false,cuisine:'american',menuItems:['Burger'],yes:['American'],no:['Burgers']},
+ {name:'Main Street Restaurant',category:'American',fastFood:false,cuisine:'american',menuItems:['Shrimp'],yes:['American'],no:['Seafood']},
+ {name:'The Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',menuItems:[],yes:['Pizza'],no:['Fast Food']},
+ {name:'Smokehouse Kitchen',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['BBQ'],no:['Seafood']},
+ {name:'Southern Home Cooking',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Southern'],no:['BBQ']},
+ {name:'Tokyo Ramen',category:'Restaurant',fastFood:false,cuisine:'',menuItems:['Ramen','Sushi'],yes:['Asian'],no:['Mexican']},
+ {name:'Casa Cafe',category:'Restaurant',fastFood:false,cuisine:'',menuItems:['Tacos','Burritos'],yes:['Mexican'],no:['Italian']},
+ {name:'Pasta Corner',category:'Restaurant',fastFood:false,cuisine:'',menuItems:['Pasta','Ravioli'],yes:['Italian'],no:['Mexican']},
+ {name:'Neighborhood Cafe',category:'American',fastFood:false,cuisine:'american',menuItems:['Pasta'],yes:['American'],no:['Italian']},
+ {name:'Seafood & Grill',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Seafood'],no:[]}
+];
+for(const row of associationCases){
+ const tags=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCuisineTags(row),row);
+ for(const label of row.yes)assert.ok(tags.includes(label),row.name+' should match '+label+'; got '+JSON.stringify(tags));
+ for(const label of row.no)assert.equal(tags.includes(label),false,row.name+' should not match '+label+'; got '+JSON.stringify(tags));
+}
+const evidence=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCuisineEvidence(row),associationCases.find(x=>x.name==="Joe's Pizza"));
+assert.ok(evidence.Pizza?.includes('restaurant name'),'Quick Cut evidence should identify Joe\\'s Pizza by restaurant name');
+const weakMenu=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCuisineTags(row),{name:'Neighborhood Cafe',category:'Restaurant',cuisine:'',fastFood:false,menuItems:['Shrimp']});
+assert.equal(weakMenu.includes('Seafood'),false,'One incidental menu item must not create Seafood');
+report["2_search_address"].quickCutAssociationMatrix={cases:associationCases.length,identityFirst:true,weakMenuGuard:true,evidenceHook:true};
+
+
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
 const radii=[1,3,5,10,25,50];
