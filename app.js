@@ -536,6 +536,40 @@ function milesBetween(lat1,lon1,lat2,lon2){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
  return 2*R*Math.asin(Math.sqrt(z));
 }
+function restaurantNameFamily(value){
+ return normKey(String(value||'').replace(/[’']s\b/gi,' '));
+}
+function restaurantAddressFamily(value){
+ const replacements={street:'st',road:'rd',avenue:'ave',boulevard:'blvd',drive:'dr',lane:'ln',parkway:'pkwy',highway:'hwy',route:'rte',circle:'cir',court:'ct',place:'pl',trail:'trl',terrace:'ter'};
+ return normKey(value).split(' ').map(x=>replacements[x]||x).join(' ');
+}
+function dedupeRestaurantPool(rows){
+ const out=[];
+ for(const row of (rows||[])){
+  if(!row)continue;
+  const name=restaurantNameFamily(row.name),address=restaurantAddressFamily(row.address||'');
+  const phone=String(row.phone||'').replace(/\D/g,'').slice(-10),website=String(row.website||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/\/$/,'');
+  const lat=Number(row.lat),lon=Number(row.lon);
+  let match=out.find(x=>{
+   const xn=restaurantNameFamily(x.name),xa=restaurantAddressFamily(x.address||'');
+   const xp=String(x.phone||'').replace(/\D/g,'').slice(-10),xw=String(x.website||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/\/$/,'');
+   const dist=milesBetween(x.lat,x.lon,lat,lon);
+   const sameName=!!name&&name===xn;
+   const variant=(name&&xn&&(name.includes(xn)||xn.includes(name))&&Math.min(name.split(' ').length,xn.split(' ').length)>=2);
+   const sameAddr=!!address&&!!xa&&address===xa;
+   const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
+   const close=Number.isFinite(dist)&&dist<=0.35;
+   return (sameContact&&close)||(sameAddr&&(sameName||variant))||(sameName&&close);
+  });
+  if(!match){out.push({...row});continue;}
+  match.fastFood=match.fastFood||row.fastFood;
+  if(typeof row.openNow==='boolean' && typeof match.openNow!=='boolean')match.openNow=row.openNow;
+  for(const key of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!match[key]&&row[key])match[key]=row[key];
+  match.menuItems=[...new Set([...(Array.isArray(match.menuItems)?match.menuItems:[]),...(Array.isArray(row.menuItems)?row.menuItems:[])])].slice(0,10);
+  match.distance=Math.min(Number(match.distance)||Infinity,Number(row.distance)||Infinity);
+ }
+ return out.sort((a,b)=>Number(a.distance)-Number(b.distance));
+}
 function restaurantCanonicalId(row){
 const name=normKey(row?.name);
 const address=normKey(row?.address);
@@ -849,8 +883,11 @@ S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||18000;
 const previousOrigin=S.restaurantSearchOrigin;
 const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
 const previousRows=sameSearchOrigin?(S.restaurantPool||[]).map(row=>({...row,distance:milesBetween(row.lat,row.lon,loc.lat,loc.lon)})).filter(row=>Number.isFinite(Number(row.distance))&&Number(row.distance)<=radius):[];
-const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false}));
-S.restaurantPool = uniq([...incomingRows,...previousRows]);
+const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
+ const dist=milesBetween(row.lat,row.lon,loc.lat,loc.lon);
+ return !Number.isFinite(dist) || dist<=radius+0.05;
+});
+S.restaurantPool = dedupeRestaurantPool([...incomingRows,...previousRows]);
 S.restaurantSearchOrigin = {lat:Number(loc.lat),lon:Number(loc.lon)};
 S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantMaybeRound = false;
 renderHours(); S.winnerItem = null;
@@ -1478,7 +1515,7 @@ $('radius').addEventListener('change', () => {
  if(!hasLocation){$('status').textContent='Enter an address or use your location.';renderFindButton();return;}
  searchRestaurants();
 });
-$('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
+$('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; S.restaurantSearchOrigin=null; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
 $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
 $('address').addEventListener('keydown', e => {
 if(e.key==='ArrowDown'){ if(moveSuggestion(1)){e.preventDefault();return;} }
