@@ -615,3 +615,12 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
 
 - CP261 Netlify sync trigger: current PR head was explicitly re-touched to force the Netlify Deploy Preview to rebuild from the latest commit.
+
+
+## CP262 — Final UI/reliability savepoint
+- Build 133.
+- Diagnosis modal size flash removed; teal Diagnosis styling.
+- 116 foods and requested Quick Cut mappings retained.
+- Phone swipe hardening and Quick/Full Pass modes retained.
+- Vercel image proxy remains enabled.
+- Recovery: `checkpoint-cp262-final-teal-swipe-2026-09-30`.
