@@ -361,6 +361,10 @@ assert(app.includes("restaurant-card-utilities+'</div>" )||app.includes('cardDet
 assert(api.includes('function restaurantStreetKey(value)'),'Restaurant API must compare canonical street identity for partial address dedupe');
 assert(app.includes('function restaurantStreetFamily(value)'),'Browser Restaurant layer must compare canonical street identity for partial address dedupe');
 assert(html.includes('Dinner Simplified') && !html.includes('Dinner Decisions Simplified'),'Home headline must be Dinner Simplified');
+assert(api.includes('sameNameStreet=sameName&&sameStreet&&originDistanceClose'),'Restaurant dedupe must collapse same-name same-street venues when displayed distance matches.');
+assert(app.includes('sameNameStreet=!!sameName&&sameStreet&&originDistanceClose'),'Browser Restaurant dedupe must mirror same-street distance matching.');
+assert(api.includes('providerType')&&api.includes('primaryType'),'Restaurant provider type metadata must be preserved for cuisine inference.');
+assert(app.includes("return raw&&/^(restaurant|eatery|food)$/i.test(raw)?'American':(raw||'American')"),'Restaurant card category must use a useful fallback instead of generic Restaurant where possible.');
 assert(api.includes('function restaurantNameKey(value)'),'Restaurant API must normalize apostrophe-s and plain name variants consistently');
 assert(app.includes("replace(/[’']s\\b/gi,'s')"),'Browser Restaurant names must normalize Wendy’s and Wendys consistently');
 assert(api.includes('sameName && !conflictingAddress && dist<=0.08'),'Restaurant API same-name dedupe must use a tight same-venue distance threshold');
