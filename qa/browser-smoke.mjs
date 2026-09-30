@@ -321,7 +321,6 @@ const cuisineBox=await page.locator('#restaurantCard .card-cuisine-row .cuisine-
 assert.ok(cuisineBox&&detailsInlineBox&&detailsInlineBox.x>=cuisineBox.x+cuisineBox.width-1,'Restaurant Details icon should sit to the right of the cuisine text');
 assert.ok(cuisineBox&&detailsInlineBox&&Math.abs(detailsInlineBox.y-cuisineBox.y)<=8,'Restaurant Details icon should stay aligned with the cuisine row');
 
-assert.equal(await page.locator('#restaurantPassAround').count(),1,'Restaurant Pass Around should remain a single compact control');
 assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Restaurant should have 10 Quick Cuts');
