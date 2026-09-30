@@ -402,6 +402,7 @@ function dedupe(rows){
       x.fastFood=x.fastFood||r.fastFood;
       if(typeof r.openNow==='boolean' && (typeof x.openNow!=='boolean' || String(r.source||'').startsWith('Google')))x.openNow=r.openNow;
       for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!x[f]&&r[f])x[f]=r[f];
+      if(!x.googlePlaceId&&r.googlePlaceId)x.googlePlaceId=r.googlePlaceId;
       x.menuItems=[...new Set([...(x.menuItems||[]),...(r.menuItems||[])])].slice(0,10);
       if(!x.hoursSource&&r.hoursSource)x.hoursSource=r.hoursSource;
     }
