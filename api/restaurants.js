@@ -434,6 +434,8 @@ function sameRestaurant(x,r){
   const variant=nameVariantMatch(x.name,r.name);
   const sameNameFamily=sameName||variant;
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
+  const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
+  const rowIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(r);
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
   const sameAddress=!!ax&&!!ar&&ax===ar;
@@ -442,7 +444,9 @@ function sameRestaurant(x,r){
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
   const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
+  const sameCanonicalIdentity=!!identityKey&&identityKey===rowIdentityKey&&dist<=3;
   if(sameAddress && (sameNameFamily||sameBrand))return true;
+  if(sameCanonicalIdentity)return true;
   if(sameNameStreet)return true;
   if(sameName && !conflictingAddress && dist<=0.08)return true;
   if(sameContact(x,r) && !conflictingAddress && dist<=0.12)return true;
