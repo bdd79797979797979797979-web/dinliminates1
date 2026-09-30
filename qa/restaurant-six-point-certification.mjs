@@ -206,7 +206,7 @@ s=await snap();
 assert.deepEqual(s.restaurantPool,['taco']);
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='mexican'));
 report["4_search_restaurants"].mexican=s.restaurantPool;
-await page.locator('#restaurantQuery').fill(''); await page.waitForTimeout(700);
+await page.locator('#restaurantQuery').fill(''); await waitForRestaurant();
 
 // Hours data-model contract: explicit normalized state is used, provider openNow remains supported, and unknown is preserved.
 const openFixture=allResults.find(x=>x.id==='mcd');
