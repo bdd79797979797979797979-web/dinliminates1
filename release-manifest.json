@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 169,
-  "sourceBranch": "cp464-wendys-street-title-choose-meal-review-2026-09-30",
+  "build": 170,
+  "sourceBranch": "cp465-unified-add-meal-category-photo-plan-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP464"
+  "checkpoint": "CP465"
 }
