@@ -137,7 +137,7 @@ assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork'
 
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,87,'Potato Quick Cut should remove only Potato-mapped foods');
+const potatoMappedCount=Object.values(requestedCatalog).filter(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Potato')).length; assert.equal(s.foodPool.length,116-potatoMappedCount,'Potato Quick Cut should remove exactly the foods explicitly mapped to Potato');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
