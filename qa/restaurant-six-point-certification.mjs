@@ -37,10 +37,10 @@ const allResults=[
  {id:'thirsty-goat',name:'Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',distance:7,address:'450 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:[],photo:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85'},
  {id:'american',name:'American Grill',category:'American',fastFood:false,cuisine:'american',distance:24,address:'500 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Chicken','Burger'],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
  {id:'italian',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:49,address:'600 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Pasta'],photo:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=85'},
- {id:'asian',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:50,address:'700 Madison St, Clarksville, TN',website:'',phone:'',opening_hours:'',menuItems:['Noodles'],photo:'https://images.unsplash.com/photo-1515669097368-22e681b4d36c?auto=format&fit=crop&w=1200&q=85'},
+ {id:'asian',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:50,address:'700 Madison St, Clarksville, TN',website:'',phone:'',opening_hours:'',hoursState:'unknown',hoursSource:'provider-missing',menuItems:['Noodles'],photo:'https://images.unsplash.com/photo-1515669097368-22e681b4d36c?auto=format&fit=crop&w=1200&q=85'},
  {id:'bbq',name:'Clarksville BBQ',category:'BBQ',fastFood:false,cuisine:'bbq',distance:75,address:'800 BBQ Rd, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['BBQ'],photo:'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=85'},
  {id:'seafood',name:'Seafood Dock',category:'Seafood',fastFood:false,cuisine:'seafood',distance:99,address:'900 River Rd, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Fish'],photo:'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=1200&q=85'},
- {id:'closed',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:5.5,address:'1000 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:false,menuItems:[],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
+ {id:'closed',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:5.5,address:'1000 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:false,hoursState:'closed',hoursSource:'provider-normalized',menuItems:[],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
 ];
 
 page.on('pageerror',e=>pageErrors.push(String(e)));
@@ -204,6 +204,15 @@ assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='mexican'));
 report["4_search_restaurants"].mexican=s.restaurantPool;
 await page.locator('#restaurantQuery').fill(''); await page.waitForTimeout(700);
 
+// Hours data-model contract: explicit normalized state is used, provider openNow remains supported, and unknown is preserved.
+const openFixture=allResults.find(x=>x.id==='mcd');
+const closedFixture=allResults.find(x=>x.id==='closed');
+const unknownFixture=allResults.find(x=>x.id==='asian');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),openFixture),'open');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),closedFixture),'closed');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknownFixture),'unknown');
+report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
+
 // 5. Hours: Open/Unknown excludes explicit closed; All restores it; unknown remains.
 report["5_open_all"]={};
 await page.locator('#hoursToggle').click(); await settle();
@@ -229,6 +238,8 @@ const unknown=allResults.find(x=>x.id==='asian');
 const unknownState=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknown);
 assert.equal(unknownState,'unknown');
 report["5_open_all"].unknownPreserved=true;
+assert.equal((await page.locator('#status').getAttribute('data-hoursVisible')),String(openVisibleCount),'Hours status visible count must match the current filtered restaurant count.');
+report["5_open_all"].statusVisibleCountVerified=true;
 
 // 6. All ten Quick Cuts: verify they render as photos and each toggled cut changes the active filter.
 report["6_quick_cuts"]={};
