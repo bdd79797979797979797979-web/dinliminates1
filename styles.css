@@ -1213,3 +1213,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .detail-hide-action{color:#d4a7a0}
 .restore{color:#c7ab73!important}
 .danger-lite{color:#d3a59c!important}
+
+/* CP459 — premium Retry Search treatment */
+.premium-retry{min-height:44px;padding:0 15px;border-radius:999px;background:linear-gradient(180deg,#e2cf9e,#b99658)!important;color:#17130d!important;border:1px solid #d9bd80!important;box-shadow:0 9px 22px #0007!important;font-size:10px;font-weight:900;letter-spacing:.02em}
+.premium-retry:hover{background:linear-gradient(180deg,#eadbb3,#c7a96a)!important;border-color:#ead39d!important}
+.premium-retry:active{transform:translateY(1px) scale(.99)}
