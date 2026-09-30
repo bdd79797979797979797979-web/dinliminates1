@@ -60,6 +60,12 @@ The automated inventory is complete. The legal/usage verification of the non-app
 
 
 ## CP258 new food images
-All CP258 additions currently use HTTPS Pexels image URLs in the catalog for the newly added food choices. The exact source URL is stored with each item in `data/foods.js` and is covered by the image smoke audit.
+CP258 additions use HTTPS food image URLs stored with each item in `data/foods.js` and covered by the image smoke audit. Most additions use Pexels; Gumbo uses the existing SnapCalorie image host already tracked below.
 
 Added-image IDs: pot-pie, blt, reuben, hot-dog, corn-dog, nachos, orange-chicken, chicken-teriyaki, sushi, pancakes, omelet, oatmeal, shrimp, crab-cakes, gumbo, chicken-nuggets, ramen, pimento-cheese-sandwich, ice-cream, protein-bar, candy-bar, banana, apple.
+
+
+## CP258 image corrections after CI
+- Pork Tenderloin: Pexels photo 792027 after the original 341044 CDN URL returned HTTP 404 in CI. Pexels identifies 792027 as a pork tenderloin dish. citeturn618106search7
+- Sushi: Pexels photo 6249504; Pexels identifies it as assorted sushi rolls. citeturn618106search17
+- Gumbo: SnapCalorie `gumbo_with_rice.jpg`, retained under the already-listed `snapcalorie-webflow-website.s3.us-east-2.amazonaws.com` host; usage review remains required before public distribution.
