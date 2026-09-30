@@ -777,3 +777,10 @@
 .round-add-food span{font-size:22px!important;font-weight:500!important;line-height:1!important}
 .round-add-food:active{transform:scale(.94)!important}
 @media(max-width:390px){.food-swipe-actions{grid-template-columns:40px 60px 60px 40px 38px!important;gap:11px!important}.round-add-food{width:38px!important;height:38px!important;min-height:38px!important}.round-add-food span{font-size:20px!important}}
+
+/* CP292 — use the recovered bottom space to enlarge the Food card while keeping the whole iPhone screen visible */
+#food.decision-screen{min-height:100svh!important}
+#food .stage{padding-top:0!important;align-items:center;min-height:0}
+#food .swipe-card-stack{aspect-ratio:3/4.8!important;max-height:68svh!important}
+#food .swipe-card-stack>.card{max-height:68svh!important}
+@media(max-width:390px){#food .swipe-card-stack{aspect-ratio:3/4.75!important;max-height:67svh!important}#food .swipe-card-stack>.card{max-height:67svh!important}}
