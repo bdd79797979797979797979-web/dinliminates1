@@ -10,7 +10,7 @@ assert(release.build===169 && release.checkpoint==='CP464','release.json must id
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
-for(const s of ['Dinner Decisions Simplified','Choose a meal','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
+for(const s of ['Dinner Simplified','Choose a meal','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
@@ -339,7 +339,7 @@ assert(app.includes("(q||'restaurant')+' restaurant website'"),'Restaurant Websi
 assert(api.includes("Country,Phone,URL"),'Restaurant provider lookup should request phone/URL metadata where available');
 assert(api.includes("attrs.Phone||attrs.phone") && api.includes("attrs.URL||attrs.Url||attrs.url"),'Restaurant API should preserve provider phone and website metadata');
 assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
-assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('Add to iPhone'),'Current Home copy must be present');
+assert(!html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('Add to iPhone'),'Current Home copy must be present');
 
 // CP323 Restaurant Details visibility contract
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
