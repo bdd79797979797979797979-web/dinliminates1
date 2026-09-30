@@ -6,7 +6,6 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
 let APP_BUILD = '133';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
@@ -1228,71 +1227,108 @@ function diagnosisRestaurantDuplicates(rows){
  return out;
 }
 async function appDiagnosisView(existingModal=null){
- const body='<div class="diagnosis-wrap" style="min-height:min(68vh,620px)"><div id="diagnosisBody" aria-busy="true"><p class="status">Running diagnostics…</p></div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Ready</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" aria-label="Run diagnostics again">↻ Run again</button></div></div>';
+ const shellClass='diagnosis-modal';
+ const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-loading"><span class="diagnosis-spinner" aria-hidden="true"></span><b>Checking Dinliminate…</b><small>Testing the current app, device runtime, and restaurant service.</small></div></div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Ready</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" aria-label="Run diagnostics again">↻ Run again</button></div></div>';
  const modal=existingModal||openModal('diagnosisModal','App Diagnosis',body);
+ modal.classList.add(shellClass);
  if(existingModal){
   const head=modal.querySelector('.modal-head');
   [...modal.children].forEach(child=>{if(child!==head)child.remove();});
   const title=head?.querySelector('h3');
-  if(title){title.textContent='App Diagnosis';title.id='diagnosisModalTitle';}
-  modal.id='diagnosisModal';
-  modal.setAttribute('aria-labelledby','diagnosisModalTitle');
-  const bg=document.getElementById('settingsModalBg');
-  if(bg)bg.id='diagnosisModalBg';
+  if(title){title.textContent='App Diagnosis';}
+  const close=head?.querySelector('[data-close]');
+  if(close)close.setAttribute('aria-label','Close App Diagnosis');
   modal.insertAdjacentHTML('beforeend',body);
  }
  let running=false,run=0;
  const render=async()=>{
   if(running||!document.body.contains(modal))return;running=true;run++;
   const refresh=$('diagnosisRefresh'),runStatus=$('diagnosisRunStatus'),diagnosisBody=$('diagnosisBody');
-  if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ RUNNING…';}
-  if(runStatus){runStatus.textContent='Run '+run+' selected · checking now…';runStatus.classList.add('running');}
+  if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ Checking…';}
+  if(runStatus){runStatus.textContent='Run '+run+' · checking…';runStatus.classList.add('running');}
   if(diagnosisBody)diagnosisBody.setAttribute('aria-busy','true');
-  const checks=[],pass=(l,d)=>checks.push({state:'ok',label:l,detail:d}),warn=(l,d)=>checks.push({state:'warn',label:l,detail:d}),info=(l,d)=>checks.push({state:'info',label:l,detail:d}),fail=(l,d)=>checks.push({state:'fail',label:l,detail:d});
+  const checks=[];
+  const add=(section,state,label,detail)=>checks.push({section,state,label,detail});
+  const pass=(s,l,d)=>add(s,'ok',l,d), warn=(s,l,d)=>add(s,'warn',l,d), info=(s,l,d)=>add(s,'info',l,d), fail=(s,l,d)=>add(s,'fail',l,d);
+  const sectionLabels={core:'Core app',food:'Food system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
   try{
-   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])),required=[
-    ['lasagna','Lasagna',['Pasta']],['vegetable-lasagna','Vegetable Lasagna',['Pasta','Healthy']],
-    ['salisbury-steak','Salisbury Steak',['Southern','American']],['stuffed-peppers','Stuffed Peppers',['Healthy','American']]
-   ];
-   const missing=required.filter(([id])=>!byId.has(id)).map(([id])=>id);
-   const wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
-   const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
-    const cerealRename=byId.get('cheerios')?.name==='Cereal';
-    const healthShakeReady=!!byId.get('health-shake')?.ingredients?.length&&!!byId.get('health-shake')?.nutrition&&!!byId.get('health-shake')?.recipe&&byId.get('health-shake')?.quickCuts?.includes('Healthy');
-   missing.length||wrongCuts.length||frozen||!cerealRename||!healthShakeReady?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':'',!healthShakeReady?'Health Shake details/Healthy Quick Cut data is incomplete.':''].filter(Boolean).join(' ')):pass('Food catalog contract','116 foods loaded; requested foods present; Stouffer’s absent.');
-   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake','homemade-pizza','mac-cheese','chicken-parmesan','country-fried-chicken'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
-    const imageIdsExpected={'tacos':'14179985','stir-fry':'31673757','meatloaf':'2397401','buttermilk-cornbread':'6525832','potato-soup':'29653177','stuffed-peppers':'goodnes.com','stroganoff':'20234576','health-shake':'7974814','lasagna':'29174061','vegetable-lasagna':'5864352','grilled-salmon':'14542171','bbq-pulled-pork':'7181419','homemade-pizza':'7813574','meatball-subs':'commons.wikimedia.org/wiki/Special:FilePath/Meatball_Sub','sausage-peppers':'38085038','pork-tenderloin':'341044','white-fish':'36378584','salisbury-steak':'commons.wikimedia.org/wiki/Special:FilePath/Salisbury'};
-    const staleImages=Object.entries(imageIdsExpected).filter(([id,photoId])=>!String(byId.get(id)?.image||'').includes(photoId)).map(([id])=>id);
-   imageMissing.length||staleImages.length?fail('Food image catalog',[imageMissing.length?'Missing/invalid image URL: '+imageMissing.join(', '):'',staleImages.length?'Stale/unexpected photo mapping: '+staleImages.join(', '):''].filter(Boolean).join(' ')):pass('Food image catalog','All requested food photo mappings are present and current.');
-   const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
-   const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true');
-   broken.length?fail('Visible image rendering',broken.length+' visible image(s) have no decoded pixels.'):fallbacked.length?info('Visible image rendering',fallbacked.length+' visible image(s) are using the built-in local fallback; this is intentional.'):imgs.length?pass('Visible image rendering',imgs.length+' visible image(s) decoded successfully.'):info('Visible image rendering','No image-bearing surface is currently visible.');
+   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])), ids=foods.map(x=>x.id), duplicateFoodIds=ids.length-new Set(ids).size;
+   duplicateFoodIds?fail('food','Food catalog','Duplicate food IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Food catalog',foods.length+' built-in foods loaded; IDs are unique.');
+   const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
+   invalidFood.length?fail('food','Food details',invalidFood.length+' food(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Food details','All '+foods.length+' built-in foods have required Details data.');
+   const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
+   const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
+   missingQuickImages.length?fail('food','Food Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Food Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom food uses it.'):pass('food','Food Quick Cuts','Food Quick Cut mappings and photo sources are present.');
+   const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Healthy']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['Healthy','American']],['health-shake',['Healthy']]];
+   const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
+   quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Foods and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Food Quick Cut mappings match the current catalog.');
+   const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
+   staleNames.length?fail('food','Removed choices','Stouffer/frozen-dinner data is still present.','Remove the legacy choice from the catalog.'):pass('food','Removed choices','Legacy Stouffer/frozen-dinner choice is absent.');
+   const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCut','foodMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
+   foodVisible&&foodControls<5?fail('food','Food decision controls',foodControls+'/5 required controls are present.','Cut, Maybe, Back, Hide, and Details should all be available.'):pass('food','Food decision controls','Core Food decision and Details controls are wired.');
+   const visibleImgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=visibleImgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=visibleImgs.filter(i=>i.dataset.imageFallback==='true');
+   broken.length?fail('runtime','Visible images',broken.length+' visible image(s) have failed to decode.','Check the affected photo source or fallback mapping.'):fallbacked.length?warn('runtime','Visible images',fallbacked.length+' visible image(s) are currently using a fallback image.','The app is protected from broken images, but the original source should be reviewed.'):info('runtime','Visible images',visibleImgs.length+' visible image(s) are available to inspect on this screen.');
+   const restaurants=S.restaurantPool||[],restaurantIds=restaurants.map(x=>x.id||x.name),restaurantDuplicates=diagnosisRestaurantDuplicates(restaurants),fastFood=restaurants.filter(x=>x.fastFood).length;
+   restaurantDuplicates.length?warn('restaurant','Restaurant duplicates',restaurantDuplicates.length+' possible duplicate venue pair(s) are in the current pool.','Examples: '+restaurantDuplicates.slice(0,3).map(x=>x[0]+' ↔ '+x[1]+' ('+x[2].toFixed(1)+' mi)').join(' · ')+' . Review only if they are truly the same venue.'):pass('restaurant','Restaurant duplicates','No likely duplicates detected in the current pool.');
+   const restQuickCount=document.querySelectorAll('#restQuick [data-rest-quick]').length,restQuickMissing=REST_QUICK.filter(x=>!REST_QUICK_IMAGES[x]);
+   restQuickMissing.length?fail('restaurant','Restaurant Quick Cuts','Missing photo mapping: '+restQuickMissing.join(', '),'Fix the affected Quick Cut source mapping.'):restQuickCount<REST_QUICK.length?info('restaurant','Restaurant Quick Cuts',restQuickCount+' rendered in the page shell; '+REST_QUICK.length+' are defined.'):pass('restaurant','Restaurant Quick Cuts',REST_QUICK.length+' Quick Cuts are defined with photo mappings.');
+   const restVisible=!!document.querySelector('#restaurant:not(.hidden)'),restControls=['restCut','restMaybe','restBack','restDetails'].filter(id=>$(id)).length;
+   restVisible&&restControls<4?fail('restaurant','Restaurant decision controls',restControls+'/4 required controls are present.','Cut, Maybe, Back, and Details should all be available.'):pass('restaurant','Restaurant decision controls','Core Restaurant decision and Details controls are wired.');
+   S.restaurantSearchDegraded?warn('restaurant','Search quality state','The last restaurant search was marked degraded.','Run a fresh search; if it repeats, inspect the search service/provider path.'):info('restaurant','Search quality state','No degraded-search flag is currently set.');
+   restaurants.length?pass('restaurant','Current restaurant pool',restaurants.length+' result(s) loaded · '+fastFood+' marked fast food.','Only the currently loaded pool is being measured here.'):info('restaurant','Current restaurant pool','No restaurant results are loaded right now.','This is normal on the home screen; run a restaurant search to test the live result pool.');
+   const source=S.locationSource||'none';
+   S.location&&Number.isFinite(Number(S.location.lat))&&Number.isFinite(Number(S.location.lon))?pass('restaurant','Location state','A usable location is currently selected ('+source+').','The diagnosis does not replace or change your selected location.'):info('restaurant','Location state','No usable restaurant-search location is currently stored.','This is not an error until you try to search; choose an address or Use My Location on the Restaurant screen.');
+   try{
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health&diagnosis='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(tm);
+    const d=await rr.json().catch(()=>null);
+    rr.ok&&d?.ok?pass('restaurant','Search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
+   }catch(e){warn('restaurant','Search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
+   let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
+   storageOk?pass('runtime','Local storage','Browser storage is accessible.','Food choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
+   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom food photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
+   navigator.onLine?pass('runtime','Network','Browser reports online.','Restaurant search and third-party images still depend on their services.'):warn('runtime','Network','Browser reports offline.','Restaurant search and remote images may not work until connectivity returns.');
+   const sw='serviceWorker' in navigator;
+   sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
    const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
-   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
-   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Runtime release identity','Local QA server returned Build '+String(d.build||'unknown')+'; hosted deployment identity is checked by CI.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.'));}else warn('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Release metadata is not available in this runtime context.');}
-   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
-   try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal});clearTimeout(tm);const d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','Healthy · provider runtime '+String(d.version||'unknown')+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','HTTP '+rr.status+'.'));}catch{(location.hostname==='localhost'||location.hostname==='127.0.0.1')?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','Health check failed or timed out.');}
-   pass('Decision model','Cut lowers the active count; Maybe/Keep stays in the count and is recycled into the narrowing pass.');
-   pass('Final choice model','With one choice left: Cut opens Hungry; Maybe/Keep selects the winner and enables Share.');
-   pass('Details controls','Food and restaurant Details use a compact 28px crisp list-details icon with card-copy breathing room and an accessible label.');
-   S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
-   pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
-   pass('Persistence','History, hidden choices, custom foods, and settings persist locally.');
-   pass('PWA shell','Service-worker support is '+('serviceWorker' in navigator?'available.':'not available in this browser.'));
-   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
-   info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
-   info('Image licensing','Pexels photo availability is tested here; third-party rights review remains a separate launch gate.');
-   info('Browser certification','CI checks differ from real iPhone Safari certification.');
-  }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
-  const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length;
+   ox||oy?warn('runtime','Viewport fit','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport fit','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
+   const requiredIds=['foodQuick','restQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails','restCut','restMaybe','restBack','restDetails'];
+   const missingUi=requiredIds.filter(id=>!$(id));
+   missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Food/Restaurant decision and Quick Cut elements are present.');
+   const persistedMaybe=Array.isArray(S.maybe)?S.maybe.size:0;
+   const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
+   pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Food Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
+   try{
+    const [localResponse,apiResponse]=await Promise.all([
+      fetch('./release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}).then(async r=>({ok:r.ok,status:r.status,data:await r.json().catch(()=>null)})).catch(()=>({ok:false,status:0,data:null}))
+    ]);
+    const localBuild=String(localResponse?.build||''),apiBuild=String(apiResponse?.data?.build||''),apiBranch=String(apiResponse?.data?.branch||apiResponse?.data?.sourceBranch||'');
+    if(localBuild && apiResponse.ok && apiBuild && localBuild===apiBuild){
+      pass('release','Release identity','Build '+localBuild+' · source '+String(localResponse.sourceBranch||apiBranch||'unknown')+'.','The browser manifest and release API agree on the build.');
+    }else if(!apiResponse.ok){
+      warn('release','Release identity','Release API returned HTTP '+apiResponse.status+'.','The local release file is available, but hosted runtime identity could not be confirmed from this browser.');
+    }else{
+      fail('release','Release identity','Release metadata disagrees: local '+localBuild+' vs API '+apiBuild+'.','Do not treat the hosted build as verified until the release metadata matches.');
+    }
+   }catch{warn('release','Release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
+   const manifest=(()=>{try{return JSON.parse(document.querySelector('link[rel="manifest"]')?.href?'{}':'{}')}catch{return null}})();
+   info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
+   info('core','Pass Around','Removed from the current build.','The normal Food and Restaurant Tinder-style decision flow is now the group-free path.');
+  }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
+  const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length,infos=checks.filter(x=>x.state==='info').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW NEEDED':'HEALTHY';
-  const bodyEl=$('diagnosisBody');
-  if(bodyEl){bodyEl.setAttribute('aria-busy','false');bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis · '+overall+'</b><span>Run '+run+' · '+failures+' failed · '+warnings+' actionable warnings · '+passing+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');}
+  const bySection=[];
+  for(const c of checks){let sec=bySection.find(x=>x.id===c.section);if(!sec){sec={id:c.section,items:[]};bySection.push(sec);}sec.items.push(c);}
+  const stateIcon={ok:'✓',warn:'!',fail:'×',info:'i'};
+  const sectionHtml=bySection.map(sec=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+esc(sectionLabels[sec.id]||sec.id)+'</b><span>'+sec.items.filter(x=>x.state==='fail').length+' failed · '+sec.items.filter(x=>x.state==='warn').length+' warnings</span></div>'+sec.items.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark" aria-hidden="true">'+stateIcon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'</section>').join('');
+  if(diagnosisBody){diagnosisBody.setAttribute('aria-busy','false');diagnosisBody.innerHTML='<div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot '+(failures?'bad':warnings?'warn':'good')+'" aria-hidden="true"></span><div><b>'+esc(overall)+'</b><small>'+failures+' failed · '+warnings+' warnings · '+passing+' passing · '+infos+' informational</small></div><strong>Run '+run+'</strong></div>'+sectionHtml+'<p class="diagnosis-footnote">Green means this runtime verified the check. Yellow means the app is usable but something deserves review. Red means the diagnosis found a concrete problem. Informational items are deliberately not counted as failures.</p>';}
   if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').setAttribute('aria-pressed','false');$('diagnosisRefresh').classList.remove('selected');$('diagnosisRefresh').classList.add('complete');$('diagnosisRefresh').textContent='↻ Run again';}
   if(document.body.contains(modal)&&$('diagnosisRunStatus')){$('diagnosisRunStatus').textContent='✓ Run '+run+' complete · '+(failures?'action needed':warnings?'review needed':'no actionable warnings');$('diagnosisRunStatus').classList.remove('running');}
   running=false;
  };
- $('diagnosisRefresh').onclick=()=>render();render();return modal;
+ $('diagnosisRefresh').onclick=()=>render();
+ render();
+ return modal;
 }
 function privacyView() {
 const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your food choices, hidden items, history, and custom-food information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and food images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>';
