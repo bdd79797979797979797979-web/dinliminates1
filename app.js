@@ -652,7 +652,7 @@ function dedupeRestaurantPool(rows){
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
+   const sameNameStreet=sameStreet&&originDistanceClose&&partialAddress&&(variant||sameName);
    return sameAddr&&sameNameFamily
      || (sameCanonicalIdentity&&canonicalClose)
      || sameNameStreet
