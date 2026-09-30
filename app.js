@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '149';
+let APP_BUILD = '150';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -769,7 +769,7 @@ function restaurantHoursFilter(row){
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
- const radius=Math.min(100,Number($('radius')?.value)||10);
+ const radius=Math.min(50,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
  const states={open:0,unknown:0,closed:0};
  for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
@@ -1232,15 +1232,13 @@ function setRestaurantHoursMode(mode){
  save();
 }
 function renderHours(){
- const openBtn=$('hoursOpenUnknown'),allBtn=$('hoursAll');
- if(!openBtn||!allBtn)return;
- const openMode=S.hoursMode==='openUnknown';
- openBtn.classList.toggle('active-tool',openMode);
- allBtn.classList.toggle('active-tool',!openMode);
- openBtn.setAttribute('aria-pressed',String(openMode));
- allBtn.setAttribute('aria-pressed',String(!openMode));
- openBtn.setAttribute('aria-label','Show open and unknown-hour restaurants');
- allBtn.setAttribute('aria-label','Show all restaurants including closed');
+ const btn=$('hoursToggle');
+ if(!btn)return;
+ const allMode=S.hoursMode==='all';
+ btn.textContent=allMode?'All':'Open/Unknown';
+ btn.classList.toggle('active-tool',!allMode);
+ btn.setAttribute('aria-pressed',String(!allMode));
+ btn.setAttribute('aria-label',allMode?'Show open and unknown-hour restaurants':'Show all restaurants including closed');
 }
 let restaurantQueryTimer = 0;
 function scheduleRestaurantProviderSearch(){
@@ -1271,12 +1269,9 @@ $('restaurantQuery').oninput=()=>{
      if(String(S.restaurantQuery||'').trim())searchRestaurants();
    }
  };
- const hoursOpenBtn=$('hoursOpenUnknown'),hoursAllBtn=$('hoursAll');
- if(hoursOpenBtn){
-   hoursOpenBtn.onclick=e=>{e.preventDefault();e.stopPropagation();setRestaurantHoursMode('openUnknown');};
- }
- if(hoursAllBtn){
-   hoursAllBtn.onclick=e=>{e.preventDefault();e.stopPropagation();setRestaurantHoursMode('all');};
+ const hoursToggle=$('hoursToggle');
+ if(hoursToggle){
+   hoursToggle.onclick=e=>{e.preventDefault();e.stopPropagation();setRestaurantHoursMode(S.hoursMode==='all'?'openUnknown':'all');};
  }
  renderHours();
 }
