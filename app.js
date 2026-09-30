@@ -10,7 +10,8 @@ const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
 let APP_BUILD = '131';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
-const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
+const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'];
+const foodQuickLabels=()=>S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other'))?[...FOOD_QUICK,'Other']:FOOD_QUICK;
 const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','BBQ'];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
@@ -301,7 +302,7 @@ S.pool = foodPool();
 S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
 }
 function foodQuick() {
-$('foodQuick').innerHTML = FOOD_QUICK.map(label => {
+$('foodQuick').innerHTML = foodQuickLabels().map(label => {
 const cut = S.cutCats.has(label);
 const src=QUICK_IMAGES[label] || QUICK_IMAGES.American;
 return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
@@ -397,36 +398,50 @@ function foodBack(){
 
 function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
- const next=$(nextId);let downX=0,active=false,committed=false;
+ const next=$(nextId);
+ let downX=0,active=false,committed=false,pointerId=null,suppressClickUntil=0;
  card.style.touchAction='none';
  const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
- const cleanup=()=>{document.removeEventListener('pointerup',finish,true);document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('mouseup',finishMouse,true);document.removeEventListener('touchend',finishTouch,true);};
+ const cleanup=()=>{
+  try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
+  pointerId=null;
+ };
+ const cancel=()=>{if(!active)return;active=false;committed=false;cleanup();reset();};
  const commit=(dx)=>{
-  if(committed)return;committed=true;active=false;cleanup();
-  card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-  const action=dx<0?onCut:onMaybe;setTimeout(()=>{reset();action();},80);
+  if(committed||!active)return;
+  committed=true;active=false;cleanup();suppressClickUntil=Date.now()+350;
+  card.style.transition='transform .16s ease,opacity .16s ease';
+  card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+  const action=dx<0?onCut:onMaybe;
+  window.setTimeout(()=>{reset();action();},100);
  };
  const finish=(e)=>{
   if(!active)return;
   const dx=Number(e?.clientX||downX)-downX;
-  if(Math.abs(dx)>90)commit(dx);else{active=false;cleanup();reset();}
+  if(Math.abs(dx)>=90)commit(dx);else{active=false;cleanup();reset();}
  };
- function finishMouse(e){finish(e);}
- function finishTouch(e){const t=e.changedTouches?.[0];if(t)finish(t);}
- function cancel(){if(!active)return;active=false;cleanup();reset();}
  card.onpointerdown=e=>{
+  if(e.isPrimary===false)return;
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
-  downX=e.clientX;active=true;committed=false;card.dataset.swipe='';
-  document.addEventListener('pointerup',finish,true);document.addEventListener('pointercancel',cancel,true);document.addEventListener('mouseup',finishMouse,true);document.addEventListener('touchend',finishTouch,{capture:true,passive:true});
+  downX=e.clientX;active=true;committed=false;pointerId=e.pointerId;card.dataset.swipe='';
+  try{card.setPointerCapture?.(e.pointerId);}catch{}
+  if(e.cancelable)e.preventDefault();
  };
  card.onpointermove=e=>{
-  if(!active)return;
+  if(!active||e.isPrimary===false||e.pointerId!==pointerId)return;
   const dx=e.clientX-downX;
-  if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}
-  if(Math.abs(dx)>=90)commit(dx);
+  if(Math.abs(dx)>8){
+   if(e.cancelable)e.preventDefault();
+   card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+   card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+   card.dataset.swipe=dx<0?'cut':'maybe';
+  }
  };
- card.onpointerup=finish;card.onpointercancel=cancel;
+ card.onpointerup=e=>finish(e);
+ card.onpointercancel=cancel;
+ card.onlostpointercapture=()=>{if(active)cancel();};
+ card.onclick=e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}};
 }
 function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
@@ -1114,11 +1129,12 @@ const isEdit=!!item;
 
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
+const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'];
+const quickCats=[...cats,'Other'];
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
 '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
-'<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+quickCats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
@@ -1151,7 +1167,8 @@ if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
 }
-buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
+if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other')))S.cutCats.delete('Other');
+buildFood(); foodQuick(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
 
 
 if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
@@ -1358,8 +1375,8 @@ return surface;
 function passSetup() {
 const counts=[2,3,4,5,6,7,8];
 const modes=[
- {id:'quick',label:'Quick Pass',desc:'Faster default. A choice survives a majority; the round moves on as soon as the outcome is decided.'},
- {id:'full',label:'Full Pass',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
+ {id:'quick',label:'Quick Pass · Default',desc:'Faster default. A choice survives a majority; the round moves on as soon as the outcome is decided.'},
+ {id:'full',label:'Full Pass · Original',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
 ];
 S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick';
 const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Use the same Tinder-style Cut / Keep decisions, but let the group narrow the choices together.</p><div class="pass-mode" role="radiogroup" aria-label="Pass Around mode">'+modes.map(m=>'<button type="button" class="pass-mode-option '+(S.passDraftMode===m.id?'selected':'')+'" data-pass-mode="'+m.id+'" aria-pressed="'+(S.passDraftMode===m.id)+'"><strong>'+m.label+'</strong><span>'+m.desc+'</span></button>').join('')+'</div><div class="pass-count-label">People</div><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass')+'</button></div>');
@@ -1409,7 +1426,7 @@ const imageFallback=S.screen==='restaurant'?(item.photo||item.image||REST_QUICK_
 const modeTitle=p.mode==='quick'?'QUICK PASS':'FULL PASS';
 const modeHint=p.mode==='quick'?'Majority decides early.':'Everyone must keep a choice.';
 const tally=p.mode==='quick'?(vote.keep+' keep · '+vote.cut+' cut · need '+vote.threshold+' keep'):((vote.cut>0)?'Any Cut removes this choice.':'All players must Keep.');
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>'+modeTitle+' · CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p><p class="pass-rule">'+esc(modeHint)+' '+esc(tally)+'</p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep · Back = Undo</div><div class="pass-actions"><button class="secondary" id="passBack" aria-label="Undo last vote">↶</button><button class="cut" id="passCut" aria-label="Cut this choice">✕</button><button class="maybe" id="passKeep" aria-label="Keep this choice">♥</button></div></div>');
+const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Cancel Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>'+modeTitle+' · CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p><p class="pass-rule">'+esc(modeHint)+' '+esc(tally)+'</p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep · Back = Undo</div><div class="pass-actions"><button class="secondary" id="passBack" aria-label="Undo last vote">↶</button><button class="cut" id="passCut" aria-label="Cut this choice">✕</button><button class="maybe" id="passKeep" aria-label="Keep this choice">♥</button></div></div>');
 $('passClose').onclick=()=>endPass();
 $('passBack').onclick=passUndo;
 $('passCut').onclick=()=>passVote(false);
@@ -1480,10 +1497,9 @@ save();
 }
 function endPass(){
 const p=S.pass;if(!p)return;
-const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
-S.pass=null;removePassSurface(); S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
-if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
-else {S.pool=rows;S.index=0;drawFood();}
+S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
+if(p.type==='restaurant'){S.restaurantIndex=Math.min(S.restaurantIndex,Math.max(0,S.restaurantPool.length-1));}
+else {S.index=Math.min(S.index,Math.max(0,S.pool.length-1));}
 save();
 }
 $('foodStart').onclick = startFood;
