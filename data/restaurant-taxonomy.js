@@ -147,7 +147,12 @@ function searchAliasesFor(value){
 }
 
 function identityHay(row){
-  return normalizeRestaurantSearch([row?.category,row?.cuisine,row?.name,row?.brand,row?.operator].join(' '));
+  return normalizeRestaurantSearch([
+    row?.category,row?.cuisine,row?.name,row?.brand,row?.operator,
+    row?.primaryType,row?.type,row?.amenity,row?.providerType,
+    ...(Array.isArray(row?.types)?row.types:[]),
+    ...(Array.isArray(row?.providerTypes)?row.providerTypes:[])
+  ].filter(Boolean).join(' '));
 }
 function isFastFood(row){
   const identity=identityHay(row);
@@ -177,7 +182,7 @@ function namesOverlap(a,b){
 function classifyRestaurant(row){
   const rawCategory=normalizeRestaurantSearch(row?.category);
   const cuisineHay=normalizeRestaurantSearch(row?.cuisine);
-  const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
+  const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator,row?.providerType,row?.primaryType].filter(Boolean).concat(Array.isArray(row?.types)?row.types:[]).join(' '));
   const identity=identityHay(row);
   const tags=new Set();
   const evidence={};
