@@ -6,7 +6,7 @@ assert.equal(typeof t.nameVariantMatch,'function','name variant test hook requir
 assert.equal(typeof t.normAddress,'function','normAddress test hook required');
 
 const rows=[
- {id:'osm-heads',name:"Head's BBQ",address:'100 Main St, Clarksville, TN 37043',lat:36.5300,lon:-87.3400,distance:.2,source:'OpenStreetMap',fastFood:false,menuItems:[],photo:''},
+ {id:'osm-heads',name:"Head's BBQ",address:'100 Main Rd, Clarksville, TN 37043',lat:36.5300,lon:-87.3400,distance:.2,source:'OpenStreetMap',fastFood:false,menuItems:[],photo:''},
  {id:'arc-robert-heads',name:'Robert Head’s BBQ',address:'100 Main St, Clarksville, TN 37043',lat:36.5307,lon:-87.3403,distance:.2,source:'ArcGIS POI',fastFood:false,menuItems:[],photo:'better'},
  {id:'osm-chris',name:"Chris Pizza",address:'200 College St, Clarksville, TN 37043',lat:36.5310,lon:-87.3390,distance:.3,source:'OpenStreetMap',fastFood:false,menuItems:[],photo:''},
  {id:'pho-chris',name:"Chris's Pizza",address:'200 College St, Clarksville, TN 37043',lat:36.5314,lon:-87.3392,distance:.3,source:'Photon POI',fastFood:false,menuItems:['pizza'],photo:''},
