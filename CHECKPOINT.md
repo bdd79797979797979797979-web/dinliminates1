@@ -151,3 +151,13 @@ Deployment:
 - Hungry winner: small “Fish Sticks?” prompt; Details has no Hide button.
 - Build 129.
 - Recovery: `checkpoint-cp260-pre-hungry-quickcuts-2026-09-30`, `checkpoint-cp260-product-changes-2026-09-30`.
+
+
+## CP260 — Pass Around rebuild
+- Build 130.
+- Liver & Onions uses Southern + Healthy Quick Cuts.
+- Hungry Details omits Hide; Hungry winner shows small “Fish Sticks?” text.
+- Restaurant Details icon is positioned immediately to the right of cuisine.
+- App Diagnosis is green.
+- Quick Pass is the default; Full Pass is the optional original mode.
+- Recovery point: `checkpoint-cp260-pass-around-tested-2026-09-30` and final CP260 commit below.
