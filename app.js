@@ -67,7 +67,8 @@ restaurantSearchDegraded:false,
 winnerItem:null,
 winnerType:'food',
 schemaVersion:4,
-restaurantTimezone:''
+restaurantTimezone:'',
+restaurantSearchOrigin:null
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com']);
 function imageProxyUrl(raw){
@@ -1420,7 +1421,7 @@ else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToa
 function resetRound(){
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.deleted.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
+S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 home();
 }
