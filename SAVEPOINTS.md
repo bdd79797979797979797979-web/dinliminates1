@@ -598,3 +598,18 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Final recovery branch: `checkpoint-cp260-final-verified-2026-09-30`.
 
 - CP261 Build 131 final source commit: `51579fe6318d73813db9a3b3956457affc35a0ed`; recovery branch to be anchored after documentation sync.
+
+
+## CP260 — Final phone-first verification
+- Build **132**.
+- Food Quick Cuts reordered: American, Southern, Mexican, Italian, Asian, Pasta, Soup/Stew, Healthy, Breakfast, Potato, Snack.
+- Liver & Onions: Southern + Healthy.
+- Spaghetti, Pasta Alfredo, Lasagna, Chicken Parmesan: Pasta + Italian.
+- Custom Food Quick Cut “Other” is optional and appears in the global Food Quick Cuts only after a custom food uses it.
+- Hungry screen: black Hungry artwork with small “Fish Sticks?”; Hungry Details has no Hide.
+- Restaurant Details icon is inline with and to the right of cuisine.
+- App Diagnosis is green.
+- Tinder swipe path uses pointer capture to reduce missed/duplicate touch events.
+- Pass Around defaults to Quick Pass, keeps Full Pass as the optional original mode, supports Back/Undo, rotates starting voter after completed sessions, and Cancel leaves the main deck unchanged.
+- Recovery: `checkpoint-cp260-final-code-verified-2026-09-30` and `checkpoint-cp260-current-pre-new-edits-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
