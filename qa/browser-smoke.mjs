@@ -268,6 +268,18 @@ await page.locator('#detailsModal [data-close]').click(); await settle();
 
 
 await click('#foodBackTop'); await settle();
+const contactResolution=await page.evaluate(()=>{const t=window.__DINLIMINATE_TEST__;return {
+  mcd:t?.knownRestaurantWebsite({name:"McDonald's"}),
+  mcdBrand:t?.knownRestaurantWebsite({name:'Local Store',brand:"McDonald's"}),
+  google:t?.restaurantWebsiteUrl({name:'Local Restaurant',address:'100 Main St, Clarksville, TN',website:''}),
+  rejectedApp:t?.restaurantWebsiteUrl({name:"McDonald's",address:'100 Main St, Clarksville, TN',website:location.origin}),
+  phoneSearch:t?.restaurantPhoneSearchUrl({name:"McDonald's",address:'1265 Rossview Rd, Clarksville, TN 37043'})
+};});
+assert.equal(contactResolution.mcd,'https://www.mcdonalds.com',"McDonald's must resolve to its official website");
+assert.equal(contactResolution.mcdBrand,'https://www.mcdonalds.com',"Known brand matches must resolve to the official website");
+assert.match(contactResolution.google||'',/google\.com\/search\?q=/,'Unknown restaurants must use Google Search as website fallback');
+assert.match(contactResolution.rejectedApp||'',/google\.com\/search\?q=/,'A bad/app website URL must be rejected in favor of Google Search');
+assert.match(contactResolution.phoneSearch||'',/google\.com\/search\?q=.*phone%20number/,'Missing phone data must get a Google phone-number lookup fallback');
 await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
