@@ -21,6 +21,11 @@ assert.equal(result.homeVisible,true,'Home screen must be visible on the live Ne
 assert.equal(result.homeText,'Dinner Decisions Simplified','Live Netlify preview must render the current home screen');
 assert.equal(pageErrors.length,0,'Live Netlify preview must have no page errors');
 assert.equal(result.badResponses.length,0,'Live Netlify preview must not request missing assets or receive HTTP errors');
+const appSource=await page.evaluate(async()=>{const r=await fetch('/app.js?v=328&sourcecheck='+Date.now(),{cache:'no-store'});const t=await r.text();return {status:r.status,hasNewDetails:t.includes('restaurant-detail-contact-muted')&&t.includes("type==='restaurant'?'Restaurant Details':'Details'"),hasPhoneFallback:t.includes('Phone</span><strong>Not available')};});
+console.log('Live app source details check:',JSON.stringify(appSource));
+assert.equal(appSource.status,200,'Live Netlify app.js must return HTTP 200');
+assert.equal(appSource.hasNewDetails,true,'Live Netlify preview must serve the current Restaurant Details implementation');
+assert.equal(appSource.hasPhoneFallback,true,'Live Netlify preview must serve the current Phone fallback markup');
 
 const suggestResponse=await page.evaluate(async()=>{const r=await fetch('/api/restaurant-search?mode=suggest&q=Main%20Street%20Clarksville%20TN',{cache:'no-store'});return {status:r.status,body:await r.json().catch(()=>null)}});
 assert.equal(suggestResponse.status,200,'Live Netlify address-suggest route must return HTTP 200');
