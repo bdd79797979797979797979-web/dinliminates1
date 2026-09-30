@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=463'),'App script must use the CP455 cache-busting query');
-assert(release.build===168 && release.checkpoint==='CP463','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=464'),'App script must use the CP455 cache-busting query');
+assert(release.build===169 && release.checkpoint==='CP464','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -355,6 +355,9 @@ assert(api.includes("tennessee:'tn'"),'Restaurant API address normalization must
 assert(app.includes("tennessee:'tn'"),'Browser Restaurant address normalization must equate Tennessee and TN');
 assert(!app.includes('cardPhoneAction'),'Restaurant cards must not render a phone icon action');
 assert(app.includes("restaurant-card-utilities+'</div>" )||app.includes('cardDetailsAction+cardWebsite'),'Restaurant card utility order must be Details then Website');
+assert(api.includes('function restaurantStreetKey(value)'),'Restaurant API must compare canonical street identity for partial address dedupe');
+assert(app.includes('function restaurantStreetFamily(value)'),'Browser Restaurant layer must compare canonical street identity for partial address dedupe');
+assert(html.includes('Dinner Simplified') && !html.includes('Dinner Decisions Simplified'),'Home headline must be Dinner Simplified');
 assert(api.includes('function restaurantNameKey(value)'),'Restaurant API must normalize apostrophe-s and plain name variants consistently');
 assert(app.includes("replace(/[’']s\\b/gi,'s')"),'Browser Restaurant names must normalize Wendy’s and Wendys consistently');
 assert(api.includes('sameName && !conflictingAddress && dist<=0.08'),'Restaurant API same-name dedupe must use a tight same-venue distance threshold');
