@@ -416,6 +416,18 @@ function sameContact(x,r){
   return false;
 }
 function restaurantNameKey(value){return norm(String(value||'').replace(/[’']s\b/gi,'s'));}
+function restaurantNameKeys(value){
+  const raw=String(value||'');
+  return [...new Set([
+    norm(raw),
+    norm(raw.replace(/[’']s\b/gi,'')),
+    norm(raw.replace(/[’']/g,''))
+  ].filter(Boolean))];
+}
+function namesOverlap(a,b){
+  const A=new Set(restaurantNameKeys(a)),B=restaurantNameKeys(b);
+  return [...A].some(x=>B.includes(x));
+}
 function restaurantStreetKey(value){
   const raw=normAddress(value||'');
   if(!raw)return '';
@@ -425,7 +437,7 @@ function restaurantStreetKey(value){
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
-  const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
+  const sameName=namesOverlap(x.name,r.name);
   const variant=nameVariantMatch(x.name,r.name);
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
@@ -435,7 +447,7 @@ function sameRestaurant(x,r){
   const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameNameStreet=sameName&&sameStreet&&partialAddress&&((Number.isFinite(dist)&&dist<=0.15)||originDistanceClose);
+  const sameNameStreet=sameName&&sameStreet&&((Number.isFinite(dist)&&dist<=0.20)||originDistanceClose);
   if(sameAddress && (sameName||variant||sameBrand))return true;
   if(sameNameStreet)return true;
   if(sameName && !conflictingAddress && dist<=0.08)return true;
@@ -649,5 +661,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,restaurantStreetKey,addressHasStreetNumber,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,restaurantNameKeys,namesOverlap,restaurantStreetKey,addressHasStreetNumber,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
 module.exports=handler;
