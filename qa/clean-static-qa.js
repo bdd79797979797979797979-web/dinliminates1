@@ -128,9 +128,9 @@ for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','S
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
 assert(app.includes('function restaurantPoolBase()') && app.includes('function updateRestaurantStatus()'),'Restaurant filters need a shared pre-hours pool and visible count status.');
-assert(app.includes("if(/thirsty goat/.test(nameHay)) return 'Pizza';"),'Known pizza venue correction must override an incorrect fast-food provider tag.');
-assert(app.includes('function restaurantIsFastFood(row)') && app.includes("if(/thirsty goat/.test(hay)) return false;"),'Known pizza venue correction must also prevent the incorrect Fast Food quick cut from removing the venue.');
-assert(app.includes("if (label === 'Pizza')") && app.includes("/thirsty goat/.test(nameHay)"),'Pizza Quick Cut must match known pizza venues independently of primary category.');
+assert(app.includes('function restaurantCuisineTags(row)') && app.includes('return tags.includes(label);'),'Restaurant Quick Cuts must use independent cuisine/category tags.');
+assert(app.includes('function restaurantIsFastFood(row)') && app.includes("if(/thirsty goat/.test(hay)) return false;"),'Known pizza venue correction must prevent an incorrect Fast Food quick cut from removing the venue.');
+assert(app.includes("if(/thirsty goat/.test(nameHay)) tags.add('Pizza');"),'Known pizza venue correction must add Pizza independently of provider category.');
 for(const label of ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
@@ -142,6 +142,8 @@ assert(app.includes("const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican'
 const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; for(const legacy of ['Potato','Pasta','Soup/Stew','Healthy']) assert(!restQuickLine.includes("'"+legacy+"'"),'Restaurant Quick Cuts must not include food-style '+legacy+' shortcut');
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
 assert(app.includes("normalized==='burger'") && app.includes('!!row.fastFood'),'Burger Search should include fast-food restaurants');
+assert(api.includes('const MAX_RADIUS=50'),'Restaurant search must cap radius at 50 miles.');
+assert(!/<option>100<\/option>/.test(html),'Restaurant radius UI must not expose 100 miles.');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes('foodMaybeRound') && app.includes('S.foodMaybeRound=true'),'Food Maybe choices must recycle into a second narrowing pass');
