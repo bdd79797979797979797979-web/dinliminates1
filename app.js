@@ -628,12 +628,14 @@ function restaurantCuisineTags(row){
  if(/burger|hamburger|cheeseburger/.test(allHay)) tags.add('Burgers');
  if(/^american$/i.test(rawCategory)||/american|diner|grill/.test(allHay)) tags.add('American');
  if(/thirsty goat/.test(nameHay)) tags.add('Pizza');
- if(restaurantIsFastFood(row) && ![...tags].some(x=>['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast'].includes(x))) tags.add('Fast Food');
+ if(restaurantIsFastFood(row) && ![...tags].some(x=>['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast','Burgers','American'].includes(x))) tags.add('Fast Food');
  return [...tags];
 }
 function restaurantCategory(row){
  const tags=restaurantCuisineTags(row),raw=String(row?.category||'').trim();
- for(const label of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast','Burgers','American','Fast Food']) if(tags.includes(label))return label;
+ if(tags.includes('Pizza'))return 'Pizza';
+ if(/^(American|Mexican|Asian|Italian|Southern|BBQ|Seafood|Breakfast|Burgers)$/i.test(raw))return raw;
+ for(const label of ['Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast','Burgers','American','Fast Food']) if(tags.includes(label))return label;
  return raw||'Restaurant';
 }
 function restaurantQuickMatches(row,label){
