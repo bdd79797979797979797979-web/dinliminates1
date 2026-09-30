@@ -96,6 +96,7 @@ assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.heigh
 
 await assert.equal((await qa()).foodCatalog,116,'Restored 116-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
+const enlargedFoodCard=await page.locator('#foodCard').boundingBox(); const foodViewport=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight:window.innerHeight})); assert.ok(enlargedFoodCard&&enlargedFoodCard.height>=540,'Food card should use the space freed by removing Random Cut One'); assert.equal(foodViewport.scrollWidth,foodViewport.clientWidth,'Food screen should not horizontally overflow on iPhone'); assert.ok(foodViewport.scrollHeight<=foodViewport.innerHeight+2,'Food screen should fit within one iPhone viewport');
 const foodActionIds=await page.locator('#food .food-swipe-actions > button').evaluateAll(els=>els.map(x=>x.id)); assert.deepEqual(foodActionIds,['foodBack','foodCut','foodMaybe','foodHide','addFood'],'Food Add Food icon should sit directly to the right of Hide');
 assert.equal(await page.locator('#food #addFood').evaluate(el=>el.classList.contains('round-add-food')),true,'Add Food should use the compact circular icon style');
 assert.equal(await page.locator('#food #addFood').innerText(),'＋','Add Food should use a plus icon rather than a text button');
