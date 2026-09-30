@@ -199,7 +199,6 @@ report["5_open_all"].allCount=allCount;
 report["5_open_all"].openUnknownCount=s.restaurantPool.length;
 report["5_open_all"].closedExcluded=true;
 const unknown=allResults.find(x=>x.id==='asian');
-assert.equal(page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknown) instanceof Promise,false);
 const unknownState=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknown);
 assert.equal(unknownState,'unknown');
 report["5_open_all"].unknownPreserved=true;
