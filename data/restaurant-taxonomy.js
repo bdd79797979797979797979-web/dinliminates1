@@ -156,16 +156,17 @@ function classifyRestaurant(row){
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
   const primary=rawCategory+' '+cuisineHay;
   const providerRules={
-    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?)\b/,
-    Pizza:/\bpizza\b|\bpizzeria\b/,
-    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b/,
-    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b/,
-    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b/,
-    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b/,
-    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b/,
-    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b/,
-    Breakfast:/\bbreakfast\b|\bbrunch\b/,
-    American:/\bamerican\b/
+    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
+    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
+    Pizza:/\bpizza\b|\bpizzeria\b|\bcalzone\b/,
+    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
+    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b|\bhibachi\b|\bramen\b|\bpho\b|\bteriyaki\b/,
+    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b|\btrattoria\b|\bosteria\b|\bristorante\b/,
+    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b|\bcomfort food\b/,
+    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
+    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\bcatfish\b|\bshrimp\b|\bcrab house\b|\blobster\b|\boyster\b/,
+    Breakfast:/\bbreakfast\b|\bbrunch\b|\bpancake house\b|\bwaffle house\b|\bwaffles?\b|\bpancakes?\b|\bomelet(?:te)?\b|\beggs? benedict\b/,
+    American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b|\bgrill\b|\bbistro\b/
   };
   for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
 
@@ -174,6 +175,26 @@ function classifyRestaurant(row){
   for(const tag of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast']){
     if(menuSignalCount(row,tag)>=2)add(tag,'menu corroboration');
   }
+
+  // Generic provider labels such as "Restaurant" should never be the only
+  // classification when the name/category/cuisine contains a useful food signal.
+  if(tags.size===0){
+    const fallbackSignals={
+      Burgers:/\b(burger|hamburger|cheeseburger|smashburger)\b/,
+      Pizza:/\b(pizza|pizzeria|calzone)\b/,
+      Mexican:/\b(mexican|taco|burrito|taqueria|enchilada|quesadilla|fajita)\b/,
+      Asian:/\b(asian|chinese|japanese|thai|korean|sushi|ramen|pho|hibachi|teriyaki|dim sum)\b/,
+      Italian:/\b(italian|pasta|spaghetti|lasagna|ravioli|trattoria|ristorante)\b/,
+      BBQ:/\b(bbq|barbecue|smokehouse|smoked|brisket|ribs|pulled pork)\b/,
+      Seafood:/\b(seafood|fish house|catfish|shrimp|crab|lobster|oyster|salmon)\b/,
+      Breakfast:/\b(breakfast|brunch|pancake|waffle|omelet|omelette|eggs benedict|biscuits and gravy)\b/,
+      Southern:/\b(southern|soul food|country cooking|meat and three|comfort food)\b/,
+      American:/\b(diner|steakhouse|roadhouse|grill|bistro|pub|tavern|american)\b/,
+      Fast Food:/\b(fast food|quick service|drive thru|drive through)\b/
+    };
+    for(const [tag,re] of Object.entries(fallbackSignals))if(re.test(nameHay)||re.test(primary))add(tag,'fallback identity');
+  }
+
   return {tags:[...tags],evidence};
 }
 
