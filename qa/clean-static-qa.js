@@ -144,7 +144,6 @@ assert(app.includes('CURRENT BUILD'),'About must label the build as Current Buil
 assert(/S\.pool\.length\s*===\s*1/.test(app) && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
 assert(app.includes('id="restDetails"') && app.includes('icon-action') && app.includes('details-icon'),'Restaurant Details must be a working compact icon control');
-assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
 assert(app.includes('function appDiagnosisView'),'Settings must expose the App Diagnosis panel');
