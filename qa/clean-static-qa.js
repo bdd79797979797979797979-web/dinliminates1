@@ -243,3 +243,5 @@ assert(imageApi.includes("Cache-Control")&&imageApi.includes("s-maxage=604800"),
 assert(app.includes('function imageProxyUrl')&&app.includes('/api/image?url='),'App must route supported external images through the Vercel image proxy');
 assert(html.includes('/api/image?url='),'Home images must use the Vercel image proxy');
 console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
+
+assert(fs.readFileSync('vercel.json','utf8').includes('"api/image.js"') && fs.readFileSync('vercel.json','utf8').includes('"maxDuration": 10'),'Vercel image proxy function must have a 10-second max duration');
