@@ -17,9 +17,9 @@ const RESTAURANT_SEARCH_ALIASES = {
 };
 
 const RESTAURANT_IDENTITY_PROFILES = [
-  {pattern:/\b(?:the )?heads bbq\b/,tags:['BBQ']},
-  {pattern:/\brobert heads bbq\b/,tags:['BBQ']},
-  {pattern:/\bexcell bbq\b/,tags:['BBQ']},
+  {pattern:/\b(?:the )?heads bbq\b/,key:'heads-bbq-clarksville',tags:['BBQ'],primary:'BBQ'},
+  {pattern:/\brobert heads bbq\b/,key:'heads-bbq-clarksville',tags:['BBQ'],primary:'BBQ'},
+  {pattern:/\bexcell bbq\b/,key:'excell-bbq-clarksville',tags:['BBQ'],primary:'BBQ'},
   {pattern:/\bmcdonalds?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bwendys?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bburger king\b/,tags:['Fast Food','Burgers']},
@@ -42,7 +42,7 @@ const RESTAURANT_IDENTITY_PROFILES = [
   {pattern:/\bolive garden\b/,tags:['Italian']},
   {pattern:/\bred lobster\b/,tags:['Seafood']},
   {pattern:/\bapplebees?\b|\bchilis\b|\btexas roadhouse\b|\boutback steakhouse\b|\bo charleys\b|\bruby tuesday\b|\bbuffalo wild wings\b|\bgolden corral\b/,tags:['American']},
-  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true},
+  {pattern:/\bthirsty goat\b/,key:'thirsty-goat-clarksville',tags:['Pizza'],primary:'Pizza',blockFastFood:true},
   {pattern:/\btaco johns?\b|\bqdoba\b|\bmoe(?:s)?\b/,tags:['Fast Food','Mexican']},
   {pattern:/\blos compadres\b|\blos amigos\b|\b(la|el) hacienda\b/,tags:['Mexican']},
   {pattern:/\bchuy'?s\b|\bfuzzy'?s taco\b/,tags:['Mexican','Fast Food']},
@@ -138,12 +138,19 @@ function searchAliasesFor(value){
   return [canonical,...selected];
 }
 
+function identityProfile(row){
+  const hay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
+  return RESTAURANT_IDENTITY_PROFILES.find(p=>p.pattern.test(hay))||null;
+}
+function restaurantIdentityKey(row){
+  return String(identityProfile(row)?.key||'').trim();
+}
 function identityHay(row){
   return normalizeRestaurantSearch([row?.category,row?.cuisine,row?.providerType,row?.primaryType,row?.types?.join?.(' '),row?.name,row?.brand,row?.operator].join(' '));
 }
 function isFastFood(row){
   const identity=identityHay(row);
-  const profile=RESTAURANT_IDENTITY_PROFILES.find(p=>p.pattern.test(identity));
+  const profile=identityProfile(row);
   if(profile?.blockFastFood)return false;
   if(profile?.tags.includes('Fast Food'))return true;
   return !!row?.fastFood || /\bfast food\b/.test(normalizeRestaurantSearch(row?.category));
@@ -210,7 +217,7 @@ function classifyRestaurant(row){
   }
 
   const primaryOrder=['Fast Food','Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','American'];
-  const primaryCategory=primaryOrder.find(tag=>tags.has(tag))||null;
+  const primaryCategory=profile?.primary || primaryOrder.find(tag=>tags.has(tag))||null;
   return {tags:[...tags],primary:primaryCategory,evidence};
 }
 
@@ -225,6 +232,8 @@ const taxonomy={
   restaurantSearchClassification,
   searchAliasesFor,
   identityHay,
+  identityProfile,
+  restaurantIdentityKey,
   isFastFood,
   classifyRestaurant,
   primaryCategory:row=>{
