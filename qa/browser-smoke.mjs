@@ -395,7 +395,7 @@ await page.locator('#editFoodFile').setInputFiles({
 });
 await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.startsWith('data:image/'),'',{timeout:5000});
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
-const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,10,'Custom Food editor should render all Food Quick Cut checkboxes without Greek');
+const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,11,'Custom Food editor should render all Food Quick Cut checkboxes without Greek');
 await page.locator('input[name="editQuickCut"][value="Pasta"]').check({force:true});
 await page.locator('input[name="editQuickCut"][value="Healthy"]').check({force:true});
 await click('#foodEditorForm button.cut'); await settle();
