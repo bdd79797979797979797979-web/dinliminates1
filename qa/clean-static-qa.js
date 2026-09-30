@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=460'),'App script must use the CP455 cache-busting query');
-assert(release.build===164 && release.checkpoint==='CP460','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=461'),'App script must use the CP455 cache-busting query');
+assert(release.build===166 && release.checkpoint==='CP461','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -344,6 +344,10 @@ assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.incl
 assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
+assert(api.includes("tennessee:'tn'"),'Restaurant API address normalization must equate Tennessee and TN');
+assert(app.includes("tennessee:'tn'"),'Browser Restaurant address normalization must equate Tennessee and TN');
+assert(!app.includes('cardPhoneAction'),'Restaurant cards must not render a phone icon action');
+assert(app.includes("restaurant-card-utilities+'</div>" )||app.includes('cardDetailsAction+cardWebsite'),'Restaurant card utility order must be Details then Website');
 assert(api.includes('function restaurantNameKey(value)'),'Restaurant API must normalize apostrophe-s and plain name variants consistently');
 assert(app.includes("replace(/[’']s\\b/gi,'s')"),'Browser Restaurant names must normalize Wendy’s and Wendys consistently');
 assert(api.includes('sameName && !conflictingAddress && dist<=0.08'),'Restaurant API same-name dedupe must use a tight same-venue distance threshold');
