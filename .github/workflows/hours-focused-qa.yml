@@ -1,0 +1,51 @@
+name: Dinliminate Hours Focused QA
+
+on:
+  push:
+    branches:
+      - cp348-search-six-point-certification-2026-09-30
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dinliminate-hours-focused-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hours-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Restaurant hours model smoke
+        run: node qa/restaurant-hours-model-smoke.cjs
+
+  hours-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Restaurant six-point browser certification
+        run: node qa/restaurant-six-point-certification.mjs
