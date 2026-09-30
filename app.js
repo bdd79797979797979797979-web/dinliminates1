@@ -1350,7 +1350,7 @@ const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
-const modal=openModal('foodEditorModal',isEdit?'Edit Food':'Add Meal',body);
+const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
 $('editFoodFile').onchange=async()=>{
 try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
@@ -1474,12 +1474,12 @@ async function appDiagnosisView(existingModal){
   const sectionLabels={core:'Core app',food:'Meal system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
   try{
    const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])), ids=foods.map(x=>x.id), duplicateFoodIds=ids.length-new Set(ids).size;
-   duplicateFoodIds?fail('food','Meal catalog','Duplicate food IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Meal catalog',foods.length+' built-in foods loaded; IDs are unique.');
+   duplicateFoodIds?fail('food','Meal catalog','Duplicate meal IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Meal catalog',foods.length+' built-in meals loaded; IDs are unique.');
    const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
-   invalidFood.length?fail('food','Meal details',invalidFood.length+' food(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Meal details','All '+foods.length+' built-in foods have required Details data.');
+   invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Meal details','All '+foods.length+' built-in meals have required Details data.');
    const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
    const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
-   missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom food uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
+   missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom meal uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
    const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Healthy']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['Healthy','American']],['health-shake',['Healthy']]];
    const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
    quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Meals and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Meal Quick Cut mappings match the current catalog.');
@@ -1506,7 +1506,7 @@ async function appDiagnosisView(existingModal){
    }catch(e){warn('restaurant','Restaurant search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
    let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
    storageOk?pass('runtime','Local storage','Browser storage is accessible.','Meal choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
-   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom meal photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
+   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom meal photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded meal photos may not persist correctly.');
    navigator.onLine?pass('runtime','Network','Browser reports online.','Restaurant search and third-party images still depend on their services.'):warn('runtime','Network','Browser reports offline.','Restaurant search and remote images may not work until connectivity returns.');
    const sw='serviceWorker' in navigator;
    sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
