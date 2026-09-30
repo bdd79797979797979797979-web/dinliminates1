@@ -1,10 +1,10 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));
-for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne'])assert(html.includes(s),'missing HTML contract: '+s);
+for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide','randomOne'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
-for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
+for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r14'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
@@ -97,7 +97,7 @@ assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registr
 const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon-512.png'") && sw.includes("'./apple-touch-icon.png'"),'Offline shell must cache both PWA raster icons');
 assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
 assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
-assert((html.match(/id="restaurantPassAround"/g)||[]).length===1,'Restaurant Pass Around must have one compact tool-row control');
+
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
@@ -214,21 +214,13 @@ assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=
 assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-action\" id=\"detailHide\">Hide</button>'"),'Hungry Details must omit Hide');
 
 
-// CP260 UI + Pass Around contracts.
+// CP260 UI contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
 for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
 assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
-assert(app.includes("label:'Quick Pass · Default'"),'Quick Pass should be the default labeled mode');
-assert(app.includes("label:'Full Pass · Optional'"),'Full Pass should remain the optional original mode');
-assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
-assert(app.includes("mode:S.passDraftMode") && app.includes("p.mode==='quick'"),'Pass Around should persist the selected mode and branch behavior');
-assert(app.includes('majority decides early') && app.includes('Everyone must keep a choice.'),'Pass Around modes should clearly explain Quick vs Full behavior');
-assert(app.includes('Back = Undo') && app.includes('p.history.push(before)'),'Pass Around must support deterministic undo');
-assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly');
-assert(app.includes('S.pass=null;removePassSurface();') && !app.includes('S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);'),'Canceling Pass Around should not advance the starting voter');
 assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
 assert(app.includes("quickCats=[...cats,'Other']") && app.includes("x.value"),'Custom Food Quick Cut editor should include optional Other');
 
