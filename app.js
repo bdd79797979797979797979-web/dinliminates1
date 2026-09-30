@@ -634,7 +634,7 @@ const RESTAURANT_IDENTITY_PROFILES = [
  {match:/\bolive garden\b/,tags:['Italian']},
  {match:/\bred lobster\b/,tags:['Seafood']},
  {match:/\bapplebees?\b|\bchilis\b|\btexas roadhouse\b|\boutback steakhouse\b|\bo charleys\b|\bruby tuesday\b|\bchilis\b|\bbuffalo wild wings\b|\bgolden corral\b/,tags:['American']},
- {match:/\bthirsty goat\b/,tags:['Pizza']}
+ {match:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true}
 ];
 const RESTAURANT_MENU_SIGNALS = {
  Pizza:['pizza','calzone','pizzeria'],
@@ -659,7 +659,9 @@ const RESTAURANT_NAME_SIGNALS = {
 };
 function restaurantIsFastFood(row){
  const identity=restaurantIdentityHay(row);
- if(RESTAURANT_IDENTITY_PROFILES.some(p=>p.match.test(identity)&&p.tags.includes('Fast Food')))return true;
+ const profile=RESTAURANT_IDENTITY_PROFILES.find(p=>p.match.test(identity));
+ if(profile?.blockFastFood)return false;
+ if(profile?.tags.includes('Fast Food'))return true;
  return !!row?.fastFood || /\bfast food\b/.test(normalizeRestaurantSearch(row?.category));
 }
 function menuSignalCount(row,label){
@@ -679,7 +681,7 @@ function restaurantCuisineTags(row){
 
  // Provider category/cuisine is stronger than incidental menu language.
  const primarySources=(rawCategory+' '+cuisineHay);
- if(/\bfast food\b/.test(rawCategory)||restaurantIsFastFood(row))tags.add('Fast Food');
+ if(restaurantIsFastFood(row))tags.add('Fast Food');
  if(/\bburger(?:s)?\b|\bhamburger(?:s)?\b/.test(primarySources))tags.add('Burgers');
  if(/\bpizza\b|\bpizzeria\b/.test(primarySources))tags.add('Pizza');
  if(/\bmexican\b|\btex mex\b|\btaqueria\b/.test(primarySources))tags.add('Mexican');
