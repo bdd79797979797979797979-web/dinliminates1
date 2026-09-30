@@ -107,7 +107,22 @@ function restaurantSearchClassification(value){
 function searchAliasesFor(value){
   const c=restaurantSearchClassification(value);
   if(c.kind!=='category'||!c.tag)return [c.normalized];
-  return [...new Set([c.normalized,c.tag,...(RESTAURANT_SEARCH_ALIASES[c.tag]||[])].map(normalizeRestaurantSearch).filter(Boolean))];
+  const canonical=normalizeRestaurantSearch(c.tag);
+  const rawAliases=(RESTAURANT_SEARCH_ALIASES[c.tag]||[]).map(normalizeRestaurantSearch).filter(Boolean);
+  const stem=x=>x.replace(/s$/,'');
+  const candidates=[...new Set(rawAliases)].filter(x=>x!==canonical);
+  candidates.sort((a,b)=>{
+    const aw=a.split(' ').length,bw=b.split(' ').length;
+    return aw-bw || a.length-b.length;
+  });
+  const selected=[];
+  for(const candidate of candidates){
+    if(stem(candidate)===stem(canonical))continue;
+    if(selected.some(x=>stem(x)===stem(candidate)))continue;
+    selected.push(candidate);
+    if(selected.length>=2)break;
+  }
+  return [canonical,...selected];
 }
 
 function identityHay(row){
