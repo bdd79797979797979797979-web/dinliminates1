@@ -1245,7 +1245,7 @@ async function appDiagnosisView(existingModal=null){
   if(running||!document.body.contains(modal))return;running=true;run++;
   const refresh=$('diagnosisRefresh'),runStatus=$('diagnosisRunStatus'),diagnosisBody=$('diagnosisBody');
   if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ Checking…';}
-  if(runStatus){runStatus.textContent='Run '+run+' · checking…';runStatus.classList.add('running');}
+  if(runStatus){runStatus.textContent='Run '+run+' selected · checking now…';runStatus.classList.add('running');}
   if(diagnosisBody)diagnosisBody.setAttribute('aria-busy','true');
   const checks=[];
   const add=(section,state,label,detail)=>checks.push({section,state,label,detail});
@@ -1281,8 +1281,8 @@ async function appDiagnosisView(existingModal=null){
    try{
     const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health&diagnosis='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(tm);
     const d=await rr.json().catch(()=>null);
-    rr.ok&&d?.ok?pass('restaurant','Search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
-   }catch(e){warn('restaurant','Search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
+    rr.ok&&d?.ok?pass('restaurant','Restaurant search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Restaurant search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
+   }catch(e){warn('restaurant','Restaurant search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
    let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
    storageOk?pass('runtime','Local storage','Browser storage is accessible.','Food choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
    ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom food photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
@@ -1290,11 +1290,10 @@ async function appDiagnosisView(existingModal=null){
    const sw='serviceWorker' in navigator;
    sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
    const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
-   ox||oy?warn('runtime','Viewport fit','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport fit','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
+   ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
    const requiredIds=['foodQuick','restQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails','restCut','restMaybe','restBack','restDetails'];
    const missingUi=requiredIds.filter(id=>!$(id));
    missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Food/Restaurant decision and Quick Cut elements are present.');
-   const persistedMaybe=Array.isArray(S.maybe)?S.maybe.size:0;
    const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
    pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Food Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
    try{
@@ -1304,14 +1303,13 @@ async function appDiagnosisView(existingModal=null){
     ]);
     const localBuild=String(localResponse?.build||''),apiBuild=String(apiResponse?.data?.build||''),apiBranch=String(apiResponse?.data?.branch||apiResponse?.data?.sourceBranch||'');
     if(localBuild && apiResponse.ok && apiBuild && localBuild===apiBuild){
-      pass('release','Release identity','Build '+localBuild+' · source '+String(localResponse.sourceBranch||apiBranch||'unknown')+'.','The browser manifest and release API agree on the build.');
+      pass('release','Runtime release identity','Build '+localBuild+' · source '+String(localResponse.sourceBranch||apiBranch||'unknown')+'.','The browser manifest and release API agree on the build.');
     }else if(!apiResponse.ok){
-      warn('release','Release identity','Release API returned HTTP '+apiResponse.status+'.','The local release file is available, but hosted runtime identity could not be confirmed from this browser.');
+      warn('release','Runtime release identity','Release API returned HTTP '+apiResponse.status+'.','The local release file is available, but hosted runtime identity could not be confirmed from this browser.');
     }else{
-      fail('release','Release identity','Release metadata disagrees: local '+localBuild+' vs API '+apiBuild+'.','Do not treat the hosted build as verified until the release metadata matches.');
+      fail('release','Runtime release identity','Release metadata disagrees: local '+localBuild+' vs API '+apiBuild+'.','Do not treat the hosted build as verified until the release metadata matches.');
     }
-   }catch{warn('release','Release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
-   const manifest=(()=>{try{return JSON.parse(document.querySelector('link[rel="manifest"]')?.href?'{}':'{}')}catch{return null}})();
+   }catch{warn('release','Runtime release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
    info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
    info('core','Pass Around','Removed from the current build.','The normal Food and Restaurant Tinder-style decision flow is now the group-free path.');
   }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
