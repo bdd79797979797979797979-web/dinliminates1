@@ -3,10 +3,19 @@
 ## Source of truth
 - Runtime target: Vercel
 - Working/release branch: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 125
+- Current app build: Version 1.0 / Build 126
 - CP254 is the current green food-catalog and UI polish line.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
+
+## CP257 changes
+- Expanded the built-in Food catalog from 65 to 67 choices with Pork Tenderloin and White Fish.
+- Added an Italian Food Quick Cut and moved Pizza, Meatball Sub, and Sausage & Peppers to Italian; removed the Food Pork Quick Cut.
+- Changed Biscuits & Gravy to Breakfast, Pork Chops to Southern, and added Southern Pork Tenderloin.
+- Refreshed the requested food imagery, including Beef Stroganoff, Stuffed Peppers, Pizza, Buttermilk & Cornbread, Salmon, BBQ Pulled Pork, and related sandwich imagery.
+- Changed Mashed Potatoes to a plain version without gravy.
+- Raised the Food Details sheet so its top begins just below the decision header/menu.
+- Removed Food Delete controls from Manage Foods and removed Food Choices from Settings; foods are managed with Hide/Restore.
 
 ## CP254 changes
 - Removed Stouffer’s Frozen Dinner.
@@ -16,6 +25,15 @@
 - Refreshed Tacos, Mexican Stir Fry, Meatloaf & Mashed Potatoes, Buttermilk & Cornbread, Potato Soup, Stuffed Peppers, Beef Stroganoff, and Health Shake photo mappings.
 - Details is a compact crisp document icon rather than the old white circle and is sized to leave breathing room from card text.
 - App Diagnosis has an explicit launcher color plus visible running/completed Run Again state.
+
+## CP257 release gates
+- Runtime syntax/data contract: verified on CP257.
+- Static QA and image smoke: updated for the 67-food catalog and new imagery; hosted execution pending.
+- Browser smoke: updated for CP257 Quick Cuts, Details, and Hide-only Settings.
+- Hosted Netlify smoke: pending exact CP257 preview.
+- Vercel preview: currently account build-rate-limited.
+- iPhone Safari certification: still required.
+- Third-party image rights review: still required.
 
 ## Release gates
 - Static QA: PASS on CP254.
