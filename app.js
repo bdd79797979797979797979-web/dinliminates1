@@ -686,7 +686,8 @@ $('status').textContent='Location ready.';
 await searchRestaurants();
 }catch{
 setLocation(pos.coords.latitude,pos.coords.longitude,'Current location','device');
-$('status').textContent='Location ready. Tap Find to search.';
+$('status').textContent='Location ready. Searching restaurants…';
+try{await searchRestaurants();}catch{}
 }
 },err=>{
 if(err?.code===1){$('status').textContent='Location permission was denied. Enter an address instead.';return;}
