@@ -16,7 +16,7 @@ assert(api.includes("mode!=='search'&&rate(req,mode)"),'Search rate limiting sho
 assert(api.includes("if(rate(req,mode))return res.status(429)"),'Uncached restaurant searches must still be rate limited');
 assert(api.includes('const discoveryPromise=wideSearch||searchTerm'),'Provider-backed expansion should start concurrently with primary providers');
 assert(api.includes('await withinBudget(discoveryPromise'),'Concurrent discovery result should be consumed within the remaining budget');
-assert(api.includes('const API_VERSION=\'r19\''),'Reliability hardening should remain on API r19');
+assert(api.includes('const API_VERSION=\'r20\''),'Reliability hardening should remain on API r20');
 
 const ctx={module:{exports:{}},exports:{},require,process,fetch};
 vm.runInNewContext(api,ctx,{filename:'api/restaurants.js'});
