@@ -1108,7 +1108,7 @@ const isEdit=!!item;
 
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=['American','Southern','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'];
+const cats=['American','Southern','Pasta','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'];
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
 '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
