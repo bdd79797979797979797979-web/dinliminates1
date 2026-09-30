@@ -1,5 +1,5 @@
 const MAX_RADIUS=100;
-const API_VERSION='r16';
+const API_VERSION='r17';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
