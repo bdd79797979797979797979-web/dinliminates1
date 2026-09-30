@@ -118,6 +118,30 @@ async function contactEnrichment(lat,lon,radius,names){
  }
  return{rows,errors};
 }
+
+async function arcgisContactEnrichment(lat,lon,radius,names){
+ if(!names.length)return{rows:[],errors:[]};
+ const rows=[],errors=[],rMax=Math.min(MAX_RADIUS,Math.max(1,radius));
+ const latD=rMax/69,lonD=rMax/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
+ const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
+ const unique=[...new Map(names.map(name=>[norm(name),String(name).trim()])).values()].slice(0,8);
+ const calls=unique.map(async name=>{
+  const params=new URLSearchParams({SingleLine:name,category:'Restaurant',location:lon+','+lat,searchExtent:extent,maxLocations:'5',outFields:'PlaceName,Type,Place_addr,City,Region,Country,Phone,URL',forStorage:'false',f:'json'});
+  const data=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},4500);
+  for(const cand of data?.candidates||[]){
+   const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},placeName=String(attrs.PlaceName||cand.address||'').trim();
+   if(!placeName||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
+   const distance=miles(lat,lon,cl,cn),pn=norm(placeName),nn=norm(name);
+   if(distance>Math.min(rMax,5))continue;
+   if(!(pn===nn||pn.includes(nn)||nn.includes(pn)))continue;
+   const type=String(attrs.Type||'');
+   rows.push({id:'arcgis-contact-'+norm(placeName)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name:placeName,category:/fast food|quick service/i.test(type)?'Fast Food':'Restaurant',fastFood:isFastFoodName(placeName,type),cuisine:'',address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance,photo:'',menuItems:[],brand:'',source:'ArcGIS Contact'});
+  }
+ });
+ for(const result of await Promise.allSettled(calls))if(result.status==='rejected')errors.push(String(result.reason?.message||result.reason));
+ return{rows:dedupe(rows),errors};
+}
+
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 function restaurantNameTokens(value){
   return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
@@ -278,16 +302,28 @@ if(mode==='search'){
  let contactOut={rows:[],errors:[]};
  const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
  const missingContactNames=contactCandidates
-   .filter(r=>!r.phone)
+   .filter(r=>!r.phone||(!r.website&&!knownRestaurantWebsite(r)))
    .sort((a,b)=>Number(b.fastFood)-Number(a.fastFood)||Number(a.distance||0)-Number(b.distance||0))
-   .map(r=>r.name)
-   .filter(Boolean)
+   .map(r=>r.name).filter(Boolean)
    .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
-   .slice(0,12);
- const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+   .slice(0,8);
+ let contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
  if(missingContactNames.length&&contactRemaining>2500){
-   const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),missingContactNames),contactRemaining,'Restaurant contact enrichment timed out');
-   if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
+   const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),missingContactNames),Math.min(contactRemaining,6500),'Restaurant OpenStreetMap contact enrichment timed out');
+   if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('OpenStreetMap contact enrichment timed out');
+ }
+ const afterOsm=dedupe([...contactCandidates,...contactOut.rows]);
+ const stillMissing=afterOsm
+   .filter(r=>!r.phone||(!r.website&&!knownRestaurantWebsite(r)))
+   .sort((a,b)=>Number(b.fastFood)-Number(a.fastFood)||Number(a.distance||0)-Number(b.distance||0))
+   .map(r=>r.name).filter(Boolean)
+   .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
+   .slice(0,8);
+ contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+ if(stillMissing.length&&contactRemaining>2200){
+   const got=await withinBudget(arcgisContactEnrichment(lat,lon,Math.min(radius,25),stillMissing),Math.min(contactRemaining,6000),'Restaurant ArcGIS contact enrichment timed out');
+   if(got&&!got.__timeout)contactOut={rows:dedupe([...(contactOut.rows||[]),...(got.rows||[])]),errors:[...(contactOut.errors||[]),...(got.errors||[])]};
+   else contactOut.errors.push('ArcGIS contact enrichment timed out');
  }
  const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>({...r,photo:image(r),website:r.website||knownRestaurantWebsite(r)}));
  const zone=await timezonePromise;
