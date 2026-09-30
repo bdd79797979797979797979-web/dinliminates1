@@ -717,3 +717,7 @@
 .pass-count-label{margin-top:12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#777;font-weight:800}
 .pass-rule{margin-top:5px!important;color:#b8aa96!important;font-size:10px!important}
 @media(max-width:390px){.pass-mode-option{padding:10px}.pass-mode-option span{font-size:9px}.pass-rule{font-size:9px!important}}
+
+body.pass-active{overflow:hidden}
+.pass-surface{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:430px){.pass-surface{inset:54px 0 0;padding-top:8px}.pass-card-stack{max-height:56svh}.pass-actions button{min-height:50px}}
