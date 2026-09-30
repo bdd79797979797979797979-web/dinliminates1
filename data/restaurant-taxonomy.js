@@ -210,8 +210,8 @@ function classifyRestaurant(row){
   }
 
   const primaryOrder=['Fast Food','Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','American'];
-  const primary=primaryOrder.find(tag=>tags.has(tag))||null;
-  return {tags:[...tags],primary,evidence};
+  const primaryCategory=primaryOrder.find(tag=>tags.has(tag))||null;
+  return {tags:[...tags],primary:primaryCategory,evidence};
 }
 
 const taxonomy={
