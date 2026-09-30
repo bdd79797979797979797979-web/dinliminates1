@@ -57,6 +57,17 @@ assert.match((await page.locator('#locationSourceLabel').innerText()),/selected 
 assert.notEqual(await page.locator('#address').inputValue(),'','Selecting an address must populate the address field');
 assert.match(await page.locator('#restaurantCount').innerText(),/choice/i,'Live restaurant search must populate the restaurant choice count');
 
+await page.locator('#restDetails').click();
+await page.waitForTimeout(150);
+assert.equal(await page.locator('#detailsModal').isVisible(),true,'Live Restaurant Details must open');
+assert.equal(await page.locator('#detailsModal h3').innerText(),'Restaurant Details','Live Restaurant Details must use the explicit Restaurant Details title');
+assert.equal(await page.locator('#detailsModal .restaurant-detail-contact').count(),1,'Live Restaurant Details must include the contact/directions section');
+assert.ok((await page.locator('#detailsModal').innerText()).includes('Phone'),'Live Restaurant Details must include a Phone field');
+assert.equal(await page.locator('#detailsModal #detailDirections').count(),1,'Live Restaurant Details must include Google Maps directions');
+assert.match(await page.locator('#detailsModal #detailDirections').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Live Restaurant Details directions must use Google Maps');
+assert.equal(await page.locator('#detailsModal #detailWeb').count(),1,'Live Restaurant Details must include website/Google fallback');
+await page.locator('#detailsModal [data-close]').click();
+
 await page.locator('#hoursToggle').click();
 assert.equal(await page.locator('#hoursToggle').innerText(),'All','Open/Unknown toggle must switch to All');
 await page.locator('#hoursToggle').click();
