@@ -1,6 +1,6 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
-const MAX_RADIUS=50;
-const API_VERSION='r19';
+const MAX_RADIUS=100;
+const API_VERSION='r20';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
@@ -114,7 +114,17 @@ function query(lat,lon,radius,types=DINING_AMENITIES){
 function queryMany(points,types=DINING_AMENITIES,timeoutSeconds=10){
  return '[out:json][timeout:'+Math.max(6,Math.min(16,Number(timeoutSeconds)||10))+'];('+points.map(c=>queryClause(c.lat,c.lon,c.radius,types)).join('')+');out center tags;';
 }
-function centers(lat,lon,r){if(r<=25)return[{lat,lon,radius:r}];const ring=30,count=6,out=[{lat,lon,radius:50}],a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<count;i++){const ang=i*2*Math.PI/count;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
+function centers(lat,lon,r){
+ const radius=clamp(r);
+ if(radius<=25)return[{lat,lon,radius}];
+ const ring=radius>50?65:30,count=radius>50?8:6,out=[{lat,lon,radius:50}];
+ const a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
+ for(let i=0;i<count;i++){
+  const ang=i*2*Math.PI/count;
+  out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50});
+ }
+ return out;
+}
 
 function photonRow(feature,origin){
  const p=feature?.properties||{},c=feature?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]),name=String(p.name||p.label||'').split(',')[0].trim();
