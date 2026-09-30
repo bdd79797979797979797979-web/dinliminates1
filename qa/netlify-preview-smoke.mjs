@@ -18,4 +18,14 @@ assert.equal(result.homeVisible,true,'Home screen must be visible on the live Ne
 assert.equal(result.homeText,'what sounds good tonight?','Live Netlify preview must render the current home screen');
 assert.equal(pageErrors.length,0,'Live Netlify preview must have no page errors');
 assert.equal(result.badResponses.length,0,'Live Netlify preview must not request missing assets or receive HTTP errors');
+await page.locator('#menu').click();
+await page.waitForTimeout(100);
+await page.locator('#settings').click();
+await page.waitForTimeout(100);
+await page.locator('#appDiagnosis').click();
+await page.waitForTimeout(200);
+const diagnosisText=await page.locator('#settingsModal').innerText().catch(()=>''), diagnosisSections=await page.locator('#settingsModal .diagnosis-section').count(), diagnosisLoader=await page.locator('#settingsModal .diagnosis-loading').count();
+assert.equal(diagnosisLoader,0,'Live App Diagnosis must not show the centered loading screen');
+assert.equal(diagnosisSections,5,'Live App Diagnosis must render all five sections immediately');
+assert.match(diagnosisText,/Core app/i,'Live App Diagnosis must show Core app');
 await browser.close();
