@@ -354,3 +354,6 @@ assert(api.includes('function applyGoogleContactPatches'),'Google contact enrich
 assert(api.includes("if(got&&!got.__timeout){googleContactOut=got;applyGoogleContactPatches(contactCandidates,googleContactOut.rows)}"),'Google contact patches must be applied without appending duplicate rows');
 assert(!app.includes('function renderHours()')&&!app.includes('setRestaurantHoursMode('),'Removed Restaurant hours-control runtime must stay absent');
 
+
+assert(!css.includes('#ff7a1a')&&!css.includes('#ff9152')&&!css.includes('#ff806a'),'Obsolete orange accents must be removed from the app styling');
+assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold');
