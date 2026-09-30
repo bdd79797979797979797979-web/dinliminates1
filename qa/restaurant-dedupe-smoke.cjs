@@ -28,3 +28,12 @@ const chainStores=t.dedupe([
 ]);
 assert.equal(chainStores.length,2,'Two same-chain locations with the same corporate website must remain separate');
 console.log('restaurant dedupe smoke: PASS',JSON.stringify(out.map(x=>({name:x.name,address:x.address,id:x.id}))));
+
+
+const wendysNameForms=[
+ {id:'w1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,source:'Google'},
+ {id:'w2',name:'Wendys',address:'2330 Madison Street, Clarksville, TN 37043',lat:36.5303,lon:-87.3602,source:'Photon'},
+ {id:'w3',name:"WENDY'S",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5302,lon:-87.3601,source:'ArcGIS'}
+];
+const wendysNameMerged=dedupe(wendysNameForms);
+assert.equal(wendysNameMerged.length,1,"Wendy's, Wendys, and WENDY'S at the same address must resolve to one venue");
