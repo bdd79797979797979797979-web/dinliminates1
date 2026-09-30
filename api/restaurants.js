@@ -143,7 +143,7 @@ async function googlePlaces(lat,lon,radius){
     'X-Goog-Api-Key':GOOGLE_KEY,
     'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types,places.currentOpeningHours.openNow,places.businessStatus'
    },
-   body:JSON.stringify({includedTypes:['restaurant','fast_food'],maxResultCount:20,locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius:meters}}})
+   body:JSON.stringify({includedTypes:['restaurant','fast_food_restaurant'],maxResultCount:20,locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius:meters}}})
   },6500);
   for(const p of data?.places||[]){
    const loc=p?.location||{},plat=n(loc.latitude),plon=n(loc.longitude),name=String(p?.displayName?.text||'').trim();
