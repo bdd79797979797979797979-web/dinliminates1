@@ -41,6 +41,8 @@ jobs:
 
       - name: Restaurant dedupe smoke
         run: node qa/restaurant-dedupe-smoke.cjs
+      - name: Hybrid restaurant search smoke
+        run: node qa/restaurant-hybrid-search-smoke.cjs
 
       - name: Food image smoke
         run: node qa/food-image-smoke.mjs
