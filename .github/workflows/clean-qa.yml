@@ -1,6 +1,9 @@
 name: Dinliminate Clean QA
 
 on:
+  push:
+    branches:
+      - cp348-search-six-point-certification-2026-09-30
   pull_request:
     branches: [main]
   workflow_dispatch:
