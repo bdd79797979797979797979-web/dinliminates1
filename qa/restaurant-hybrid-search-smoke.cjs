@@ -9,7 +9,7 @@ assert(app.includes("const searchTerm = String(S.restaurantQuery||'').trim().sli
 assert(app.includes("const queryParam = searchTerm ? '&q='+encodeURIComponent(searchTerm) : '';"));
 assert(app.includes("setTimeout(()=>{searchRestaurants();},650)"));
 assert(apiSrc.includes("async function googleSearchPlaces(lat,lon,radius,searchTerm)"));
-assert(apiSrc.includes("textQuery:term+' restaurant'"));
+assert(apiSrc.includes("textQuery:termVariant+' restaurant'"));
 assert(apiSrc.includes('searchQueryMany'));
 assert(apiSrc.includes('[cuisine~"'));
 assert(apiSrc.includes('[brand~"'));
