@@ -1555,16 +1555,16 @@ else manageFoodsView();
 }
 function manageFoodsView() {
 const rows=allFoods();
-const body='<div class="manage-intro">Add your own meal with a photo, recipe, or notes. Meals can be hidden and restored here.</div>'+
-'<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Meal</button>'+
+const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Add a meal, refine the deck, or restore a hidden favorite. Your custom meals stay on this device.</p></div>'+
+'<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
 '<div class="food-list">'+rows.map(item=>{
 const hidden=S.hidden.has(item.id), custom=S.custom.some(x=>x.id===item.id);
 const state=hidden?'Hidden':'Active';
-return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-state">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
-(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>')+
-(custom?'<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
+return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(hidden?'is-hidden':'is-active')+'">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
+(hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(item.id)+'">Hide</button>')+
+(custom?'<button class="manage-row-action manage-edit" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
 '</span></div>';
-}).join('')+'</div>';
+}).join('')+'</div></div>';
 const modal=openModal('manageFoodsModal','Manage Meals',body);
 $('openFoodEditor').onclick=()=>foodEditor();
 modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
@@ -1581,7 +1581,7 @@ if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
 function settingsView(){
  removeFoodOverlays();
  const hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Checks the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original meals and clears saved round changes. Custom foods remain.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Deletes custom meals, history, hidden choices, and saved settings from this device.</p></div>';
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System Tools</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Live checks for the current build, Restaurant search, 1–50 mile radius, Quick Cuts, dedupe, photos, contact enrichment, hours behavior, storage, and runtime.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores built-in defaults, clears hidden meals/restaurants and active decision/search state, and keeps your Custom Meals and History.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Full local reset: removes Custom Meals and their photos, History, hidden choices, saved rounds, location/search state, and device-stored app preferences.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
@@ -1603,8 +1603,8 @@ function diagnosisRestaurantDuplicates(rows){
  for(let i=0;i<(rows||[]).length;i++)for(let j=i+1;j<(rows||[]).length;j++){
   const a=rows[i],b=rows[j];
   const d=Number.isFinite(Number(a?.lat))&&Number.isFinite(Number(a?.lon))&&Number.isFinite(Number(b?.lat))&&Number.isFinite(Number(b?.lon))?diagnosisMiles(Number(a.lat),Number(a.lon),Number(b.lat),Number(b.lon)):Infinity;
-  const sameAddr=normKey(a?.address)&&normKey(a?.address)===normKey(b?.address),sameName=normKey(a?.name)===normKey(b?.name);
-  if(d<=0.2&&(sameName||sameAddr||diagnosisNameVariant(a?.name,b?.name)))out.push([a?.name,b?.name,d]);
+  const addrA=normKey(a?.address),addrB=normKey(b?.address),sameAddr=addrA&&addrB&&addrA===addrB,sameName=normKey(a?.name)===normKey(b?.name),conflictingAddress=addrA&&addrB&&!sameAddr;
+  if(d<=0.2&&!conflictingAddress&&(sameName||sameAddr||diagnosisNameVariant(a?.name,b?.name)))out.push([a?.name,b?.name,d]);
  }
  return out;
 }
@@ -1740,7 +1740,7 @@ home();
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
@@ -1748,7 +1748,7 @@ home();
 async function systemRestoreFlow(){
 if(!await appConfirm('Restore system defaults?', 'This restores the original meal deck and clears saved round changes. Custom meals remain on this device.', 'Restore'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 document.querySelector('#settingsModal')?.remove();
 document.querySelector('#settingsModalBg')?.remove();
