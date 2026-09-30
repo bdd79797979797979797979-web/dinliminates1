@@ -116,7 +116,7 @@ for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern',
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
-assert(app.includes('restaurant-detail-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
+assert(app.includes('restaurant-luxury-stat-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
 
 assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
