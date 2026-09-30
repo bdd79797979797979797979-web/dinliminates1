@@ -447,17 +447,25 @@ const CATEGORY_IMAGES={
 };
 function restaurantPhotoMeta(r){
   const raw=String(r?.photo||'').trim();
-  if(/^https:\/\//i.test(raw))return{photo:raw,photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
-  if(String(r?.googlePlaceId||'').trim())return{photo:'',photoSource:'google-places',photoIsGeneric:false,photoConfidence:0.95};
-  const byName=namedImage(r?.name); if(byName)return{photo:byName,photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
-  const byBrand=namedImage(r?.brand); if(byBrand)return{photo:byBrand,photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
-  const byOperator=namedImage(r?.operator); if(byOperator)return{photo:byOperator,photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
-  const keys=[String(r?.cuisine||''),String(r?.category||'')];
-  for(const key of keys){
-    const k=Object.keys(CATEGORY_IMAGES).find(x=>norm(x)===norm(key)||norm(key).includes(norm(x)));
-    if(k)return{photo:CATEGORY_IMAGES[k],photoSource:'cuisine-fallback',photoIsGeneric:true,photoConfidence:0.4};
-  }
-  return{photo:CATEGORY_IMAGES.American,photoSource:'generic-fallback',photoIsGeneric:true,photoConfidence:0.2};
+  if(/^https:\/\//i.test(raw))return{photo:raw,photoFallback:'',photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
+  const knownFallback=()=>{
+    const byName=namedImage(r?.name); if(byName)return byName;
+    const byBrand=namedImage(r?.brand); if(byBrand)return byBrand;
+    const byOperator=namedImage(r?.operator); if(byOperator)return byOperator;
+    const keys=[String(r?.cuisine||''),String(r?.category||'')];
+    for(const key of keys){
+      const k=Object.keys(CATEGORY_IMAGES).find(x=>norm(x)===norm(key)||norm(key).includes(norm(x)));
+      if(k)return CATEGORY_IMAGES[k];
+    }
+    return CATEGORY_IMAGES.American;
+  };
+  if(String(r?.googlePlaceId||'').trim())return{photo:'',photoFallback:knownFallback(),photoSource:'google-places',photoIsGeneric:false,photoConfidence:0.95};
+  const fallback=knownFallback(),named=String(r?.name||'').trim();
+  const matchedKnown=!!namedImage(named)||!!namedImage(r?.brand)||!!namedImage(r?.operator);
+  if(matchedKnown)return{photo:fallback,photoFallback:'',photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
+  const hasCategory=Object.keys(CATEGORY_IMAGES).some(x=>[String(r?.cuisine||''),String(r?.category||'')].some(v=>norm(x)===norm(v)||norm(v).includes(norm(x))));
+  if(hasCategory)return{photo:fallback,photoFallback:'',photoSource:'cuisine-fallback',photoIsGeneric:true,photoConfidence:0.4};
+  return{photo:fallback,photoFallback:'',photoSource:'generic-fallback',photoIsGeneric:true,photoConfidence:0.2};
 }
 function image(r){return restaurantPhotoMeta(r).photo;}
 async function geocode(q){const clean=String(q||'').trim().slice(0,180);if(!clean)throw Object.assign(new Error('Enter a location.'),{code:'EMPTY_LOCATION'});let rows=[];try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'6',outFields:'*',forStorage:'false',countryCode:'USA'}),{},8000);for(const c of d?.candidates||[]){const lat=n(c?.location?.y),lon=n(c?.location?.x);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:String(c.address||c.attributes?.Match_addr||clean),score:n(c.score,0)+500})}}catch{}if(!rows.length){try{const d=await json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'6',lang:'en',countrycode:'US'}),{},8000);for(const f of d?.features||[]){const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:[f?.properties?.name,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean,score:100})}}catch{}}if(!rows.length)throw Object.assign(new Error('That address or area could not be located.'),{code:'NOT_FOUND'});rows.sort((a,b)=>b.score-a.score);return rows[0]}
