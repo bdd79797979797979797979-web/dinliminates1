@@ -157,4 +157,4 @@ assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewp
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
 assert(app.includes("let APP_BUILD = '125'"),'CP250 build should be 125');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
-assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('36863862')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('28503619')&&foods.includes('7974814'),'CP246 stabilized food photo mappings should be present');
+assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('341044')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
