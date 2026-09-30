@@ -663,11 +663,10 @@ for(const [id,cuts] of Object.entries({'pot-pie':['Southern','American'],blt:['A
 assert.deepEqual(cp258CatalogChecks.gyro?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
 console.log('CP258 browser assertions: 116-food catalog, Fajitas rename, no Food Greek Quick Cut, and new food mappings are covered.');
 
-await browser.close(); server.close();
-console.log('Dinliminate clean browser smoke: PASS');
-
-
 await page.locator('#iphoneHelp').click(); await settle();
 assert.equal(await page.locator('#iphoneModal .iphone-guide-step').count(),4,'iPhone instructions should have four premium steps');
 assert.ok((await page.locator('#iphoneModal').innerText()).includes('Add to Home Screen'),'iPhone instructions should explain Add to Home Screen');
 await page.locator('#iphoneModal [data-close]').click(); await settle();
+
+await browser.close(); server.close();
+console.log('Dinliminate clean browser smoke: PASS');
