@@ -63,6 +63,27 @@ const RESTAURANT_IDENTITY_PROFILES = [
   {pattern:/\bbiscuits? (?:n|and|&) gravy\b|\bpancake house\b|\bwaffle house\b/,tags:['Breakfast','American']}
 ];
 
+const RESTAURANT_TYPE_SIGNALS={
+ 'Fast Food':['fast_food_restaurant','fast_food','meal_takeaway','meal_delivery'],
+ Burgers:['hamburger_restaurant','burger_restaurant'],
+ Pizza:['pizza_restaurant'],
+ Mexican:['mexican_restaurant','taco_restaurant'],
+ American:['american_restaurant','diner','steak_house','hamburger_restaurant'],
+ Italian:['italian_restaurant'],
+ Asian:['asian_restaurant','chinese_restaurant','japanese_restaurant','thai_restaurant','korean_restaurant','vietnamese_restaurant','sushi_restaurant','ramen_restaurant','indian_restaurant'],
+ BBQ:['barbecue_restaurant','barbecue'],
+ Seafood:['seafood_restaurant','fish_and_chips_restaurant'],
+ Breakfast:['breakfast_restaurant','brunch_restaurant','pancake_house','waffle_house'],
+ Sandwich:['sandwich_shop']
+};
+const RESTAURANT_CUISINE_SIGNALS={
+ Pizza:['pizza','pizzeria','calzone'],Mexican:['mexican','tex-mex','taco','burrito','taqueria','fajita','enchilada','quesadilla'],
+ Asian:['asian','chinese','japanese','thai','korean','vietnamese','sushi','ramen','pho','hibachi','teriyaki','dim_sum'],
+ Italian:['italian','pasta','spaghetti','lasagna','ravioli','gnocchi','alfredo'],BBQ:['bbq','barbecue','barbeque','smokehouse','smoked'],
+ Seafood:['seafood','fish','catfish','shrimp','crab','lobster','oyster'],Breakfast:['breakfast','brunch','waffle','pancake','omelet','eggs_benedict'],
+ American:['american','diner','steakhouse','grill']
+};
+const RESTAURANT_NAME_FILLER_WORDS=new Set(['restaurant','restaurants','location','store','shop','the','llc','inc','co','clarksville','tn','tennessee','sango','downtown','north','south','east','west']);
 const RESTAURANT_MENU_SIGNALS = {
   Pizza:['pizza','calzone','pizzeria'],
   Mexican:['taco','burrito','enchilada','quesadilla','fajita','tamale','torta','pozole','churro'],
@@ -156,9 +177,9 @@ function identityHay(row){
 }
 function isFastFood(row){
   const identity=identityHay(row);
-  const profile=RESTAURANT_IDENTITY_PROFILES.find(p=>p.pattern.test(identity));
-  if(profile?.blockFastFood)return false;
-  if(profile?.tags.includes('Fast Food'))return true;
+  const profiles=RESTAURANT_IDENTITY_PROFILES.filter(p=>p.pattern.test(identity));
+  if(profiles.some(p=>p.blockFastFood))return false;
+  if(profiles.some(p=>p.tags.includes('Fast Food')))return true;
   return !!row?.fastFood || /\bfast food\b/.test(normalizeRestaurantSearch(row?.category));
 }
 function menuSignalCount(row,tag){
@@ -167,17 +188,18 @@ function menuSignalCount(row,tag){
   const signals=RESTAURANT_MENU_SIGNALS[tag]||[];
   return new Set(signals.filter(signal=>hay.includes(normalizeRestaurantSearch(signal)))).size;
 }
+function restaurantNameCore(value){
+  return normalizeRestaurantSearch(String(value||'').replace(/[’']s\b/gi,'s')).split(' ').filter(Boolean).filter(x=>!RESTAURANT_NAME_FILLER_WORDS.has(x)).join(' ');
+}
 function restaurantNameKeys(value){
   const raw=String(value||'');
-  return [...new Set([
-    normalizeRestaurantSearch(raw),
-    normalizeRestaurantSearch(raw.replace(/[’']s\b/gi,'')),
-    normalizeRestaurantSearch(raw.replace(/[’']/g,''))
-  ].filter(Boolean))];
+  return [...new Set([normalizeRestaurantSearch(raw),normalizeRestaurantSearch(raw.replace(/[’']s\b/gi,'')),normalizeRestaurantSearch(raw.replace(/[’']/g,'')),restaurantNameCore(raw)].filter(Boolean))];
 }
 function namesOverlap(a,b){
-  const A=new Set(restaurantNameKeys(a)),B=restaurantNameKeys(b);
-  return [...A].some(x=>B.includes(x));
+  const A=new Set(restaurantNameKeys(a)),B=new Set(restaurantNameKeys(b));
+  if([...A].some(x=>B.includes(x)))return true;
+  const ca=restaurantNameCore(a),cb=restaurantNameCore(b);
+  return !!ca&&!!cb&&(ca===cb||(Math.min(ca.length,cb.length)>=5&&(ca.startsWith(cb+' ')||cb.startsWith(ca+' '))));
 }
 function classifyRestaurant(row){
   const rawCategory=normalizeRestaurantSearch(row?.category);
@@ -188,8 +210,8 @@ function classifyRestaurant(row){
   const evidence={};
   const add=(tag,reason)=>{tags.add(tag);(evidence[tag]||(evidence[tag]=[])).push(reason);};
 
-  const profile=RESTAURANT_IDENTITY_PROFILES.find(p=>p.pattern.test(identity));
-  if(profile)for(const tag of profile.tags)add(tag,'known identity');
+  const profiles=RESTAURANT_IDENTITY_PROFILES.filter(p=>p.pattern.test(identity));
+  for(const profile of profiles)for(const tag of profile.tags)add(tag,'known identity');
 
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
   const primary=rawCategory+' '+cuisineHay;
@@ -209,6 +231,16 @@ function classifyRestaurant(row){
   };
   for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
 
+  const typeHay=normalizeRestaurantSearch([
+    row?.primaryType,row?.providerType,...(Array.isArray(row?.types)?row.types:[]),...(Array.isArray(row?.providerTypes)?row.providerTypes:[])
+  ].filter(Boolean).join(' ')).replace(/_/g,' ');
+  const cuisineTokens=normalizeRestaurantSearch(String(row?.cuisine||'')).replace(/_/g,' ');
+  for(const [tag,signals] of Object.entries(RESTAURANT_TYPE_SIGNALS)){
+    if(signals.some(signal=>typeHay.includes(normalizeRestaurantSearch(signal).replace(/_/g,' '))))add(tag,'provider type');
+  }
+  for(const [tag,signals] of Object.entries(RESTAURANT_CUISINE_SIGNALS)){
+    if(signals.some(signal=>cuisineTokens.includes(normalizeRestaurantSearch(signal).replace(/_/g,' '))))add(tag,'provider cuisine');
+  }
   for(const [tag,re] of Object.entries(RESTAURANT_NAME_SIGNALS))if(re.test(nameHay))add(tag,'restaurant name');
 
   for(const tag of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast']){
@@ -239,12 +271,16 @@ const taxonomy={
   aliases:RESTAURANT_SEARCH_ALIASES,
   aliasToTag:Object.fromEntries(ALIAS_TO_TAG),
   identityProfiles:RESTAURANT_IDENTITY_PROFILES,
+  typeSignals:RESTAURANT_TYPE_SIGNALS,
+  cuisineSignals:RESTAURANT_CUISINE_SIGNALS,
+  nameFillerWords:[...RESTAURANT_NAME_FILLER_WORDS],
   menuSignals:RESTAURANT_MENU_SIGNALS,
   nameSignals:RESTAURANT_NAME_SIGNALS,
   normalizeRestaurantSearch,
   restaurantSearchClassification,
   searchAliasesFor,
   identityHay,
+  restaurantNameCore,
   restaurantNameKeys,
   namesOverlap,
   isFastFood,
