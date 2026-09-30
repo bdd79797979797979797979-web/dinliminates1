@@ -84,3 +84,32 @@ const concreteDuplicateFamilies=[
 assert.equal(dedupe(concreteDuplicateFamilies[0]).length,1,'Heads BBQ provider variants must collapse to one venue');
 assert.equal(dedupe(concreteDuplicateFamilies[1]).length,1,'Excell BBQ provider variants must collapse to one venue');
 assert.equal(dedupe(concreteDuplicateFamilies[2]).length,1,'McDonalds Sango provider variants must collapse to one venue');
+
+
+const realWorldSameVenueFamilies=[
+ [
+  {id:'w1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90,source:'Google Places'},
+  {id:'w2',name:"Wendy's Restaurant - Madison",address:'Madison Street, Clarksville, Tennessee, 37043',lat:36.5310,lon:-87.3590,distance:6.91,source:'Photon POI'}
+ ],
+ [
+  {id:'h1',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90,source:'OpenStreetMap'},
+  {id:'h2',name:'Robert Heads BBQ',address:'Iron Workers Road, Clarksville, Tennessee 37043',lat:36.5310,lon:-87.3590,distance:6.92,source:'Photon POI'}
+ ],
+ [
+  {id:'e1',name:'Excell BBQ',address:'3102 Ashland City Rd, Clarksville, TN 37040',lat:36.5500,lon:-87.30,distance:8.10,source:'OpenStreetMap'},
+  {id:'e2',name:"Excell's BBQ",address:'Ashland City Road, Clarksville, Tennessee 37040',lat:36.5510,lon:-87.2990,distance:8.14,source:'ArcGIS POI'}
+ ],
+ [
+  {id:'m1',name:"McDonald's Sango",address:'4201 Highway 41A S, Clarksville, TN 37043',lat:36.60,lon:-87.18,distance:6.90,source:'Google Places'},
+  {id:'m2',name:"McDonalds",address:'Highway 41A South, Clarksville, Tennessee 37043',lat:36.6010,lon:-87.1790,distance:6.94,source:'ArcGIS POI'}
+ ]
+];
+for(const [label,rows] of [['Wendy',realWorldSameVenueFamilies[0]],['Heads',realWorldSameVenueFamilies[1]],['Excell',realWorldSameVenueFamilies[2]],['McDonalds Sango',realWorldSameVenueFamilies[3]]]){
+ assert.equal(dedupe(rows).length,1,label+' same-street provider records must collapse to one venue');
+}
+
+const distinctStreetDistance=[
+ {id:'d1',name:"McDonald's",address:'4201 Highway 41A S, Clarksville, TN 37043',lat:36.60,lon:-87.18,distance:6.90,source:'Google'},
+ {id:'d2',name:"McDonald's",address:'4800 Highway 41A S, Clarksville, TN 37043',lat:36.67,lon:-87.20,distance:12.40,source:'ArcGIS'}
+];
+assert.equal(dedupe(distinctStreetDistance).length,2,'Separate same-chain locations on the same street but different origin distances must remain distinct');
