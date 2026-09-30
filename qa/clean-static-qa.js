@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=455'),'App script must use the CP455 cache-busting query');
-assert(release.build===160 && release.checkpoint==='CP455','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=456'),'App script must use the CP455 cache-busting query');
+assert(release.build===161 && release.checkpoint==='CP456','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -344,6 +344,8 @@ assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.incl
 assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
+assert(api.includes('sameName && !conflictingAddress && dist<=0.08'),'Restaurant API same-name dedupe must use a tight same-venue distance threshold');
+assert(app.includes('const close=Number.isFinite(dist)&&dist<=0.08'),'Browser Restaurant dedupe must use the same tight same-venue distance threshold');
 assert(api.includes('const conflictingAddress=!!ax&&!!ar&&!sameAddress'),'Restaurant dedupe must protect distinct nearby addresses from false merges');
 assert(app.includes('const conflictingAddr=!!address&&!!xa&&!sameAddr'),'Frontend Restaurant dedupe must protect distinct nearby addresses from false merges');
 assert(api.includes('function applyGoogleContactPatches'),'Google contact enrichment must merge into existing rows');
