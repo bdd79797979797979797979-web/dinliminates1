@@ -561,7 +561,7 @@
 
 
 
-@media(max-width:390px){.luxury-home h1{font-size:29px;max-width:12em}.pass-card-copy h2{font-size:28px}}
+@media(max-width:390px){.luxury-home h1{font-size:29px;max-width:12em}}
 
 
 
@@ -692,7 +692,7 @@
 .settings-system-action.diagnosis-action:hover{background:linear-gradient(180deg,#238d94,#17656b)!important;border-color:#72bbc0!important}
 
 
-@media(max-width:390px){.pass-mode-option span{font-size:9px}}
+
 
 
 
