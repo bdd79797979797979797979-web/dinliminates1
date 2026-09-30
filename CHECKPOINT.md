@@ -205,3 +205,4 @@ Deployment:
 - Recovery branches include `checkpoint-cp262-image-diagnosis-pre-fix-2026-09-30` and `checkpoint-cp262-final-teal-swipe-2026-09-30`.
 
 CP333 launch-hardening recovery marker: restaurant website/phone contact validation.
+CP333 hardening trigger.
