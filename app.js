@@ -1596,7 +1596,7 @@ const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added 
 if(!confirmed)return;
 const idx=S.custom.findIndex(x=>x.id===id);
 if(idx>=0)S.custom.splice(idx,1);
-S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);S.cutCats.forEach(cat=>{if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes(cat)))S.cutCats.delete(cat);});
+S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);
 await deleteStoredPhoto(id);
 buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
