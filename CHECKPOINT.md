@@ -144,3 +144,10 @@ Deployment:
 - Build updated from 127 to **128**.
 - Recovery points: `checkpoint-cp259-food-catalog-added-2026-09-30`, `checkpoint-cp259-qa-ready-2026-09-30`.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+## CP260 — Quick Cut / Hungry cleanup
+- Liver & Onions: Southern + Healthy.
+- Food Quick Cut order: American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Hungry winner: small “Fish Sticks?” prompt; Details has no Hide button.
+- Build 129.
+- Recovery: `checkpoint-cp260-pre-hungry-quickcuts-2026-09-30`, `checkpoint-cp260-product-changes-2026-09-30`.
