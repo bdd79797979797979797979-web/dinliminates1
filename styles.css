@@ -1017,3 +1017,74 @@
   .restaurant-card-utility{width:25px!important;min-width:25px!important;height:25px!important;min-height:25px!important}
   #restaurantCard .card-copy h3{font-size:26px}
 }
+
+/* CP438 — restaurant location/search hierarchy without added vertical weight */
+.restaurant .location-strip{
+  padding-top:2px;
+}
+.restaurant .location-main{
+  align-items:center;
+}
+.restaurant .location-main .address-wrap{
+  min-width:0;
+}
+.restaurant #address{
+  font-size:11px;
+  letter-spacing:.005em;
+}
+.restaurant .location-sub{
+  display:grid;
+  grid-template-columns:auto minmax(66px,86px) minmax(0,1fr) auto;
+  align-items:center;
+  gap:6px;
+  margin-top:5px;
+}
+.restaurant .location-sub>span:first-child{
+  font-size:8px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:#756f67;
+}
+.restaurant .location-sub .status{
+  min-width:0;
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:8px;
+  color:#78736d;
+}
+.restaurant .location-source-label{
+  min-width:0;
+  max-width:150px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:8px;
+  color:#9e988d;
+}
+.restaurant .location-source-label.is-ready{
+  color:#b6c6bd;
+}
+@media(max-width:390px){
+  .restaurant .location-sub{
+    grid-template-columns:auto 70px minmax(0,1fr) auto;
+    gap:5px;
+  }
+  .restaurant .location-sub .status,
+  .restaurant .location-source-label{
+    font-size:7px;
+  }
+  .restaurant #address{
+    font-size:10px;
+  }
+}
+@media(max-width:340px){
+  .restaurant .location-sub{
+    grid-template-columns:auto 64px minmax(0,1fr);
+  }
+  .restaurant .location-source-label{
+    grid-column:1 / -1;
+    justify-self:end;
+  }
+}
