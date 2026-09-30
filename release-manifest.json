@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 170,
-  "sourceBranch": "cp465-unified-add-meal-category-photo-plan-2026-09-30",
+  "build": 171,
+  "sourceBranch": "cp466-restaurant-identity-taxonomy-hardening-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP465"
+  "checkpoint": "CP466"
 }
