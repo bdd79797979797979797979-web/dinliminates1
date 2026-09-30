@@ -13,7 +13,7 @@ const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
 if(!RESTAURANT_TAXONOMY) throw new Error('Restaurant taxonomy failed to load.');
 const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
 const foodQuickLabels=()=>S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other'))?[...FOOD_QUICK,'Other']:FOOD_QUICK;
-const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
+const REST_QUICK = [...RESTAURANT_TAXONOMY.tags];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
 Pasta:'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=700', // Spaghetti
@@ -599,20 +599,8 @@ function restaurantSearchText(row){
   ...(Array.isArray(row?.menuItems)?row.menuItems:[])
  ].filter(Boolean).join(' ');
 }
-function normalizeRestaurantSearch(value){
- return String(value||'')
-  .toLowerCase()
-  .replace(/['’]/g,'')
-  .replace(/&/g,' and ')
-  .replace(/[^a-z0-9]+/g,' ')
-  .replace(/\s+/g,' ')
-  .trim();
-}
-function restaurantIdentityHay(row){
- return normalizeRestaurantSearch([
-  row?.category,row?.cuisine,row?.name,row?.brand,row?.operator
- ].join(' '));
-}
+const normalizeRestaurantSearch = RESTAURANT_TAXONOMY.normalizeRestaurantSearch;
+const restaurantIdentityHay = RESTAURANT_TAXONOMY.identityHay;
 function restaurantIsFastFood(row){
  return RESTAURANT_TAXONOMY.isFastFood(row);
 }
