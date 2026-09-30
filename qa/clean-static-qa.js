@@ -121,7 +121,7 @@ assert(app.includes("function setRestaurantHoursMode(mode)"),'Hours toggle must 
 assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open/Unknown');
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
-assert(app.includes("if(!restaurantHoursFilter(row))return false;"),'Restaurant pool must apply the hours filter');
+assert(app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));'),'Restaurant pool must apply the hours filter');
 assert(app.includes("hoursBtn.addEventListener('click'"),'Hours toggle must have an explicit click event listener');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
