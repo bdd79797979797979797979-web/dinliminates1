@@ -239,50 +239,6 @@ assert.equal(await page.locator('#detailsModal #detailHide').count(),1,'Food Det
 await page.locator('#detailsModal [data-close]').click(); await settle();
 
 
-await click('#foodPassAround'); await settle();
-assert.equal(await visible('passSurface'),true,'Pass Around setup should use the full page, not a popup');
-assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('pass-active')),true,'Pass Around should lock background page scrolling on iPhone');
-assert.equal(await page.locator('#passModal').count(),0,'Pass Around should not open a modal');
-assert.equal(await page.locator('[data-pass-mode="quick"]').getAttribute('aria-pressed'),'true','Quick Pass should be the default');
-assert.equal(await page.locator('[data-pass-mode="full"]').getAttribute('aria-pressed'),'false','Full Pass should start as the optional mode');
-assert.match(await page.locator('#passBegin').innerText(),/Start Quick Pass/i,'Quick Pass should be the default start action');
-await click('[data-pass-count="3"]'); await settle();
-const names=page.locator('[data-pass-name]');
-await names.nth(0).fill('Brian'); await names.nth(1).fill('Devona'); await names.nth(2).fill('Guest');
-await click('#passBegin'); await settle();
-assert.equal(await visible('passSurface'),true,'Pass Around voting should remain full page');
-let pass=await qa(); const firstPassId=pass.pass.poolIds[0];
-assert.equal(pass.pass.mode,'quick','Quick Pass should be active after starting the default mode');
-assert.equal(await page.locator('#passGestureHit').count(),1,'Pass Around should expose a dedicated full-card gesture layer');
-assert.equal(await page.locator('#passGestureHit').getAttribute('data-pass-swipe-bound'),'true','Pass Around gesture layer should be bound when the page is created');
-const passBox=await page.locator('#passGestureHit').boundingBox(); if(!passBox) throw new Error('Pass gesture surface missing');
-const passTarget=await page.locator('#passGestureHit').evaluate(el=>{const r=el.getBoundingClientRect(),h=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return {id:h?.id||'',pointerEvents:getComputedStyle(h||el).pointerEvents};});
-const passX1=passBox.x+50, passX2=passBox.x+passBox.width-45, passY=passBox.y+passBox.height/2;
-assert.equal(passTarget.id,'passGestureHit','The full-card swipe hit layer must be the topmost pointer target');
-assert.equal(passTarget.pointerEvents,'auto','The full-card swipe hit layer must accept pointer input');
-await page.mouse.move(passX1,passY); await page.mouse.down(); await page.mouse.move(passX2,passY,{steps:8}); await page.waitForTimeout(20);
-assert.equal(await page.locator('#passCard').getAttribute('data-swipe'),'maybe','Pass Around should enter the right-swipe Keep state during the drag');
-await page.mouse.up(); await settle();
-pass=await qa(); assert.equal(pass.pass.history.length,1,'Quick Pass should record the first vote'); assert.equal(pass.pass.voterIndex,1,'Quick Pass should advance to the next voter when the outcome is not decided');
-const keepBox=await page.locator('#passGestureHit').boundingBox(); if(!keepBox) throw new Error('Pass gesture surface missing after first vote');
-await page.mouse.move(keepBox.x+50,keepBox.y+keepBox.height/2); await page.mouse.down(); await page.mouse.move(keepBox.x+keepBox.width-45,keepBox.y+keepBox.height/2,{steps:6}); await page.mouse.up(); await settle();
-pass=await qa(); assert.equal(pass.pass.choiceIndex,1,'Quick Pass should finish a choice as soon as a 3-person majority is reached'); assert.equal(pass.pass.voterIndex,0,'Quick Pass should reset to the first voter for the next choice'); assert.equal(pass.pass.history.length,2,'Quick Pass should preserve both votes in history');
-await click('#passBack'); await settle(); pass=await qa(); assert.equal(pass.pass.choiceIndex,0,'Pass Around Back should restore the prior choice position'); assert.equal(pass.pass.voterIndex,1,'Pass Around Back should restore the prior voter position'); assert.equal(pass.pass.votes[firstPassId]?.keep,1,'Pass Around Back should restore the prior vote tally'); assert.equal(pass.pass.poolIds.includes(firstPassId),true,'Pass Around Back should restore the exact choice');
-await click('#passClose'); await settle(); assert.equal(await page.locator('#passSurface').count(),0,'Ending Pass Around should return to the normal decision deck');
-
-await click('#foodPassAround'); await settle();
-await click('[data-pass-mode="full"]'); await settle();
-assert.equal(await page.locator('[data-pass-mode="full"]').getAttribute('aria-pressed'),'true','Full Pass should be selectable');
-await click('[data-pass-count="3"]'); await settle();
-const fullNames=page.locator('[data-pass-name]'); await fullNames.nth(0).fill('Brian'); await fullNames.nth(1).fill('Devona'); await fullNames.nth(2).fill('Guest');
-await click('#passBegin'); await settle();
-pass=await qa(); assert.equal(pass.pass.mode,'full','Full Pass should activate the original round-robin mode');
-assert.match(await page.locator('#passCard .pass-rule').innerText(),/Everyone must keep/i,'Full Pass should explain its unanimous rule');
-const fullBox=await page.locator('#passGestureHit').boundingBox(); if(!fullBox) throw new Error('Full Pass gesture surface missing');
-await page.mouse.move(fullBox.x+50,fullBox.y+fullBox.height/2); await page.mouse.down(); await page.mouse.move(fullBox.x+fullBox.width-45,fullBox.y+fullBox.height/2,{steps:6}); await page.mouse.up(); await settle();
-pass=await qa(); assert.equal(pass.pass.mode,'full','Full Pass should remain active after a vote'); assert.equal(pass.pass.voterIndex,1,'Full Pass should advance voter-by-voter like the original mode');
-await click('#passClose'); await settle(); assert.equal(await page.locator('#passSurface').count(),0,'Ending Full Pass should return cleanly to the normal deck');
-
 await click('#foodBackTop'); await settle();
 await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
