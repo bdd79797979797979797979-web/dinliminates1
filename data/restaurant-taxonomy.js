@@ -192,24 +192,28 @@ function classifyRestaurant(row){
   if(profile)for(const tag of profile.tags)add(tag,'known identity');
 
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
-  const primary=rawCategory+' '+cuisineHay;
+  const providerHay=normalizeRestaurantSearch([
+    rawCategory,cuisineHay,row?.providerType,row?.type,row?.amenity,row?.primaryType,
+    ...(Array.isArray(row?.providerTypes)?row.providerTypes:[]),
+    ...(Array.isArray(row?.types)?row.types:[])
+  ].filter(Boolean).join(' '));
   const providerRules={
-    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
-    'Fast Food':/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
+    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint|burger restaurant|burger shop)\b/,
+    'Fast Food':/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru|fast casual)\b|\bmeal takeaway\b/,
     Pizza:/\bpizza\b|\bpizzeria\b/,
     Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
     Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b|\bcomfort food\b/,
-    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b|\bhibachi\b|\bramen\b|\bpho\b|\bteriyaki\b/,
-    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b/,
-    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b/,
-    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b/,
-    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b/,
+    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b|\bhibachi\b|\bramen\b|\bpho\b|\bteriyaki\b|\bdim sum\b/,
+    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b|\btrattoria\b|\bosteria\b|\bristorante\b/,
+    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bbarbecue restaurant\b/,
+    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\bseafood restaurant\b|\braw bar\b/,
     Breakfast:/\bbreakfast\b|\bbrunch\b|\bwaffle house\b|\bpancake house\b|\bomelet\b/,
-    American:/\bamerican\b|\bdiner\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b|\broadhouse\b|\bsteakhouse\b/
+    American:/\bamerican\b|\bdiner\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b|\broadhouse\b|\bsteakhouse\b|\bsteak house\b/
   };
-  for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
+  for(const [tag,re] of Object.entries(providerRules))if(re.test(providerHay))add(tag,'provider type/category/cuisine');
 
   for(const [tag,re] of Object.entries(RESTAURANT_NAME_SIGNALS))if(re.test(nameHay))add(tag,'restaurant name');
+  if(/\b(?:sandwich|sub|deli|hoagie|grinder)\b/.test(providerHay+' '+nameHay))add('American','sandwich/deli signal');
 
   for(const tag of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast']){
     if(menuSignalCount(row,tag)>=2)add(tag,'menu corroboration');
