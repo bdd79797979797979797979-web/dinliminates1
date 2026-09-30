@@ -365,6 +365,7 @@ function applyGoogleContactPatches(rows,patches){
  return rows;
 }
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
+const RESTAURANT_NAME_VARIANT_BLOCKERS=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','more','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameTokens(value){
   return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
 }
@@ -375,7 +376,10 @@ function nameVariantMatch(a,b){
   const shared=aa.filter(t=>bs.has(t)).length;
   const shorter=Math.min(as.size,bs.size),union=new Set([...aa,...bb]).size;
   if(as.size===bs.size&&shared===as.size)return true;
-  return shared===shorter && shared/union>=0.6;
+  if(shared!==shorter || shared/union<0.6)return false;
+  const longer=aa.length>=bb.length?aa:bb;
+  const extras=longer.filter(token=>!((aa.length>=bb.length?as:bs).has(token)));
+  return !extras.some(token=>RESTAURANT_NAME_VARIANT_BLOCKERS.has(token));
 }
 function normAddress(s){
   const map={
@@ -427,6 +431,7 @@ function sameRestaurant(x,r){
   if(!x||!r)return false;
   const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
   const variant=nameVariantMatch(x.name,r.name);
+  const sameNameFamily=sameName||variant;
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
@@ -435,8 +440,8 @@ function sameRestaurant(x,r){
   const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameNameStreet=sameName&&sameStreet&&originDistanceClose;
-  if(sameAddress && (sameName||variant||sameBrand))return true;
+  const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
+  if(sameAddress && (sameNameFamily||sameBrand))return true;
   if(sameNameStreet)return true;
   if(sameName && !conflictingAddress && dist<=0.08)return true;
   if(sameContact(x,r) && !conflictingAddress && dist<=0.12)return true;
@@ -643,7 +648,7 @@ if(mode==='search'){
  const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
    const website=r.website||knownRestaurantWebsite(r);
    const phone=String(r.phone||'').trim();
-   const classification=RESTAURANT_TAXONOMY.classifyRestaurant({...r,website,phone}); const classifiedFastFood=classification.tags.includes('Fast Food'); const photo=restaurantPhotoMeta(r); return normalizeRestaurantHours({...r,fastFood:classifiedFastFood,quickCutTags:classification.tags,quickCutEvidence:classification.evidence,...photo,website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
+   const classification=RESTAURANT_TAXONOMY.classifyRestaurant({...r,website,phone}); const canonicalCategory=classification.primary||r.category||'American'; const classifiedFastFood=classification.tags.includes('Fast Food'); const photo=restaurantPhotoMeta(r); return normalizeRestaurantHours({...r,category:canonicalCategory,fastFood:classifiedFastFood,quickCutTags:classification.tags,quickCutEvidence:classification.evidence,...photo,website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
   });
  const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>RESTAURANT_TAXONOMY.classifyRestaurant(r).tags.includes('Fast Food')).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,discoveryMode:discoveryPlan.mode,discoveryReserveMs:discoveryPlan.reserveMs,discoveryGroups:discoveryPlan.groups.length,discoveryCoveragePoints:discoveryPlan.coveragePoints,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
