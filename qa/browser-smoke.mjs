@@ -83,6 +83,21 @@ await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(100);
 console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
 await assert.equal(await page.locator('#home h1').innerText(),'Dinner Decisions Simplified');
+const contactLinkGuards=await page.evaluate(()=>{
+  const t=window.__DINLIMINATE_TEST__;
+  return {
+    appOrigin:t?.safeExternalUrl(location.origin),
+    appBrand:t?.safeExternalUrl('https://diliminate.netlify.app/'),
+    direct:t?.safeExternalUrl('https://example.com/restaurant'),
+    appFallback:t?.restaurantWebsiteUrl({name:'QA Restaurant',address:'100 Main St, Clarksville, TN',website:location.origin}),
+    phone:t?.phoneHref('(931) 555-0101')
+  };
+});
+assert.equal(contactLinkGuards.appOrigin,'','Restaurant Website must never point back to the current Dinliminate app');
+assert.equal(contactLinkGuards.appBrand,'','Restaurant Website must reject a Dinliminate deployment host');
+assert.equal(contactLinkGuards.direct,'https://example.com/restaurant','A real HTTPS restaurant website should remain a direct external link');
+assert.match(contactLinkGuards.appFallback||'',/google\\.com\\/search\\?q=/,'A Dinliminate/app URL must fall back to a Google restaurant website search');
+assert.equal(contactLinkGuards.phone,'tel:+19315550101','Restaurant phone numbers should normalize to tappable tel links');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
 assert.ok(homeGeom.scrollHeight <= homeGeom.innerHeight + 2,'Home should fit one iPhone viewport without vertical scrolling');
