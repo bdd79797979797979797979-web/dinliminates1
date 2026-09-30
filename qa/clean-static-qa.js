@@ -1,12 +1,12 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),photoApi=fs.readFileSync('api/restaurant-photo.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
-// CP444 restaurant control regressions
+// CP448 restaurant regression contracts
 assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision controls require the shared bindCardButton helper');
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=444'),'App script must use the CP444 cache-busting query');
-assert(release.build===149 && release.checkpoint==='CP444','release.json must identify Build 149 / CP444');
+assert(html.includes('app.js?v=448'),'App script must use the CP448 cache-busting query');
+assert(release.build===153 && release.checkpoint==='CP448','release.json must identify Build 153 / CP448');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -117,6 +117,8 @@ assert(html.includes('id="celebration"'),'Winner must include celebration layer'
 assert(!html.toLowerCase().includes('clean rebuild'),'HTML should not mention build-internal wording');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
+assert(app.includes("detailsBtn.classList.toggle('hidden',hungry)"),'Hungry winner must hide the Details action');
+assert(app.includes("if(item?.category==='Hungry')return;"),'Hungry Details must be blocked even if invoked programmatically');
 assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app),'About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
@@ -135,6 +137,7 @@ assert(!html.includes('id="newCat"'),'legacy Add Food category control must be r
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(!html.includes('id="hoursToggle"'),'Restaurant hours filter control should be removed from the UI');
+assert(app.includes("'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg"),'Restaurant Asian Quick Cut must have a concrete photo source');
 assert(app.includes("S.hoursMode = 'openUnknown';"),'Persisted Restaurant hours state must normalize to Open/Unknown now that the filter control is removed');
 
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
