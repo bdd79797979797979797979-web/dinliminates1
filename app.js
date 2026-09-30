@@ -899,7 +899,7 @@ const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisi
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
 const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '<a class="card-detail-line card-phone card-phone-fallback" href="'+esc(restaurantPhoneSearchUrl(row))+'" target="_blank" rel="noopener noreferrer">Phone ↗</a>';
 const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
-const directWebsite=!!safeExternalUrl(row.website); const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open restaurant website':'Search restaurant on Google')+'" title="'+(directWebsite?'Website':'Search on Google')+'">'+(directWebsite?'Website ↗':'Google ↗')+'</a>';
+const directWebsite=!!(safeExternalUrl(row.website)||knownRestaurantWebsite(row)); const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open restaurant website':'Search restaurant on Google')+'" title="'+(directWebsite?'Website':'Search on Google')+'">'+(directWebsite?'Website ↗':'Google ↗')+'</a>';
 $('restStage').innerHTML =
 '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+'<div class="card-cuisine-row">'+(row.cuisine?'<div class="card-detail-line cuisine-line">'+esc(row.cuisine)+'</div>':'<div class="card-detail-line cuisine-line">'+esc(category)+'</div>')+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'</div></div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
@@ -1044,7 +1044,7 @@ function detailsSheet(item,type){
  const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
  const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHref(item.phone))+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<a class="restaurant-detail-contact-link restaurant-phone-fallback" href="'+esc(restaurantPhoneSearchUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Search for restaurant phone number on Google"><span class="contact-label">Phone</span><strong>Find on Google ↗</strong></a>';
  const addressLink=item.address?'<div class="restaurant-detail-address"><span class="contact-label">Address</span><strong>'+esc(item.address)+'</strong></div>':'';
- const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div></div><div class="restaurant-detail-contact"><div class="contact-card">'+phoneLink+addressLink+'</div><div class="contact-actions"><a class="detail-web-action detail-website-action" id="detailWeb" href="'+esc(restaurantWebsiteUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Open restaurant website or Google search fallback">'+(safeExternalUrl(item.website)?'Website ↗':'Google Search ↗')+'</a><a class="detail-web-action detail-directions-action" id="detailDirections" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions">Google Maps ↗</a></div></div></div>':'';
+ const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div></div><div class="restaurant-detail-contact"><div class="contact-card">'+phoneLink+addressLink+'</div><div class="contact-actions"><a class="detail-web-action detail-website-action" id="detailWeb" href="'+esc(restaurantWebsiteUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Open restaurant website or Google search fallback">'+((safeExternalUrl(item.website)||knownRestaurantWebsite(item))?'Website ↗':'Google Search ↗')+'</a><a class="detail-web-action detail-directions-action" id="detailDirections" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions">Google Maps ↗</a></div></div></div>':'';
  const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE;
  const actionBar=type==='restaurant'?'':(item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>');
  const body='<div class="detail-grid '+(type==='restaurant'?'restaurant-details-content':'')+'"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><div class="detail-title-block"><span class="detail-kicker">'+(type==='restaurant'?'RESTAURANT DETAILS':'DETAILS')+'</span><h2>'+esc(item.name)+'</h2></div>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+(actionBar?'<div class="detail-actions-row">'+actionBar+'</div>':'')+'</div>';
@@ -1473,25 +1473,3 @@ home();
 if (new URLSearchParams(location.search).get('qa') === '1') {
 window.__DINLIMINATE_QA__ = {
 snapshot: () => ({
-screen:S.screen,
-foodCatalog:allFoods().length,
-foodPool:foodPool().map(x=>x.id),
-restaurantPool:restaurantPoolFiltered().map(x=>x.id),
-custom:S.custom.map(x=>({...x})),
-allRestaurantIds:(S.restaurantPool||[]).map(x=>x.id),
-foodActions:S.foodActions.map(x=>({...x})),
-restaurantActions:S.restaurantActions.map(x=>({...x})),
-hiddenFoods:[...S.hidden],
-hiddenRestaurants:{...S.hiddenRestaurants},
-cutCats:[...S.cutCats],
-maybe:[...S.maybe],
-foodMaybeRound:!!S.foodMaybeRound,
-restaurantMaybeRound:!!S.restaurantMaybeRound,
-restaurantCuts:[...S.restaurantCuts],
-winner:S.winnerItem ? {...S.winnerItem} : null,
-winnerType:S.winnerType,
-location:S.location ? {...S.location} : null
-})
-};
-}
-})();
