@@ -59,6 +59,9 @@ jobs:
       - name: Six-point restaurant search certification
         run: node qa/restaurant-six-point-certification.mjs
 
+      - name: Restaurant hours model smoke
+        run: node qa/restaurant-hours-model-smoke.cjs
+
 
 
 
