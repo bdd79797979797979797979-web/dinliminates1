@@ -94,7 +94,7 @@ await assert.equal((await qa()).foodCatalog,116,'Restored 116-food catalog shoul
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
-assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
+assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
 assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),11,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
@@ -117,6 +117,12 @@ const requestedCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIM
 assert.deepEqual(requestedCatalog['homemade-pizza'].quickCuts,['Italian'],'Pizza should be associated with Italian only');
 assert.deepEqual(requestedCatalog['meatball-subs'].quickCuts,['Italian'],'Meatball Sub should be associated with Italian');
 assert.deepEqual(requestedCatalog['sausage-peppers'].quickCuts,['Italian'],'Sausage & Peppers should be associated with Italian');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']){
+ const row=await page.evaluate(id=>window.DINLIMINATE_FOODS.find(x=>x.id===id),id);
+ assert.deepEqual(row?.quickCuts,['Pasta','Italian'],id+' should be associated with Pasta + Italian');
+}
+const liver=await page.evaluate(()=>window.DINLIMINATE_FOODS.find(x=>x.id==='liver-and-onions'));
+assert.deepEqual(liver?.quickCuts,['Southern','Healthy'],'Liver & Onions should be Southern + Healthy');
 assert.deepEqual(requestedCatalog['pork-chops'].quickCuts,['Southern'],'Pork Chops should be associated with Southern');
 assert.deepEqual(requestedCatalog['pork-tenderloin'].quickCuts,['Southern'],'Pork Tenderloin should be associated with Southern');
 assert.deepEqual(requestedCatalog['white-fish'].quickCuts,['Healthy'],'White Fish should be associated with Healthy');
@@ -133,6 +139,15 @@ assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa(); assert.equal(s.foodPool.length,116,'Quick Cut should restore');
+await click('[data-food-quick="Pasta"]'); await settle();
+s=await qa(); assert.ok(s.foodPool.length<116 && s.foodPool.length>0,'Pasta Quick Cut should leave an active food deck');
+const pastaCard=await page.locator('#foodCard').boundingBox(); if(!pastaCard) throw new Error('Food card missing after Pasta Quick Cut');
+await page.mouse.move(pastaCard.x+pastaCard.width/2,pastaCard.y+pastaCard.height/2); await page.mouse.down(); await page.mouse.move(pastaCard.x+60,pastaCard.y+pastaCard.height/2,{steps:5}); assert.equal(await page.locator('#foodCard').getAttribute('data-swipe'),'cut','Food swipe should still work after Pasta Quick Cut'); await page.mouse.up(); await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should work after Pasta Quick Cut'); await click('#foodBack'); await settle();
+const pastaCard2=await page.locator('#foodCard').boundingBox(); if(!pastaCard2) throw new Error('Food card missing for Pasta right-swipe QA');
+await page.mouse.move(pastaCard2.x+50,pastaCard2.y+pastaCard2.height/2); await page.mouse.down(); await page.mouse.move(pastaCard2.x+pastaCard2.width-18,pastaCard2.y+pastaCard2.height/2,{steps:5}); await page.mouse.up(); await settle();
+s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should work after Pasta Quick Cut'); await click('#foodBack'); await settle();
+await click('[data-food-quick="Pasta"]'); await settle();
 
 const foodBox=await page.locator('#foodCard').boundingBox();
 if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
@@ -406,7 +421,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Pasta','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food editor should expose all food categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
@@ -414,14 +429,19 @@ await page.locator('#editFoodFile').setInputFiles({
 });
 await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.startsWith('data:image/'),'',{timeout:5000});
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
-const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,11,'Custom Food editor should render all Food Quick Cut checkboxes without Greek');
+const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,12,'Custom Food editor should render the 11 standard Food Quick Cuts plus Other');
+assert.ok(editorDiag.values.includes('Other'),'Custom Food editor should expose Other as an optional Quick Cut');
 await page.locator('input[name="editQuickCut"][value="Pasta"]').check({force:true});
+await page.locator('input[name="editQuickCut"][value="Other"]').check({force:true});
 await page.locator('input[name="editQuickCut"][value="Healthy"]').check({force:true});
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
 const customRow=s.custom.find(x=>x.id==='qa-special'); assert.equal(customRow.quickCuts.includes('Pasta'),true,'Custom food should support multiple Quick Cuts'); assert.equal(customRow.quickCuts.includes('Healthy'),true,'Custom food should support multiple Quick Cuts');
+assert.equal(customRow.quickCuts.includes('Other'),true,'Custom food should persist the optional Other Quick Cut');
+assert.equal(await page.locator('[data-food-quick="Other"]').count(),1,'Other Quick Cut should appear only after a custom food adds it');
 assert.equal(await visible('manageFoodsModal'),false,'saving a custom food from the Food deck should return to the swipe deck');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'saving a custom food should close the editor');
+await click('[data-food-quick="Other"]'); await settle(); s=await qa(); assert.equal(s.foodPool.includes('qa-special'),false,'Other Quick Cut should eliminate only foods explicitly tagged Other'); await click('[data-food-quick="Other"]'); await settle();
 await page.locator('#foodMenu').click({force:true}); await settle();
 await page.locator('#manage').click({force:true}); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Manage Foods should expose the saved custom food for editing');
