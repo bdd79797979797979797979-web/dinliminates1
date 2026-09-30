@@ -1,0 +1,4 @@
+CP442 Netlify preview marker — 2026-09-30
+Source branch: cp348-search-six-point-certification-2026-09-30
+Release identity: Build 147 / CP442
+This file exists only to trigger a Netlify preview; no application behavior is changed.
