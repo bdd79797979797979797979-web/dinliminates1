@@ -378,8 +378,28 @@ function nameVariantMatch(a,b){
   return shared===shorter && shared/union>=0.6;
 }
 function normAddress(s){
-  const map={street:'st',st:'st',road:'rd',rd:'rd',avenue:'ave',ave:'ave',boulevard:'blvd',blvd:'blvd',drive:'dr',dr:'dr',lane:'ln',ln:'ln',parkway:'pkwy',pkwy:'pkwy',highway:'hwy',hwy:'hwy',route:'rte',rte:'rte',circle:'cir',cir:'cir',court:'ct',ct:'ct',place:'pl',pl:'pl',trail:'trl',trl:'trl',terrace:'ter',ter:'ter',way:'way'};
-  return norm(s).split(' ').map(x=>map[x]||x).join(' ').replace(/\busa\b/g,'').replace(/\s+/g,' ').trim();
+  const map={
+   street:'st',st:'st',road:'rd',rd:'rd',avenue:'ave',ave:'ave',boulevard:'blvd',blvd:'blvd',
+   drive:'dr',dr:'dr',lane:'ln',ln:'ln',parkway:'pkwy',pkwy:'pkwy',highway:'hwy',hwy:'hwy',
+   route:'rte',rte:'rte',circle:'cir',cir:'cir',court:'ct',ct:'ct',place:'pl',pl:'pl',
+   trail:'trl',trl:'trl',terrace:'ter',ter:'ter',way:'way',
+   north:'n',n:'n',south:'s',s:'s',east:'e',e:'e',west:'w',w:'w',
+   alabama:'al',alaska:'ak',arizona:'az',arkansas:'ar',california:'ca',colorado:'co',
+   connecticut:'ct',delaware:'de',florida:'fl',georgia:'ga',hawaii:'hi',idaho:'id',
+   illinois:'il',indiana:'in',iowa:'ia',kansas:'ks',kentucky:'ky',louisiana:'la',
+   maine:'me',maryland:'md',massachusetts:'ma',michigan:'mi',minnesota:'mn',
+   mississippi:'ms',missouri:'mo',montana:'mt',nebraska:'ne',nevada:'nv',
+   'new-hampshire':'nh',newhampshire:'nh','new-jersey':'nj',newjersey:'nj',
+   'new-mexico':'nm',newmexico:'nm','new-york':'ny',newyork:'ny',
+   northcarolina:'nc','north-dakota':'nd',northdakota:'nd',ohio:'oh',oklahoma:'ok',
+   oregon:'or',pennsylvania:'pa',rhodeisland:'ri','rhode-island':'ri',
+   southcarolina:'sc','south-dakota':'sd',southdakota:'sd',tennessee:'tn',tn:'tn',
+   texas:'tx',utah:'ut',vermont:'vt',virginia:'va',washington:'wa',
+   westvirginia:'wv','west-virginia':'wv',wisconsin:'wi',wyoming:'wy',
+   'district-of-columbia':'dc',districtcolumbia:'dc',dc:'dc'
+  };
+  const tokens=norm(String(s||'')).split(' ').filter(Boolean).map(x=>map[x]||x);
+  return tokens.join(' ').replace(/\busa\b/g,'').replace(/\bunited\s+states\b/g,'').replace(/\s+/g,' ').trim();
 }
 function phoneKey(value){return norm(String(value||'').replace(/[^0-9]/g,''));}
 function websiteKey(value){
