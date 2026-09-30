@@ -624,7 +624,7 @@ function restaurantNameVariantMatchUI(a,b){
  const as=new Set(aa),bs=new Set(bb),shared=aa.filter(t=>bs.has(t)).length,shorter=Math.min(as.size,bs.size),union=new Set([...aa,...bb]).size;
  if(as.size===bs.size&&shared===as.size)return true;
  if(shared!==shorter||shared/union<0.6)return false;
- const longer=aa.length>=bb.length?aa:bb,shorterSet=aa.length>=bb.length?as:bs,extras=longer.filter(t=>!shorterSet.has(t));
+ const longer=aa.length>=bb.length?aa:bb,shorterSet=aa.length>=bb.length?bs:as,extras=longer.filter(t=>!shorterSet.has(t));
  return !extras.some(t=>RESTAURANT_NAME_VARIANT_BLOCKERS_UI.has(t));
 }
 function dedupeRestaurantPool(rows){
