@@ -624,6 +624,14 @@ console.log('Browser HTTP failures:',JSON.stringify(badResponses));
 assert.equal(pageErrors.length,0,'Browser page errors: '+pageErrors.join(' | '));
 assert.equal(badResponses.length,0,'Browser HTTP 4xx/5xx resources: '+JSON.stringify(badResponses));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
+
+const cp258CatalogChecks=await page.evaluate(()=>{const m=new Map((window.DINLIMINATE_FOODS||[]).map(x=>[x.id,x]));return {gyro:m.get('gyro'),fajitas:m.get('stir-fry'),cuts:Object.fromEntries(['pot-pie','blt','reuben','hot-dog','corn-dog','nachos','orange-chicken','chicken-teriyaki','sushi','pancakes','omelet','oatmeal','shrimp','crab-cakes','gumbo','chicken-nuggets','ramen','pimento-cheese-sandwich','ice-cream','protein-bar','candy-bar','banana','apple'].map(id=>[id,m.get(id)?.quickCuts||[]]))};});
+assert.deepEqual(cp258CatalogChecks.gyro?.quickCuts,['Healthy'],'Gyro should use Healthy only');
+assert.equal(cp258CatalogChecks.fajitas?.name,'Fajitas','Mexican Stir Fry should be renamed Fajitas');
+for(const [id,cuts] of Object.entries({'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']})) assert.deepEqual(cp258CatalogChecks.cuts[id],cuts,id+' Quick Cut mapping');
+assert.equal((window.DINLIMINATE_FOODS||[]).some(x=>(x.quickCuts||[]).includes('Greek')),false,'No food may expose Greek Quick Cut');
+console.log('CP258 browser assertions: 90-food catalog, Fajitas rename, no Food Greek Quick Cut, and new food mappings are covered.');
+
 await browser.close(); server.close();
 console.log('Dinliminate clean browser smoke: PASS');
 
