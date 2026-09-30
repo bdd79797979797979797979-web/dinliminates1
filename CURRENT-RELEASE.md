@@ -4,7 +4,7 @@
 - Runtime target: Vercel
 - Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
 - Candidate promotion target: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 128
+- Current app build: Version 1.0 / Build 129
 - CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
@@ -81,3 +81,11 @@ Do not promote this candidate to Vercel production until the exact release commi
 - Build: **128**.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
 - Recovery points: `checkpoint-cp259-food-catalog-added-2026-09-30` and `checkpoint-cp259-qa-ready-2026-09-30`.
+
+
+## CP260 — Quick Cut and Hungry cleanup
+- Liver & Onions now belongs to **Southern + Healthy**.
+- Food Quick Cuts were reordered for a clearer grouping: American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Hungry winner keeps the black Hungry state, shows **Fish Sticks?** in small text, and its Details view has no Hide action.
+- Build: **129**.
+- Recovery point before QA: `checkpoint-cp260-product-changes-2026-09-30`.
