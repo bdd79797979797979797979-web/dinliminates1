@@ -50,6 +50,12 @@ jobs:
         run: node qa/restaurant-radius-discovery-smoke.cjs
       - name: Restaurant search reliability smoke
         run: node qa/restaurant-search-reliability-smoke.cjs
+      - name: Install Playwright for six-point certification
+        run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
+
+      - name: Install Chromium for six-point certification
+        run: npx playwright install --with-deps chromium
+
       - name: Six-point restaurant search certification
         run: node qa/restaurant-six-point-certification.mjs
 
@@ -67,12 +73,6 @@ jobs:
 
       - name: Application Syntax
         run: node --check app.js && node --check data/foods.js && node --check qa/browser-smoke.mjs
-
-      - name: Install Playwright
-        run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
 
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
