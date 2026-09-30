@@ -499,11 +499,6 @@ S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
 drawFood();
 save();
 }
-function randomCutOne() {
-if (!S.pool.length) return;
-const item = S.pool[Math.floor(Math.random() * S.pool.length)];
-foodCut(item);
-}
 function restaurantCanonicalId(row){
 const name=normKey(row?.name);
 const address=normKey(row?.address);
@@ -1384,7 +1379,6 @@ $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
 $('foodHide').onclick = foodHide;
 $('addFood').onclick = manageFoodsView;
-$('randomOne').onclick = randomCutOne;
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
 const appMenu = $('menu'); if (appMenu) appMenu.onclick = openDrawer;
