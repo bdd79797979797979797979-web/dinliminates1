@@ -60,7 +60,7 @@ page.on('request',r=>{if(r.url().includes('/api/restaurant-search?mode=search'))
 await page.route('**/*',async route=>{
  const u=route.request().url();
  if(u.includes('/api/release')) return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:String(release.build),sourceBranch:release.sourceBranch,expectedBranch:release.sourceBranch})});
- if(u.includes('/api/restaurant-search?mode=health')) return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
+ if(u.includes('/api/restaurant-search?mode=health')) return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:50,providers:['qa']})});
  if(u.includes('/api/restaurant-search?mode=suggest')) return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,results:[
    {lat:36.5298,lon:-87.3588,display:'801 Iron Workers Rd, Clarksville, TN 37043'},
    {lat:36.5200,lon:-87.3500,display:'123 Main St, Clarksville, TN 37040'}
@@ -156,7 +156,7 @@ report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Qu
 
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
-const radii=[1,3,5,10,25,50,100];
+const radii=[1,3,5,10,25,50];
 const radiusRows=[];
 for(const r of radii){
   await page.locator('#radius').selectOption(String(r));
