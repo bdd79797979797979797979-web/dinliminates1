@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=465'),'App script must use the CP455 cache-busting query');
-assert(release.build===170 && release.checkpoint==='CP465','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=469'),'App script must use the CP455 cache-busting query');
+assert(release.build===175 && release.checkpoint==='CP469','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -358,6 +358,12 @@ assert(api.includes("tennessee:'tn'"),'Restaurant API address normalization must
 assert(app.includes("tennessee:'tn'"),'Browser Restaurant address normalization must equate Tennessee and TN');
 assert(!app.includes('cardPhoneAction'),'Restaurant cards must not render a phone icon action');
 assert(app.includes("restaurant-card-utilities+'</div>" )||app.includes('cardDetailsAction+cardWebsite'),'Restaurant card utility order must be Details then Website');
+assert(api.includes('function restaurantNameBusinessMatch'),'Restaurant API must use street-aware business-name identity matching');
+assert(app.includes('function restaurantBusinessName'),'Browser Restaurant must use street-aware business-name identity matching');
+assert(api.includes('quickCutTags:classification.tags'),'Restaurant API must expose inferred Quick Cut tags');
+assert(api.includes("category:primaryCuisine,cuisine:primaryCuisine"),'Restaurant API should persist an inferred primary cuisine instead of generic Restaurant when evidence exists');
+assert(app.includes('Array.isArray(row?.quickCutTags)?row.quickCutTags:[]'),'Browser Restaurant should preserve server cuisine classifications through dedupe');
+assert(app.includes("app.js?v=469")||html.includes("app.js?v=469"),'Current build cache version must be 469');
 assert(api.includes('function restaurantStreetKey(value)'),'Restaurant API must compare canonical street identity for partial address dedupe');
 assert(app.includes('function restaurantStreetFamily(value)'),'Browser Restaurant layer must compare canonical street identity for partial address dedupe');
 assert(html.includes('Dinner Simplified') && !html.includes('Dinner Decisions Simplified'),'Home headline must be Dinner Simplified');
