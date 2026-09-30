@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 149,
-  "sourceBranch": "cp444-fix-four-restaurant-controls-2026-09-30",
+  "build": 150,
+  "sourceBranch": "cp445-radius50-toggle-asian-flicker-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP444"
+  "checkpoint": "CP445"
 }
