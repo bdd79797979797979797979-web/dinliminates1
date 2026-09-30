@@ -109,7 +109,7 @@ assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protoco
 assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
-const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon.svg'"),'Offline shell must cache the PWA icon');
+const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./data/restaurant-taxonomy.js'"),'Offline shell must cache the shared restaurant taxonomy'); assert(sw.includes("'./icon.svg'"),'Offline shell must cache the PWA icon');
 assert(html.includes('rel="icon"') && html.includes('./icon.svg'),'PWA icon link contract missing');
 assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
 
@@ -145,10 +145,11 @@ for(const label of ['Fast Food','Burgers','Pizza','Mexican','American','Italian'
 assert(app.includes('restaurant-luxury-stat-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
 
-assert(app.includes("const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']"),'Restaurant Quick Cuts must use restaurant categories, not food-item categories');
+assert(app.includes("const REST_QUICK = [...RESTAURANT_TAXONOMY.tags]"),'Restaurant Quick Cuts must use the shared restaurant taxonomy categories');
 const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; for(const legacy of ['Potato','Pasta','Soup/Stew','Healthy']) assert(!restQuickLine.includes("'"+legacy+"'"),'Restaurant Quick Cuts must not include food-style '+legacy+' shortcut');
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
-assert(app.includes("normalized==='burger'") && app.includes('!!row.fastFood'),'Burger Search should include fast-food restaurants');
+assert(app.includes('RESTAURANT_TAXONOMY.restaurantSearchClassification'),'Restaurant Search should classify semantic cuisine/type queries with the shared taxonomy.');
+assert(app.includes("if(classification.kind==='category'&&classification.tag)"),'Restaurant Search should use taxonomy category matching rather than broad fast-food fallback for semantic searches.');
 assert(api.includes('const MAX_RADIUS=50'),'Restaurant search must cap radius at 50 miles.');
 assert(!/<option>100<\/option>/.test(html),'Restaurant radius UI must not expose 100 miles.');
 
