@@ -79,7 +79,7 @@ await page.route('**/*',async route=>{
      else if(nq.includes('burger'))results=results.filter(x=>['mcd','waffle','american'].includes(x.id));
      else if(nq.includes('mexican'))results=results.filter(x=>x.id==='taco');
      else if(nq.includes('fast food'))results=results.filter(x=>['mcd','taco'].includes(x.id));
-     else if(nq.includes('pizza')||nq.includes('pasta'))results=results.filter(x=>['pizza','italian'].includes(x.id));
+     else if(nq.includes('pizza')||nq.includes('pasta'))results=results.filter(x=>['pizza','italian','thirsty-goat'].includes(x.id));
    }
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
      ok:true,version:'qa',radiusMiles:radius,total:results.length,fastFoodCount:results.filter(x=>x.fastFood).length,timezone:'America/Chicago',searchQuery:q,searchLatencyMs:150,searchBudgetMs:12000,results
@@ -150,6 +150,9 @@ report["2_search_address"].directEnter=true;
 // 2b. Cuisine/category regression: Thirsty Goat may be tagged fast food by a provider but is a pizza venue.
 const thirstyGoat=allResults.find(x=>x.id==='thirsty-goat');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),thirstyGoat),'Pizza');
+const waffleHouse=allResults.find(x=>x.id==='waffle');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),waffleHouse),'American');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Breakfast'),waffleHouse),true);
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Pizza'),thirstyGoat),true);
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),false);
 report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Quick Cut matches while the incorrect provider fast-food tag is ignored for this known venue.';
