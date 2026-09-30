@@ -39,3 +39,22 @@ for(const c of taxonomyCases){
 }
 assert.equal(classify({name:'Thirsty Goat',category:'Restaurant',cuisine:'',fastFood:true,menuItems:[]}).tags.includes('Fast Food'),false,'Thirsty Goat must not inherit an incorrect Fast Food provider tag');
 console.log('Restaurant taxonomy regression: PASS');
+
+
+const genericProviderCases=[
+ ['Pizza type',{name:'Local Bistro',category:'Restaurant',cuisine:'',primaryType:'pizza_restaurant',providerTypes:['pizza_restaurant']}],
+ ['BBQ type',{name:'Local Smokehouse',category:'Restaurant',cuisine:'',primaryType:'barbecue_restaurant',providerTypes:['barbecue_restaurant']}],
+ ['Seafood type',{name:'Local Fish House',category:'Restaurant',cuisine:'',primaryType:'seafood_restaurant',providerTypes:['seafood_restaurant']}],
+ ['Breakfast type',{name:'Local Cafe',category:'Restaurant',cuisine:'',primaryType:'breakfast_restaurant',providerTypes:['breakfast_restaurant']}],
+ ['Chinese type',{name:'Local Place',category:'Restaurant',cuisine:'',primaryType:'chinese_restaurant',providerTypes:['chinese_restaurant']}],
+ ['Mexican cuisine',{name:'Local Place',category:'Restaurant',cuisine:'mexican',primaryType:'restaurant',providerTypes:['restaurant']}],
+ ['Italian cuisine',{name:'Local Place',category:'Restaurant',cuisine:'italian',primaryType:'restaurant',providerTypes:['restaurant']}]
+];
+for(const [label,row] of genericProviderCases){
+ const tags=classifyRestaurant(row).tags;
+ assert.ok(tags.length>0,label+' must not fall back to Restaurant when provider identity exists');
+}
+assert.ok(classifyRestaurant({name:'The Thirsty Goat',category:'Restaurant'}).tags.includes('Pizza'),'The Thirsty Goat must classify as Pizza');
+assert.ok(classifyRestaurant({name:'Heads BBQ',category:'Restaurant'}).tags.includes('BBQ'),'Heads BBQ must classify as BBQ');
+assert.ok(classifyRestaurant({name:'Excell BBQ',category:'Restaurant'}).tags.includes('BBQ'),'Excell BBQ must classify as BBQ');
+console.log('restaurant classification hardening extended smoke: PASS');
