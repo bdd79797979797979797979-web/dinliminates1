@@ -75,18 +75,24 @@ passStartVoter:0,
 schemaVersion:4,
 restaurantTimezone:''
 };
+const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com']);
+function imageProxyUrl(raw){
+ const src=String(raw||'');
+ if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
+ try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
+}
 function foodPhoto(item){
 if(!item)return HUNGRY_IMAGE;
 const src=String(item.image||'');
-if(src && !src.startsWith('idb:'))return src;
+if(src && !src.startsWith('idb:'))return imageProxyUrl(src);
 const groups=Array.isArray(item.quickCuts)&&item.quickCuts.length?item.quickCuts:[item.category];
 for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
 return QUICK_IMAGES.American;
 }
 function foodPhotoFallback(item){
 const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCuts:[item?.category];
-for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
-return QUICK_IMAGES.American;
+for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);}
+return imageProxyUrl(QUICK_IMAGES.American);
 }
 function restaurantWebsiteUrl(row){
 const direct=safeExternalUrl(row?.website);
@@ -304,7 +310,7 @@ S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
 function foodQuick() {
 $('foodQuick').innerHTML = foodQuickLabels().map(label => {
 const cut = S.cutCats.has(label);
-const src=QUICK_IMAGES[label] || QUICK_IMAGES.American;
+const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
 return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-food-quick] img');
@@ -645,7 +651,7 @@ function restaurantPoolFiltered(){
 function restaurantQuick() {
 $('restQuick').innerHTML = REST_QUICK.map(label => {
 const cut = S.restaurantCuts.has(label);
-const src=REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American;
+const src=imageProxyUrl(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American);
 return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-rest-quick] img');
@@ -870,9 +876,9 @@ if (/chipotle/.test(s)) return 'https://images.unsplash.com/photo-1552332386-f8d
 if (/ruby tuesday|thirsty goat/.test(s)) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
 return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
 };
-const image = row.photo || row.image || restaurantFallback(row);
+const image = imageProxyUrl(row.photo || row.image || restaurantFallback(row));
 const nextRow = rows[S.restaurantIndex + 1];
-const nextImage = nextRow?.photo || nextRow?.image || restaurantFallback(nextRow);
+const nextImage = imageProxyUrl(nextRow?.photo || nextRow?.image || restaurantFallback(nextRow));
 const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
 const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
@@ -1015,7 +1021,7 @@ queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
 return modal;
 }
 function detailsSheet(item,type){
- const image=item.image||item.photo||HUNGRY_IMAGE,cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
+ const image=imageProxyUrl(item.image||item.photo||HUNGRY_IMAGE),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
  const nutrition=type==='food'&&item.nutrition?'<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid"><div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div><div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div><div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div><div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div><div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>':'';
  const ingredients=type==='food'&&Array.isArray(item.ingredients)&&item.ingredients.length?'<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>':'';
  const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
@@ -1024,7 +1030,7 @@ function detailsSheet(item,type){
  const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div>'+(item.phone?'<div><span>Phone</span><b>'+esc(item.phone)+'</b></div>':'')+(item.address?'<div class="wide"><span>Address</span><b>'+esc(item.address)+'</b></div>':'')+'</div></div>':'';
  const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE,web=type==='restaurant'?(safeExternalUrl(item.website)||restaurantWebsiteUrl(item)):'';
  const body='<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+'<div class="detail-actions-row">'+(item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>')+(type==='restaurant'?'<a class="detail-web-action" id="detailWeb" href="'+esc(web)+'" target="_blank" rel="noopener noreferrer" aria-label="Website">Website ↗</a>':'')+'</div></div>';
- const modal=openModal('detailsModal','Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?(item.photo||item.image||''):foodPhoto(item),final);
+ const modal=openModal('detailsModal','Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?imageProxyUrl(item.photo||item.image||''):foodPhoto(item),final);
  const detailHide=$('detailHide'); if(detailHide) detailHide.onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
 }
 function recordHistory(item, type) {
@@ -1421,8 +1427,8 @@ const voter=p.players[p.voterIndex]||'Next person';
 const vote=passVoteButtonState(p);
 const img=foodPhoto(item);
 const fallback=foodPhotoFallback(item);
-const image=S.screen==='restaurant'?(item.photo||item.image||''):img;
-const imageFallback=S.screen==='restaurant'?(item.photo||item.image||REST_QUICK_IMAGES.American):fallback;
+const image=S.screen==='restaurant'?imageProxyUrl(item.photo||item.image||''):img;
+const imageFallback=S.screen==='restaurant'?imageProxyUrl(item.photo||item.image||REST_QUICK_IMAGES.American):fallback;
 const modeTitle=p.mode==='quick'?'QUICK PASS':'FULL PASS';
 const modeHint=p.mode==='quick'?'Majority decides early.':'Everyone must keep a choice.';
 const tally=p.mode==='quick'?(vote.keep+' keep · '+vote.cut+' cut · need '+vote.threshold+' keep'):((vote.cut>0)?'Any Cut removes this choice.':'All players must Keep.');
@@ -1433,10 +1439,10 @@ $('passCut').onclick=()=>passVote(false);
 $('passKeep').onclick=()=>passVote(true);
 const next=p.poolIds[p.choiceIndex+1]?passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]):null;
 if(next){
-const nsrc=S.screen==='restaurant'?(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhoto(next);
+const nsrc=S.screen==='restaurant'?imageProxyUrl(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhoto(next);
 $('passNextCard').classList.remove('hidden');
 const passNextImg=$('passNextCard img');
-if(passNextImg){passNextImg.src=nsrc;passNextImg.dataset.fallback=S.screen==='restaurant'?(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhotoFallback(next);passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};}
+if(passNextImg){passNextImg.src=nsrc;passNextImg.dataset.fallback=S.screen==='restaurant'?imageProxyUrl(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhotoFallback(next);passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};}
 }
 $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
 }
