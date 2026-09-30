@@ -1,12 +1,15 @@
 const MAX_RADIUS=100;
-const API_VERSION='r18';
+const API_VERSION='r19';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
 const TARGETED_FAST=["McDonald's","Taco Bell","Wendy's","Burger King","KFC","Chick-fil-A","Popeyes","Subway","Sonic","Arby's","Whataburger","Five Guys","Raising Cane's","Wingstop","Bojangles","Cook Out","Dairy Queen","Zaxby's","Church's Chicken","Captain D's","Long John Silver's","Jimmy John's","Jersey Mike's","Firehouse Subs","Little Caesars","Domino's","Papa John's","Pizza Hut","Marco's Pizza","Krystal","Steak 'n Shake","White Castle","Freddy's","In-N-Out","Carl's Jr.","Panda Express","Jack in the Box","Hardee's","Del Taco","Checkers","Rally's"];
 const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle)\b/i;
 const timezoneCache=new Map(),cache=new Map(),buckets=new Map();
-const SEARCH_BUDGET_MS=18000;
+const SEARCH_BUDGET_MS=19000;
+const WIDE_DISCOVERY_RESERVE_MS=7000;
+const WIDE_RADIUS_THRESHOLD=25;
+const OVERPASS_HTTP_TIMEOUT_MS=6200;
 const GOOGLE_KEY=String(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY||'').trim();
 async function withinBudget(promise,ms,label){
  const wait=Math.max(250,ms);
@@ -44,8 +47,8 @@ function queryClause(lat,lon,radius,types=DINING_AMENITIES){
 function query(lat,lon,radius,types=DINING_AMENITIES){
  return '[out:json][timeout:16];('+queryClause(lat,lon,radius,types)+');out center tags;';
 }
-function queryMany(points,types=DINING_AMENITIES){
- return '[out:json][timeout:16];('+points.map(c=>queryClause(c.lat,c.lon,c.radius,types)).join('')+');out center tags;';
+function queryMany(points,types=DINING_AMENITIES,timeoutSeconds=10){
+ return '[out:json][timeout:'+Math.max(6,Math.min(16,Number(timeoutSeconds)||10))+'];('+points.map(c=>queryClause(c.lat,c.lon,c.radius,types)).join('')+');out center tags;';
 }
 function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const safe=Math.min(100,Math.max(50,r)),ring=Math.min(70,Math.max(50,safe*0.7)),count=8;const out=[{lat,lon,radius:50}],a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<count;i++){const ang=i*2*Math.PI/count;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
 
@@ -69,7 +72,7 @@ async function photonPlaces(lat,lon,radius,searchTerm=''){
  for(const result of await Promise.allSettled(base.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},6500))))consume(result);
 
  const primaryFastCount=rows.filter(r=>r.fastFood).length;
- const missingKnown=!term && primaryFastCount<3 ? TARGETED_FAST.filter(name=>!rows.some(r=>norm(r.name)===norm(name)||norm(r.name).includes(norm(name)))).slice(0,4) : [];
+ const missingKnown=!term && radius<=25 && primaryFastCount<3 ? TARGETED_FAST.filter(name=>!rows.some(r=>norm(r.name)===norm(name)||norm(r.name).includes(norm(name)))).slice(0,4) : [];
  if(missingKnown.length){
    const qs=missingKnown.map(q=>new URLSearchParams({q,bbox,limit:'10',lang:'en',countrycode:'US',dedupe:'1',lat:String(lat),lon:String(lon),zoom:'12'}));
    for(const result of await Promise.allSettled(qs.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},4500))))consume(result);
@@ -105,15 +108,35 @@ function searchQueryClause(lat,lon,radius,searchTerm){
  if(!pattern)return '';
  return 'nwr[amenity~"^(restaurant|fast_food)$"][name~"'+pattern+'",i](around:'+m+','+lat+','+lon+');nwr[amenity~"^(restaurant|fast_food)$"][brand~"'+pattern+'",i](around:'+m+','+lat+','+lon+');nwr[amenity~"^(restaurant|fast_food)$"][operator~"'+pattern+'",i](around:'+m+','+lat+','+lon+');nwr[amenity~"^(restaurant|fast_food)$"][cuisine~"'+pattern+'",i](around:'+m+','+lat+','+lon+');';
 }
-function searchQueryMany(points,searchTerm){return '[out:json][timeout:16];('+points.map(c=>searchQueryClause(c.lat,c.lon,c.radius,searchTerm)).join('')+');out center tags;'}
-async function overpass(lat,lon,radius,types='restaurant|fast_food'){
- const points=centers(lat,lon,radius),data=normalizeSearchQuery(searchTerm)?searchQueryMany(points,searchTerm):queryMany(points,types),rows=[],errors=[];
- const settled=await Promise.allSettled(OVERPASS.map(ep=>json(ep+'?data='+encodeURIComponent(data),{},8500)));
+function searchQueryMany(points,searchTerm,timeoutSeconds=10){return '[out:json][timeout:'+Math.max(6,Math.min(16,Number(timeoutSeconds)||10))+'];('+points.map(c=>searchQueryClause(c.lat,c.lon,c.radius,searchTerm)).join('')+');out center tags;'}
+function radiusDiscoveryPlan(lat,lon,radius){
+ const r=clamp(radius),coverage=centers(lat,lon,r);
+ if(r<=WIDE_RADIUS_THRESHOLD)return {mode:'nearby',reserveMs:0,coveragePoints:coverage.length,groups:[coverage]};
+ const groups=r<=50?[coverage]:[coverage.slice(0,3),coverage.slice(3,6),coverage.slice(6,9)];
+ return {mode:'wide',reserveMs:WIDE_DISCOVERY_RESERVE_MS,coveragePoints:coverage.length,groups};
+}
+async function overpassPoints(points,originLat,originLon,radius,types='restaurant|fast_food',searchTerm='',endpoints=OVERPASS,timeout=OVERPASS_HTTP_TIMEOUT_MS){
+ const term=normalizeSearchQuery(searchTerm),seconds=Math.max(6,Math.min(10,Math.ceil(Number(timeout||OVERPASS_HTTP_TIMEOUT_MS)/1000)));
+ const data=term?searchQueryMany(points,term,seconds):queryMany(points,types,seconds),rows=[],errors=[];
+ const settled=await Promise.allSettled(endpoints.map(ep=>json(ep+'?data='+encodeURIComponent(data),{},timeout)));
  for(const result of settled){
    if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'request failed'));continue;}
-   for(const el of result.value?.elements||[]){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r);}
+   for(const el of result.value?.elements||[]){const r=osmRow(el,{lat:originLat,lon:originLon});if(r&&r.distance<=radius)rows.push(r);}
  }
  return{rows:dedupe(rows),errors};
+}
+async function overpass(lat,lon,radius,types='restaurant|fast_food',searchTerm=''){
+ return overpassPoints(centers(lat,lon,radius),lat,lon,radius,types,searchTerm,OVERPASS,8500);
+}
+async function wideRadiusOverpass(lat,lon,radius,searchTerm=''){
+ const plan=radiusDiscoveryPlan(lat,lon,radius),rows=[],errors=[];
+ const tasks=plan.groups.map((group,i)=>overpassPoints(group,lat,lon,radius,'restaurant|fast_food',searchTerm,[OVERPASS[i%OVERPASS.length]],OVERPASS_HTTP_TIMEOUT_MS));
+ const settled=await Promise.allSettled(tasks);
+ for(const result of settled){
+   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'wide discovery failed'));continue;}
+   rows.push(...(result.value.rows||[])); errors.push(...(result.value.errors||[]));
+ }
+ return{rows:dedupe(rows),errors,groups:plan.groups.length,coveragePoints:plan.coveragePoints};
 }
 const KNOWN_RESTAURANT_WEBSITES={
   "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
@@ -391,7 +414,10 @@ if(mode==='search'){
  if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');
  const timezonePromise=timezone(lat,lon);
- const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]),Math.max(1000,SEARCH_BUDGET_MS-(Date.now()-startedAt)),'Primary restaurant providers timed out');
+ const wideSearch=radius>WIDE_RADIUS_THRESHOLD;
+ const discoveryPlan=radiusDiscoveryPlan(lat,lon,radius);
+ const primaryBudget=Math.max(9000,SEARCH_BUDGET_MS-(wideSearch?discoveryPlan.reserveMs:0));
+ const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]),Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
  const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const googleResult=Array.isArray(primaryBatch)?primaryBatch[2]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
@@ -401,18 +427,19 @@ if(mode==='search'){
  const preliminary=dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
  let osmOut={rows:[],errors:[]};
- const needsOverpass=!!searchTerm||radius>25||!preliminary.length||preliminaryFast===0;
+ const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
  if(needsOverpass){
-  const overpassRadius=radius;
   const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
-  if(remaining>1000){
-    const got=await withinBudget(overpass(lat,lon,overpassRadius,'restaurant|fast_food',searchTerm),remaining,'Overpass expansion timed out');
+  const discoveryBudget=wideSearch?Math.min(discoveryPlan.reserveMs,remaining):remaining;
+  if(discoveryBudget>1200){
+    const got=await withinBudget(wideSearch?wideRadiusOverpass(lat,lon,radius,searchTerm):overpass(lat,lon,radius,'restaurant|fast_food',searchTerm),discoveryBudget,wideSearch?'Wide radius discovery timed out':'Overpass expansion timed out');
     if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
-    else osmOut.errors.push('Overpass expansion timed out');
-  }else osmOut.errors.push('Search budget reached before Overpass expansion.');
+    else osmOut.errors.push(wideSearch?'Wide radius discovery timed out':'Overpass expansion timed out');
+  }else osmOut.errors.push('Search budget reached before restaurant discovery expansion.');
  }
  let contactOut={rows:[],errors:[]};
  const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
+ const contactAllowed=!wideSearch;
  const missingContactNames=contactCandidates
    .filter(r=>!r.phone)
    .sort((a,b)=>Number(b.fastFood)-Number(a.fastFood)||Number(a.distance||0)-Number(b.distance||0))
@@ -421,14 +448,14 @@ if(mode==='search'){
    .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
    .slice(0,12);
  const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
- if(missingContactNames.length&&contactRemaining>2200){
+ if(contactAllowed&&missingContactNames.length&&contactRemaining>2200){
    const expandedNames=[...new Set(contactCandidates.filter(r=>missingContactNames.some(n=>norm(n)===norm(r.name))).flatMap(r=>[r.name,r.brand,r.operator]).filter(Boolean))].slice(0,24);
    const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),expandedNames),contactRemaining,'Restaurant contact enrichment timed out');
    if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
   }
  let googleContactOut={rows:[],errors:[]};
  const contactRemaining2=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
- if(GOOGLE_KEY&&contactRemaining2>3000){
+ if(contactAllowed&&GOOGLE_KEY&&contactRemaining2>3000){
    const got=await withinBudget(googleContactEnrichment(dedupe([...contactCandidates,...contactOut.rows]),lat,lon),contactRemaining2,'Google contact enrichment timed out');
    if(got&&!got.__timeout)googleContactOut=got; else googleContactOut.errors.push('Google contact enrichment timed out');
  }
@@ -438,9 +465,9 @@ if(mode==='search'){
    return {...r,photo:image(r),website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'};
   });
  const zone=await timezonePromise;
- const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
+ const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,discoveryMode:discoveryPlan.mode,discoveryReserveMs:discoveryPlan.reserveMs,discoveryGroups:discoveryPlan.groups.length,discoveryCoveragePoints:discoveryPlan.coveragePoints,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,normalizeSearchQuery,searchRegex,searchQueryClause};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchQueryClause};
 module.exports=handler;
