@@ -362,7 +362,10 @@ assert.equal((await page.locator('#restStage').innerText()).includes('Big Mac ·
 await page.locator('#restDetails').click(); await settle(); assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet'); assert.match(await page.locator('#detailsModal').innerText(),/COMMON MENU ITEMS/i,'Restaurant Details should show common menu items when supplied'); assert.equal(await page.locator('#detailsModal #detailWeb').count(),1,'Restaurant Details should expose the Website/Google action');
 assert.equal(await page.locator('#detailsModal #detailDirections').count(),1,'Restaurant Details should expose Google Maps directions');
 assert.match(await page.locator('#detailsModal #detailDirections').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Restaurant Details directions should use Google Maps');
-assert.ok(await page.locator('#detailsModal .detail-info-link').count()>=1,'Restaurant Details should expose a tap-to-call phone number'); await page.locator('#detailsModal #detailWeb').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
+assert.ok(await page.locator('#detailsModal .detail-info-link').count()>=1,'Restaurant Details should expose a tap-to-call phone number');
+assert.equal(await page.locator('#detailsModal .detail-info-link').getAttribute('href'),'tel:+19315550101','Restaurant Details phone should be a tappable tel link');
+assert.match(await page.locator('#detailsModal #detailDirections').getAttribute('href')||'',/google\.com\/maps\/dir\//,'Restaurant Details directions should use Google Maps');
+await page.locator('#detailsModal #detailWeb').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
 const directWebsite=await page.locator('#restaurantCard .card-card-action[aria-label="Open restaurant website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
@@ -402,6 +405,8 @@ assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should ope
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
 assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'],'Food editor should expose all food categories including Other');
+await page.locator('#editFoodCat').selectOption('Other');
+assert.equal(await page.locator('input[name="editQuickCut"][value="Other"]').isChecked(),true,'Choosing Other cuisine/category should automatically associate the Other Quick Cut');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
