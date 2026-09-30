@@ -31,6 +31,65 @@ async function timezone(lat,lon){
 }
 function isFastFoodName(name,brand='',operator=''){return FAST.test(String(name||'')+' '+String(brand||'')+' '+String(operator||''))}
 function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
+function serverLocalClock(zone,now=new Date()){
+ const opts={timeZone:zone||undefined,hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'};
+ try{
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',opts).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  const dayIndex={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[parts.weekday];
+  let hour=Number(parts.hour); if(hour===24)hour=0;
+  return {day:Number.isFinite(dayIndex)?dayIndex:new Date().getDay(),minute:hour*60+Number(parts.minute||0)};
+ }catch{return {day:new Date().getDay(),minute:new Date().getHours()*60+new Date().getMinutes()};}
+}
+function serverDayMatches(spec,day){
+ const names=['sun','mon','tue','wed','thu','fri','sat'],want=names[day];
+ return String(spec||'').split(',').some(part=>{
+  const p=part.trim().toLowerCase(); if(!p)return false;
+  if(p===want)return true;
+  const m=p.match(/^(sun|mon|tue|wed|thu|fri|sat)-(sun|mon|tue|wed|thu|fri|sat)$/);
+  if(!m)return false;
+  const a=names.indexOf(m[1]),b=names.indexOf(m[2]);
+  return a<=b?day>=a&&day<=b:day>=a||day<=b;
+ });
+}
+function serverParseTime(t){
+ const m=String(t||'').match(/^(\d{1,2}):?(\d{2})$/); if(!m)return NaN;
+ const h=Number(m[1]),min=Number(m[2]); return h>=0&&h<24&&min>=0&&min<60?h*60+min:NaN;
+}
+function serverHoursState(row,zone='',now=new Date()){
+ if(row&&typeof row.hoursState==='string'&&/^(open|closed|unknown)$/.test(row.hoursState))return row.hoursState;
+ if(row&&typeof row.openNow==='boolean')return row.openNow?'open':'closed';
+ const raw=String(row?.opening_hours||'').trim();
+ if(!raw)return 'unknown';
+ const low=raw.toLowerCase();
+ if(low==='24/7'||low==='open')return 'open';
+ if(low==='closed'||low==='off')return 'closed';
+ const clock=serverLocalClock(zone,now),day=clock.day,minute=clock.minute;
+ let matched=false;
+ for(const block of raw.split(';')){
+  const part=block.trim();if(!part)continue;
+  const dm=part.match(/^((?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?(?:,(?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?)*)\s+(.+)$/i);
+  const daySpec=dm?dm[1]:null,timeSpec=dm?dm[2]:part;
+  const ranges=[...timeSpec.matchAll(/(\d{1,2}:?\d{2})-(\d{1,2}:?\d{2})/g)];
+  if(!ranges.length)continue;
+  matched=true;
+  for(const rr of ranges){
+   const a=serverParseTime(rr[1]),b=serverParseTime(rr[2]);if(!Number.isFinite(a)||!Number.isFinite(b))continue;
+   if(b>=a){
+    if((!daySpec||serverDayMatches(daySpec,day))&&minute>=a&&minute<=b)return 'open';
+   }else{
+    const sameDay=(!daySpec||serverDayMatches(daySpec,day))&&minute>=a;
+    const previousDay=(!daySpec||serverDayMatches(daySpec,(day+6)%7))&&minute<=b;
+    if(sameDay||previousDay)return 'open';
+   }
+  }
+ }
+ return matched?'closed':'unknown';
+}
+function normalizeRestaurantHours(row,zone,checkedAt=new Date()){
+ const state=serverHoursState(row,zone,checkedAt);
+ const source=typeof row.openNow==='boolean'?'provider-openNow':(String(row.opening_hours||'').trim()?'opening_hours':'unknown');
+ return {...row,hoursState:state,hoursSource:row.hoursSource||source,hoursCheckedAt:checkedAt.toISOString()};
+}
 function normalizeSearchQuery(s){return String(s||'').toLowerCase().replace(/[\u0027\u2019]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim().slice(0,100)}
 function searchRegex(value){return normalizeSearchQuery(value).split(' ').filter(Boolean).map(word=>word.split('').map(ch=>escapeOverpassRegex(ch)).join('[^a-z0-9]*')).join('[^a-z0-9]+')}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
@@ -469,15 +528,16 @@ if(mode==='search'){
    const got=await withinBudget(googleContactEnrichment(dedupe([...contactCandidates,...contactOut.rows]),lat,lon),contactRemaining2,'Google contact enrichment timed out');
    if(got&&!got.__timeout)googleContactOut=got; else googleContactOut.errors.push('Google contact enrichment timed out');
  }
+ const zone=await timezonePromise;
+ const checkedAt=new Date();
  const rows=dedupe([...contactCandidates,...contactOut.rows,...googleContactOut.rows]).map(r=>{
    const website=r.website||knownRestaurantWebsite(r);
    const phone=String(r.phone||'').trim();
-   return {...r,photo:image(r),website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'};
+   return normalizeRestaurantHours({...r,photo:image(r),website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
   });
- const zone=await timezonePromise;
  const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,discoveryMode:discoveryPlan.mode,discoveryReserveMs:discoveryPlan.reserveMs,discoveryGroups:discoveryPlan.groups.length,discoveryCoveragePoints:discoveryPlan.coveragePoints,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchQueryClause,rate};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchQueryClause,rate,serverHoursState,normalizeRestaurantHours};
 module.exports=handler;
