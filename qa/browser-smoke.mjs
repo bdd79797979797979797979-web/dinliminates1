@@ -98,7 +98,7 @@ await assert.equal((await qa()).foodCatalog,116,'Restored 116-food catalog shoul
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
-assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
+assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
 assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),11,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
@@ -214,8 +214,8 @@ await click('#settings'); await settle();
 assert.equal(await visible('settingsModal'),true,'Settings should open');
 assert.equal(await page.locator('#appDiagnosis').count(),1,'Settings should include App Diagnosis');
 await click('#appDiagnosis'); await settle();
-assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Settings');
-assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
+assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Settings'); assert.equal(await page.locator('#settingsModal').count(),0,'Settings overlay should close before App Diagnosis opens');
+assert.ok((await page.locator('#diagnosisModal').boundingBox())?.height>500,'App Diagnosis should open at its full-size layout without a small flash'); assert.match(await page.locator('#diagnosisModal').innerText(),/System diagnosis/i,'App Diagnosis should render the diagnostic report');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Food catalog/i,'App Diagnosis should report food catalog health');
 assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant search service/i,'App Diagnosis should report restaurant search service health');
 assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
@@ -429,7 +429,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack'],'Food editor should expose all food categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'],'Food editor should expose all food categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
