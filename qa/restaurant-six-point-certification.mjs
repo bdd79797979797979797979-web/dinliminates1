@@ -143,7 +143,7 @@ const radii=[1,3,5,10,25,50,100];
 const radiusRows=[];
 for(const r of radii){
   await page.locator('#radius').selectOption(String(r));
-  await page.waitForFunction(expected=>Number(document.querySelector('#radius')?.value)===expected,[r]);
+  await page.waitForFunction(expected=>Number(document.querySelector('#radius')?.value)===expected,r);
   await waitForRestaurant();
   const snapNow=await snap();
   assert.equal(Number(await page.locator('#radius').inputValue()),r);
