@@ -24,6 +24,11 @@ assert(api.includes("searchTerm=normalizeSearchQuery(q.get('q')||'')") && api.in
 assert(app.includes("const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);") && app.includes("searchTerm ? '&q='+encodeURIComponent(searchTerm) : ''"),'Restaurant Search box must send its query to the restaurant API');
 assert(app.includes('scheduleRestaurantProviderSearch') && app.includes("setTimeout(()=>{searchRestaurants();},650)"),'Restaurant Search box must trigger provider-backed search after typing settles');
 assert(api.includes('normAddress') && api.includes('sameRestaurant'),'Restaurant dedupe must normalize provider address variants and compare venue identity');
+assert(app.includes('fetchRestaurantEndpoint') && app.includes('attempt<2'),'Restaurant endpoint retry protection must be present');
+assert(app.includes('const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},14500)'),'Restaurant search client timeout should remain bounded');
+assert(api.includes('const SEARCH_BUDGET_MS=12000') && api.includes('const WIDE_DISCOVERY_RESERVE_MS=4500'),'Restaurant search reliability budget contract must be present');
+assert(api.includes('const MAX_SEARCH_PER_MINUTE=60') && api.includes("mode!=='search'&&rate(req,mode)"),'Restaurant search rate limiter should tolerate normal interactive use and spare cached hits');
+assert(api.includes('const discoveryPromise=wideSearch||searchTerm'),'Provider-backed discovery must start concurrently with primary restaurant providers');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 
@@ -172,7 +177,7 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '138'"),'Current release build should be 138');
+assert(app.includes("let APP_BUILD = '142'"),'Current release build should be 138');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
 assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
 
