@@ -74,7 +74,7 @@ restaurantTimezone:'',
 restaurantSearchOrigin:null,
 restaurantSearchKey:''
 };
-const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com']);
+const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com']);
 function imageProxyUrl(raw){
  const src=String(raw||'');
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
@@ -1571,11 +1571,11 @@ const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
 '<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. Your first selected category is the primary cuisine.</p><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+(existingCuts.includes(x)?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
-'<label>Calories<input id="editFoodCalories" type="number" min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
-'<label>Protein<input id="editFoodProtein" type="number" min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
-'<label>Carbs<input id="editFoodCarbs" type="number" min="0" step="0.1" inputmode="decimal" placeholder="46" value="'+esc(nut.carbs??'')+'"><span>g</span></label>'+
-'<label>Fat<input id="editFoodFat" type="number" min="0" step="0.1" inputmode="decimal" placeholder="25" value="'+esc(nut.fat??'')+'"><span>g</span></label>'+
-'<label>Sodium<input id="editFoodSodium" type="number" min="0" step="1" inputmode="numeric" placeholder="1050" value="'+esc(nut.sodium??'')+'"><span>mg</span></label>'+
+'<label>Calories<input id="editFoodCalories" type="number" required min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
+'<label>Protein<input id="editFoodProtein" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
+'<label>Carbs<input id="editFoodCarbs" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="46" value="'+esc(nut.carbs??'')+'"><span>g</span></label>'+
+'<label>Fat<input id="editFoodFat" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="25" value="'+esc(nut.fat??'')+'"><span>g</span></label>'+
+'<label>Sodium<input id="editFoodSodium" type="number" required min="0" step="1" inputmode="numeric" placeholder="1050" value="'+esc(nut.sodium??'')+'"><span>mg</span></label>'+
 '</div></div>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Recipe / notes<textarea id="editFoodRecipe" placeholder="Recipe, preparation steps, or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
@@ -1610,7 +1610,11 @@ carbs:readNumeric('editFoodCarbs'),
 fat:readNumeric('editFoodFat'),
 sodium:readNumeric('editFoodSodium')
 };
-const nutrition=Object.values(nutritionValues).some(value=>value!=='')?nutritionValues:null;
+if(Object.values(nutritionValues).some(value=>value==='')){
+ appToast('Fill in Calories, Protein, Carbs, Fat, and Sodium.');
+ return;
+}
+const nutrition=nutritionValues;
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMAGE, recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
