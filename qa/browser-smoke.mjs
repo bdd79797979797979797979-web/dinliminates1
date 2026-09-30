@@ -395,8 +395,8 @@ await page.locator('#editFoodFile').setInputFiles({
 });
 await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.startsWith('data:image/'),'',{timeout:5000});
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
-await page.locator('#foodEditorModal input[name="editQuickCut"][value="Pasta"]').check();
-await page.locator('#foodEditorModal input[name="editQuickCut"][value="Healthy"]').check();
+const pastaQuick=page.locator('#foodEditorModal input[name="editQuickCut"][value="Pasta"]'); await pastaQuick.scrollIntoViewIfNeeded(); await pastaQuick.check();
+const healthyQuick=page.locator('#foodEditorModal input[name="editQuickCut"][value="Healthy"]'); await healthyQuick.scrollIntoViewIfNeeded(); await healthyQuick.check();
 await click('#foodEditorForm button.cut'); await settle();
 s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='Test recipe'&&x.image.startsWith('data:image/')),true,'custom Food photo/recipe should persist');
 const customRow=s.custom.find(x=>x.id==='qa-special'); assert.equal(customRow.quickCuts.includes('Pasta'),true,'Custom food should support multiple Quick Cuts'); assert.equal(customRow.quickCuts.includes('Healthy'),true,'Custom food should support multiple Quick Cuts');
