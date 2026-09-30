@@ -1305,11 +1305,16 @@ $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
 if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
-winImg.src = item.image || item.photo || HUNGRY_IMAGE;
+const winnerImage=item?.image || item?.photo || item?.photoFallback || HUNGRY_IMAGE;
+winImg.src = winnerImage;
 winImg.alt = item.name || 'Hungry';
-if ($('celebration')) $('celebration').classList.toggle('hidden', hungry || S.winnerType === 'restaurant');
+winImg.dataset.googlePhotoId = item?.googlePlaceId && item?.photoSource==='google-places' ? String(item.googlePlaceId) : '';
+if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
- if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
+ if (!hungry) {
+   triggerCelebration();
+   hydrateGoogleRestaurantPhoto(item,'#winner');
+ }
 save();
 }
 function openModal(id, title, body) {
@@ -1379,8 +1384,24 @@ const history = readHistory();
 history.unshift({
 id:String(Date.now())+'-'+Math.random().toString(36).slice(2),
 date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
-type,name:item.name,image:item.image||item.photo||HUNGRY_IMAGE,
-category:item.category||restaurantCategory(item),address:item.address||'',website:item.website||''
+type,
+name:item.name,
+image:item.image||item.photo||'',
+photoFallback:item.photoFallback||'',
+photoSource:item.photoSource||'',
+googlePlaceId:item.googlePlaceId||'',
+photoIsGeneric:item.photoIsGeneric!==false,
+category:item.category||restaurantCategory(item),
+cuisine:item.cuisine||'',
+address:item.address||'',
+phone:item.phone||item.nationalPhoneNumber||'',
+website:item.website||'',
+opening_hours:item.opening_hours||'',
+hoursState:item.hoursState||'',
+menuItems:Array.isArray(item.menuItems)?item.menuItems.slice(0,10):[],
+lat:Number.isFinite(Number(item.lat))?Number(item.lat):null,
+lon:Number.isFinite(Number(item.lon))?Number(item.lon):null,
+distance:Number.isFinite(Number(item.distance))?Number(item.distance):null
 });
 writeHistory(history);
 }
@@ -1412,13 +1433,15 @@ const entries = history.filter(x => x.date === key);
 const entry = entries[0];
 const more = entries.length>1 ? '<span class="cal-more">+'+(entries.length-1)+'</span>' : '';
 body += '<div class="cal-cell">'+
-(entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(entry.image)+'" alt="">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
+(entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(imageProxyUrl(entry.image||entry.photoFallback||HUNGRY_IMAGE))+'" data-google-photo-id="'+esc(entry.googlePlaceId&&entry.photoSource==='google-places'?entry.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(entry.name)+'">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
 '<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
 }
 body += '</div></div><div class="history-list">';
-body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(imageProxyUrl(x.image))+'" alt=""><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
+body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(imageProxyUrl(x.image||x.photoFallback||HUNGRY_IMAGE))+'" data-google-photo-id="'+esc(x.googlePlaceId&&x.photoSource==='google-places'?x.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(x.name)+'"><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
 body += '</div>';
 const modal = openModal('historyModal','History',body);
+bindImageFallback('#historyModal img',FINAL_RESTAURANT_IMAGE,FINAL_RESTAURANT_IMAGE);
+for(const row of history.slice(0,30)) if(row?.googlePlaceId&&row?.photoSource==='google-places') hydrateGoogleRestaurantPhoto(row,'#historyModal');
 $('calPrev').onclick = () => { cursor = new Date(y,m-1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 $('calNext').onclick = () => { cursor = new Date(y,m+1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 modal.querySelectorAll('[data-history-id]').forEach(btn => btn.onclick = () => {
