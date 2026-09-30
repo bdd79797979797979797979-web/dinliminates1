@@ -1565,12 +1565,22 @@ const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
+const nut=item?.nutrition||{};
+const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
 '<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. Your first selected category is the primary cuisine.</p><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+(existingCuts.includes(x)?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
+'<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
+'<label>Calories<input id="editFoodCalories" type="number" min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
+'<label>Protein<input id="editFoodProtein" type="number" min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
+'<label>Carbs<input id="editFoodCarbs" type="number" min="0" step="0.1" inputmode="decimal" placeholder="46" value="'+esc(nut.carbs??'')+'"><span>g</span></label>'+
+'<label>Fat<input id="editFoodFat" type="number" min="0" step="0.1" inputmode="decimal" placeholder="25" value="'+esc(nut.fat??'')+'"><span>g</span></label>'+
+'<label>Sodium<input id="editFoodSodium" type="number" min="0" step="1" inputmode="numeric" placeholder="1050" value="'+esc(nut.sodium??'')+'"><span>mg</span></label>'+
+'</div></div>'+
+'<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
+'<label class="meal-editor-text-label">Recipe / notes<textarea id="editFoodRecipe" placeholder="Recipe, preparation steps, or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
-'<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
 $('editFoodFile').onchange=async()=>{
@@ -1587,6 +1597,21 @@ if(!quickCuts.length){appToast('Choose at least one cuisine or Quick Cut.');retu
 const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0];
 quickCuts=[preferred,...quickCuts.filter(x=>x!==preferred)];
 const cat=preferred;
+const readNumeric=id=>{
+const value=$(id).value.trim();
+if(!value)return '';
+const number=Number(value);
+return Number.isFinite(number)&&number>=0?number:'';
+};
+const nutritionValues={
+calories:readNumeric('editFoodCalories'),
+protein:readNumeric('editFoodProtein'),
+carbs:readNumeric('editFoodCarbs'),
+fat:readNumeric('editFoodFat'),
+sodium:readNumeric('editFoodSodium')
+};
+const nutrition=Object.values(nutritionValues).some(value=>value!=='')?nutritionValues:null;
+const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMAGE, recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
 if(isEdit){
@@ -1595,14 +1620,18 @@ if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,recipe};
+const updated={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,ingredients,recipe};
+if(nutrition)updated.nutrition=nutrition; else delete updated.nutrition;
+S.custom[idx]=updated;
 if(id!==item.id) await deleteStoredPhoto(item.id);
 S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
+const added={id,name,primary:id,category:cat,quickCuts,image:photo,ingredients,recipe};
+if(nutrition)added.nutrition=nutrition;
+S.custom.push(added);
 }
 if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other')))S.cutCats.delete('Other');
 buildFood(); foodQuick(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
@@ -1610,7 +1639,6 @@ if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
 else manageFoodsView();
 };
 }
-
 function manageFoodsView() {
 const rows=allFoods();
 const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Add a meal, refine the deck, or restore a hidden favorite. Your custom meals stay on this device.</p></div>'+
