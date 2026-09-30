@@ -147,7 +147,7 @@ assert(app.includes('id="restDetails"') && app.includes('icon-action') && app.in
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
 assert(app.includes('function appDiagnosisView'),'Settings must expose the App Diagnosis panel');
-assert(app.includes("modal.classList.add(shellClass)") && app.includes("modal.classList.add('selected')"),'App Diagnosis should be rendered in a stable existing modal shell and expose a running state');
+assert(app.includes("modal.classList.add(shellClass)") && app.includes("refresh.classList.add('selected')"),'App Diagnosis should be rendered in a stable existing modal shell and expose a running state');
 assert(css.includes('.diagnosis-modal{min-height:'),'App Diagnosis must have a dedicated stable full-size modal layout');
 assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher'); assert(app.includes("Run '+run+' selected · checking now…") && app.includes("classList.add('selected')"),'App Diagnosis must visibly indicate Run again is selected while diagnostics run');
 assert(app.includes('diagnosisRestaurantDuplicates'),'App Diagnosis must detect possible restaurant duplicates in the loaded pool');
