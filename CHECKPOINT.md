@@ -83,3 +83,31 @@ RECOVERY: `savepoint-cp96-original-scope-final2-2026-09-28` / commit `aa8e3f256e
 - Added accessible names to Restaurant address and radius controls.
 - Static QA now protects those labels.
 - Recovery: checkpoint-cp156-accessible-search-controls-2026-09-29.
+
+
+## CP257 — Food catalog/photo/UI cleanup
+Working branch: `cp257-food-catalog-refresh-2026-09-29`
+Current head: `0630cfbaae64d3d285b1936142b384a963822795`
+Starting recovery: `recovery-cp256-user-request-before-food-refresh-2026-09-29`
+Pre-QA recovery: `checkpoint-cp257-catalog-and-details-2026-09-29` at `e4bab69f493a7eb42045ff829d37cda9594b8882`
+QA-synced recovery: `checkpoint-cp257-qa-synced-2026-09-29` at `aabc513c84448b7f2b7d08ff4ec6ed65739dbd23`
+Release-doc recovery: `checkpoint-cp257-release-docs-2026-09-29`
+
+Changes:
+- Food catalog expanded from 65 to 67.
+- Added Italian Food Quick Cut.
+- Pizza, Meatball Sub, and Sausage & Peppers are Italian; Pork Quick Cut removed.
+- Biscuits & Gravy is Breakfast.
+- Pork Chops and Pork Tenderloin are Southern.
+- Added Pork Tenderloin and White Fish with complete photo/detail data.
+- Refreshed Beef Stroganoff, Stuffed Peppers, Pizza, Buttermilk & Cornbread, Salmon, BBQ Pulled Pork, Meatball Sub, and Sausage & Peppers imagery.
+- Mashed Potatoes is plain, without gravy.
+- Details sheet begins below the decision header/menu.
+- Food Delete controls and Settings Food Choices section removed; Food management is Hide/Restore.
+
+Verification:
+- JavaScript syntax parse: PASS.
+- Catalog/data contract assertions: PASS.
+- Exact hosted QA is still blocked on Vercel's account deployment limit; Netlify hosted preview is not yet confirmed for CP257.
+
+Recovery rule: return to `checkpoint-cp257-catalog-and-details-2026-09-29` if a later change becomes unstable.

@@ -1,7 +1,7 @@
 # Dinliminate image-source governance
 
 ## Current release
-Build 125 · release-hardening-2026-09-29
+Build 126 · cp257-food-catalog-refresh-2026-09-29
 
 ## Policy
 Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved image CDNs used by the release. The app also inventories every third-party food-image host so usage can be reviewed before public launch.
@@ -27,7 +27,8 @@ Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved
 - www.cooksoups.com — third-party source; rights/usage review required
 - bigbitesedenderry.com — third-party source; rights/usage review required
 - kookycrunch.com — third-party source; rights/usage review required
-- www.goodnes.com — third-party source; rights/usage review required
+- www.goodnes.com — official Stouffer source image; usage/redistribution review required
+- cdn11.bigcommerce.com — third-party source; rights/usage review required
 
 ## Launch status
 The automated inventory is complete. The legal/usage verification of the non-approved third-party assets is not something the runtime can establish automatically; those assets should be replaced with approved local/CDN assets or individually cleared before public distribution.
@@ -41,3 +42,18 @@ The automated inventory is complete. The legal/usage verification of the non-app
 - Health Shake: Pexels photo 7974814.
 - Buttermilk & Cornbread: Pexels photo 36863862.
 - Meatloaf & Mashed Potatoes, Potato Soup, Stuffed Peppers, and Salisbury Steak retain dish-specific sources already verified in the catalog because the available free-use search results did not provide more exact replacements.
+
+
+## CP257 photo refresh
+- Beef Stroganoff: Pexels photo 20234576.
+- Stuffed Peppers: official Stouffer/Goodnes product image.
+- Pizza: Pexels photo 7813574.
+- Meatball Sub: Wikimedia Commons Meatball Sub image.
+- Sausage & Peppers: Pexels photo 38085038.
+- Buttermilk & Cornbread: Pexels photo 6525832.
+- Grilled Salmon: Pexels photo 14542171.
+- BBQ Pulled Pork: Pexels photo 7181419.
+- Mashed Potatoes: Pexels photo 30635680.
+- Pork Tenderloin: Pexels photo 341044.
+- White Fish: Pexels photo 36378584.
+- The Stouffer/Goodnes asset is an official product image and still requires usage/redistribution review before public distribution.

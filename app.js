@@ -7,23 +7,22 @@ const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
 const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '125';
+let APP_BUILD = '127';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
-const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
-const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
+const FOOD_QUICK = ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Snack','Potato'];
+const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','BBQ'];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
 Pasta:'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=700', // Spaghetti
 Asian:'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg?auto=compress&cs=tinysrgb&w=700', // Fried Rice
 Mexican:'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=700', // Tacos / Mexican Stir Fry family
-Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700', // Pork Chops
 'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700', // Soup & Sandwich
 Healthy:'https://images.pexels.com/photos/11906476/pexels-photo-11906476.jpeg?auto=compress&cs=tinysrgb&w=700', // Salad Bowl
 Breakfast:'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=700', // Eggs & Toast
 American:'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=700', // Burger
-Greek:'https://images.pexels.com/photos/6941006/pexels-photo-6941006.jpeg?auto=compress&cs=tinysrgb&w=700', // Gyro
 Snack:'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=700', // Popcorn
+Italian:'https://images.pexels.com/photos/7813574/pexels-photo-7813574.jpeg?auto=compress&cs=tinysrgb&w=700', // Pizza
 Potato:'https://images.pexels.com/photos/273825/pexels-photo-273825.jpeg?auto=compress&cs=tinysrgb&w=700' // Roasted potatoes
 };
 const REST_QUICK_IMAGES = {
@@ -37,7 +36,6 @@ Healthy:'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg?auto
 'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700',
 Potato:'https://images.pexels.com/photos/1442066/pexels-photo-1442066.jpeg?auto=compress&cs=tinysrgb&w=700',
 Greek:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
-Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700',
 BBQ:'https://images.pexels.com/photos/6672037/pexels-photo-6672037.jpeg?auto=compress&cs=tinysrgb&w=700'
 };
 const S = {
@@ -206,7 +204,7 @@ if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood()
 }
 function save() {
 const data = {
-screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
+screen:S.screen, hidden:[...S.hidden], hiddenRestaurants:S.hiddenRestaurants,
 cutCats:[...S.cutCats], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
 pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
@@ -244,8 +242,8 @@ const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundTyp
 legacyKeys.forEach(key=>{try{delete d[key]}catch{}});
 Object.assign(S, d);
 legacyKeys.forEach(key=>{try{delete S[key]}catch{}});
-S.hidden = new Set(d.hidden || []);
-S.deleted = new Set(d.deleted || []);
+S.hidden = new Set([...(d.hidden || []), ...(Array.isArray(d.deleted) ? d.deleted : [])]);
+S.deleted = new Set();
 S.hiddenRestaurants = d.hiddenRestaurants || {};
 S.cutCats = new Set(d.cutCats || []);
 S.foodCuts = new Set(d.foodCuts || []);
@@ -288,7 +286,7 @@ show('home');
 }
 function foodPool(){
  return allFoods().filter(item=>{
-  if(S.hidden.has(item.id)||S.deleted.has(item.id)||S.foodCuts.has(item.id))return false;
+  if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
   return true;
@@ -1110,7 +1108,7 @@ const isEdit=!!item;
 
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'];
+const cats=['American','Southern','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Snack','Potato'];
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
 '<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
@@ -1140,7 +1138,7 @@ if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A food with that nam
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,recipe};
 if(id!==item.id) await deleteStoredPhoto(item.id);
-S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
+S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
@@ -1156,25 +1154,20 @@ else manageFoodsView();
 }
 function manageFoodsView() {
 const rows=allFoods();
-const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Built-in foods can be hidden or removed.</div>'+
+const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Foods can be hidden and restored here.</div>'+
 '<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Food</button>'+
 '<div class="food-list">'+rows.map(item=>{
-const hidden=S.hidden.has(item.id), deleted=S.deleted.has(item.id), custom=S.custom.some(x=>x.id===item.id);
-const state=deleted?'Deleted':hidden?'Hidden':'Active';
+const hidden=S.hidden.has(item.id), custom=S.custom.some(x=>x.id===item.id);
+const state=hidden?'Hidden':'Active';
 return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-state">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
-(!deleted?(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>'):'<button class="restore" data-food-restore-deleted="'+esc(item.id)+'">Restore</button>')+
+(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>')+
 (custom?'<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
-'<button class="restore danger-lite" data-food-delete="'+esc(item.id)+'">Delete</button></span></div>';
+'</span></div>';
 }).join('')+'</div>';
 const modal=openModal('manageFoodsModal','Manage Foods',body);
 $('openFoodEditor').onclick=()=>foodEditor();
 modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
 S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
-modal.querySelectorAll('[data-food-restore-deleted]').forEach(btn=>btn.onclick=()=>{
-S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove();
-if(S.screen==='food'){ closeOverlays(); show('food'); foodQuick(); drawFood(); }
-else manageFoodsView();
 });
 modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
 S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
@@ -1183,24 +1176,12 @@ modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{
 const row=allFoods().find(x=>x.id===btn.dataset.foodEdit);
 if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
 });
-modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=async()=>{
-const row=allFoods().find(x=>x.id===btn.dataset.foodDelete);
-if(!row)return;
-if(!await appConfirm(S.custom.some(x=>x.id===row.id)?'Delete this custom food?':'Remove this food?',S.custom.some(x=>x.id===row.id)?'Delete '+row.name+' permanently from this device.':'Remove '+row.name+' from the active food choices.','Delete'))return;
-if(S.custom.some(x=>x.id===row.id)){ S.custom=S.custom.filter(x=>x.id!==row.id); deleteStoredPhoto(row.id); }
-else S.deleted.add(row.id);
-S.hidden.delete(row.id); S.maybe.delete(row.id); buildFood(); save();
-modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
 }
 function settingsView(){
  removeFoodOverlays();
- const hiddenFoods=allFoods().filter(x=>S.hidden.has(x.id)),deletedFoods=allFoods().filter(x=>S.deleted.has(x.id)),hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Food Choices</h4><div class="settings-food-choices">'+((hiddenFoods.length||deletedFoods.length)?hiddenFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Hidden</small></span><span class="food-row-actions"><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button><button class="restore danger-lite" data-setting-food-delete="'+esc(x.id)+'">Delete</button></span></div>').join(''):'')+deletedFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Deleted</small></span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join('')+((!hiddenFoods.length&&!deletedFoods.length)?'<p class="status">No hidden or deleted foods.</p>':'')+'</div><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Check the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
+ const hiddenRestaurants=Object.values(S.hiddenRestaurants);
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Check the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
- modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{S.hidden.delete(btn.dataset.settingFood);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- modal.querySelectorAll('[data-setting-food-delete]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.settingFoodDelete,row=allFoods().find(x=>x.id===id);if(!row)return;if(!await appConfirm('Remove this food?','Remove '+row.name+' from the food choices.','Delete'))return;if(S.custom.some(x=>x.id===id))S.custom=S.custom.filter(x=>x.id!==id);else S.deleted.add(id);S.hidden.delete(id);S.maybe.delete(id);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- modal.querySelectorAll('[data-setting-deleted]').forEach(btn=>btn.onclick=()=>{S.deleted.delete(btn.dataset.settingDeleted);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=appDiagnosisView;$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
 }
@@ -1246,9 +1227,9 @@ async function appDiagnosisView(){
    const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
     const cerealRename=byId.get('cheerios')?.name==='Cereal';
     const healthShakeReady=!!byId.get('health-shake')?.ingredients?.length&&!!byId.get('health-shake')?.nutrition&&!!byId.get('health-shake')?.recipe&&byId.get('health-shake')?.quickCuts?.includes('Healthy');
-   missing.length||wrongCuts.length||frozen||!cerealRename||!healthShakeReady?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':'',!healthShakeReady?'Health Shake details/Healthy Quick Cut data is incomplete.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
+   missing.length||wrongCuts.length||frozen||!cerealRename||!healthShakeReady?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':'',!healthShakeReady?'Health Shake details/Healthy Quick Cut data is incomplete.':''].filter(Boolean).join(' ')):pass('Food catalog contract','90 foods loaded; requested foods present; Stouffer’s absent.');
    const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake','homemade-pizza','mac-cheese','chicken-parmesan','country-fried-chicken'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
-    const imageIdsExpected={'tacos':'14179985','stir-fry':'31673757','meatloaf':'2397401','buttermilk-cornbread':'36863862','potato-soup':'29653177','stuffed-peppers':'31953510','stroganoff':'28503619','health-shake':'7974814','lasagna':'29174061','vegetable-lasagna':'5864352','salisbury-steak':'commons.wikimedia.org/wiki/Special:FilePath/Salisbury'};
+    const imageIdsExpected={'tacos':'14179985','stir-fry':'31673757','meatloaf':'2397401','buttermilk-cornbread':'6525832','potato-soup':'29653177','stuffed-peppers':'goodnes.com','stroganoff':'20234576','health-shake':'7974814','lasagna':'29174061','vegetable-lasagna':'5864352','grilled-salmon':'14542171','bbq-pulled-pork':'7181419','homemade-pizza':'7813574','meatball-subs':'commons.wikimedia.org/wiki/Special:FilePath/Meatball_Sub','sausage-peppers':'38085038','pork-tenderloin':'341044','white-fish':'36378584','salisbury-steak':'commons.wikimedia.org/wiki/Special:FilePath/Salisbury'};
     const staleImages=Object.entries(imageIdsExpected).filter(([id,photoId])=>!String(byId.get(id)?.image||'').includes(photoId)).map(([id])=>id);
    imageMissing.length||staleImages.length?fail('Food image catalog',[imageMissing.length?'Missing/invalid image URL: '+imageMissing.join(', '):'',staleImages.length?'Stale/unexpected photo mapping: '+staleImages.join(', '):''].filter(Boolean).join(' ')):pass('Food image catalog','All requested food photo mappings are present and current.');
    const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
@@ -1301,7 +1282,7 @@ else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToa
 }
 function resetRound(){
 S.pass=null; S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
-S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
+S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.deleted.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 home();
