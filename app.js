@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '175';
+let APP_BUILD = '176';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -1165,12 +1165,11 @@ S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;
 const previousOrigin=S.restaurantSearchOrigin;
 const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
 const sameSearchQuery=String(S.restaurantSearchKey||'').endsWith(':'+normalizeRestaurantSearch(searchTerm));
-const previousRows=(sameSearchOrigin&&sameSearchQuery)?(S.restaurantPool||[]).map(row=>({...row,distance:milesBetween(row.lat,row.lon,loc.lat,loc.lon)})).filter(row=>Number.isFinite(Number(row.distance))&&Number(row.distance)<=radius):[];
 const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), hoursState:restaurantHourState(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
  const dist=milesBetween(row.lat,row.lon,loc.lat,loc.lon);
- return !Number.isFinite(dist) || dist<=radius+0.05;
+ return Number.isFinite(dist) && dist<=radius+0.001;
 });
-S.restaurantPool = dedupeRestaurantPool([...incomingRows,...previousRows]);
+S.restaurantPool = dedupeRestaurantPool(incomingRows);
 S.restaurantSearchOrigin = {lat:Number(loc.lat),lon:Number(loc.lon)};
 S.restaurantSearchKey = searchKey;
 S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantMaybeRound = false;
@@ -1185,13 +1184,9 @@ restaurantQuick(); drawRestaurants(); save();
 } catch (err) {
 if (err?.name==='AbortError' || searchSeq !== restaurantSearchSeq) return;
 S.restaurantSearchDegraded=true;
-if(S.restaurantPool?.length){
-  drawRestaurants();
-  $('status').textContent = (timedOut ? 'Refresh took too long.' : (err?.message || 'Refresh failed.'))+' Showing the previous results.';
-}else{
-  S.restaurantPool=[]; S.restaurantIndex=0; S.restaurantActions=[]; drawRestaurants();
-  $('status').textContent = timedOut ? 'The restaurant search took too long. Please try again.' : (err?.message || 'Could not complete the search.');
-}
+S.restaurantPool=[]; S.restaurantIndex=0; S.restaurantActions=[]; S.restaurantCuts.clear();
+drawRestaurants();
+$('status').textContent = timedOut ? 'The restaurant search took too long. Please try again.' : (err?.message || 'Could not complete the search.');
 } finally {
 clearTimeout(deadline);
 if(searchSeq===restaurantSearchSeq) setFindBusy(false);
@@ -1655,7 +1650,7 @@ buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();
 function settingsView(){
  removeFoodOverlays();
  const hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System Tools</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Live checks for the current build, Restaurant search, 1–50 mile radius, Quick Cuts, dedupe, photos, contact enrichment, hours behavior, storage, and runtime.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores built-in defaults, clears hidden meals/restaurants and active decision/search state, and keeps your Custom Meals and History.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Full local reset: removes Custom Meals and their photos, History, hidden choices, saved rounds, location/search state, and device-stored app preferences.</p></div>';
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System Tools</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Live checks for the current build, Restaurant search, 1–100 mile radius, Quick Cuts, dedupe, photos, contact enrichment, hours behavior, storage, and runtime.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores built-in defaults, clears hidden meals/restaurants and active decision/search state, and keeps your Custom Meals and History.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Full local reset: removes Custom Meals and their photos, History, hidden choices, saved rounds, location/search state, and device-stored app preferences.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
