@@ -111,3 +111,25 @@ Verification:
 - Exact hosted QA is still blocked on Vercel's account deployment limit; Netlify hosted preview is not yet confirmed for CP257.
 
 Recovery rule: return to `checkpoint-cp257-catalog-and-details-2026-09-29` if a later change becomes unstable.
+
+
+## CP258 — Expanded Food catalog and Quick Cut cleanup
+Working branch: `cp258-food-catalog-expansion-2026-09-30`
+Build: 1.0 / 127
+
+Recovery points:
+- Pre-edit: `recovery-cp258-before-new-foods-2026-09-30`
+- Core: `checkpoint-cp258-catalog-core-2026-09-30`
+- QA: `checkpoint-cp258-qa-2026-09-30`
+
+Completed:
+- Food catalog increased from 67 to 90.
+- Added the 23 requested foods with complete photo/detail/Quick Cut data.
+- Fajitas replaces Mexican Stir Fry.
+- Greek removed from Food Quick Cuts; Gyro is Healthy only.
+- Snack now contains sweet/snack additions.
+- Food QA expectations raised to 90 and new mappings are explicitly checked.
+
+Deployment:
+- CP258 Netlify Deploy Preview is expected on PR #45 once created/updated; exact Netlify confirmation remains pending.
+- Vercel remains account-rate-limited.
