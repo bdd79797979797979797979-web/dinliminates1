@@ -453,7 +453,7 @@ assert.equal(await visible('aboutModal'),true,'About should open');
 const aboutText=await page.locator('#aboutModal').innerText();
 assert.match(aboutText,/CURRENT BUILD/);
 assert.match(aboutText,/Version\s+1\.0/i);
-assert.match(aboutText,/Build\s+125/i);
+assert.match(aboutText,/Build\s+127/i);
 const expectedDate=await page.evaluate(()=>new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()));
 assert.ok(aboutText.includes(expectedDate),'About date should always reflect the current date');
 assert.equal(await page.locator('#aboutModal .about-test').evaluate(el=>getComputedStyle(el).color),'rgb(191, 161, 107)','About current build label should be gold');
@@ -463,7 +463,7 @@ await click('#privacyFromAbout'); await settle(); assert.equal(await visible('pr
 await page.locator('#privacyModal [data-close]').click(); await settle();
 await page.locator('[data-close]').click(); await settle();
 await click('#menu'); await settle(); await click('#settings'); await settle();
-const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.equal(/Food Choices/i.test(settingsFoodText),false,'Settings should not contain a Food Choices section'); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Settings should contain no deleted-food section'); await page.locator('#settingsModal [data-close]').click(); await settle();
+const settingsFoodText2=await page.locator('#settingsModal').innerText(); assert.equal(/Food Choices/i.test(settingsFoodText2),false,'Settings should not contain a Food Choices section'); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Settings should contain no deleted-food section'); await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
