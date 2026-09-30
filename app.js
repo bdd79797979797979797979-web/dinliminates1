@@ -731,11 +731,18 @@ function restaurantChoiceIndex(rows,start,keepState=false){
  for(let step=0;step<len;step++){const i=(start+step)%len;if(keepState?!!rows[i]._maybe:!rows[i]._maybe)return i;}
  return -1;
 }
+function restaurantHourState(row){
+ const state=hourStatus(row);
+ return state==='open'||state==='closed'||state==='unknown' ? state : 'unknown';
+}
+function restaurantHoursFilter(row){
+ return S.hoursMode==='all' || restaurantHourState(row)!=='closed';
+}
 function restaurantPoolFiltered(){
  return (S.restaurantPool||[]).filter(row=>{
   if([...S.restaurantCuts].some(label=>restaurantQuickMatches(row,label)))return false;
   if(row._cut||row._hidden||restaurantHidden(row))return false;
-  if(S.hoursMode==='openUnknown'&&hourStatus(row)==='closed')return false;
+  if(!restaurantHoursFilter(row))return false;
   return restaurantMatchesQuery(row);
  });
 }
@@ -1055,13 +1062,35 @@ save();
 return true;
 }
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
+function setRestaurantHoursMode(mode){
+ S.hoursMode=mode==='all'?'all':'openUnknown';
+ S.restaurantIndex=0;
+ renderHours();
+ drawRestaurants();
+ save();
+}
 function renderHours(){
- const btn=$('hoursToggle');if(!btn)return;const openMode=S.hoursMode==='openUnknown';btn.textContent=openMode?'Open/Unknown':'All';btn.dataset.mode=openMode?'open':'all';btn.setAttribute('aria-pressed',String(openMode));
+ const btn=$('hoursToggle');if(!btn)return;
+ const openMode=S.hoursMode==='openUnknown';
+ btn.textContent=openMode?'Open/Unknown':'All';
+ btn.dataset.mode=openMode?'open':'all';
+ btn.dataset.hoursMode=openMode?'openUnknown':'all';
+ btn.setAttribute('aria-pressed',String(openMode));
+ btn.setAttribute('aria-label','Hours filter: '+(openMode?'Open/Unknown':'All'));
 }
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
  $('restaurantQuery').oninput=()=>{S.restaurantQuery=$('restaurantQuery').value;S.restaurantIndex=0;drawRestaurants();save();};
- $('hoursToggle').onclick=e=>{e.preventDefault();S.hoursMode=S.hoursMode==='openUnknown'?'all':'openUnknown';S.restaurantIndex=0;renderHours();drawRestaurants();save();};renderHours();
+ const hoursBtn=$('hoursToggle');
+ if(hoursBtn){
+   hoursBtn.onclick=null;
+   hoursBtn.addEventListener('click',e=>{
+     e.preventDefault();
+     e.stopPropagation();
+     setRestaurantHoursMode(S.hoursMode==='openUnknown'?'all':'openUnknown');
+   });
+ }
+ renderHours();
 }
 
 function triggerCelebration() {
@@ -1572,7 +1601,7 @@ window.addEventListener('offline', updateOffline);
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,setRestaurantHoursMode};
 load();
 renderLocationSource();
 renderFindButton();
