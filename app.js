@@ -278,7 +278,7 @@ window.scrollTo?.(0,0);
 function closeOverlays() {
 
 ['drawer','drawerBg','modal','modalBg'].forEach(id => $(id)?.classList.add('hidden'));
-['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg',.forEach(id => $(id)?.remove());
+['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg'].forEach(id => $(id)?.remove());
 clearSuggestions();
 }
 function home() {
