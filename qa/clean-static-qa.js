@@ -344,6 +344,9 @@ assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.incl
 assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
+assert(app.includes("replace(/\\b(?:usa|united states)\\b/g,'')"),'Browser Restaurant address normalization must strip country suffixes');
+assert(!app.includes('const cardPhoneAction'),'Restaurant cards must not render a phone icon action');
+assert(app.includes('cardDetailsAction+cardWebsite'),'Restaurant card utility order must be Details then Website');
 assert(api.includes("tennessee:'tn'"),'Restaurant API address normalization must equate Tennessee and TN');
 assert(app.includes("tennessee:'tn'"),'Browser Restaurant address normalization must equate Tennessee and TN');
 assert(!app.includes('cardPhoneAction'),'Restaurant cards must not render a phone icon action');
