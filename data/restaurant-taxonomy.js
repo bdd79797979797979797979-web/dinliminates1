@@ -189,15 +189,21 @@ function menuSignalCount(row,tag){
   return new Set(signals.filter(signal=>hay.includes(normalizeRestaurantSearch(signal)))).size;
 }
 function restaurantNameCore(value){
-  return normalizeRestaurantSearch(String(value||'').replace(/[’']s\b/gi,'s')).split(' ').filter(Boolean).filter(x=>!RESTAURANT_NAME_FILLER_WORDS.has(x)).join(' ');
+  return normalizeRestaurantSearch(String(value||'').replace(/[’']s\b/gi,'s'))
+    .split(' ').filter(Boolean).filter(x=>!RESTAURANT_NAME_FILLER_WORDS.has(x)).join(' ');
+}
+function restaurantBusinessName(value,address=''){
+  const street=normalizeRestaurantSearch(String(address||'').split(',')[0]).split(' ').filter(Boolean);
+  const streetWords=new Set(street.filter(x=>x.length>=3));
+  return restaurantNameCore(value).split(' ').filter(x=>!streetWords.has(x)).join(' ');
 }
 function restaurantNameKeys(value){
   const raw=String(value||'');
   return [...new Set([normalizeRestaurantSearch(raw),normalizeRestaurantSearch(raw.replace(/[’']s\b/gi,'')),normalizeRestaurantSearch(raw.replace(/[’']/g,'')),restaurantNameCore(raw)].filter(Boolean))];
 }
 function namesOverlap(a,b){
-  const A=new Set(restaurantNameKeys(a)),B=new Set(restaurantNameKeys(b));
-  if([...A].some(x=>B.includes(x)))return true;
+  const A=restaurantNameKeys(a),B=restaurantNameKeys(b);
+  if(A.some(x=>B.includes(x)))return true;
   const ca=restaurantNameCore(a),cb=restaurantNameCore(b);
   return !!ca&&!!cb&&(ca===cb||(Math.min(ca.length,cb.length)>=5&&(ca.startsWith(cb+' ')||cb.startsWith(ca+' '))));
 }
@@ -281,6 +287,7 @@ const taxonomy={
   searchAliasesFor,
   identityHay,
   restaurantNameCore,
+  restaurantBusinessName,
   restaurantNameKeys,
   namesOverlap,
   isFastFood,
