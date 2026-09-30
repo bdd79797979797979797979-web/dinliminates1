@@ -21,3 +21,9 @@ Verification:
 - Delete is limited to Custom meals.
 - Delete uses confirmation and removes stored photo data.
 - Default image constant and save/recovery paths are present.
+
+Browser smoke coverage added:
+- Existing custom QA Special must expose a Delete action.
+- Built-in popcorn must not expose Delete.
+- A custom meal created without a photo must persist `./fallback-food.svg`.
+- Deletion must open the existing confirmation modal and remove the custom meal after confirmation.
