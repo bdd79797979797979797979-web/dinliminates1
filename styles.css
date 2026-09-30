@@ -1188,3 +1188,8 @@
  #restaurant .radius-search{width:38px!important;min-width:38px!important;height:36px!important}
  #restaurant .radius-search svg{width:16px;height:16px}
 }
+
+/* CP455 geometry correction — compact Search occupies exactly one grid cell beside Radius */
+#restaurant .location-sub{grid-template-columns:auto 64px 40px minmax(0,1fr)}
+@media(max-width:390px){#restaurant .location-sub{grid-template-columns:auto 66px 38px minmax(0,1fr)}}
+@media(max-width:340px){#restaurant .location-sub{grid-template-columns:auto 62px 38px minmax(0,1fr)}}
