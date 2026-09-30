@@ -345,10 +345,8 @@ await click('#restBack'); await settle(); s=await qa(); assert.equal(s.restauran
 const restaurantCard=page.locator('#restaurantCard');
 if(!(await restaurantCard.count())) throw new Error('Restaurant card missing for right swipe QA');
 assert.equal(await visible('restaurantNextCard'),true,'Restaurant should show the next Tinder card behind the current card');
-await restaurantCard.evaluate(el=>{
-  el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:7,clientX:100}));
-  el.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:7,clientX:300}));
-});
+const restSwipeBox=await restaurantCard.boundingBox(); if(!restSwipeBox) throw new Error('Restaurant card bounding box missing for right swipe QA');
+await page.mouse.move(restSwipeBox.x+50,restSwipeBox.y+restSwipeBox.height/2); await page.mouse.down(); await page.mouse.move(restSwipeBox.x+restSwipeBox.width-18,restSwipeBox.y+restSwipeBox.height/2,{steps:4}); await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.restaurantActions.at(-1)?.type,'maybe','Restaurant right swipe should Maybe');
 await click('#restBack'); await settle();
