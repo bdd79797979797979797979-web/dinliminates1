@@ -43,6 +43,16 @@ function call(query){
  const tight=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'1'}); if(tight.statusCode!==200||!tight.body?.ok||tight.body.radiusMiles!==1)throw new Error('1-mile radius failed: '+JSON.stringify(tight.body));
  const wide=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'100'}); if(wide.statusCode!==200||!wide.body?.ok||wide.body.radiusMiles!==100)throw new Error('100-mile radius failed: '+JSON.stringify(wide.body));
  
+ const radiusCoverage=handler._test?.centers;
+ if(typeof radiusCoverage!=='function')throw new Error('radius coverage test hook missing');
+ const centers100=radiusCoverage(36.5304,-87.3601,100);
+ if(centers100.length!==9)throw new Error('100-mile search should use one central and eight overlapping 50-mile coverage circles');
+ for(let i=0;i<360;i+=5){
+   const ang=i*Math.PI/180;
+   const edge={lat:36.5304+(100/69)*Math.sin(ang),lon:-87.3601+(100/(69*Math.max(.35,Math.cos(36.5304*Math.PI/180))))*Math.cos(ang)};
+   const covered=centers100.some(p=>Math.hypot((edge.lat-p.lat)*69,(edge.lon-p.lon)*55)<=50.25);
+   if(!covered)throw new Error('100-mile coverage gap near angle '+i+' degrees');
+ }
  const radiusChecks=[];
  const radiusTotals=[];
  for(const radius of [1,3,5,10,25,50,100]){
