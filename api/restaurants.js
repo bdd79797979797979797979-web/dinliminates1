@@ -90,6 +90,33 @@ async function arcgisPlaces(lat,lon,radius){
 }
 
 async function overpass(lat,lon,radius,types='restaurant|fast_food'){const els=[],errs=[];for(const ep of OVERPASS){const cs=centers(lat,lon,radius);for(let i=0;i<cs.length;i+=3){const got=await Promise.allSettled(cs.slice(i,i+3).map(c=>json(ep+'?data='+encodeURIComponent(query(c.lat,c.lon,c.radius,types)),{},7000)));for(const g of got){if(g.status==='fulfilled')els.push(...(g.value?.elements||[]));else errs.push(String(g.reason?.message||g.reason))}}if(els.length)break}const rows=[];for(const el of els){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r)}return{rows,errors:errs}}
+const KNOWN_RESTAURANT_WEBSITES={
+  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
+};
+function knownRestaurantWebsite(row){
+ const name=norm(row?.name),brand=norm(row?.brand);
+ for(const [key,url] of Object.entries(KNOWN_RESTAURANT_WEBSITES)){
+  const k=norm(key); if(name===k||name.includes(k)||brand===k||brand.includes(k))return url;
+ }
+ return '';
+}
+function contactQuery(lat,lon,radius,names){
+ const pattern=names.map(name=>String(name||'').replace(/"/g,'\\\"')).filter(Boolean).join('|');
+ const m=Math.round(Math.min(25,Math.max(1,radius))*1609.344);
+ return '[out:json][timeout:5];nwr[amenity~"^(restaurant|fast_food)$"][name~"^('+pattern+')$",i](around:'+m+','+lat+','+lon+');out center tags;';
+}
+async function contactEnrichment(lat,lon,radius,names){
+ if(!names.length)return{rows:[],errors:[]};
+ const data=contactQuery(lat,lon,radius,names),rows=[],errors=[];
+ for(const ep of OVERPASS){
+  try{
+   const d=await json(ep+'?data='+encodeURIComponent(data),{},4500);
+   for(const el of d?.elements||[]){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r);}
+   if(rows.length)break;
+  }catch(e){errors.push(String(e?.message||e));}
+ }
+ return{rows,errors};
+}
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 function restaurantNameTokens(value){
   return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
@@ -247,10 +274,17 @@ if(mode==='search'){
     else osmOut.errors.push('Wide restaurant search timed out');
   }else osmOut.errors.push('Search budget reached before wide restaurant search.');
  }
- const rows=dedupe([...preliminary,...osmOut.rows]).map(r=>({...r,photo:image(r)}));
+ let contactOut={rows:[],errors:[]};
+ const missingContactNames=preliminary.filter(r=>r.fastFood&&!r.phone).map(r=>r.name).filter(Boolean).filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i).slice(0,8);
+ const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
+ if(missingContactNames.length&&contactRemaining>2500){
+   const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),missingContactNames),contactRemaining,'Restaurant contact enrichment timed out');
+   if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
+ }
+ const rows=dedupe([...preliminary,...osmOut.rows,...contactOut.rows]).map(r=>({...r,photo:image(r),website:r.website||knownRestaurantWebsite(r)}));
  if(!rows.length&&photonOut.errors.length&&arcgisOut.errors.length&&osmOut.errors.length)throw Object.assign(new Error('Restaurant providers are temporarily unavailable. Please try again.'),{code:'PROVIDER_UNAVAILABLE'});
  const zone=await timezonePromise;
- const data={ok:true,version:'r14',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors].slice(0,8),results:rows};
+ const data={ok:true,version:'r14',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-r14',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
