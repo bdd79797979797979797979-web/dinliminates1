@@ -45,7 +45,7 @@ function query(lat,lon,radius,types=DINING_AMENITIES){
 function queryMany(points,types=DINING_AMENITIES){
  return '[out:json][timeout:16];('+points.map(c=>queryClause(c.lat,c.lon,c.radius,types)).join('')+');out center tags;';
 }
-function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const safe=Math.min(99.5,Math.max(50.1,r));let ring=safe*Math.cos(Math.PI/6)-Math.sqrt(Math.max(0,2500-(safe*safe)/4));ring=Math.max(0,Math.min(safe-0.5,ring));const out=[{lat,lon,radius:50}],a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<6;i++){const ang=i*Math.PI/3;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
+function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const safe=Math.min(100,Math.max(50,r)),ring=Math.min(70,Math.max(50,safe*0.7)),count=8;const out=[{lat,lon,radius:50}],a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<count;i++){const ang=i*2*Math.PI/count;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
 
 function photonRow(feature,origin){
  const p=feature?.properties||{},c=feature?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]),name=String(p.name||p.label||'').split(',')[0].trim();
