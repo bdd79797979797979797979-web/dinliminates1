@@ -93,7 +93,7 @@ assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.heigh
 await assert.equal((await qa()).foodCatalog,90,'Restored 90-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
-assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
+assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 11 Quick Cuts');
 assert.equal(await page.locator('[data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
