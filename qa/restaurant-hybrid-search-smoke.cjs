@@ -51,5 +51,10 @@ assert.equal(taxonomy.restaurantSearchClassification("McDonald's").kind,'name',"
 assert(taxonomy.searchAliasesFor('Mexican').includes('taco'),'Mexican provider search should include Taco discovery alias');
 assert(taxonomy.searchAliasesFor('Seafood').includes('fish'),'Seafood provider search should include Fish discovery alias');
 assert(taxonomy.searchAliasesFor('Burger').includes('hamburger'),'Burger provider search should include Hamburger discovery alias');
+assert.equal(taxonomy.restaurantSearchClassification('pizzeria').tag,'Pizza','Pizzeria should resolve to Pizza, not the overlapping Italian alias.');
+const apiThirsty=taxonomy.classifyRestaurant({name:'Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',menuItems:[]});
+assert(!apiThirsty.tags.includes('Fast Food') && apiThirsty.tags.includes('Pizza'),'Shared classifier must keep Thirsty Goat out of Fast Food even when provider data conflicts.');
+assert(apiSrc.includes('const classifiedFastFood=classification.tags.includes(\'Fast Food\')'),'API result Fast Food state must come from shared classification.');
+
 
 console.log('restaurant hybrid search smoke: PASS');
