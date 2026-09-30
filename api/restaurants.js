@@ -436,7 +436,7 @@ function restaurantStreetKey(value){
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
 function restaurantNameBusinessMatch(a,b,addressA='',addressB=''){
-  const clean=n=>String(n||'').toLowerCase().replace(/[’']/g,'').replace(/\b(?:restaurant|restaurants|location|store|shop|the|llc|inc|co|clarksville|tn|tennessee|sango|downtown|north|south|east|west)\b/g,' ').replace(/\s+/g,' ').trim();
+  const clean=n=>String(n||'').toLowerCase().replace(/[’']s\b/gi,'s').replace(/[’']/g,'').replace(/\b(?:restaurant|restaurants|location|store|shop|the|llc|inc|co|clarksville|tn|tennessee|sango|downtown|north|south|east|west)\b/g,' ').replace(/\s+/g,' ').trim();
   const streetWords=(value)=>String(normAddress(value||'').split(' ').slice(0,5).join(' ')).split(' ').filter(Boolean);
   const aa=new Set(clean(a).split(' ').filter(Boolean)),bb=new Set(clean(b).split(' ').filter(Boolean));
   const streetA=streetWords(addressA),streetB=streetWords(addressB);
