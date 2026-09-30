@@ -755,11 +755,10 @@ function restaurantPoolFiltered(){
 function restaurantHoursFilter(row){
  return S.hoursMode==='all' || restaurantHourState(row)!=='closed';
 }
-function updateRestaurantStatus(visibleRows=null){
+function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
  const radius=Math.min(50,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
- const visible=Array.isArray(visibleRows)?visibleRows:restaurantPoolFiltered();
  const states={open:0,unknown:0,closed:0};
  for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
  const total=base.length,degraded=S.restaurantSearchDegraded;
@@ -1027,7 +1026,7 @@ maybeShowSwipeHint();
 }
 function drawRestaurants() {
 const rows = restaurantPoolFiltered();
-updateRestaurantStatus(rows);
+updateRestaurantStatus();
 const countEl = $('restaurantCount');
 if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
 if (!rows.length) {
