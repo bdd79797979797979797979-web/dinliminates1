@@ -69,7 +69,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r17'"),'Restaurant API should report r16 after the search hardening pass');
+assert(api.includes("const API_VERSION='r17'"),'Restaurant API should report r17 after the search hardening pass');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
@@ -120,7 +120,7 @@ assert(app.includes('restaurant-luxury-stat-grid') && app.includes('Distance') &
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
 
 assert(app.includes("const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']"),'Restaurant Quick Cuts must use restaurant categories, not food-item categories');
-for(const legacy of ['Potato','Pasta','Soup/Stew','Healthy']) assert(!/const REST_QUICK = \[[^\]]*['\"]${legacy}['\"]/.test(app),'Restaurant Quick Cuts must not include food-style '+legacy+' shortcut');
+const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; for(const legacy of ['Potato','Pasta','Soup/Stew','Healthy']) assert(!restQuickLine.includes("'"+legacy+"'"),'Restaurant Quick Cuts must not include food-style '+legacy+' shortcut');
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
 assert(app.includes("normalized==='burger'") && app.includes('!!row.fastFood'),'Burger Search should include fast-food restaurants');
 
