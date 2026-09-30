@@ -65,3 +65,22 @@ const sameStreetTwoFullAddresses=[
  {id:'sf2',name:"Wendy's",address:'2500 Madison St, Clarksville, TN 37043',lat:36.5312,lon:-87.3590,distance:6.91,source:'Photon'}
 ];
 assert.equal(dedupe(sameStreetTwoFullAddresses).length,2,"Two separately numbered same-name locations on the same street must remain separate");
+
+
+const concreteDuplicateFamilies=[
+ [
+  {id:'hb1',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90},
+  {id:'hb2',name:'Robert Heads BBQ',address:'Iron Workers Road, Clarksville, Tennessee 37043',lat:36.5304,lon:-87.3602,distance:6.91}
+ ],
+ [
+  {id:'eb1',name:'Excell BBQ',address:'100 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90},
+  {id:'eb2',name:"Excell's BBQ",address:'Madison Street, Clarksville, Tennessee 37043',lat:36.5304,lon:-87.3602,distance:6.91}
+ ],
+ [
+  {id:'mb1',name:"McDonald's",address:'4201 Highway 41A S, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90,brand:"McDonald's"},
+  {id:'mb2',name:'McDonalds',address:'Highway 41A South, Clarksville, Tennessee 37043 USA',lat:36.5304,lon:-87.3602,distance:6.91,brand:'McDonalds'}
+ ]
+];
+assert.equal(dedupe(concreteDuplicateFamilies[0]).length,1,'Heads BBQ provider variants must collapse to one venue');
+assert.equal(dedupe(concreteDuplicateFamilies[1]).length,1,'Excell BBQ provider variants must collapse to one venue');
+assert.equal(dedupe(concreteDuplicateFamilies[2]).length,1,'McDonalds Sango provider variants must collapse to one venue');
