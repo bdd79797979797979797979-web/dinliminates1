@@ -107,7 +107,12 @@ assert(!html.includes('id="newCat"'),'legacy Add Food category control must be r
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
-assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
+assert(app.includes("function setRestaurantHoursMode(mode)"),'Hours toggle must use an explicit restaurant hours-mode setter');
+assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open/Unknown');
+assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
+assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
+assert(app.includes("if(!restaurantHoursFilter(row))return false;"),'Restaurant pool must apply the hours filter');
+assert(app.includes("hoursBtn.addEventListener('click'"),'Hours toggle must have an explicit click event listener');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
