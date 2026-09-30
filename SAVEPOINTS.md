@@ -593,3 +593,6 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Hungry Details: no Hide; small “Fish Sticks?” prompt.
 - Restaurant Details beside cuisine; App Diagnosis green.
 - Recovery: `checkpoint-cp260-pass-around-tested-2026-09-30`.
+
+- **Final CP260 verified commit:** `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
+- Final recovery branch: `checkpoint-cp260-final-verified-2026-09-30`.
