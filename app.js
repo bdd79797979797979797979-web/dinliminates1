@@ -765,11 +765,7 @@ function updateRestaurantStatus(visibleRows=null){
  const total=base.length,degraded=S.restaurantSearchDegraded;
  if(!total){
   el.textContent=degraded?'Restaurant sources are unavailable. Try again.':'No restaurants match the current filters.';
-  el.dataset.hoursOpen=String(states.open);
-  el.dataset.hoursUnknown=String(states.unknown);
-  el.dataset.hoursClosed=String(states.closed);
-  el.dataset.hoursVisible=String(visible.length);
-  return;
+      return;
  }
  if(S.hoursMode==='all'){
   el.textContent=states.open+' open · '+states.unknown+' unknown · '+states.closed+' closed · '+total+' total · '+radius+' mi';
