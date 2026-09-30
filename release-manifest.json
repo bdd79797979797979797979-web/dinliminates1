@@ -2,11 +2,11 @@
   "name": "Dinliminate",
   "version": "1.0",
   "build": 171,
-  "sourceBranch": "cp466-restaurant-identity-taxonomy-hardening-2026-09-30",
+  "sourceBranch": "cp469-restaurant-dedupe-cuisine-final-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP466"
+  "checkpoint": "CP469"
 }
