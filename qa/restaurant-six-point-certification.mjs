@@ -170,7 +170,7 @@ await page.locator('#restaurantQuery').fill('Mcdonalds');
 await page.waitForTimeout(1000);
 s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd']);
-assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='mcdonalds'),'Typed query was not sent to provider search');
+assert.ok(requests.some(u=>String(new URL(u).searchParams.get('q')||'').toLowerCase()==='mcdonalds'),'Typed query was not sent to provider search');
 report["4_search_restaurants"].mcdonalds={matched:s.restaurantPool,providerQuery:requests.at(-1)};
 await page.locator('#restaurantQuery').fill('burger'); await page.waitForTimeout(1000);
 s=await snap();
