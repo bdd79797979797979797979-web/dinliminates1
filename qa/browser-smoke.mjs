@@ -96,6 +96,9 @@ assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.heigh
 
 await assert.equal((await qa()).foodCatalog,116,'Restored 116-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
+const foodActionIds=await page.locator('#food .food-swipe-actions > button').evaluateAll(els=>els.map(x=>x.id)); assert.deepEqual(foodActionIds,['foodBack','foodCut','foodMaybe','foodHide','addFood'],'Food Add Food icon should sit directly to the right of Hide');
+assert.equal(await page.locator('#food #addFood').evaluate(el=>el.classList.contains('round-add-food')),true,'Add Food should use the compact circular icon style');
+assert.equal(await page.locator('#food #addFood').innerText(),'＋','Add Food should use a plus icon rather than a text button');
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
 assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
