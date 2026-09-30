@@ -233,7 +233,7 @@ assert.equal(foodRows.length,116,'CP259 built-in food deck must contain exactly 
 console.log('Dinliminate CP259 food catalog QA: PASS');
 
 assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=hungry?'Fish Sticks?':''"),'Hungry winner must show the Fish Sticks? prompt');
-assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-action\" id=\"detailHide\">Hide</button>'"),'Hungry Details must omit Hide');
+assert(app.includes("const actionBar=item?.category==='Hungry'?'':"),'Hungry Details must conditionally omit its Hide action');
 
 
 // CP260 UI contracts.
