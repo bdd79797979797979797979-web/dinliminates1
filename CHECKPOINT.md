@@ -164,3 +164,10 @@ Deployment:
 
 - **Final verified CP260 commit:** `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
 - **Final recovery branch:** `checkpoint-cp260-final-verified-2026-09-30`.
+
+
+## CP261 — Pass Around fairness finish
+- Build 131.
+- Quick Pass remains the default; Full Pass remains optional.
+- Starting voter rotates between Pass Around sessions.
+- Final verified source commit before this note: `51579fe6318d73813db9a3b3956457affc35a0ed`.
