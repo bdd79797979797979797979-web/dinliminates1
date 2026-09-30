@@ -18,6 +18,18 @@ assert.equal(result.homeVisible,true,'Home screen must be visible on the live Ne
 assert.equal(result.homeText,'what sounds good tonight?','Live Netlify preview must render the current home screen');
 assert.equal(pageErrors.length,0,'Live Netlify preview must have no page errors');
 assert.equal(result.badResponses.length,0,'Live Netlify preview must not request missing assets or receive HTTP errors');
+
+const suggestResponse=await page.evaluate(async()=>{const r=await fetch('/api/restaurant-search?mode=suggest&q=Main%20Street%20Clarksville%20TN',{cache:'no-store'});return {status:r.status,body:await r.json().catch(()=>null)}});
+assert.equal(suggestResponse.status,200,'Live Netlify address-suggest route must return HTTP 200');
+assert.equal(suggestResponse.body?.ok,true,'Live Netlify address-suggest route must execute suggest mode');
+assert.ok(Array.isArray(suggestResponse.body?.results),'Live Netlify address-suggest route must return a results array');
+
+const searchResponse=await page.evaluate(async()=>{const r=await fetch('/api/restaurant-search?mode=search&lat=40&lon=-75&radius=5',{cache:'no-store'});return {status:r.status,body:await r.json().catch(()=>null)}});
+assert.equal(searchResponse.status,200,'Live Netlify restaurant-search route must return HTTP 200');
+assert.equal(searchResponse.body?.ok,true,'Live Netlify restaurant-search route must execute search mode rather than defaulting to health');
+assert.equal(Number(searchResponse.body?.radiusMiles),5,'Live Netlify restaurant-search route must preserve the requested radius');
+assert.ok(Array.isArray(searchResponse.body?.results),'Live Netlify restaurant-search route must return a results array');
+
 await page.locator('#menu').click();
 await page.waitForTimeout(100);
 await page.locator('#settings').click();
