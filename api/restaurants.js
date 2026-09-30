@@ -399,7 +399,7 @@ function normAddress(s){
    'district-of-columbia':'dc',districtcolumbia:'dc',dc:'dc'
   };
   const tokens=norm(String(s||'')).split(' ').filter(Boolean).map(x=>map[x]||x);
-  return tokens.join(' ').replace(/\busa\b/g,'').replace(/\bunited\s+states\b/g,'').replace(/\s+/g,' ').trim();
+  return tokens.join(' ').replace(/\b(?:usa|united\s+states)\b/g,'').replace(/\s+/g,' ').trim();
 }
 function phoneKey(value){return norm(String(value||'').replace(/[^0-9]/g,''));}
 function websiteKey(value){
