@@ -794,3 +794,6 @@
 .settings-stack>#appDiagnosis{margin-bottom:10px!important}
 .settings-stack>#systemRestore{margin-bottom:0!important}
 .settings-stack>#resetAppData{margin-top:10px!important}
+
+/* CP297 — align all Settings > System explanation text consistently with the buttons */
+.settings-stack>p.status{margin:8px 4px 0!important;padding:0!important;text-align:left!important;line-height:1.35!important}
