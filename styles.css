@@ -699,3 +699,6 @@
 .card-card-action.icon-action{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;margin-left:3px!important;flex:0 0 28px!important}
 .card-card-action.icon-action .details-icon{width:14px!important;height:14px!important;stroke-width:1.8!important}
 .card-card-actions{gap:10px!important;align-items:center!important}
+
+/* CP260 — subtle Hungry prompt */
+.hungry-note{margin:-8px 0 10px;color:#777;font-size:12px;letter-spacing:.04em;text-align:center}
