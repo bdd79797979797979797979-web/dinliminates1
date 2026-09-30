@@ -1676,7 +1676,9 @@ restaurantMaybeRound:!!S.restaurantMaybeRound,
 restaurantCuts:[...S.restaurantCuts],
 winner:S.winnerItem ? {...S.winnerItem} : null,
 winnerType:S.winnerType,
-location:S.location ? {...S.location} : null
+location:S.location ? {...S.location} : null,
+locationSource:S.locationSource,
+restaurantSearchOrigin:S.restaurantSearchOrigin ? {...S.restaurantSearchOrigin} : null
 })
 };
 }
