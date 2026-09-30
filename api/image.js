@@ -17,7 +17,7 @@ const ALLOWED_HOSTS=new Set([
   'kookycrunch.com'
 ]);
 const MAX_BYTES=8*1024*1024;
-export default async function handler(req,res){
+module.exports=async function handler(req,res){
   try{
     const raw=String(req.query?.url||'').trim();
     if(!raw)return res.status(400).json({ok:false,error:'Missing image URL'});
