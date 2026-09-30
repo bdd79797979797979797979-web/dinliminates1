@@ -511,7 +511,7 @@
 .confirm-actions .secondary{background:#24211e;border:1px solid #4b453d;color:#ddd4c8}
 .danger-action{background:#6f2b25;color:#fff1ed;border:1px solid #9a463b;box-shadow:0 8px 22px #0006}
 .confirm-actions button:focus-visible,.confirm-hero .menu:focus-visible{outline:2px solid #bfa16b;outline-offset:2px}
-.card-card-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:7px}
+.card-card-actions{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:7px;margin-top:7px}.card-card-actions .card-card-action{width:100%}.directions-action{background:#182e27!important;border-color:#315a4d!important;color:#b9e2d1!important}.card-phone-fallback{color:#a9c4d0!important}
 .card-card-action{display:inline-flex;align-items:center;justify-content:center;min-height:32px;height:32px;padding:0 12px;border-radius:999px;background:#eee7dc;color:#111;border:1px solid #eee7dc;font-size:9px;font-weight:900;text-decoration:none;box-shadow:0 6px 16px #0007}
 .card-details{width:auto;min-width:82px;min-height:34px;padding:0 13px;margin-top:0;border-radius:999px;font-size:9px;font-weight:900}
 .card-phone{text-decoration:none;color:#ded6ca;display:block;max-width:max-content}
