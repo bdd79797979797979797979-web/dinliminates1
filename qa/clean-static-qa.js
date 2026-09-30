@@ -280,6 +280,6 @@ assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),
 assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('How to add to your phone'),'Current Home copy must be present');
 
 // CP323 Restaurant Details visibility contract
-assert(app.includes("type==='restaurant'?'Restaurant Details':'Details'"),'Restaurant Details modal must have an explicit Restaurant Details title');
+assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
 assert(app.includes('restaurant-luxury-contact-card') && app.includes('detail-directions-action') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
 assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
