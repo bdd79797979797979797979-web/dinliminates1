@@ -63,7 +63,9 @@ await page.route('**/*', async route => {
       {id:'ital-1',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:4.2,address:'400 College St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'},
       {id:'southern-1',name:'Southern Table',category:'Southern',fastFood:false,cuisine:'southern',distance:5.1,address:'500 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'},
       {id:'asian-1',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:5.8,address:'600 Madison St, Clarksville, TN',website:'',opening_hours:'',photo:'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=85'},
-      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:false,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
+      {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'24/7',openNow:false,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
+      {id:'heads-1',name:"Heads BBQ",category:'BBQ',fastFood:false,cuisine:'bbq',distance:6.3,address:'724 Sango Rd, Clarksville, TN 37043',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
+      {id:'robert-heads-duplicate',name:'Robert Heads BBQ',category:'BBQ',fastFood:false,cuisine:'bbq',distance:6.3,address:'724 Sango Road, Clarksville, TN 37043',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
     ];
     const results=allResults.filter(x=>Number(x.distance)<=radius);
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:radius,total:results.length,fastFoodCount:results.filter(x=>x.fastFood).length,timezone:'America/Chicago',results})});
@@ -87,6 +89,18 @@ await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(100);
 console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
 await assert.equal(await page.locator('#home h1').innerText(),'Dinner Decisions Simplified');
+const hourContract=await page.evaluate(()=>{
+  const t=window.__DINLIMINATE_TEST__;
+  return {
+    open:t?.hourStatus({openNow:true,opening_hours:'closed'},'','America/Chicago'),
+    closed:t?.hourStatus({openNow:false,opening_hours:'24/7'},'','America/Chicago'),
+    unknown:t?.hourStatus({opening_hours:''},'','America/Chicago')
+  };
+});
+assert.equal(hourContract.open,'open','Provider openNow=true should win over conflicting opening-hours text');
+assert.equal(hourContract.closed,'closed','Provider openNow=false should win over conflicting opening-hours text');
+assert.equal(hourContract.unknown,'unknown','Missing hours should remain unknown');
+
 const contactLinkGuards=await page.evaluate(()=>{
   const t=window.__DINLIMINATE_TEST__;
   return {
@@ -296,7 +310,9 @@ await page.waitForSelector('#suggestionsBox button',{state:'visible'});
 await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
 await click('#find'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
-s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain restaurant + fast food');
+s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool should contain unique restaurant + fast food choices');
+assert.equal(s.allRestaurantIds.includes('heads-1')&&s.allRestaurantIds.includes('robert-heads-duplicate'),false,'Provider duplicate Heads BBQ records must collapse to one visible restaurant');
+
 assert.equal(await page.locator('#find').innerText(),'Refresh','Find should act as Refresh after a location is selected');
 const searchRequests=[];
 page.on('request',req=>{if(req.url().includes('/api/restaurant-search?mode=search'))searchRequests.push(req.url());});
@@ -306,11 +322,11 @@ await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.inner
 await settle();
 assert.ok(searchRequests.length>requestsBeforeRadius,'Changing radius should automatically trigger a restaurant search');
 assert.equal(await page.locator('#radius').inputValue(),'5','Radius control should retain the selected value');
-assert.equal((await qa()).allRestaurantIds.length,4,'Five-mile search should return only the four mocked venues within five miles');
+assert.equal((await qa()).allRestaurantIds.length,4,'Five-mile search should return only the four unique mocked venues within five miles');
 assert.equal((await qa()).restaurantPool.length,4,'Five-mile radius should filter the active choice pool to four venues');
 await page.locator('#radius').selectOption('10');
 await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
-assert.equal((await qa()).allRestaurantIds.length,7,'Returning to ten miles should restore the full radius result set');
+assert.equal((await qa()).allRestaurantIds.length,7,'Returning to ten miles should restore the full unique radius result set');
 
 await click('#restaurantMenu'); await settle();
 await click('#settings'); await settle();
