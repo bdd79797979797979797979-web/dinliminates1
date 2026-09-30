@@ -11,7 +11,7 @@ fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
 const foodQuickLabels=()=>S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other'))?[...FOOD_QUICK,'Other']:FOOD_QUICK;
-const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','BBQ'];
+const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
 Pasta:'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=700', // Spaghetti
@@ -26,17 +26,16 @@ Italian:'https://images.pexels.com/photos/7813574/pexels-photo-7813574.jpeg?auto
 Potato:'https://images.pexels.com/photos/273825/pexels-photo-273825.jpeg?auto=compress&cs=tinysrgb&w=700' // Roasted potatoes
 };
 const REST_QUICK_IMAGES = {
-American:'https://images.pexels.com/photos/262047/pexels-photo-262047.jpeg?auto=compress&cs=tinysrgb&w=700',
 'Fast Food':'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=700',
+Burgers:'https://images.pexels.com/photos/262047/pexels-photo-262047.jpeg?auto=compress&cs=tinysrgb&w=700',
+Pizza:'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=700',
 Mexican:'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=700',
+American:'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=700',
+Italian:'https://images.pexels.com/photos/7813574/pexels-photo-7813574.jpeg?auto=compress&cs=tinysrgb&w=700',
 Asian:'https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=700',
-Pasta:'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=700',
-Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700',
-Healthy:'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg?auto=compress&cs=tinysrgb&w=700',
-'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700',
-Potato:'https://images.pexels.com/photos/1442066/pexels-photo-1442066.jpeg?auto=compress&cs=tinysrgb&w=700',
-Greek:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
-BBQ:'https://images.pexels.com/photos/6672037/pexels-photo-6672037.jpeg?auto=compress&cs=tinysrgb&w=700'
+BBQ:'https://images.pexels.com/photos/6672037/pexels-photo-6672037.jpeg?auto=compress&cs=tinysrgb&w=700',
+Seafood:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
+Breakfast:'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=700'
 };
 const S = {
 screen:'home',
@@ -591,38 +590,49 @@ return dlat<0.001&&dlon<0.001;
 return false;
 });
 }
+function restaurantSearchText(row){
+ return [
+  row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+  restaurantCategory(row),
+  ...(Array.isArray(row?.menuItems)?row.menuItems:[])
+ ].filter(Boolean).join(' ');
+}
+function normalizeRestaurantSearch(value){
+ return String(value||'')
+  .toLowerCase()
+  .replace(/['’]/g,'')
+  .replace(/&/g,' and ')
+  .replace(/[^a-z0-9]+/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+}
 function restaurantCategory(row) {
-if (row.fastFood || /fast food/i.test(String(row.category || ''))) return 'Fast Food';
-const s = (String(row.category || '')+' '+String(row.cuisine || '')+' '+String(row.name || '')+' '+(Array.isArray(row.menuItems)?row.menuItems.join(' '):'')).toLowerCase();
-if (/mexican|tex mex|taco|burrito/.test(s)) return 'Mexican';
+if (row.fastFood || /fast[ -]?food/i.test(String(row.category || ''))) return 'Fast Food';
+const s = normalizeRestaurantSearch([row.category,row.cuisine,row.name,row.brand,row.operator,...(Array.isArray(row.menuItems)?row.menuItems:[])].join(' '));
+if (/mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(s)) return 'Mexican';
 if (/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(s)) return 'Asian';
-if (/italian|pasta/.test(s)) return 'Pasta';
-if (/southern|soul|country/.test(s)) return 'Southern';
-if (/healthy|salad|vegetarian|vegan/.test(s)) return 'Healthy';
-if (/soup|stew|chili|chowder/.test(s)) return 'Soup/Stew';
-if (/greek|mediterranean|gyro/.test(s)) return 'Greek';
-if (/pork/.test(s)) return 'Pork';
-if (/bbq|barbecue/.test(s)) return 'BBQ';
+if (/italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(s)) return 'Italian';
+if (/southern|soul food|country cooking/.test(s)) return 'Southern';
+if (/bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(s)) return 'BBQ';
+if (/seafood|fish house|fish restaurant|shrimp|crab|lobster|oyster/.test(s)) return 'Seafood';
+if (/breakfast|brunch|waffle house|ihop|denny/.test(s)) return 'Breakfast';
+if (/burger|hamburger|cheeseburger|grill/.test(s)) return 'Burgers';
+if (/american/.test(s)) return 'American';
 return 'American';
 }
 function restaurantQuickMatches(row, label) {
 const category = restaurantCategory(row);
+const hay = normalizeRestaurantSearch(restaurantSearchText(row));
 if (label === 'Fast Food') return !!row.fastFood || category === 'Fast Food';
-if (label === 'American') return category === 'American';
-const hay = [row.name,row.brand,row.operator,row.category,row.cuisine,Array.isArray(row.menuItems)?row.menuItems.join(' '):''].filter(Boolean).join(' ').toLowerCase();
-if (label === 'Mexican') return category === label || /mexican|tex mex|taco|burrito/.test(hay);
+if (label === 'Burgers') return category === 'Burgers' || /burger|hamburger|cheeseburger/.test(hay) || (!!row.fastFood && /burger|grill/.test(hay));
+if (label === 'Pizza') return category === 'Italian' && /pizza|pizzeria/.test(hay) || /pizza|pizzeria|domino|papa john|pizza hut|little caesars|marcos/.test(hay);
+if (label === 'Mexican') return category === label || /mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(hay);
+if (label === 'American') return category === label;
+if (label === 'Italian') return category === label || /italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(hay);
 if (label === 'Asian') return category === label || /asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(hay);
-if (label === 'Pasta') return category === label || /italian|pasta|spaghetti|lasagna|fettuccine|ravioli|ziti/.test(hay);
-if (label === 'Southern') return category === label || /southern|soul food|country cooking/.test(hay);
-if (label === 'Healthy') return category === label || /healthy|salad|vegetarian|vegan|grain bowl|fresh/.test(hay);
-if (label === 'Soup/Stew') return category === label || /soup|stew|chili|chowder/.test(hay);
-if (label === 'Potato') {
-const menu = Array.isArray(row.menuItems) ? row.menuItems.join(' ').toLowerCase() : String(row.menuItems || '').toLowerCase();
-return /potato|fries|french fries|tater|hash brown|mashed potato/.test(menu) || /\bpotato\b/.test(String(row.name||'').toLowerCase());
-}
-if (label === 'Greek') return category === label || /greek|mediterranean|gyro|tzatziki/.test(hay);
-if (label === 'Pork') return category === label || /pork|ham|bacon|sausage/.test(hay);
 if (label === 'BBQ') return category === label || /bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(hay);
+if (label === 'Seafood') return category === label || /seafood|fish house|shrimp|crab|lobster|oyster/.test(hay);
+if (label === 'Breakfast') return category === label || /breakfast|brunch|waffle house|ihop|denny/.test(hay);
 return category === label;
 }
 
@@ -683,15 +693,37 @@ if(sameDay||previousDay)return 'open';
 return matched ? 'closed' : 'unknown';
 }
 function explicitClosed(row) { return hourStatus(row) === 'closed'; }
-function restaurantMatchesQuery(row) {
-const q = S.restaurantQuery.trim().toLowerCase();
-if (!q) return true;
-const hay = [
-row.name,row.brand,row.operator,row.category,row.cuisine,restaurantCategory(row),
-...(Array.isArray(row.menuItems) ? row.menuItems : [])
-].filter(Boolean).join(' ').toLowerCase();
-return q.split(/\s+/).every(term => hay.includes(term));
+const RESTAURANT_SEARCH_ALIASES = {
+ burger:['burger','burgers','hamburger','hamburgers','cheeseburger','cheeseburgers'],
+ pizza:['pizza','pizzeria'],
+ mexican:['mexican','tex mex','taco','tacos','burrito','burritos','enchilada','enchiladas','quesadilla','quesadillas'],
+ asian:['asian','chinese','japanese','thai','korean','sushi','vietnamese'],
+ italian:['italian','pizzeria','pasta'],
+ bbq:['bbq','barbecue','barbeque','smokehouse','smoked'],
+ seafood:['seafood','fish','shrimp','crab','lobster','oyster'],
+ breakfast:['breakfast','brunch','waffle','pancakes','omelet','omelette'],
+ american:['american','diner','grill'],
+ 'fast food':['fast food','fastfood','quick service','drive thru','drive through']
+};
+function restaurantSearchTermMatches(row,term,hay){
+ const normalized=normalizeRestaurantSearch(term);
+ if(!normalized)return true;
+ const words=normalized.split(' ');
+ if(normalized==='restaurant'||normalized==='restaurants'||normalized==='place'||normalized==='places')return true;
+ if(normalized==='burger'||normalized==='burgers'||normalized==='hamburger'||normalized==='hamburgers'||normalized==='cheeseburger'||normalized==='cheeseburgers'){
+   return !!row.fastFood || /burger|hamburger|cheeseburger/.test(hay) || (restaurantCategory(row)==='American' && /grill|diner/.test(hay));
+ }
+ const aliases=RESTAURANT_SEARCH_ALIASES[normalized];
+ if(aliases) return aliases.some(alias=>hay.includes(alias)) || (normalized==='fast food' && !!row.fastFood) || (normalized==='american' && restaurantCategory(row)==='American');
+ return words.every(word=>hay.includes(word));
 }
+function restaurantMatchesQuery(row) {
+ const q=String(S.restaurantQuery||'').trim();
+ if (!q) return true;
+ const hay=normalizeRestaurantSearch(restaurantSearchText(row));
+ return q.split(/\s+/).filter(Boolean).every(term=>restaurantSearchTermMatches(row,term,hay));
+}
+
 function restaurantChoiceIndex(rows,start,keepState=false){
  const len=rows.length;if(!len)return -1;
  for(let step=0;step<len;step++){const i=(start+step)%len;if(keepState?!!rows[i]._maybe:!rows[i]._maybe)return i;}
