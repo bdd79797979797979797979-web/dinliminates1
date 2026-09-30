@@ -25,3 +25,24 @@ assert.equal(t.normalizeSearchQuery("McDonald's"),'mcdonalds');
 assert.equal(typeof t.rate,'function');
 assert.equal(t.rate({headers:{}},'suggest'),false);
 console.log('restaurant search reliability smoke: PASS');
+
+
+const taxonomy=require('../data/restaurant-taxonomy');
+const cuisineFixtures=[
+ ["Subway", "Restaurant", "", ["Fast Food"]],
+ ["McDonald's", "Restaurant", "", ["Fast Food","Burgers"]],
+ ["Olive Garden", "Restaurant", "", ["Italian"]],
+ ["Red Lobster", "Restaurant", "", ["Seafood"]],
+ ["Waffle House", "Restaurant", "", ["American","Breakfast"]],
+ ["Taco Bell", "Restaurant", "", ["Fast Food","Mexican"]],
+ ["Thirsty Goat", "Restaurant", "", ["Pizza"]],
+ ["Sample Burger", "Restaurant", "burger restaurant", ["Burgers"]],
+ ["Sample Sushi", "Restaurant", "japanese_restaurant", ["Asian"]],
+ ["Sample BBQ", "Restaurant", "barbecue restaurant", ["BBQ"]]
+];
+for(const [name,category,cuisine,tags] of cuisineFixtures){
+ const actual=taxonomy.classifyRestaurant({name,category,cuisine,providerType:cuisine});
+ for(const tag of tags)assert(actual.tags.includes(tag),name+' should classify as '+tag+'; got '+actual.tags.join(', '));
+ assert(!taxonomy.classifyRestaurant({name,category:"Restaurant",cuisine:"",providerType:""}).tags.includes(undefined));
+}
+console.log('Restaurant taxonomy classification regression: PASS');
