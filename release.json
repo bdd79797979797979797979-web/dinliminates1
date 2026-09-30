@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 158,
-  "sourceBranch": "cp453-final-restaurant-cleanup-touch-targets-2026-09-30",
-  "checkpoint": "CP453"
+  "build": 159,
+  "sourceBranch": "cp454-nearby-same-name-dedupe-fix-2026-09-30",
+  "checkpoint": "CP454"
 }
