@@ -617,8 +617,9 @@ if (/bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(s)) return 'BBQ';
 if (/seafood|fish house|fish restaurant|shrimp|crab|lobster|oyster/.test(s)) return 'Seafood';
 if (/breakfast|brunch|waffle house|ihop|denny/.test(s)) return 'Breakfast';
 if (/burger|hamburger|cheeseburger|grill/.test(s)) return 'Burgers';
-if (/american/.test(s)) return 'American';
-return 'American';
+if (/american|diner|grill/.test(s)) return 'American';
+const rawCategory=String(row?.category||'').trim();
+return rawCategory || 'Restaurant';
 }
 function restaurantQuickMatches(row, label) {
 const category = restaurantCategory(row);
@@ -694,6 +695,7 @@ return matched ? 'closed' : 'unknown';
 }
 function explicitClosed(row) { return hourStatus(row) === 'closed'; }
 const RESTAURANT_SEARCH_ALIASES = {
+ southern:['southern','soul food','country cooking'],
  burger:['burger','burgers','hamburger','hamburgers','cheeseburger','cheeseburgers'],
  pizza:['pizza','pizzeria'],
  mexican:['mexican','tex mex','taco','tacos','burrito','burritos','enchilada','enchiladas','quesadilla','quesadillas'],
