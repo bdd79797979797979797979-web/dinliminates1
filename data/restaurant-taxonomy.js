@@ -83,7 +83,7 @@ const RESTAURANT_NAME_SIGNALS = {
   BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
   Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\boyster\b|\bcrab house\b|\blobster\b/,
   Breakfast:/\bbreakfast\b|\bbrunch\b|\bpancake house\b|\bwaffle house\b/,
-  American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b/
+  American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b/
 };
 
 const SEARCH_FILLER_WORDS = new Set(['restaurant','restaurants','place','places','food','foodie','near','me']);
@@ -190,7 +190,7 @@ function classifyRestaurant(row){
   const primary=rawCategory+' '+cuisineHay;
   const providerRules={
     Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
-    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
+    'Fast Food':/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
     Pizza:/\bpizza\b|\bpizzeria\b/,
     Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
     Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b|\bcomfort food\b/,
