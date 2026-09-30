@@ -1678,7 +1678,45 @@ function diagnosisRestaurantDuplicates(rows){
  }
  return out;
 }
-async function appDiagnosisView(existingModal){
+function foodPhotoAuditCatalog(foods){
+ const byUrl=new Map(),missing=[];
+ for(const food of foods||[]){
+  const url=String(food?.image||'').trim();
+  if(!url||url===DEFAULT_FOOD_IMAGE){missing.push(food?.name||food?.id||'Unnamed meal');continue;}
+  if(!byUrl.has(url))byUrl.set(url,[]);
+  byUrl.get(url).push(food);
+ }
+ const reused=[...byUrl.entries()]
+  .filter(([,items])=>items.length>1)
+  .map(([url,items])=>({url,meals:items.map(x=>x?.name||x?.id||'Unnamed meal')}))
+  .sort((a,b)=>b.meals.length-a.meals.length);
+ return {mealCount:(foods||[]).length,uniquePhotoCount:byUrl.size,missing,reused};
+}
+async function auditFoodPhotoUrls(foods){
+ const urls=[...new Set((foods||[]).map(x=>String(x?.image||'').trim()).filter(x=>/^https?:\\/\\//i.test(x)))];
+ const failed=[],checked=[];
+ let cursor=0;
+ const worker=async()=>{
+  while(true){
+   const i=cursor++;
+   if(i>=urls.length)return;
+   const url=urls[i],src=imageProxyUrl(url);
+   const result=await new Promise(resolve=>{
+    const img=new Image();let done=false;
+    const timer=setTimeout(()=>{if(done)return;done=true;resolve({ok:false,timeout:true})},7000);
+    img.onload=()=>{if(done)return;done=true;clearTimeout(timer);resolve({ok:true})};
+    img.onerror=()=>{if(done)return;done=true;clearTimeout(timer);resolve({ok:false,timeout:false})};
+    img.referrerPolicy='no-referrer';img.src=src;
+   });
+   checked.push({url,...result});
+   if(!result.ok)failed.push(url);
+  }
+ };
+ await Promise.all(Array.from({length:Math.min(8,urls.length)},()=>worker()));
+ const failedSet=new Set(failed);
+ return {uniqueUrls:urls.length,failed,failedSet,checked};
+}
+\nasync function appDiagnosisView(existingModal){
  if(!existingModal||!document.body.contains(existingModal))return null;
  const shellClass='diagnosis-modal';
  const initialSections=['Core app','Meal system','Restaurant system','Device & runtime','Build & deployment']; const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Live checks are running in this panel.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app and runtime state.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
