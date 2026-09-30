@@ -326,7 +326,7 @@ S.foodCuts = new Set(d.foodCuts || []);
 S.maybe = new Set(d.maybe || []);
 S.foodMaybeRound = !!d.foodMaybeRound;
 S.restaurantCuts = new Set(d.restaurantCuts || []);
-S.hoursMode = d.hoursMode === 'all' ? 'all' : 'openUnknown';
+S.hoursMode = 'openUnknown';
 S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
 S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions : [];
 S.restaurantMaybeRound = !!d.restaurantMaybeRound;
