@@ -611,51 +611,34 @@ function restaurantIsFastFood(row){
  if(/thirsty goat/.test(hay)) return false;
  return !!row?.fastFood || /fast[ -]?food/.test(normalizeRestaurantSearch(row?.category));
 }
-function restaurantCategory(row) {
-const rawCategory=String(row?.category||'').trim();
-const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
-const cuisineHay=normalizeRestaurantSearch([row?.cuisine,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
-const allHay=normalizeRestaurantSearch([row?.category,row?.cuisine,row?.name,row?.brand,row?.operator,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
-const knownFastFood=/mcdonald|taco bell|wendy|burger king|kfc|chick fil a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak n shake|white castle|freddy|in n out|carls jr|panda express|chipotle/.test(nameHay);
-if(/thirsty goat/.test(nameHay)) return 'Pizza';
-if(/pizza|pizzeria/.test(cuisineHay+' '+nameHay)) return knownFastFood ? 'Fast Food' : 'Pizza';
-if(/^american$/i.test(rawCategory)) return 'American';
-if(/^mexican$/i.test(rawCategory)) return 'Mexican';
-if(/^asian$/i.test(rawCategory)) return 'Asian';
-if(/^italian$/i.test(rawCategory)) return 'Italian';
-if(/^southern$/i.test(rawCategory)) return 'Southern';
-if(/^bbq$/i.test(rawCategory)) return 'BBQ';
-if(/^seafood$/i.test(rawCategory)) return 'Seafood';
-if(/^breakfast$/i.test(rawCategory)) return 'Breakfast';
-if (knownFastFood || restaurantIsFastFood(row)) return 'Fast Food';
-if (/mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(allHay)) return 'Mexican';
-if (/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(allHay)) return 'Asian';
-if (/italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(allHay)) return 'Italian';
-if (/southern|soul food|country cooking/.test(allHay)) return 'Southern';
-if (/bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(allHay)) return 'BBQ';
-if (/seafood|fish house|fish restaurant|shrimp|crab|lobster|oyster/.test(allHay)) return 'Seafood';
-if (/breakfast|brunch|waffle house|ihop|denny/.test(allHay)) return 'Breakfast';
-if (/burger|hamburger|cheeseburger|grill/.test(allHay)) return 'Burgers';
-if (/american|diner|grill/.test(allHay)) return 'American';
-return rawCategory || 'Restaurant';
+function restaurantCuisineTags(row){
+ const rawCategory=String(row?.category||'').trim();
+ const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
+ const cuisineHay=normalizeRestaurantSearch([row?.cuisine,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
+ const allHay=normalizeRestaurantSearch([row?.category,row?.cuisine,row?.name,row?.brand,row?.operator,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
+ const tags=new Set();
+ if(/pizza|pizzeria/.test(cuisineHay+' '+nameHay)) tags.add('Pizza');
+ if(/mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(allHay)) tags.add('Mexican');
+ if(/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(allHay)) tags.add('Asian');
+ if(/italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(allHay)) tags.add('Italian');
+ if(/southern|soul food|country cooking/.test(allHay)) tags.add('Southern');
+ if(/bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(allHay)) tags.add('BBQ');
+ if(/seafood|fish house|fish restaurant|shrimp|crab|lobster|oyster/.test(allHay)) tags.add('Seafood');
+ if(/breakfast|brunch|waffle house|ihop|denny/.test(allHay)) tags.add('Breakfast');
+ if(/burger|hamburger|cheeseburger/.test(allHay)) tags.add('Burgers');
+ if(/^american$/i.test(rawCategory)||/american|diner|grill/.test(allHay)) tags.add('American');
+ if(/thirsty goat/.test(nameHay)) tags.add('Pizza');
+ if(restaurantIsFastFood(row) && ![...tags].some(x=>['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast'].includes(x))) tags.add('Fast Food');
+ return [...tags];
 }
-function restaurantQuickMatches(row, label) {
-const hay = normalizeRestaurantSearch(restaurantSearchText(row));
-const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
-const cuisineHay=normalizeRestaurantSearch([row?.cuisine,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
-if (label === 'Fast Food') return restaurantIsFastFood(row) || /mcdonald|taco bell|wendy|burger king|kfc|chick fil a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak n shake|white castle|freddy|in n out|carls jr|panda express|chipotle/.test(nameHay);
-if (label === 'Burgers') return /burger|hamburger|cheeseburger/.test(hay) || (restaurantCategory(row)==='American' && /grill|diner/.test(hay));
-if (label === 'Pizza') return /pizza|pizzeria|domino|papa john|pizza hut|little caesars|marcos/.test(hay) || /thirsty goat/.test(nameHay) || /pizza|pizzeria/.test(cuisineHay);
-if (label === 'Mexican') return /mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(hay);
-if (label === 'American') return restaurantCategory(row)==='American' || /american|diner|grill/.test(hay);
-if (label === 'Italian') return /italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(hay);
-if (label === 'Asian') return /asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(hay);
-if (label === 'BBQ') return /bbq|barbecue|barbeque|smoked brisket|pulled pork/.test(hay);
-if (label === 'Seafood') return /seafood|fish house|shrimp|crab|lobster|oyster/.test(hay);
-if (label === 'Breakfast') return /breakfast|brunch|waffle house|ihop|denny/.test(hay);
-return restaurantCategory(row) === label;
+function restaurantCategory(row){
+ const tags=restaurantCuisineTags(row),raw=String(row?.category||'').trim();
+ for(const label of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast','Burgers','American','Fast Food']) if(tags.includes(label))return label;
+ return raw||'Restaurant';
 }
-
+function restaurantQuickMatches(row,label){
+ return restaurantCuisineTags(row).includes(label);
+}
 
 const DAY_NAMES=['Su','Mo','Tu','We','Th','Fr','Sa'];
 function dayMatches(spec,day){
