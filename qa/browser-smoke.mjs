@@ -497,6 +497,8 @@ await page.locator('#locate').click();
 await page.waitForFunction(()=>document.querySelector('#locationSourceLabel')?.textContent.includes('Using your location'),{timeout:20000});
 await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('restaurants found') || document.querySelector('#status')?.textContent.includes('7 restaurants'),{timeout:30000});
 forceReverseFailure=false;
+for(let i=badResponses.length-1;i>=0;i--) if(badResponses[i].status===502&&String(badResponses[i].url).includes('mode=reverse')) badResponses.splice(i,1);
+for(let i=consoleErrors.length-1;i>=0;i--) if(String(consoleErrors[i]).includes('status of 502')) consoleErrors.splice(i,1);
 await page.locator('#address').fill('123'); await page.waitForSelector('#suggestionsBox button',{state:'visible'}); await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('7 restaurants'));
 if ((await page.locator('#hoursToggle').innerText()) !== 'All') { await click('#hoursToggle'); await settle(); }
 while ((await qa()).restaurantPool.length>1) { await click('#restCut'); await settle(); }
