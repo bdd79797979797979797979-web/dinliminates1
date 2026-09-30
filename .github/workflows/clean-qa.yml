@@ -61,6 +61,8 @@ jobs:
         run: node qa/image-source-audit.cjs
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
+      - name: Browser Smoke Syntax
+        run: node --check qa/browser-smoke.mjs
       - name: Install Playwright
         run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
       - name: Install Chromium
