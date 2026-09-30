@@ -1,0 +1,19 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+
+const url='https://deploy-preview-53--diliminate.netlify.app/?remote-smoke='+Date.now();
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+const pageErrors=[]; const consoleErrors=[]; const failed=[];
+page.on('pageerror',e=>pageErrors.push(String(e)));
+page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
+page.on('requestfailed',r=>failed.push({url:r.url(),error:r.failure()?.errorText||'unknown'}));
+const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
+await page.waitForTimeout(1200);
+const result={status:response?.status()??0,title:await page.title(),homeVisible:await page.locator('#home').isVisible().catch(()=>false),homeText:await page.locator('#home h1').innerText().catch(()=>''),pageErrors,consoleErrors,failed};
+console.log(JSON.stringify(result,null,2));
+assert.equal(result.status,200,'Netlify preview must return HTTP 200');
+assert.equal(result.homeVisible,true,'Home screen must be visible on the live Netlify preview');
+assert.equal(result.homeText,'what sounds good tonight?','Live Netlify preview must render the current home screen');
+assert.equal(pageErrors.length,0,'Live Netlify preview must have no page errors');
+await browser.close();
