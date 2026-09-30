@@ -6,7 +6,7 @@ const src=fs.readFileSync(new URL('../data/foods.js',import.meta.url),'utf8');
 const sandbox={window:{},self:{},globalThis:{}};
 vm.createContext(sandbox); vm.runInContext(src,sandbox);
 const foods=sandbox.window.DINLIMINATE_FOODS||[];
-assert.equal(foods.length,90,'Food image smoke requires the 90-food catalog');
+assert.equal(foods.length,116,'Food image smoke requires the 116-food catalog');
 const foodUrls=foods.map(x=>String(x.image||'').trim());
 assert.equal(foodUrls.length,90,'Each built-in food should be present in the image audit');
 assert.equal(foodUrls.filter(x=>/^https?:\/\//.test(x)).length,90,'Each built-in food should have an external image URL');
