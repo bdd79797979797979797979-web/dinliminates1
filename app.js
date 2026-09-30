@@ -331,7 +331,7 @@ function foodQuick() {
 $('foodQuick').innerHTML = foodQuickLabels().map(label => {
 const cut = S.cutCats.has(label);
 const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(QUICK_IMAGES.American))+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
+return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(QUICK_IMAGES.American))+'" alt="'+esc(label)+' meal photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-food-quick] img');
 document.querySelectorAll('[data-food-quick]').forEach(btn => {
@@ -511,7 +511,7 @@ queueMicrotask(()=>$('appConfirmCancel')?.focus());
 }
 async function foodHideItem(item) {
 if (!item) return false;
-if (!await appConfirm('Hide this food?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return false;
+if (!await appConfirm('Hide this meal?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return false;
 S.hidden.add(item.id);
 buildFood();
 S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
@@ -522,7 +522,7 @@ return true;
 async function foodHide() {
 const item = S.pool[S.index];
 if (!item) return;
-if (!await appConfirm('Hide this food?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return;
+if (!await appConfirm('Hide this meal?', 'Hide '+item.name+' until you restore it in Settings.', 'Hide')) return;
 S.hidden.add(item.id);
 buildFood();
 S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
@@ -1295,7 +1295,7 @@ if (row) detailsSheet(row, row.type);
 });
 if(history.length){
 $('historyClearAll').onclick=async()=>{
-if(!await appConfirm('Clear history?','This permanently removes all saved food and restaurant decisions from this device.','Clear History'))return;
+if(!await appConfirm('Clear history?','This permanently removes all saved meal and restaurant decisions from this device.','Clear History'))return;
 writeHistory([]); modal.remove(); $('historyModalBg')?.remove(); render();
 };
 }
@@ -1343,14 +1343,14 @@ if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.re
 const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'];
 const quickCats=cats;
 const body='<form class="add" id="foodEditorForm">'+
-'<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
+'<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
 '<select id="editFoodCat" aria-label="Cuisine type">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
 '<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+quickCats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
-'<button class="cut">'+(isEdit?'Save Food':'Add Food')+'</button></form>';
-const modal=openModal('foodEditorModal',isEdit?'Edit Food':'Add Food',body);
+'<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
+const modal=openModal('foodEditorModal',isEdit?'Edit Food':'Add Meal',body);
 $('editFoodFile').onchange=async()=>{
 try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
@@ -1372,14 +1372,14 @@ if(isEdit){
 const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
+if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,recipe};
 if(id!==item.id) await deleteStoredPhoto(item.id);
 S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
+if(allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
 }
@@ -1393,8 +1393,8 @@ else manageFoodsView();
 }
 function manageFoodsView() {
 const rows=allFoods();
-const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Foods can be hidden and restored here.</div>'+
-'<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Food</button>'+
+const body='<div class="manage-intro">Add your own meal with a photo, recipe, or notes. Meals can be hidden and restored here.</div>'+
+'<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Meal</button>'+
 '<div class="food-list">'+rows.map(item=>{
 const hidden=S.hidden.has(item.id), custom=S.custom.some(x=>x.id===item.id);
 const state=hidden?'Hidden':'Active';
@@ -1403,7 +1403,7 @@ return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-s
 (custom?'<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
 '</span></div>';
 }).join('')+'</div>';
-const modal=openModal('manageFoodsModal','Manage Foods',body);
+const modal=openModal('manageFoodsModal','Manage Meals',body);
 $('openFoodEditor').onclick=()=>foodEditor();
 modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
 S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
@@ -1419,7 +1419,7 @@ if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
 function settingsView(){
  removeFoodOverlays();
  const hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Checks the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Checks the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original meals and clears saved round changes. Custom foods remain.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Deletes custom meals, history, hidden choices, and saved settings from this device.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
@@ -1449,7 +1449,7 @@ function diagnosisRestaurantDuplicates(rows){
 async function appDiagnosisView(existingModal){
  if(!existingModal||!document.body.contains(existingModal))return null;
  const shellClass='diagnosis-modal';
- const initialSections=['Core app','Food system','Restaurant system','Device & runtime','Build & deployment']; const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Live checks are running in this panel.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app and runtime state.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
+ const initialSections=['Core app','Meal system','Restaurant system','Device & runtime','Build & deployment']; const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Live checks are running in this panel.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app and runtime state.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
  const modal=existingModal;
  modal.classList.add(shellClass);
  if(existingModal){
@@ -1471,22 +1471,22 @@ async function appDiagnosisView(existingModal){
   const checks=[];
   const add=(section,state,label,detail)=>checks.push({section,state,label,detail});
   const pass=(s,l,d)=>add(s,'ok',l,d), warn=(s,l,d)=>add(s,'warn',l,d), info=(s,l,d)=>add(s,'info',l,d), fail=(s,l,d)=>add(s,'fail',l,d);
-  const sectionLabels={core:'Core app',food:'Food system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
+  const sectionLabels={core:'Core app',food:'Meal system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
   try{
    const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])), ids=foods.map(x=>x.id), duplicateFoodIds=ids.length-new Set(ids).size;
-   duplicateFoodIds?fail('food','Food catalog','Duplicate food IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Food catalog',foods.length+' built-in foods loaded; IDs are unique.');
+   duplicateFoodIds?fail('food','Meal catalog','Duplicate food IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Meal catalog',foods.length+' built-in foods loaded; IDs are unique.');
    const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
-   invalidFood.length?fail('food','Food details',invalidFood.length+' food(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Food details','All '+foods.length+' built-in foods have required Details data.');
+   invalidFood.length?fail('food','Meal details',invalidFood.length+' food(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Meal details','All '+foods.length+' built-in foods have required Details data.');
    const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
    const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
-   missingQuickImages.length?fail('food','Food Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Food Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom food uses it.'):pass('food','Food Quick Cuts','Food Quick Cut mappings and photo sources are present.');
+   missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom food uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
    const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Healthy']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['Healthy','American']],['health-shake',['Healthy']]];
    const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
-   quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Foods and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Food Quick Cut mappings match the current catalog.');
+   quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Meals and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Meal Quick Cut mappings match the current catalog.');
    const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
    staleNames.length?fail('food','Removed choices','Stouffer/frozen-dinner data is still present.','Remove the legacy choice from the catalog.'):pass('food','Removed choices','Legacy Stouffer/frozen-dinner choice is absent.');
    const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCut','foodMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
-   foodVisible&&foodControls<5?fail('food','Food decision controls',foodControls+'/5 required controls are present.','Cut, Maybe, Back, Hide, and Details should all be available.'):pass('food','Food decision controls','Core Food decision and Details controls are wired.');
+   foodVisible&&foodControls<5?fail('food','Meal decision controls',foodControls+'/5 required controls are present.','Cut, Maybe, Back, Hide, and Details should all be available.'):pass('food','Meal decision controls','Core Meal decision and Details controls are wired.');
    const visibleImgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=visibleImgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=visibleImgs.filter(i=>i.dataset.imageFallback==='true');
    broken.length?fail('runtime','Visible images',broken.length+' visible image(s) have failed to decode.','Check the affected photo source or fallback mapping.'):fallbacked.length?warn('runtime','Visible images',fallbacked.length+' visible image(s) are currently using a fallback image.','The app is protected from broken images, but the original source should be reviewed.'):info('runtime','Visible images',visibleImgs.length+' visible image(s) are available to inspect on this screen.');
    const restaurants=S.restaurantPool||[],restaurantIds=restaurants.map(x=>x.id||x.name),restaurantDuplicates=diagnosisRestaurantDuplicates(restaurants),fastFood=restaurants.filter(x=>x.fastFood).length;
@@ -1505,8 +1505,8 @@ async function appDiagnosisView(existingModal){
     rr.ok&&d?.ok?pass('restaurant','Restaurant search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Restaurant search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
    }catch(e){warn('restaurant','Restaurant search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
    let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
-   storageOk?pass('runtime','Local storage','Browser storage is accessible.','Food choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
-   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom food photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
+   storageOk?pass('runtime','Local storage','Browser storage is accessible.','Meal choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
+   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom meal photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
    navigator.onLine?pass('runtime','Network','Browser reports online.','Restaurant search and third-party images still depend on their services.'):warn('runtime','Network','Browser reports offline.','Restaurant search and remote images may not work until connectivity returns.');
    const sw='serviceWorker' in navigator;
    sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
@@ -1514,9 +1514,9 @@ async function appDiagnosisView(existingModal){
    ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
    const requiredIds=['foodQuick','restQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails','restCut','restMaybe','restBack','restDetails'];
    const missingUi=requiredIds.filter(id=>!$(id));
-   missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Food/Restaurant decision and Quick Cut elements are present.');
+   missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Meal/Restaurant decision and Quick Cut elements are present.');
    const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
-   pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Food Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
+   pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Meal Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
    try{
     const [localResponse,apiResponse]=await Promise.all([
       fetch('./release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
@@ -1533,7 +1533,7 @@ async function appDiagnosisView(existingModal){
    }catch{warn('release','Runtime release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
    info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
    info('release','Browser certification','This runtime can test browser behavior, but it cannot certify real iPhone Safari behavior from a desktop preview.','Use the installed iPhone PWA as the final device check.');
-   info('core','Pass Around','Removed from the current build.','The normal Food and Restaurant Tinder-style decision flow is now the group-free path.');
+   info('core','Pass Around','Removed from the current build.','The normal Meal and Restaurant Tinder-style decision flow is now the group-free path.');
   }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
   const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length,infos=checks.filter(x=>x.state==='info').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW NEEDED':'HEALTHY';
@@ -1551,7 +1551,7 @@ async function appDiagnosisView(existingModal){
  return modal;
 }
 function privacyView() {
-const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your food choices, hidden items, history, and custom-food information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and food images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>';
+const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your meal choices, hidden items, history, and custom-meal information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and meal images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>';
 openModal('privacyModal','Privacy',body);
 }
 function aboutView(){
@@ -1560,7 +1560,7 @@ function aboutView(){
  const modal=openModal('aboutModal','About Dinliminate',body);$('privacyFromAbout').onclick=()=>privacyView();return modal;
 }
 function iphoneHelp() {
-openModal('iphoneModal','How to add to iPhone','<div class="iphone-guide"><div class="iphone-guide-intro"><span class="iphone-guide-kicker">INSTALL GUIDE</span><h4>Keep Dinliminate one tap away.</h4><p>Add it to your iPhone Home Screen for the full app-like experience.</p></div><div class="iphone-guide-steps"><div class="iphone-guide-step"><span>01</span><div><b>Open in Safari</b><small>Open Dinliminate using Safari on your iPhone.</small></div></div><div class="iphone-guide-step"><span>02</span><div><b>Open the Share menu</b><small>Tap the Share button at the bottom of Safari.</small></div></div><div class="iphone-guide-step"><span>03</span><div><b>Choose Add to Home Screen</b><small>Scroll the Share menu and tap <b>Add to Home Screen</b>.</small></div></div><div class="iphone-guide-step"><span>04</span><div><b>Tap Add</b><small>Confirm <b>Add</b>. Dinliminate will now appear like an app.</small></div></div></div><div class="iphone-guide-note">Tip: keep Safari updated so the Home Screen install experience stays current.</div></div>');
+openModal('iphoneModal','Add to iPhone','<div class="iphone-guide"><div class="iphone-guide-intro"><span class="iphone-guide-kicker">ADD TO HOME SCREEN</span><h4>One tap away.</h4><p>Use Safari on your iPhone, then follow these three steps.</p></div><div class="iphone-guide-steps"><div class="iphone-guide-step"><span>1</span><div><b>Open Dinliminate in Safari</b></div></div><div class="iphone-guide-step"><span>2</span><div><b>Tap Share</b></div></div><div class="iphone-guide-step"><span>3</span><div><b>Tap Add to Home Screen</b></div></div></div></div>');
 }
 function shareWinner() {
 if (!S.winnerItem)return;
@@ -1576,7 +1576,7 @@ try{localStorage.removeItem(KEY);}catch{}
 home();
 }
 async function resetAppDataFlow(){
-if(!await appConfirm('Reset all app data?', 'This permanently removes custom foods, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
+if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
@@ -1584,7 +1584,7 @@ try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transa
 home();
 }
 async function systemRestoreFlow(){
-if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
+if(!await appConfirm('Restore system defaults?', 'This restores the original meal deck and clears saved round changes. Custom meals remain on this device.', 'Restore'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
