@@ -443,7 +443,9 @@ function restaurantNameBusinessMatch(a,b,addressA='',addressB=''){
   for(const w of [...streetA,...streetB]){aa.delete(w);bb.delete(w);}
   const A=[...aa].join(' '),B=[...bb].join(' ');
   if(!A||!B)return false;
-  return A===B||(A.length>=5&&(A.startsWith(B+' ')||B.startsWith(A+' ')));
+  if(A===B||(A.length>=5&&(A.startsWith(B+' ')||B.startsWith(A+' '))))return true;
+  const shared=[...aa].filter(x=>bb.has(x)).length,shorter=Math.min(aa.size,bb.size),union=new Set([...aa,...bb]).size;
+  return shorter>=2&&shared===shorter&&shared/union>=0.6;
 }
 function sameRestaurant(x,r){
   if(!x||!r)return false;
