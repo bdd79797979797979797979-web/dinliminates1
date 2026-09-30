@@ -9,20 +9,20 @@
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
 
-## CP258 changes
-- Expanded the built-in Food catalog from 67 to 90 choices.
+## CP258/CP259 changes
+- Expanded the built-in Food catalog from 67 to 90 choices in CP258, then to 116 choices in CP259.
 - Added Pot Pie, BLT, Reuben, Hot Dog, Corn Dog, Nachos, Orange Chicken, Chicken Teriyaki, Sushi, Pancakes, Omelet, Oatmeal, Shrimp, Crab Cakes, Gumbo, Chicken Nuggets, Ramen, Pimento Cheese Sandwich, Ice Cream, Protein Bar, Candy Bar, Banana, and Apple.
 - Renamed Mexican Stir Fry to Fajitas and kept it on the Mexican Quick Cut.
 - Removed the Food Greek Quick Cut and moved Gyro to Healthy only.
 - Added the requested 1–2 Quick Cut mappings for all new foods; sweets are included in Snack.
-- Updated Food editor/static/browser/image QA for the 90-food catalog.
+- Updated Food editor/static/browser/image QA for the 116-food catalog.
 - Build metadata is now Version 1.0 / Build 127.
 
 ## CP258 release gates
 - Static/data contract: updated; automated run pending.
-- Food image smoke: updated for 90 foods; automated run pending.
-- Browser smoke: updated for the 90-food catalog and new Quick Cut mappings; automated run pending.
-- Hosted Netlify smoke: pending CP258 preview confirmation.
+- Food image smoke: updated for 116 foods.
+- Browser smoke: updated for the 116-food catalog and requested Quick Cut mappings.
+- Hosted Netlify preview: current PR #45 deployment is active; Vercel remains blocked by the account deployment-rate limit.
 - Vercel preview: still subject to the account deployment-rate limit.
 - iPhone Safari certification: still required.
 - Third-party image rights review: still required.
@@ -70,3 +70,14 @@
 
 ## Release rule
 Do not promote this candidate to Vercel production until the exact release commit passes the full automated gate and deployed-runtime verification.
+
+
+## CP259 — requested food additions
+- Catalog: **116 built-in foods**.
+- Added 26 unique foods from the requested list.
+- Gumbo was already present, so it was retained once with Southern + Soup/Stew.
+- Roast Beef Sandwich + Chips was listed twice in the request but is present once.
+- Fish Sticks is the final built-in food.
+- Build: **128**.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+- Recovery points: `checkpoint-cp259-food-catalog-added-2026-09-30` and `checkpoint-cp259-qa-ready-2026-09-30`.
