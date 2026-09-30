@@ -6,24 +6,23 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '125';
+let APP_BUILD = '133';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
-const FOOD_QUICK = ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato'];
-const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ'];
+const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
+const foodQuickLabels=()=>S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other'))?[...FOOD_QUICK,'Other']:FOOD_QUICK;
+const REST_QUICK = ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','BBQ'];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
 Pasta:'https://images.pexels.com/photos/6287520/pexels-photo-6287520.jpeg?auto=compress&cs=tinysrgb&w=700', // Spaghetti
 Asian:'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg?auto=compress&cs=tinysrgb&w=700', // Fried Rice
 Mexican:'https://images.pexels.com/photos/12317911/pexels-photo-12317911.jpeg?auto=compress&cs=tinysrgb&w=700', // Tacos / Mexican Stir Fry family
-Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700', // Pork Chops
 'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700', // Soup & Sandwich
 Healthy:'https://images.pexels.com/photos/11906476/pexels-photo-11906476.jpeg?auto=compress&cs=tinysrgb&w=700', // Salad Bowl
 Breakfast:'https://images.pexels.com/photos/5852231/pexels-photo-5852231.jpeg?auto=compress&cs=tinysrgb&w=700', // Eggs & Toast
 American:'https://images.pexels.com/photos/12034622/pexels-photo-12034622.jpeg?auto=compress&cs=tinysrgb&w=700', // Burger
-Greek:'https://images.pexels.com/photos/6941006/pexels-photo-6941006.jpeg?auto=compress&cs=tinysrgb&w=700', // Gyro
 Snack:'https://images.pexels.com/photos/6422042/pexels-photo-6422042.jpeg?auto=compress&cs=tinysrgb&w=700', // Popcorn
+Italian:'https://images.pexels.com/photos/7813574/pexels-photo-7813574.jpeg?auto=compress&cs=tinysrgb&w=700', // Pizza
 Potato:'https://images.pexels.com/photos/273825/pexels-photo-273825.jpeg?auto=compress&cs=tinysrgb&w=700' // Roasted potatoes
 };
 const REST_QUICK_IMAGES = {
@@ -37,7 +36,6 @@ Healthy:'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg?auto
 'Soup/Stew':'https://images.pexels.com/photos/15305397/pexels-photo-15305397.jpeg?auto=compress&cs=tinysrgb&w=700',
 Potato:'https://images.pexels.com/photos/1442066/pexels-photo-1442066.jpeg?auto=compress&cs=tinysrgb&w=700',
 Greek:'https://images.pexels.com/photos/8951199/pexels-photo-8951199.jpeg?auto=compress&cs=tinysrgb&w=700',
-Pork:'https://images.pexels.com/photos/332784/pexels-photo-332784.jpeg?auto=compress&cs=tinysrgb&w=700',
 BBQ:'https://images.pexels.com/photos/6672037/pexels-photo-6672037.jpeg?auto=compress&cs=tinysrgb&w=700'
 };
 const S = {
@@ -68,30 +66,38 @@ storageWarning:false,
 restaurantSearchDegraded:false,
 winnerItem:null,
 winnerType:'food',
-pass:null,
-passDraftCount:2,
-passDraftNames:[],
 schemaVersion:4,
 restaurantTimezone:''
 };
+const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com']);
+function imageProxyUrl(raw){
+ const src=String(raw||'');
+ if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
+ try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
+}
 function foodPhoto(item){
 if(!item)return HUNGRY_IMAGE;
 const src=String(item.image||'');
-if(src && !src.startsWith('idb:'))return src;
+if(src && !src.startsWith('idb:'))return imageProxyUrl(src);
 const groups=Array.isArray(item.quickCuts)&&item.quickCuts.length?item.quickCuts:[item.category];
 for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
 return QUICK_IMAGES.American;
 }
 function foodPhotoFallback(item){
 const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCuts:[item?.category];
-for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
-return QUICK_IMAGES.American;
+for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);}
+return imageProxyUrl(QUICK_IMAGES.American);
 }
 function restaurantWebsiteUrl(row){
 const direct=safeExternalUrl(row?.website);
 if(direct)return direct;
 const q=[row?.name,row?.address].filter(Boolean).join(' ');
 return 'https://www.google.com/search?q='+encodeURIComponent(q||'restaurant');
+}
+function restaurantDirectionsUrl(row){
+const lat=Number(row?.lat),lon=Number(row?.lon);
+const destination=Number.isFinite(lat)&&Number.isFinite(lon)?lat+','+lon:(row?.address||row?.name||'restaurant');
+return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination);
 }
 const FINAL_FOOD_IMAGE='./fallback-food.svg';
 const FINAL_RESTAURANT_IMAGE='./fallback-restaurant.svg';
@@ -206,14 +212,13 @@ if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood()
 }
 function save() {
 const data = {
-screen:S.screen, hidden:[...S.hidden], deleted:[...S.deleted], hiddenRestaurants:S.hiddenRestaurants,
+screen:S.screen, hidden:[...S.hidden], hiddenRestaurants:S.hiddenRestaurants,
 cutCats:[...S.cutCats], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
 pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
-saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
-passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
+saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION,
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
@@ -240,12 +245,12 @@ if(!Array.isArray(d.foodCuts)) d.foodCuts=[];
 if(!d.foodCuts.length && Array.isArray(d.foodActions))
 for(const a of d.foodActions) if(a?.type==='cut'&&a.id) d.foodCuts.push(a.id);
 delete d.cutPrimary;
-const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundType','legacyRestaurantPool','restaurantResults'];
+const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundType','legacyRestaurantPool','restaurantResults','pass','passDraftCount','passDraftNames','passDraftMode','passStartVoter'];
 legacyKeys.forEach(key=>{try{delete d[key]}catch{}});
 Object.assign(S, d);
 legacyKeys.forEach(key=>{try{delete S[key]}catch{}});
-S.hidden = new Set(d.hidden || []);
-S.deleted = new Set(d.deleted || []);
+S.hidden = new Set([...(d.hidden || []), ...(Array.isArray(d.deleted) ? d.deleted : [])]);
+S.deleted = new Set();
 S.hiddenRestaurants = d.hiddenRestaurants || {};
 S.cutCats = new Set(d.cutCats || []);
 S.foodCuts = new Set(d.foodCuts || []);
@@ -258,7 +263,6 @@ S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions :
 S.restaurantMaybeRound = !!d.restaurantMaybeRound;
 S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
-S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
 S.winnerType = d.winnerType || 'food';
 S.restaurantTimezone = String(d.restaurantTimezone||'');
 S.locationSource = String(d.locationSource||'none');
@@ -278,7 +282,7 @@ window.scrollTo?.(0,0);
 function closeOverlays() {
 
 ['drawer','drawerBg','modal','modalBg'].forEach(id => $(id)?.classList.add('hidden'));
-['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg','passSetup','passSetupBg','passModal','passModalBg'].forEach(id => $(id)?.remove());
+['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg'].forEach(id => $(id)?.remove());
 clearSuggestions();
 }
 function home() {
@@ -288,7 +292,7 @@ show('home');
 }
 function foodPool(){
  return allFoods().filter(item=>{
-  if(S.hidden.has(item.id)||S.deleted.has(item.id)||S.foodCuts.has(item.id))return false;
+  if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
   return true;
@@ -299,10 +303,10 @@ S.pool = foodPool();
 S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
 }
 function foodQuick() {
-$('foodQuick').innerHTML = FOOD_QUICK.map(label => {
+$('foodQuick').innerHTML = foodQuickLabels().map(label => {
 const cut = S.cutCats.has(label);
-const src=QUICK_IMAGES[label] || QUICK_IMAGES.American;
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(QUICK_IMAGES.American)+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
+const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
+return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(QUICK_IMAGES.American))+'" alt="'+esc(label)+' food photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-food-quick] img');
 document.querySelectorAll('[data-food-quick]').forEach(btn => {
@@ -395,36 +399,50 @@ function foodBack(){
 
 function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
- const next=$(nextId);let downX=0,active=false,committed=false;
- card.style.touchAction='none';
+ const next=$(nextId);
+ let downX=0,active=false,committed=false,pointerId=null,suppressClickUntil=0;
+ card.style.touchAction='none';card.style.userSelect='none';card.style.webkitUserSelect='none';card.style.webkitTouchCallout='none';card.querySelectorAll('img').forEach(img=>{img.draggable=false;img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});});
  const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
- const cleanup=()=>{document.removeEventListener('pointerup',finish,true);document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('mouseup',finishMouse,true);document.removeEventListener('touchend',finishTouch,true);};
+ const cleanup=()=>{
+  try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
+  pointerId=null;
+ };
+ const cancel=()=>{if(!active)return;active=false;committed=false;cleanup();reset();};
  const commit=(dx)=>{
-  if(committed)return;committed=true;active=false;cleanup();
-  card.style.transition='transform .16s ease,opacity .16s ease';card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-  const action=dx<0?onCut:onMaybe;setTimeout(()=>{reset();action();},80);
+  if(committed||!active)return;
+  committed=true;active=false;cleanup();suppressClickUntil=Date.now()+350;
+  card.style.transition='transform .16s ease,opacity .16s ease';
+  card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+  const action=dx<0?onCut:onMaybe;
+  window.setTimeout(()=>{reset();action();},100);
  };
  const finish=(e)=>{
   if(!active)return;
   const dx=Number(e?.clientX||downX)-downX;
-  if(Math.abs(dx)>90)commit(dx);else{active=false;cleanup();reset();}
+  if(Math.abs(dx)>=90)commit(dx);else{active=false;cleanup();reset();}
  };
- function finishMouse(e){finish(e);}
- function finishTouch(e){const t=e.changedTouches?.[0];if(t)finish(t);}
- function cancel(){if(!active)return;active=false;cleanup();reset();}
  card.onpointerdown=e=>{
+  if(e.isPrimary===false)return;
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
-  downX=e.clientX;active=true;committed=false;card.dataset.swipe='';
-  document.addEventListener('pointerup',finish,true);document.addEventListener('pointercancel',cancel,true);document.addEventListener('mouseup',finishMouse,true);document.addEventListener('touchend',finishTouch,{capture:true,passive:true});
+  downX=e.clientX;active=true;committed=false;pointerId=e.pointerId;card.dataset.swipe='';
+  try{card.setPointerCapture?.(e.pointerId);}catch{}
+  if(e.cancelable)e.preventDefault();
  };
  card.onpointermove=e=>{
-  if(!active)return;
+  if(!active||e.isPrimary===false||e.pointerId!==pointerId)return;
   const dx=e.clientX-downX;
-  if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}
-  if(Math.abs(dx)>=90)commit(dx);
+  if(Math.abs(dx)>8){
+   if(e.cancelable)e.preventDefault();
+   card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+   card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+   card.dataset.swipe=dx<0?'cut':'maybe';
+  }
  };
- card.onpointerup=finish;card.onpointercancel=cancel;
+ card.onpointerup=e=>finish(e);
+ card.onpointercancel=cancel;
+ card.onlostpointercapture=()=>{if(active)cancel();};
+ card.onclick=e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}};
 }
 function bindFoodSwipe(){bindSwipeCard('foodCard','foodNextCard',()=>foodCut(),()=>foodMaybe())}
 function appToast(message){
@@ -485,11 +503,6 @@ buildFood();
 S.index = Math.min(S.index, Math.max(0, S.pool.length - 1));
 drawFood();
 save();
-}
-function randomCutOne() {
-if (!S.pool.length) return;
-const item = S.pool[Math.floor(Math.random() * S.pool.length)];
-foodCut(item);
 }
 function restaurantCanonicalId(row){
 const name=normKey(row?.name);
@@ -628,8 +641,8 @@ function restaurantPoolFiltered(){
 function restaurantQuick() {
 $('restQuick').innerHTML = REST_QUICK.map(label => {
 const cut = S.restaurantCuts.has(label);
-const src=REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American;
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(REST_QUICK_IMAGES.American)+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
+const src=imageProxyUrl(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American);
+return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(REST_QUICK_IMAGES.American))+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
 }).join('');
 bindImageFallbackAttrs('[data-rest-quick] img');
 document.querySelectorAll('[data-rest-quick]').forEach(btn => {
@@ -678,7 +691,8 @@ $('status').textContent='Location ready.';
 await searchRestaurants();
 }catch{
 setLocation(pos.coords.latitude,pos.coords.longitude,'Current location','device');
-$('status').textContent='Location ready. Tap Find to search.';
+$('status').textContent='Location ready. Searching restaurants…';
+try{await searchRestaurants();}catch{}
 }
 },err=>{
 if(err?.code===1){$('status').textContent='Location permission was denied. Enter an address instead.';return;}
@@ -853,9 +867,9 @@ if (/chipotle/.test(s)) return 'https://images.unsplash.com/photo-1552332386-f8d
 if (/ruby tuesday|thirsty goat/.test(s)) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
 return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
 };
-const image = row.photo || row.image || restaurantFallback(row);
+const image = imageProxyUrl(row.photo || row.image || restaurantFallback(row));
 const nextRow = rows[S.restaurantIndex + 1];
-const nextImage = nextRow?.photo || nextRow?.image || restaurantFallback(nextRow);
+const nextImage = imageProxyUrl(nextRow?.photo || nextRow?.image || restaurantFallback(nextRow));
 const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
 const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
@@ -863,7 +877,7 @@ const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+es
 const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
 const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(safeExternalUrl(row.website)?'Open restaurant website':'Search restaurant on Google')+'" title="'+(safeExternalUrl(row.website)?'Website':'Search on Google')+'">Website ↗</a>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+cardCuisine+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></article></div>'+
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+'<div class="card-cuisine-row">'+(row.cuisine?'<div class="card-detail-line cuisine-line">'+esc(row.cuisine)+'</div>':'<div class="card-detail-line cuisine-line">'+esc(category)+'</div>')+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'</div></div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 const bindCardButton = (id, handler) => {
@@ -960,7 +974,9 @@ if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
 winImg.src = item.image || item.photo || HUNGRY_IMAGE;
 winImg.alt = item.name || 'Hungry';
-if ($('celebration')) $('celebration').classList.toggle('hidden', hungry || S.winnerType === 'restaurant'); if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
+if ($('celebration')) $('celebration').classList.toggle('hidden', hungry || S.winnerType === 'restaurant');
+ const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
+ if (!hungry && S.winnerType !== 'restaurant') triggerCelebration();
 save();
 }
 function openModal(id, title, body) {
@@ -996,17 +1012,20 @@ queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
 return modal;
 }
 function detailsSheet(item,type){
- const image=item.image||item.photo||HUNGRY_IMAGE,cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
+ const image=imageProxyUrl(item.image||item.photo||HUNGRY_IMAGE),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
  const nutrition=type==='food'&&item.nutrition?'<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid"><div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div><div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div><div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div><div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div><div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>':'';
  const ingredients=type==='food'&&Array.isArray(item.ingredients)&&item.ingredients.length?'<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>':'';
  const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
  const menu=type==='restaurant'&&menus.length?'<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menus.slice(0,8).join(' · '))+'</p></div>':'';
  const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
- const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div>'+(item.phone?'<div><span>Phone</span><b>'+esc(item.phone)+'</b></div>':'')+(item.address?'<div class="wide"><span>Address</span><b>'+esc(item.address)+'</b></div>':'')+'</div></div>':'';
- const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE,web=type==='restaurant'?(safeExternalUrl(item.website)||restaurantWebsiteUrl(item)):'';
- const body='<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><h2 style="margin:12px 0 4px;font-size:29px;letter-spacing:-.04em">'+esc(item.name)+'</h2>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+'<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide">Hide</button>'+(type==='restaurant'?'<a class="detail-web-action" id="detailWeb" href="'+esc(web)+'" target="_blank" rel="noopener noreferrer" aria-label="Website">Website ↗</a>':'')+'</div></div>';
- const modal=openModal('detailsModal','Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?(item.photo||item.image||''):foodPhoto(item),final);
- $('detailHide').onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
+ const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHref(item.phone))+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<div class="restaurant-detail-contact-muted"><span class="contact-label">Phone</span><strong>Not available</strong></div>';
+ const addressLink=item.address?'<div class="restaurant-detail-address"><span class="contact-label">Address</span><strong>'+esc(item.address)+'</strong></div>':'';
+ const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div></div><div class="restaurant-detail-contact"><div class="contact-card">'+phoneLink+addressLink+'</div><div class="contact-actions"><a class="detail-web-action detail-website-action" id="detailWeb" href="'+esc(restaurantWebsiteUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Open restaurant website or Google search fallback">'+(safeExternalUrl(item.website)?'Website ↗':'Google Search ↗')+'</a><a class="detail-web-action detail-directions-action" id="detailDirections" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions">Google Maps ↗</a></div></div></div>':'';
+ const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE;
+ const actionBar=type==='restaurant'?'':(item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>');
+ const body='<div class="detail-grid '+(type==='restaurant'?'restaurant-details-content':'')+'"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><div class="detail-title-block"><span class="detail-kicker">'+(type==='restaurant'?'RESTAURANT DETAILS':'DETAILS')+'</span><h2>'+esc(item.name)+'</h2></div>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+(actionBar?'<div class="detail-actions-row">'+actionBar+'</div>':'')+'</div>';
+ const modal=openModal('detailsModal',type==='restaurant'?'Restaurant Details':'Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?imageProxyUrl(item.photo||item.image||''):foodPhoto(item),final);
+ const detailHide=$('detailHide'); if(detailHide) detailHide.onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
 }
 function recordHistory(item, type) {
 const history = readHistory();
@@ -1050,7 +1069,7 @@ body += '<div class="cal-cell">'+
 '<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
 }
 body += '</div></div><div class="history-list">';
-body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(x.image)+'" alt=""><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
+body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(imageProxyUrl(x.image))+'" alt=""><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
 body += '</div>';
 const modal = openModal('historyModal','History',body);
 $('calPrev').onclick = () => { cursor = new Date(y,m-1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
@@ -1110,11 +1129,12 @@ const isEdit=!!item;
 
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'];
+const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'];
+const quickCats=cats;
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
-'<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
-'<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
+'<select id="editFoodCat" aria-label="Cuisine type">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
+'<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+quickCats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
@@ -1125,6 +1145,11 @@ try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
 if(data) $('editFoodPhoto').value=data;
 } catch(e) { appToast(e.message); }
+};
+$('editFoodCat').onchange=()=>{
+ const category=$('editFoodCat').value;
+ const quick=document.querySelector('input[name="editQuickCut"][value="'+category+'"]');
+ if(quick) quick.checked=true;
 };
 $('foodEditorForm').onsubmit=async e=>{
 e.preventDefault();
@@ -1140,14 +1165,15 @@ if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A food with that nam
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom[idx]={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,recipe};
 if(id!==item.id) await deleteStoredPhoto(item.id);
-S.maybe.delete(item.id); S.hidden.delete(item.id); S.deleted.delete(item.id);
+S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A food with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
 S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
 }
-buildFood(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
+if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other')))S.cutCats.delete('Other');
+buildFood(); foodQuick(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
 
 
 if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
@@ -1156,25 +1182,20 @@ else manageFoodsView();
 }
 function manageFoodsView() {
 const rows=allFoods();
-const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Built-in foods can be hidden or removed.</div>'+
+const body='<div class="manage-intro">Add your own food with a photo, recipe, or notes. Foods can be hidden and restored here.</div>'+
 '<button class="cut" id="openFoodEditor" style="width:100%;min-height:46px;border-radius:13px">Add Food</button>'+
 '<div class="food-list">'+rows.map(item=>{
-const hidden=S.hidden.has(item.id), deleted=S.deleted.has(item.id), custom=S.custom.some(x=>x.id===item.id);
-const state=deleted?'Deleted':hidden?'Hidden':'Active';
+const hidden=S.hidden.has(item.id), custom=S.custom.some(x=>x.id===item.id);
+const state=hidden?'Hidden':'Active';
 return '<div class="food-row"><span><b>'+esc(item.name)+'</b><small class="row-state">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
-(!deleted?(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>'):'<button class="restore" data-food-restore-deleted="'+esc(item.id)+'">Restore</button>')+
+(hidden?'<button class="restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="restore" data-food-hide="'+esc(item.id)+'">Hide</button>')+
 (custom?'<button class="restore" data-food-edit="'+esc(item.id)+'">Edit</button>':'')+
-'<button class="restore danger-lite" data-food-delete="'+esc(item.id)+'">Delete</button></span></div>';
+'</span></div>';
 }).join('')+'</div>';
 const modal=openModal('manageFoodsModal','Manage Foods',body);
 $('openFoodEditor').onclick=()=>foodEditor();
 modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
 S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
-modal.querySelectorAll('[data-food-restore-deleted]').forEach(btn=>btn.onclick=()=>{
-S.deleted.delete(btn.dataset.foodRestoreDeleted); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove();
-if(S.screen==='food'){ closeOverlays(); show('food'); foodQuick(); drawFood(); }
-else manageFoodsView();
 });
 modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
 S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
@@ -1183,26 +1204,14 @@ modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{
 const row=allFoods().find(x=>x.id===btn.dataset.foodEdit);
 if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
 });
-modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=async()=>{
-const row=allFoods().find(x=>x.id===btn.dataset.foodDelete);
-if(!row)return;
-if(!await appConfirm(S.custom.some(x=>x.id===row.id)?'Delete this custom food?':'Remove this food?',S.custom.some(x=>x.id===row.id)?'Delete '+row.name+' permanently from this device.':'Remove '+row.name+' from the active food choices.','Delete'))return;
-if(S.custom.some(x=>x.id===row.id)){ S.custom=S.custom.filter(x=>x.id!==row.id); deleteStoredPhoto(row.id); }
-else S.deleted.add(row.id);
-S.hidden.delete(row.id); S.maybe.delete(row.id); buildFood(); save();
-modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
 }
 function settingsView(){
  removeFoodOverlays();
- const hiddenFoods=allFoods().filter(x=>S.hidden.has(x.id)),deletedFoods=allFoods().filter(x=>S.deleted.has(x.id)),hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Food Choices</h4><div class="settings-food-choices">'+((hiddenFoods.length||deletedFoods.length)?hiddenFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Hidden</small></span><span class="food-row-actions"><button class="restore" data-setting-food="'+esc(x.id)+'">Restore</button><button class="restore danger-lite" data-setting-food-delete="'+esc(x.id)+'">Delete</button></span></div>').join(''):'')+deletedFoods.map(x=>'<div class="food-row"><span><b>'+esc(x.name)+'</b><small class="settings-state">Deleted</small></span><button class="restore" data-setting-deleted="'+esc(x.id)+'">Restore</button></div>').join('')+((!hiddenFoods.length&&!deletedFoods.length)?'<p class="status">No hidden or deleted foods.</p>':'')+'</div><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Check the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
+ const hiddenRestaurants=Object.values(S.hiddenRestaurants);
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Checks the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
- modal.querySelectorAll('[data-setting-food]').forEach(btn=>btn.onclick=()=>{S.hidden.delete(btn.dataset.settingFood);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- modal.querySelectorAll('[data-setting-food-delete]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.settingFoodDelete,row=allFoods().find(x=>x.id===id);if(!row)return;if(!await appConfirm('Remove this food?','Remove '+row.name+' from the food choices.','Delete'))return;if(S.custom.some(x=>x.id===id))S.custom=S.custom.filter(x=>x.id!==id);else S.deleted.add(id);S.hidden.delete(id);S.maybe.delete(id);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- modal.querySelectorAll('[data-setting-deleted]').forEach(btn=>btn.onclick=()=>{S.deleted.delete(btn.dataset.settingDeleted);buildFood();save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- $('appDiagnosis').onclick=appDiagnosisView;$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
+ $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
 }
 function diagnosisMiles(a,b,c,d){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
@@ -1226,60 +1235,109 @@ function diagnosisRestaurantDuplicates(rows){
  }
  return out;
 }
-async function appDiagnosisView(){
- const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><p class="status">Running diagnostics…</p></div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Ready</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" aria-label="Run diagnostics again">↻ Run again</button></div></div>';
- const modal=openModal('diagnosisModal','App Diagnosis',body);let running=false,run=0;
+async function appDiagnosisView(existingModal){
+ if(!existingModal||!document.body.contains(existingModal))return null;
+ const shellClass='diagnosis-modal';
+ const initialSections=['Core app','Food system','Restaurant system','Device & runtime','Build & deployment']; const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Live checks are running in this panel.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app and runtime state.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
+ const modal=existingModal;
+ modal.classList.add(shellClass);
+ if(existingModal){
+  const head=modal.querySelector('.modal-head');
+  [...modal.children].forEach(child=>{if(child!==head)child.remove();});
+  const title=head?.querySelector('h3');
+  if(title){title.textContent='App Diagnosis';}
+  const close=head?.querySelector('[data-close]');
+  if(close)close.setAttribute('aria-label','Close App Diagnosis');
+  modal.insertAdjacentHTML('beforeend',body);
+ }
+ let running=false,run=0;
  const render=async()=>{
   if(running||!document.body.contains(modal))return;running=true;run++;
   const refresh=$('diagnosisRefresh'),runStatus=$('diagnosisRunStatus'),diagnosisBody=$('diagnosisBody');
-  if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ RUNNING…';}
+  if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ Checking…';}
   if(runStatus){runStatus.textContent='Run '+run+' selected · checking now…';runStatus.classList.add('running');}
   if(diagnosisBody)diagnosisBody.setAttribute('aria-busy','true');
-  const checks=[],pass=(l,d)=>checks.push({state:'ok',label:l,detail:d}),warn=(l,d)=>checks.push({state:'warn',label:l,detail:d}),info=(l,d)=>checks.push({state:'info',label:l,detail:d}),fail=(l,d)=>checks.push({state:'fail',label:l,detail:d});
+  const checks=[];
+  const add=(section,state,label,detail)=>checks.push({section,state,label,detail});
+  const pass=(s,l,d)=>add(s,'ok',l,d), warn=(s,l,d)=>add(s,'warn',l,d), info=(s,l,d)=>add(s,'info',l,d), fail=(s,l,d)=>add(s,'fail',l,d);
+  const sectionLabels={core:'Core app',food:'Food system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
   try{
-   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])),required=[
-    ['lasagna','Lasagna',['Pasta']],['vegetable-lasagna','Vegetable Lasagna',['Pasta','Healthy']],
-    ['salisbury-steak','Salisbury Steak',['Southern','American']],['stuffed-peppers','Stuffed Peppers',['Healthy','American']]
-   ];
-   const missing=required.filter(([id])=>!byId.has(id)).map(([id])=>id);
-   const wrongCuts=required.filter(([id,,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
-   const frozen=foods.some(x=>x.id==='frozen'||/stouffer/i.test(String(x.name||'')));
-    const cerealRename=byId.get('cheerios')?.name==='Cereal';
-    const healthShakeReady=!!byId.get('health-shake')?.ingredients?.length&&!!byId.get('health-shake')?.nutrition&&!!byId.get('health-shake')?.recipe&&byId.get('health-shake')?.quickCuts?.includes('Healthy');
-   missing.length||wrongCuts.length||frozen||!cerealRename||!healthShakeReady?fail('Food catalog contract',[missing.length?'Missing: '+missing.join(', '):'',wrongCuts.length?'Quick Cut mismatch: '+wrongCuts.join(', '):'',frozen?'Stouffer’s Frozen Dinner is still present.':'',!cerealRename?'Cheerios Cereal was not renamed to Cereal.':'',!healthShakeReady?'Health Shake details/Healthy Quick Cut data is incomplete.':''].filter(Boolean).join(' ')):pass('Food catalog contract','65 foods loaded; requested foods present; Stouffer’s absent.');
-   const imageIds=['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','stroganoff','tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','health-shake','homemade-pizza','mac-cheese','chicken-parmesan','country-fried-chicken'],imageMissing=imageIds.filter(id=>!/^https?:\/\//.test(String(byId.get(id)?.image||'')));
-    const imageIdsExpected={'tacos':'14179985','stir-fry':'31673757','meatloaf':'2397401','buttermilk-cornbread':'36863862','potato-soup':'29653177','stuffed-peppers':'31953510','stroganoff':'28503619','health-shake':'7974814','lasagna':'29174061','vegetable-lasagna':'5864352','salisbury-steak':'commons.wikimedia.org/wiki/Special:FilePath/Salisbury'};
-    const staleImages=Object.entries(imageIdsExpected).filter(([id,photoId])=>!String(byId.get(id)?.image||'').includes(photoId)).map(([id])=>id);
-   imageMissing.length||staleImages.length?fail('Food image catalog',[imageMissing.length?'Missing/invalid image URL: '+imageMissing.join(', '):'',staleImages.length?'Stale/unexpected photo mapping: '+staleImages.join(', '):''].filter(Boolean).join(' ')):pass('Food image catalog','All requested food photo mappings are present and current.');
-   const quickSummary=required.map(([id,,cuts])=>id+': '+cuts.join(' + ')).join(' · ');pass('Quick Cut mapping',quickSummary);
-   const imgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=imgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=imgs.filter(i=>i.dataset.imageFallback==='true');
-   broken.length?fail('Visible image rendering',broken.length+' visible image(s) have no decoded pixels.'):fallbacked.length?info('Visible image rendering',fallbacked.length+' visible image(s) are using the built-in local fallback; this is intentional.'):imgs.length?pass('Visible image rendering',imgs.length+' visible image(s) decoded successfully.'):info('Visible image rendering','No image-bearing surface is currently visible.');
+   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])), ids=foods.map(x=>x.id), duplicateFoodIds=ids.length-new Set(ids).size;
+   duplicateFoodIds?fail('food','Food catalog','Duplicate food IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Food catalog',foods.length+' built-in foods loaded; IDs are unique.');
+   const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
+   invalidFood.length?fail('food','Food details',invalidFood.length+' food(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Food details','All '+foods.length+' built-in foods have required Details data.');
+   const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
+   const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
+   missingQuickImages.length?fail('food','Food Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Food Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom food uses it.'):pass('food','Food Quick Cuts','Food Quick Cut mappings and photo sources are present.');
+   const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Healthy']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['Healthy','American']],['health-shake',['Healthy']]];
+   const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
+   quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Foods and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Food Quick Cut mappings match the current catalog.');
+   const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
+   staleNames.length?fail('food','Removed choices','Stouffer/frozen-dinner data is still present.','Remove the legacy choice from the catalog.'):pass('food','Removed choices','Legacy Stouffer/frozen-dinner choice is absent.');
+   const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCut','foodMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
+   foodVisible&&foodControls<5?fail('food','Food decision controls',foodControls+'/5 required controls are present.','Cut, Maybe, Back, Hide, and Details should all be available.'):pass('food','Food decision controls','Core Food decision and Details controls are wired.');
+   const visibleImgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=visibleImgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=visibleImgs.filter(i=>i.dataset.imageFallback==='true');
+   broken.length?fail('runtime','Visible images',broken.length+' visible image(s) have failed to decode.','Check the affected photo source or fallback mapping.'):fallbacked.length?warn('runtime','Visible images',fallbacked.length+' visible image(s) are currently using a fallback image.','The app is protected from broken images, but the original source should be reviewed.'):info('runtime','Visible images',visibleImgs.length+' visible image(s) are available to inspect on this screen.');
+   const restaurants=S.restaurantPool||[],restaurantIds=restaurants.map(x=>x.id||x.name),restaurantDuplicates=diagnosisRestaurantDuplicates(restaurants),fastFood=restaurants.filter(x=>x.fastFood).length;
+   restaurantDuplicates.length?warn('restaurant','Restaurant duplicates',restaurantDuplicates.length+' possible duplicate venue pair(s) are in the current pool.','Examples: '+restaurantDuplicates.slice(0,3).map(x=>x[0]+' ↔ '+x[1]+' ('+x[2].toFixed(1)+' mi)').join(' · ')+' . Review only if they are truly the same venue.'):pass('restaurant','Restaurant duplicates','No likely duplicates detected in the current pool.');
+   const restQuickCount=document.querySelectorAll('#restQuick [data-rest-quick]').length,restQuickMissing=REST_QUICK.filter(x=>!REST_QUICK_IMAGES[x]);
+   restQuickMissing.length?fail('restaurant','Restaurant Quick Cuts','Missing photo mapping: '+restQuickMissing.join(', '),'Fix the affected Quick Cut source mapping.'):restQuickCount<REST_QUICK.length?info('restaurant','Restaurant Quick Cuts',restQuickCount+' rendered in the page shell; '+REST_QUICK.length+' are defined.'):pass('restaurant','Restaurant Quick Cuts',REST_QUICK.length+' Quick Cuts are defined with photo mappings.');
+   const restVisible=!!document.querySelector('#restaurant:not(.hidden)'),restControls=['restCut','restMaybe','restBack','restDetails'].filter(id=>$(id)).length;
+   restVisible&&restControls<4?fail('restaurant','Restaurant decision controls',restControls+'/4 required controls are present.','Cut, Maybe, Back, and Details should all be available.'):pass('restaurant','Restaurant decision controls','Core Restaurant decision and Details controls are wired.');
+   S.restaurantSearchDegraded?warn('restaurant','Search quality state','The last restaurant search was marked degraded.','Run a fresh search; if it repeats, inspect the search service/provider path.'):info('restaurant','Search quality state','No degraded-search flag is currently set.');
+   restaurants.length?pass('restaurant','Current restaurant pool',restaurants.length+' result(s) loaded · '+fastFood+' marked fast food.','Only the currently loaded pool is being measured here.'):info('restaurant','Current restaurant pool','No restaurant results are loaded right now.','This is normal on the home screen; run a restaurant search to test the live result pool.');
+   const source=S.locationSource||'none';
+   S.location&&Number.isFinite(Number(S.location.lat))&&Number.isFinite(Number(S.location.lon))?pass('restaurant','Location state','A usable location is currently selected ('+source+').','The diagnosis does not replace or change your selected location.'):info('restaurant','Location state','No usable restaurant-search location is currently stored.','This is not an error until you try to search; choose an address or Use My Location on the Restaurant screen.');
+   try{
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health&diagnosis='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(tm);
+    const d=await rr.json().catch(()=>null);
+    rr.ok&&d?.ok?pass('restaurant','Restaurant search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Restaurant search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
+   }catch(e){warn('restaurant','Restaurant search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
+   let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
+   storageOk?pass('runtime','Local storage','Browser storage is accessible.','Food choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
+   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom food photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded food photos may not persist correctly.');
+   navigator.onLine?pass('runtime','Network','Browser reports online.','Restaurant search and third-party images still depend on their services.'):warn('runtime','Network','Browser reports offline.','Restaurant search and remote images may not work until connectivity returns.');
+   const sw='serviceWorker' in navigator;
+   sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
    const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
-   ox||oy?warn('Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.'):pass('Viewport overflow','No horizontal or vertical overflow detected.');
-   try{const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}),d=await rr.json();if(rr.ok&&(d?.ok||d?.name)){const ok=String(d.build)===String(APP_BUILD)&&(!d.branch||String(d.branch)===RELEASE_SOURCE_BRANCH);ok?pass('Runtime release identity','Build '+d.build+' · branch '+(d.branch||RELEASE_SOURCE_BRANCH)+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Runtime release identity','Local QA server returned Build '+String(d.build||'unknown')+'; hosted deployment identity is checked by CI.'):fail('Runtime release identity','Expected Build '+APP_BUILD+' on '+RELEASE_SOURCE_BRANCH+'.'));}else warn('Runtime release identity','Release metadata returned HTTP '+rr.status+'.');}catch{info('Runtime release identity','Release metadata is not available in this runtime context.');}
-   const dup=diagnosisRestaurantDuplicates(S.restaurantPool||[]).length;dup?warn('Restaurant duplicates',dup+' possible duplicate pairs are currently loaded; review only if they are actually the same venue.'):pass('Restaurant duplicates','No likely duplicate pairs are currently loaded.');
-   try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health',{cache:'no-store',signal:ctl.signal});clearTimeout(tm);const d=await rr.json();rr.ok&&d?.ok?pass('Restaurant search service','Healthy · provider runtime '+String(d.version||'unknown')+'.'):(location.hostname==='localhost'||location.hostname==='127.0.0.1'?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','HTTP '+rr.status+'.'));}catch{(location.hostname==='localhost'||location.hostname==='127.0.0.1')?info('Restaurant search service','Hosted health check is not available on the local QA server.'):warn('Restaurant search service','Health check failed or timed out.');}
-   pass('Decision model','Cut lowers the active count; Maybe/Keep stays in the count and is recycled into the narrowing pass.');
-   pass('Final choice model','With one choice left: Cut opens Hungry; Maybe/Keep selects the winner and enables Share.');
-   pass('Details controls','Food and restaurant Details use a compact 28px crisp list-details icon with card-copy breathing room and an accessible label.');
-   S.restaurantPool?.length?pass('Current restaurant pool',String(S.restaurantPool.length)+' results loaded · '+String((S.restaurantPool||[]).filter(x=>x.fastFood).length)+' fast food.'):info('Current restaurant pool','No restaurant search results loaded yet.');
-   pass('Hours filter','Current mode: '+(S.hoursMode==='openUnknown'?'Open/Unknown':'All')+'.');
-   pass('Persistence','History, hidden choices, custom foods, and settings persist locally.');
-   pass('PWA shell','Service-worker support is '+('serviceWorker' in navigator?'available.':'not available in this browser.'));
-   pass('Viewport',window.innerWidth+'×'+window.innerHeight+' CSS pixels.');
-   info('Build','Dinliminate '+APP_VERSION+' · Build '+APP_BUILD+' · run '+run+'.');
-   info('Image licensing','Pexels photo availability is tested here; third-party rights review remains a separate launch gate.');
-   info('Browser certification','CI checks differ from real iPhone Safari certification.');
-  }catch(e){fail('Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e));}
-  const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length;
+   ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
+   const requiredIds=['foodQuick','restQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails','restCut','restMaybe','restBack','restDetails'];
+   const missingUi=requiredIds.filter(id=>!$(id));
+   missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Food/Restaurant decision and Quick Cut elements are present.');
+   const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
+   pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Food Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
+   try{
+    const [localResponse,apiResponse]=await Promise.all([
+      fetch('./release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}).then(async r=>({ok:r.ok,status:r.status,data:await r.json().catch(()=>null)})).catch(()=>({ok:false,status:0,data:null}))
+    ]);
+    const localBuild=String(localResponse?.build||''),apiBuild=String(apiResponse?.data?.build||''),apiBranch=String(apiResponse?.data?.branch||apiResponse?.data?.sourceBranch||'');
+    if(localBuild && apiResponse.ok && apiBuild && localBuild===apiBuild){
+      pass('release','Runtime release identity','Build '+localBuild+' · source '+String(localResponse.sourceBranch||apiBranch||'unknown')+'.','The browser manifest and release API agree on the build.');
+    }else if(!apiResponse.ok){
+      warn('release','Runtime release identity','Release API returned HTTP '+apiResponse.status+'.','The local release file is available, but hosted runtime identity could not be confirmed from this browser.');
+    }else{
+      fail('release','Runtime release identity','Release metadata disagrees: local '+localBuild+' vs API '+apiBuild+'.','Do not treat the hosted build as verified until the release metadata matches.');
+    }
+   }catch{warn('release','Runtime release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
+   info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
+   info('release','Browser certification','This runtime can test browser behavior, but it cannot certify real iPhone Safari behavior from a desktop preview.','Use the installed iPhone PWA as the final device check.');
+   info('core','Pass Around','Removed from the current build.','The normal Food and Restaurant Tinder-style decision flow is now the group-free path.');
+  }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
+  const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length,infos=checks.filter(x=>x.state==='info').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW NEEDED':'HEALTHY';
-  const bodyEl=$('diagnosisBody');
-  if(bodyEl){bodyEl.setAttribute('aria-busy','false');bodyEl.innerHTML='<div class="diagnosis-summary"><b>System diagnosis · '+overall+'</b><span>Run '+run+' · '+failures+' failed · '+warnings+' actionable warnings · '+passing+' passing</span></div>'+checks.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark">'+({ok:'✓',warn:'!',fail:'×',info:'i'})[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('');}
+  const bySection=[];
+  for(const c of checks){let sec=bySection.find(x=>x.id===c.section);if(!sec){sec={id:c.section,items:[]};bySection.push(sec);}sec.items.push(c);}
+  const stateIcon={ok:'✓',warn:'!',fail:'×',info:'i'};
+  const sectionHtml=bySection.map(sec=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+esc(sectionLabels[sec.id]||sec.id)+'</b><span>'+sec.items.filter(x=>x.state==='fail').length+' failed · '+sec.items.filter(x=>x.state==='warn').length+' warnings</span></div>'+sec.items.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark" aria-hidden="true">'+stateIcon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'</section>').join('');
+  if(diagnosisBody){diagnosisBody.setAttribute('aria-busy','false');diagnosisBody.innerHTML='<div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot '+(failures?'bad':warnings?'warn':'good')+'" aria-hidden="true"></span><div><b>'+esc(overall)+'</b><small>'+failures+' failed · '+warnings+' warnings · '+passing+' passing · '+infos+' informational</small></div><strong>Run '+run+'</strong></div>'+sectionHtml+'<p class="diagnosis-footnote">Green means this runtime verified the check. Yellow means the app is usable but something deserves review. Red means the diagnosis found a concrete problem. Informational items are deliberately not counted as failures.</p>';}
   if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').setAttribute('aria-pressed','false');$('diagnosisRefresh').classList.remove('selected');$('diagnosisRefresh').classList.add('complete');$('diagnosisRefresh').textContent='↻ Run again';}
   if(document.body.contains(modal)&&$('diagnosisRunStatus')){$('diagnosisRunStatus').textContent='✓ Run '+run+' complete · '+(failures?'action needed':warnings?'review needed':'no actionable warnings');$('diagnosisRunStatus').classList.remove('running');}
   running=false;
  };
- $('diagnosisRefresh').onclick=()=>render();render();return modal;
+ $('diagnosisRefresh').onclick=()=>render();
+ render();
+ return modal;
 }
 function privacyView() {
 const body = '<div class="info-copy"><h4>Privacy & Data</h4><p>Dinliminate uses your selected address or optional device location to find nearby restaurants. Location access is optional.</p><p>Restaurant/address results are retrieved through Dinliminate’s search service using third-party mapping and place providers. Your exact location or selected address is used for that search request.</p><p>Your food choices, hidden items, history, and custom-food information are stored on this device using browser storage. Custom food photos may be stored in IndexedDB on the device.</p><p>Restaurant and food images may be loaded from third-party image hosts. Restaurant availability, hours, phone numbers, websites, and menu information can change and are supplied by external providers.</p></div>';
@@ -1287,11 +1345,11 @@ openModal('privacyModal','Privacy',body);
 }
 function aboutView(){
  const date=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
- const body='<div class="info-copy"><h4>Dinliminate</h4><p>Made for Devona Dunn by Brian Dunn.</p><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div></div>';
+ const body='<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></div>';
  const modal=openModal('aboutModal','About Dinliminate',body);$('privacyFromAbout').onclick=()=>privacyView();return modal;
 }
 function iphoneHelp() {
-openModal('iphoneModal','How to add to iPhone','<div class="info-copy"><p>Open Dinliminate in Safari on your iPhone.</p><p>Tap the Share button, then choose <b>Add to Home Screen</b>.</p><p>Tap <b>Add</b>. Dinliminate will appear on your Home Screen like an app.</p></div>');
+openModal('iphoneModal','How to add to iPhone','<div class="iphone-guide"><div class="iphone-guide-intro"><span class="iphone-guide-kicker">INSTALL GUIDE</span><h4>Keep Dinliminate one tap away.</h4><p>Add it to your iPhone Home Screen for the full app-like experience.</p></div><div class="iphone-guide-steps"><div class="iphone-guide-step"><span>01</span><div><b>Open in Safari</b><small>Open Dinliminate using Safari on your iPhone.</small></div></div><div class="iphone-guide-step"><span>02</span><div><b>Open the Share menu</b><small>Tap the Share button at the bottom of Safari.</small></div></div><div class="iphone-guide-step"><span>03</span><div><b>Choose Add to Home Screen</b><small>Scroll the Share menu and tap <b>Add to Home Screen</b>.</small></div></div><div class="iphone-guide-step"><span>04</span><div><b>Tap Add</b><small>Confirm <b>Add</b>. Dinliminate will now appear like an app.</small></div></div></div><div class="iphone-guide-note">Tip: keep Safari updated so the Home Screen install experience stays current.</div></div>');
 }
 function shareWinner() {
 if (!S.winnerItem)return;
@@ -1300,8 +1358,8 @@ if(navigator.share){navigator.share({title:'Dinliminate',text}).catch(()=>{});}
 else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToast('Decision copied.')).catch(()=>{});
 }
 function resetRound(){
-S.pass=null; S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
-S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
+S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
+S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.deleted.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 home();
@@ -1309,7 +1367,7 @@ home();
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom foods, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
@@ -1317,7 +1375,7 @@ home();
 async function systemRestoreFlow(){
 if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 document.querySelector('#settingsModal')?.remove();
 document.querySelector('#settingsModalBg')?.remove();
@@ -1325,140 +1383,6 @@ document.querySelector('#drawer')?.classList.add('hidden');
 document.querySelector('#drawerBg')?.classList.add('hidden');
 save();
 home();
-}
-function passCandidates() {
-return S.screen === 'restaurant' ? restaurantPoolFiltered() : S.pool;
-}
-function removePassSurface(){
-const el=document.querySelector('#passSurface'); if(!el)return; el._passSwipeCleanup?.(); el.remove();
-}
-function openPassSurface(inner){
-removePassSurface();
-const surface=document.createElement('section');
-surface.id='passSurface';
-surface.className='pass-surface';
-surface.innerHTML=inner;
-document.body.appendChild(surface);
-const gesture=surface.querySelector('#passGestureHit'),card=surface.querySelector('#passCard'),next=surface.querySelector('#passNextCard');
-if(gesture&&card){
-gesture.dataset.passSwipeBound='true';
-let startX=0,startY=0,active=false;
-const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-const finish=(clientX)=>{
-if(!active)return; active=false;
-const dx=clientX-startX;
-if(Math.abs(dx)>90){
-card.style.transition='transform .16s ease,opacity .16s ease';
-card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-setTimeout(()=>{reset(); if(window.__DINLIMINATE_TEST__)window.__DINLIMINATE_TEST__.passSurfaceVotes=(window.__DINLIMINATE_TEST__.passSurfaceVotes||0)+1; const current=S.pass?.poolIds?.[S.pass.choiceIndex]; const fn=dx<0?false:true; const keep=fn; if(current){ const item=currentPassItem(); if(item)passVote(keep); }},110);
-}else reset();
-};
-surface.addEventListener('pointerdown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
-surface.addEventListener('pointermove',e=>{if(!active)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dy)>Math.abs(dx)*1.2)return;if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
-surface.addEventListener('pointerup',e=>finish(e.clientX),true);
-surface.addEventListener('pointercancel',()=>{active=false;reset();},true);
-surface.addEventListener('mousedown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
-surface.addEventListener('mousemove',e=>{if(!active)return;const dx=e.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
-surface.addEventListener('mouseup',e=>finish(e.clientX),true);
-surface.addEventListener('mouseleave',e=>{if(active&&e.buttons===0)finish(e.clientX);},true);
-surface.addEventListener('touchstart',e=>{const t=e.touches?.[0];if(t&&(e.target===gesture||e.target.closest?.('#passGestureHit'))){startX=t.clientX;startY=t.clientY;active=true;}},{capture:true,passive:true});
-surface.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches?.[0];if(!t)return;const dx=t.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},{capture:true,passive:false});
-surface.addEventListener('touchend',e=>{const t=e.changedTouches?.[0];if(t)finish(t.clientX);},{capture:true,passive:true});
-surface.addEventListener('touchcancel',()=>{active=false;reset();},{capture:true,passive:true});
-}
-return surface;
-}
-function passSetup() {
-const counts=[2,3,4,5,6,7,8];
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Everyone gets a turn. Cut removes a choice. A choice everyone keeps survives.</p><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start Pass Around</button></div>');
-$('passClose').onclick=()=>removePassSurface();
-const renderNames=()=>{
-$('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join('')+'</div>';
-document.querySelectorAll('[data-pass-name]').forEach((x,i)=>x.value=S.passDraftNames[i]||'');
-document.querySelectorAll('[data-pass-count]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.passCount)===S.passDraftCount));
-};
-renderNames();
-document.querySelectorAll('[data-pass-count]').forEach(btn=>btn.onclick=()=>{S.passDraftCount=Number(btn.dataset.passCount);renderNames();});
-$('passBegin').onclick=()=>{
-S.passDraftNames=[...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim()||'Person '+(i+1));
-const pool=passCandidates();
-if(!pool.length){removePassSurface();appToast('There are no choices left to pass around.');return;}
-S.pass={type:S.screen==='restaurant'?'restaurant':'food',players:S.passDraftNames,choiceIndex:0,voterIndex:0,history:[],poolIds:pool.map(x=>x.id)};
-drawPass();
-};
-}
-function currentPassItem(){
-const id=S.pass?.poolIds?.[S.pass.choiceIndex];
-return passCandidates().find(x=>x.id===id);
-}
-function drawPass(){
-const p=S.pass;
-if(!p)return;
-if(p.choiceIndex>=p.poolIds.length)return finishPass();
-const item=currentPassItem();
-if(!item){p.choiceIndex++;p.voterIndex=0;return drawPass();}
-const voter=p.players[p.voterIndex]||'Next person';
-const img=foodPhoto(item);
-const fallback=foodPhotoFallback(item);
-const image= S.screen==='restaurant' ? (item.photo||item.image||'') : img;
-const imageFallback= S.screen==='restaurant' ? (item.photo||item.image||REST_QUICK_IMAGES.American) : fallback;
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
-$('passClose').onclick=()=>endPass();
-$('passBack').onclick=passUndo;
-$('passCut').setAttribute('aria-label','Cut this choice');
-$('passKeep').setAttribute('aria-label','Keep this choice');
-$('passCut').onclick=()=>passVote(false);
-$('passKeep').onclick=()=>passVote(true);
-const next=p.poolIds[p.choiceIndex+1] ? passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]) : null;
-if(next){
-const nsrc=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhoto(next);
-$('passNextCard').classList.remove('hidden');
-const passNextImg = $('passNextCard img');
-if (passNextImg) {
-passNextImg.src=nsrc;
-passNextImg.dataset.fallback=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhotoFallback(next);
-passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
-}
-}
-$('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
-
-}
-function passVote(keep){
-const p=S.pass,item=currentPassItem();
-if(!p||!item)return;
-p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,choiceId:item.id,keep});
-if(!keep){
-p.poolIds=p.poolIds.filter(id=>id!==item.id);
-if(p.poolIds.length===1)return finishPass();
-p.choiceIndex=Math.min(p.choiceIndex,Math.max(0,p.poolIds.length-1));
-p.voterIndex=0; drawPass(); return;
-}
-if(p.voterIndex<p.players.length-1){p.voterIndex++;drawPass();return;}
-p.choiceIndex++;p.voterIndex=0;drawPass();
-}
-function passUndo(){
-const p=S.pass;if(!p?.history?.length)return;
-const last=p.history.pop();
-if(!last.keep&&last.choiceId&&!p.poolIds.includes(last.choiceId))p.poolIds.splice(Math.min(last.choiceIndex,p.poolIds.length),0,last.choiceId);
-p.choiceIndex=last.choiceIndex;p.voterIndex=last.voterIndex;drawPass();
-}
-function finishPass(){
-const p=S.pass;if(!p)return;
-const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
-S.pass=null;removePassSurface();
-if(rows.length===1){winner(rows[0]);return;}
-if(!rows.length){winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
-if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
-else {S.pool=rows;S.index=0;drawFood();}
-save();
-}
-function endPass(){
-const p=S.pass;if(!p)return;
-const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
-S.pass=null;removePassSurface();
-if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
-else {S.pool=rows;S.index=0;drawFood();}
-save();
 }
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
@@ -1469,9 +1393,6 @@ $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
 $('foodHide').onclick = foodHide;
 $('addFood').onclick = manageFoodsView;
-$('randomOne').onclick = randomCutOne;
-$('foodPassAround').onclick = passSetup;
-$('restaurantPassAround').onclick = passSetup;
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
 const appMenu = $('menu'); if (appMenu) appMenu.onclick = openDrawer;
@@ -1545,8 +1466,7 @@ restaurantMaybeRound:!!S.restaurantMaybeRound,
 restaurantCuts:[...S.restaurantCuts],
 winner:S.winnerItem ? {...S.winnerItem} : null,
 winnerType:S.winnerType,
-location:S.location ? {...S.location} : null,
-pass:S.pass ? JSON.parse(JSON.stringify(S.pass)) : null
+location:S.location ? {...S.location} : null
 })
 };
 }

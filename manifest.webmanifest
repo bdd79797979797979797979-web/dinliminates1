@@ -11,12 +11,6 @@
   "description": "Dinner decisions without the endless scrolling.",
   "icons": [
     {
-      "src": "./icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
@@ -27,6 +21,12 @@
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

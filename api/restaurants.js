@@ -27,7 +27,7 @@ function isFastFoodName(name,brand='',operator=''){return FAST.test(String(name|
 function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
 async function json(url,opt={},timeout=9000){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),timeout);try{const r=await fetch(url,{...opt,signal:ctl.signal,headers:{Accept:'application/json',...(opt.headers||{})}});const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}if(!r.ok)throw new Error('HTTP '+r.status);return data}finally{clearTimeout(t)}}
-function rate(req,mode){const key=mode+':'+String(req?.headers?.['x-forwarded-for']||'anon').split(',')[0].trim(),now=Date.now(),old=buckets.get(key),max=(mode==='suggest'||mode==='reverse'||mode==='resolve')?40:18;if(!old||now-old.t>60000){buckets.set(key,{t:now,c:1});return false}old.c++;return old.c>max}
+function rate(req,mode){const headers=req?.headers||{},client=String(headers['x-forwarded-for']||headers['client-ip']||headers['x-nf-client-connection-ip']||headers['cf-connecting-ip']||'anon').split(',')[0].trim()||'anon',key=mode+':'+client,now=Date.now(),old=buckets.get(key),max=(mode==='suggest'||mode==='reverse'||mode==='resolve')?40:18;if(!old||now-old.t>60000){buckets.set(key,{t:now,c:1});return false}old.c++;return old.c>max}
 function osmRow(el,origin){const t=el?.tags||{},lat=n(el?.lat??el?.center?.lat),lon=n(el?.lon??el?.center?.lon),name=String(t.name||'').trim();if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return null;const amen=String(t.amenity||'restaurant').toLowerCase(),fast=amen==='fast_food'||isFastFoodName(name,String(t.brand||''),String(t.operator||''));let website=String(t.website||t['contact:website']||'').trim();if(website&&!/^https?:\/\//i.test(website))website='https://'+website;const key=norm(name)+'|'+lat.toFixed(4)+'|'+lon.toFixed(4);return{id:el?.osm_id?'osm-'+el.osm_id:'osm-'+key.replace(/ /g,'-'),name,category:fast?'Fast Food':(String(t.cuisine||'').trim()||'Restaurant'),fastFood:fast,cuisine:String(t.cuisine||''),address:[t['addr:housenumber'],t['addr:street'],t['addr:city'],t['addr:state'],t['addr:postcode']].filter(Boolean).join(', '),phone:String(t.phone||t['contact:phone']||''),website,opening_hours:String(t.opening_hours||''),lat,lon,distance:miles(origin.lat,origin.lon,lat,lon),photo:String(t.image||t.image_url||''),menuItems:[t.dish,t['dish:name'],t['menu:items'],t.menu_items].flatMap(v=>String(v||'').split(/[|;•,]/)).map(x=>x.trim()).filter(Boolean).slice(0,10),brand:String(t.brand||''),source:'OpenStreetMap'} }
 function query(lat,lon,radius,types=DINING_AMENITIES){
  const m=Math.round(Math.min(50,radius)*1609.344);
@@ -195,7 +195,19 @@ async function suggest(q){
  const seen=new Set();return rows.filter(x=>{const k=norm(x.display);if(seen.has(k))return false;seen.add(k);return true}).slice(0,7)
 }
 async function reverse(lat,lon){try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?'+new URLSearchParams({location:lon+','+lat,f:'json'}),{},7000);return String(d?.address?.Match_addr||'Current location')}catch{return'Current location'}}
-function requestQuery(req){try{return new URL(String(req?.url||'/'),'https://dinliminate.local').searchParams}catch{return new URLSearchParams()}}
+function requestQuery(req){
+ const source=req?.query&&typeof req.query==='object'?req.query:(req?.queryStringParameters&&typeof req.queryStringParameters==='object'?req.queryStringParameters:null);
+ if(source){
+  const out=new URLSearchParams();
+  for(const [key,value] of Object.entries(source)){
+   if(value==null)continue;
+   const val=Array.isArray(value)?value[0]:value;
+   if(val!=null)out.set(key,String(val));
+  }
+  return out;
+ }
+ try{return new URL(String(req?.url||'/'),'https://dinliminate.local').searchParams}catch{return new URLSearchParams()}
+}
 async function handler(req,res){const q=requestQuery(req),mode=String(q.get('mode')||'health').toLowerCase();if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Too many requests. Try again shortly.'});try{
 if(mode==='health'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=60, s-maxage=60, stale-while-revalidate=120');return res.status(200).json({ok:true,version:'r14',maxRadiusMiles:MAX_RADIUS,providers:['OpenStreetMap Overpass','ArcGIS','Photon','Open-Meteo timezone']});}
 if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');return res.status(200).json({ok:true,results:await suggest(q.get('q'))});}
@@ -222,13 +234,9 @@ if(mode==='search'){
   const fallbackRadius=Math.min(radius,50);
   const remaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
   if(remaining>1000){
-    const got=await withinBudget(Promise.allSettled([overpass(lat,lon,fallbackRadius,'restaurant|fast_food'),overpass(lat,lon,fallbackRadius,'fast_food')]),remaining,'Overpass fallback timed out');
-    if(Array.isArray(got)){
-      for(const x of got){
-        if(x.status==='fulfilled'){osmOut.rows.push(...(x.value?.rows||[]));osmOut.errors.push(...(x.value?.errors||[]))}
-        else osmOut.errors.push(String(x.reason?.message||x.reason||'Overpass unavailable'));
-      }
-    }else osmOut.errors.push('Overpass fallback timed out');
+    const got=await withinBudget(overpass(lat,lon,fallbackRadius,'restaurant|fast_food'),remaining,'Overpass fallback timed out');
+    if(got&&!got.__timeout){osmOut.rows.push(...(got.rows||[]));osmOut.errors.push(...(got.errors||[]))}
+    else osmOut.errors.push('Overpass fallback timed out');
   }else osmOut.errors.push('Search budget reached before Overpass fallback.');
  }
  if(radius>50&&(!preliminary.length||preliminaryFast===0)){

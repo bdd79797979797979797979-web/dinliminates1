@@ -1,16 +1,16 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
-new vm.Script(foods);new vm.Script(app);new vm.Script(api);
-for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne'])assert(html.includes(s),'missing HTML contract: '+s);
-assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
+const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
+new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));
+for(const s of ['Dinner Decisions Simplified','Choose a food','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
+assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
-for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor','passSetup','passVote','passUndo'])assert(app.includes(s),'missing app contract: '+s);
+for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r14'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
-assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
+assert(app.includes('data-food-edit') && app.includes('editQuickCut') && !app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore without Delete controls');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 assert(app.includes('legacyKeys') && app.includes('cutPrimary'),'Persisted state migration must retire legacy fields');
 console.log('Dinliminate clean static QA: PASS');
@@ -38,18 +38,29 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===65,'The current 65-food deck must be present');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===116,'The current 116-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===65,'Food deck must contain exactly 65 foods');
+assert(foodRows.length===116,'Food deck must contain exactly 116 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
-for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+for(const name of ['Fajitas','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers','Chicken Pot Pie','BLT','Reuben','Hot Dog','Corn Dog','Nachos','Orange Chicken','Chicken Teriyaki','Sushi','Pancakes','Omelet','Oatmeal','Shrimp','Crab Cakes','Gumbo','Chicken Nuggets','Ramen','Pimento Cheese Sandwich','Ice Cream','Protein Bar','Candy Bar','Banana','Apple']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
 assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
+assert(foodRows.filter(x=>x.quickCuts?.includes('Pork')).length===0,'No built-in food should retain the removed Pork Quick Cut');
+assert.deepEqual(foodRows.find(x=>x.id==='homemade-pizza')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='meatball-subs')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='sausage-peppers')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-chops')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-tenderloin')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='white-fish')?.quickCuts,['Healthy']);
+assert.deepEqual(foodRows.find(x=>x.id==='biscuits-gravy')?.quickCuts,['Breakfast']);
+assert.equal(foodRows.find(x=>x.id==='mashed-potatoes')?.name,'Mashed Potatoes');
+assert.ok(foodRows.find(x=>x.id==='white-fish')?.ingredients?.length && foodRows.find(x=>x.id==='white-fish')?.nutrition && foodRows.find(x=>x.id==='white-fish')?.recipe);
+assert.ok(foodRows.find(x=>x.id==='pork-tenderloin')?.ingredients?.length && foodRows.find(x=>x.id==='pork-tenderloin')?.nutrition && foodRows.find(x=>x.id==='pork-tenderloin')?.recipe);
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
+assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
@@ -69,11 +80,9 @@ assert(!html.includes('Continue saved round'),'Front page should not show a Cont
 assert(html.includes('id="backToStart"'),'Menu must include Back to Start');
 assert(html.includes('id="celebration"'),'Winner must include celebration layer');
 assert(!html.toLowerCase().includes('clean rebuild'),'HTML should not mention build-internal wording');
-assert(app.includes("const randomCutOne()") || app.includes("function randomCutOne()"),'Random Cut One handler must exist');
-assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='125','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app),'About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -83,20 +92,20 @@ assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protoco
 assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
-const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon-512.png'") && sw.includes("'./apple-touch-icon.png'"),'Offline shell must cache both PWA raster icons');
-assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
+const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon.svg'"),'Offline shell must cache the PWA icon');
+assert(html.includes('rel="icon"') && html.includes('./icon.svg'),'PWA icon link contract missing');
 assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
-assert((html.match(/id="restaurantPassAround"/g)||[]).length===1,'Restaurant Pass Around must have one compact tool-row control');
+
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
-for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
+for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
-for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','BBQ']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
@@ -112,10 +121,8 @@ assert(app.includes('right to Keep'),'Right swipe must communicate Keep semantic
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
 
 const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
-assert(fs.existsSync('icon-512.png'),'512px PWA icon asset is required');
-assert(fs.existsSync('apple-touch-icon.png'),'180px iOS icon asset is required');
-assert(manifest.icons.some(x=>x.src==='./icon-512.png'&&x.sizes==='512x512'),'manifest must declare the 512px PNG icon');
-assert(manifest.icons.some(x=>x.src==='./apple-touch-icon.png'&&x.sizes==='180x180'),'manifest must declare the 180px iOS PNG icon');
+assert(fs.existsSync('icon.svg'),'PWA icon asset is required');
+assert(manifest.icons.some(x=>x.src==='./icon.svg'),'manifest must declare the available PWA icon');
 assert(manifest.id==='./'&&manifest.scope==='./'&&manifest.orientation==='portrait','manifest PWA identity/orientation contract must be stable');
 const vercelConfig=JSON.parse(fs.readFileSync('vercel.json','utf8'));
 const globalHeaders=vercelConfig.headers?.find(x=>x.source==='/(.*)')?.headers||[];
@@ -133,10 +140,11 @@ assert(app.includes('CURRENT BUILD'),'About must label the build as Current Buil
 assert(/S\.pool\.length\s*===\s*1/.test(app) && app.includes("winner(item)"),'Final Food choice must enter Winner instead of Hungry');
 assert(app.includes('restaurantWebsiteUrl') && app.includes('google.com/search'),'Restaurant Website must have a Google fallback');
 assert(app.includes('id="restDetails"') && app.includes('icon-action') && app.includes('details-icon'),'Restaurant Details must be a working compact icon control');
-assert(app.includes("pass-surface") && !app.includes("openModal('passModal"),'Pass Around must use the full-page swipe surface instead of a voting modal');
 assert(app.includes('quick-chip-photo'),'Food and Restaurant Quick Cuts must render real image elements');
 assert(css.includes('.luxury-home h1{max-width:12em'),'Home title must be allowed to wrap fully on iPhone');
 assert(app.includes('function appDiagnosisView'),'Settings must expose the App Diagnosis panel');
+assert(app.includes("modal.classList.add(shellClass)") && app.includes("refresh.classList.add('selected')"),'App Diagnosis should be rendered in a stable existing modal shell and expose a running state');
+assert(css.includes('.diagnosis-modal{min-height:'),'App Diagnosis must have a dedicated stable full-size modal layout');
 assert(app.includes('id="appDiagnosis"') && app.includes('appDiagnosisView'),'Settings must include an App Diagnosis launcher'); assert(app.includes("Run '+run+' selected · checking now…") && app.includes("classList.add('selected')"),'App Diagnosis must visibly indicate Run again is selected while diagnostics run');
 assert(app.includes('diagnosisRestaurantDuplicates'),'App Diagnosis must detect possible restaurant duplicates in the loaded pool');
 assert(app.includes('restaurantWebsiteUrl'),'Restaurant diagnosis must include website fallback support');
@@ -144,6 +152,97 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '125'"),'CP250 build should be 125');
+assert(app.includes("let APP_BUILD = '133'"),'CP262 build should be 133');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
-assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('36863862')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('28503619')&&foods.includes('7974814'),'CP246 stabilized food photo mappings should be present');
+assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
+
+// CP258 food catalog expansion and Quick Cut contracts.
+const byId=new Map(foodRows.map(x=>[x.id,x]));
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick Cut button list should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
+assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
+assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
+const cp258Cuts={
+'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
+for(const [id,cuts] of Object.entries(cp258Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,id+' Quick Cut mapping');
+assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed'); assert(!/const FOOD_QUICK\s*=\s*\[[^\]]*['"]Pork['"]/.test(app),'Food Quick Cut list must not reintroduce Pork');
+
+
+// CP259 requested food catalog additions and ordering.
+const cp259Cuts={
+'turkey-dinner':['Southern','American'],
+'ham-dinner':['Southern','American'],
+'lobster':['Healthy'],
+'crab-legs':['Healthy'],
+'liver-and-onions':['Southern','Healthy'],
+'duck-dinner':['American'],
+'mexican-burrito':['Mexican'],
+'quesadillas':['Mexican'],
+'roast-beef-sandwich-chips':['American'],
+'eggplant-meal':['Healthy'],
+'ravioli':['Pasta','Italian'],
+'pinto-beans-cornbread':['Southern'],
+'banana-split':['Snack'],
+'fried-eggs':['Breakfast'],
+'boiled-eggs':['Breakfast','Healthy'],
+'mixed-nuts':['Snack','Healthy'],
+'smoked-brisket-sides':['Southern'],
+'clam-chowder':['Soup/Stew'],
+'turkey-sandwich-chips':['American'],
+'masala-pasta':['Pasta'],
+'enchiladas':['Mexican'],
+'white-chicken-chili':['Soup/Stew','Mexican'],
+'corn-chowder':['Soup/Stew'],
+'jell-o':['Snack'],
+'pudding':['Snack'],
+'cottage-cheese':['Healthy']
+};
+for(const [id,cuts] of Object.entries(cp259Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,'CP259 '+id+' Quick Cut mapping');
+for(const id of Object.keys(cp259Cuts)) assert(byId.has(id),'Missing CP259 food: '+id);
+assert.equal(byId.get('gumbo')?.quickCuts?.join('|'),'Southern|Soup/Stew','Gumbo should remain Southern + Soup/Stew');
+assert.equal(byId.get('fish-sticks')?.name,'Fish Sticks','Fish Sticks should remain in the catalog');
+assert.equal(foodRows[foodRows.length-1]?.id,'fish-sticks','Fish Sticks must be the final built-in food');
+assert.equal(foodRows.filter(x=>x.name==='Roast Beef Sandwich + Chips').length,1,'Roast Beef Sandwich + Chips must not be duplicated');
+assert.equal(foodRows.filter(x=>x.id==='gumbo').length,1,'Gumbo must not be duplicated');
+assert.equal(foodRows.length,116,'CP259 built-in food deck must contain exactly 116 foods');
+console.log('Dinliminate CP259 food catalog QA: PASS');
+
+assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=hungry?'Fish Sticks?':''"),'Hungry winner must show the Fish Sticks? prompt');
+assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-action\" id=\"detailHide\">Hide</button>'"),'Hungry Details must omit Hide');
+
+
+// CP260 UI contracts.
+assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
+assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
+assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
+assert(app.includes("const quickCats=cats") && app.includes("cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
+assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes("if(!quickCuts.includes(cat)) quickCuts.unshift(cat)"),'Custom Food Quick Cut editor should include Other and persist the selected category as a Quick Cut');
+
+// CP261 Vercel image proxy contract.
+const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com'];
+assert(imageApi.includes('ALLOWED_HOSTS')&&imageApi.includes('MAX_BYTES'),'Vercel image proxy must use an explicit allowlist and response size cap');
+assert(imageApi.includes("u.protocol!=='https:'"),'Vercel image proxy must reject non-HTTPS upstream URLs');
+assert(imageProxyHosts.every(h=>imageApi.includes("'"+h+"'")),'Vercel image proxy allowlist must cover all current food image hosts');
+assert(imageApi.includes("Cache-Control")&&imageApi.includes("s-maxage=604800"),'Vercel image proxy must be edge-cacheable');
+assert(app.includes('function imageProxyUrl')&&app.includes('/api/image?url='),'App must route supported external images through the Vercel image proxy');
+assert(html.includes('/api/image?url='),'Home images must use the Vercel image proxy');
+console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
+
+assert(fs.readFileSync('vercel.json','utf8').includes('"api/image.js"') && fs.readFileSync('vercel.json','utf8').includes('"maxDuration": 10'),'Vercel image proxy function must have a 10-second max duration');
+
+assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classList.add('diagnosis-modal')"),'App Diagnosis must use only the existing Settings modal shell');
+assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
+
+assert(app.includes("const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Food editor cuisine/category dropdown must include Other');
+assert(app.includes('restaurantDirectionsUrl') && app.includes('detailDirections') && app.includes('Get Google Maps directions'),'Restaurant Details must include Google Maps directions');
+assert(app.includes('restaurant-detail-contact-link') && app.includes('phoneHref(item.phone)'),'Restaurant Details must include a tap-to-call phone number');
+assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
+assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('How to add to your phone'),'Current Home copy must be present');
+
+// CP323 Restaurant Details visibility contract
+assert(app.includes("type==='restaurant'?'Restaurant Details':'Details'"),'Restaurant Details modal must have an explicit Restaurant Details title');
+assert(app.includes('restaurant-detail-contact') && app.includes('Google Maps ↗') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
+assert(css.includes('#detailsModal .restaurant-detail-contact') && css.includes('#detailsModal .contact-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');

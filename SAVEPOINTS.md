@@ -546,3 +546,81 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 ## CP157 — Accessibility controls
 - Restaurant address and radius are explicitly named for assistive technology.
 - Static QA guards those names.
+
+
+## CP257 — Food catalog/photo/UI cleanup
+- Working branch: `cp257-food-catalog-refresh-2026-09-29`
+- Starting recovery: `recovery-cp256-user-request-before-food-refresh-2026-09-29`
+- Pre-QA checkpoint: `checkpoint-cp257-catalog-and-details-2026-09-29` at `e4bab69f493a7eb42045ff829d37cda9594b8882`
+- QA checkpoint: `checkpoint-cp257-qa-synced-2026-09-29` at `aabc513c84448b7f2b7d08ff4ec6ed65739dbd23`
+- Catalog: 67 foods, including Pork Tenderloin and White Fish.
+- Quick Cuts: Italian added; Pork removed from Food Quick Cuts.
+- Categories: Pizza, Meatball Sub, and Sausage & Peppers → Italian; Biscuits & Gravy → Breakfast; Pork Chops and Pork Tenderloin → Southern; White Fish → Healthy.
+- UI: Details sheet starts directly below the decision header; Food Delete controls removed; Settings Food Choices section removed; Hide/Restore is the Food management path.
+- Do not delete prior recovery branches. Use the pre-QA checkpoint if QA-only changes destabilize the release candidate.
+
+
+## CP258 — expanded Food catalog
+- Working branch: `cp258-food-catalog-expansion-2026-09-30`
+- Pre-edit recovery: `recovery-cp258-before-new-foods-2026-09-30`
+- Core recovery: `checkpoint-cp258-catalog-core-2026-09-30`
+- QA recovery: `checkpoint-cp258-qa-2026-09-30`
+- Catalog: 90 foods.
+- Food Quick Cuts: Greek removed; Snack includes sweets; Gyro is Healthy only.
+- Fajitas replaces Mexican Stir Fry.
+- Build: 1.0 / 127.
+- Do not delete the CP258 recovery branches.
+
+
+## CP259 — Food catalog additions
+- Build 128; 116 built-in foods.
+- Requested additions completed with Quick Cut mappings.
+- Fish Sticks moved to final catalog position; Gumbo and Roast Beef Sandwich + Chips are not duplicated.
+- Recovery: `checkpoint-cp259-food-catalog-added-2026-09-30`; `checkpoint-cp259-qa-ready-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+## CP260 — Quick Cut / Hungry cleanup
+- Liver & Onions now uses Southern + Healthy.
+- Food Quick Cuts reordered to American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Hungry winner shows “Fish Sticks?” and its Details view omits Hide.
+- Build 129; recovery points saved before and after product edits.
+
+
+## CP260 — Pass Around rebuild and card polish
+- Build 130.
+- Quick Pass default; Full Pass optional.
+- Liver & Onions: Southern + Healthy.
+- Hungry Details: no Hide; small “Fish Sticks?” prompt.
+- Restaurant Details beside cuisine; App Diagnosis green.
+- Recovery: `checkpoint-cp260-pass-around-tested-2026-09-30`.
+
+- **Final CP260 verified commit:** `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
+- Final recovery branch: `checkpoint-cp260-final-verified-2026-09-30`.
+
+- CP261 Build 131 final source commit: `51579fe6318d73813db9a3b3956457affc35a0ed`; recovery branch to be anchored after documentation sync.
+
+
+## CP260 — Final phone-first verification
+- Build **132**.
+- Food Quick Cuts reordered: American, Southern, Mexican, Italian, Asian, Pasta, Soup/Stew, Healthy, Breakfast, Potato, Snack.
+- Liver & Onions: Southern + Healthy.
+- Spaghetti, Pasta Alfredo, Lasagna, Chicken Parmesan: Pasta + Italian.
+- Custom Food Quick Cut “Other” is optional and appears in the global Food Quick Cuts only after a custom food uses it.
+- Hungry screen: black Hungry artwork with small “Fish Sticks?”; Hungry Details has no Hide.
+- Restaurant Details icon is inline with and to the right of cuisine.
+- App Diagnosis is green.
+- Tinder swipe path uses pointer capture to reduce missed/duplicate touch events.
+- Pass Around defaults to Quick Pass, keeps Full Pass as the optional original mode, supports Back/Undo, rotates starting voter after completed sessions, and Cancel leaves the main deck unchanged.
+- Recovery: `checkpoint-cp260-final-code-verified-2026-09-30` and `checkpoint-cp260-current-pre-new-edits-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+- CP261 Netlify sync trigger: current PR head was explicitly re-touched to force the Netlify Deploy Preview to rebuild from the latest commit.
+
+
+## CP262 — Final UI/reliability savepoint
+- Build 133.
+- Diagnosis modal size flash removed; teal Diagnosis styling.
+- 116 foods and requested Quick Cut mappings retained.
+- Phone swipe hardening and Quick/Full Pass modes retained.
+- Vercel image proxy remains enabled.
+- Recovery: `checkpoint-cp262-final-teal-swipe-2026-09-30`.

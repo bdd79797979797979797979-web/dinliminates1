@@ -18,6 +18,14 @@ await new Promise(resolve=>server.listen(4175,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:393,height:852},isMobile:true,hasTouch:true});
 const page=await context.newPage();
+const tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
+await page.route('**/*',async route=>{
+  const u=route.request().url();
+  if(u.startsWith('https://images.pexels.com/')||u.startsWith('https://images.unsplash.com/')||u.startsWith('https://commons.wikimedia.org/')||u.includes('/api/image?url=')){
+    return route.fulfill({status:200,contentType:'image/png',body:tinyPng});
+  }
+  return route.continue();
+});
 const errors=[];
 page.on('pageerror',e=>errors.push(String(e)));
 page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});

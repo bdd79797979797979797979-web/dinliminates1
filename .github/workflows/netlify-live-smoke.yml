@@ -1,0 +1,22 @@
+name: Dinliminate Live Netlify Smoke
+
+on:
+  push:
+    branches: [cp277-netlify-preview-fresh-2026-09-30]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: node qa/netlify-preview-smoke.mjs
