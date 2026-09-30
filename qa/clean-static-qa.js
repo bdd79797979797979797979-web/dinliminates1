@@ -176,7 +176,7 @@ const cp259Cuts={
 'ham-dinner':['Southern','American'],
 'lobster':['Healthy'],
 'crab-legs':['Healthy'],
-'liver-and-onions':['Southern'],
+'liver-and-onions':['Southern','Healthy'],
 'duck-dinner':['American'],
 'mexican-burrito':['Mexican'],
 'quesadillas':['Mexican'],
