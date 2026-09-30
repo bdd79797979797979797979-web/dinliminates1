@@ -347,7 +347,7 @@ const searchRequests=[];
 page.on('request',req=>{if(req.url().includes('/api/restaurant-search?mode=search'))searchRequests.push(req.url());});
 const requestsBeforeRadius=searchRequests.length;
 await page.locator('#radius').selectOption('5');
-await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.innerText.includes('3 choices')||document.querySelector('#status')?.textContent.includes('4 restaurants'));
+await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.innerText.includes('5 choices')||document.querySelector('#status')?.textContent.includes('5 restaurants'));
 await settle();
 assert.ok(searchRequests.length>requestsBeforeRadius,'Changing radius should automatically trigger a restaurant search');
 assert.equal(await page.locator('#radius').inputValue(),'5','Radius control should retain the selected value');
