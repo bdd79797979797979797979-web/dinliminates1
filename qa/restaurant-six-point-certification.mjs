@@ -128,6 +128,15 @@ report["2_search_address"].autocomplete=true;
 report["2_search_address"].selectedAddress=await page.locator('#address').inputValue();
 report["2_search_address"].coordinates=s.location;
 
+// Also verify a complete typed address can be submitted directly with Enter (without choosing a suggestion).
+await page.locator('#address').fill('801 Iron Workers Rd, Clarksville, TN 37043');
+await page.locator('#address').press('Enter');
+await waitForRestaurant();
+s=await snap();
+assert.equal(s.locationSource,'address');
+assert.equal(await page.locator('#address').inputValue(),'801 Iron Workers Rd, Clarksville, TN 37043');
+report["2_search_address"].directEnter=true;
+
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
 const radii=[1,3,5,10,25,50,100];
@@ -203,19 +212,30 @@ assert.deepEqual(await page.locator('#restQuick [data-rest-quick]').evaluateAll(
 assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10);
 const quickResults={};
 for(const label of labels){
+  const before=(await snap()).restaurantPool.length;
   await page.locator('[data-rest-quick="'+label+'"]').click();
   await settle();
   const after=await snap();
   const matching=after.restaurantPool;
-  assert.ok(matching.length<allResults.filter(x=>x.distance<=100).length || label==='American','Quick Cut '+label+' did not narrow the pool');
-  quickResults[label]={remaining:matching,remainingCount:matching.length};
+  assert.ok(matching.length<before,'Quick Cut '+label+' did not narrow the active pool');
+  quickResults[label]={beforeCount:before,remaining:matching,remainingCount:matching.length};
   await page.locator('[data-rest-quick="'+label+'"]').click();
   await settle();
+  assert.equal((await snap()).restaurantPool.length,before,'Quick Cut '+label+' did not restore the pool when toggled off');
 }
 s=await snap();
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10);
 report["6_quick_cuts"].results=quickResults;
 report["6_quick_cuts"].allRenderedWithPhotos=true;
+
+// Reliability pass: five consecutive Refresh operations at the same location/radius.
+requests.length=0;
+for(let i=0;i<5;i++){
+  await page.locator('#find').click();
+  await waitForRestaurant();
+}
+assert.ok(requests.length>=5,'Five consecutive Refresh operations should each reach the restaurant endpoint');
+report.repeatedRefreshes={attempts:5,searchRequests:requests.length};
 
 assert.equal(pageErrors.length,0,'Browser page errors: '+JSON.stringify(pageErrors));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+JSON.stringify(consoleErrors));
