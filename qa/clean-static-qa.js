@@ -84,7 +84,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='131','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='132','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -103,7 +103,7 @@ assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from 
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
-for(const label of ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Snack','Potato']) {
+for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
@@ -155,7 +155,7 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '131'"),'CP260 build should be 130');
+assert(app.includes("let APP_BUILD = '132'"),'CP260 build should be 132');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
 assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
 
@@ -216,11 +216,17 @@ assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-a
 
 // CP260 UI + Pass Around contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
 assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#2f8f5b,#236e45)'),'App Diagnosis should use the green system action treatment');
+assert(app.includes("label:'Quick Pass · Default'"),'Quick Pass should be the default labeled mode');
+assert(app.includes("label:'Full Pass · Original'"),'Full Pass should remain the optional original mode');
 assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
 assert(app.includes("mode:S.passDraftMode") && app.includes("p.mode==='quick'"),'Pass Around should persist the selected mode and branch behavior');
 assert(app.includes('majority decides early') && app.includes('Everyone must keep a choice.'),'Pass Around modes should clearly explain Quick vs Full behavior');
 assert(app.includes('Back = Undo') && app.includes('p.history.push(before)'),'Pass Around must support deterministic undo');
-assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly')
+assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly');
+assert(app.includes('S.pass=null;removePassSurface();') && !app.includes('S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);'),'Canceling Pass Around should not advance the starting voter');
+assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
