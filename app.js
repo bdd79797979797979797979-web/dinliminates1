@@ -1011,11 +1011,6 @@ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.foc
 queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
 return modal;
 }
-}
-});
-queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
-return modal;
-}
 function detailsSheet(item,type){
  const image=imageProxyUrl(item.image||item.photo||HUNGRY_IMAGE),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
  const nutrition=type==='food'&&item.nutrition?'<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid"><div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div><div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div><div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div><div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div><div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>':'';
@@ -1023,12 +1018,11 @@ function detailsSheet(item,type){
  const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
  const menu=type==='restaurant'&&menus.length?'<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menus.slice(0,8).join(' · '))+'</p></div>':'';
  const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
- const phoneHrefValue=item.phone?phoneHref(item.phone):'';
- const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHrefValue)+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<div class="restaurant-detail-contact-muted"><span class="contact-label">Phone</span><strong>Not available</strong></div>';
+ const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHref(item.phone))+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<div class="restaurant-detail-contact-muted"><span class="contact-label">Phone</span><strong>Not available</strong></div>';
  const addressLink=item.address?'<div class="restaurant-detail-address"><span class="contact-label">Address</span><strong>'+esc(item.address)+'</strong></div>':'';
  const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div></div><div class="restaurant-detail-contact"><div class="contact-card">'+phoneLink+addressLink+'</div><div class="contact-actions"><a class="detail-web-action detail-website-action" id="detailWeb" href="'+esc(restaurantWebsiteUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Open restaurant website or Google search fallback">'+(safeExternalUrl(item.website)?'Website ↗':'Google Search ↗')+'</a><a class="detail-web-action detail-directions-action" id="detailDirections" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions">Google Maps ↗</a></div></div></div>':'';
  const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE;
- const actionBar=type==='restaurant'?'':((item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>'));
+ const actionBar=type==='restaurant'?'':(item?.category==='Hungry'?'':'<button class="detail-hide-action" id="detailHide">Hide</button>');
  const body='<div class="detail-grid '+(type==='restaurant'?'restaurant-details-content':'')+'"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+final+'" alt="'+esc(item.name)+'"><div class="detail-title-block"><span class="detail-kicker">'+(type==='restaurant'?'RESTAURANT DETAILS':'DETAILS')+'</span><h2>'+esc(item.name)+'</h2></div>'+meta+(type==='restaurant'?'':'<p class="status">'+esc(item.category||'')+'</p>')+nutrition+ingredients+menu+recipe+(actionBar?'<div class="detail-actions-row">'+actionBar+'</div>':'')+'</div>';
  const modal=openModal('detailsModal',type==='restaurant'?'Restaurant Details':'Details',body);bindImageFallback('#detailsModal img',type==='restaurant'?imageProxyUrl(item.photo||item.image||''):foodPhoto(item),final);
  const detailHide=$('detailHide'); if(detailHide) detailHide.onclick=async()=>{const hidden=type==='restaurant'?await restaurantHide(item):await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
