@@ -739,3 +739,38 @@
 .card-cuisine-row .card-details-action{flex:0 0 28px;margin:0!important}
 
 .restaurant-tools{grid-template-columns:1fr 1fr!important}
+
+
+/* CP274 — stable, readable App Diagnosis panel */
+.diagnosis-modal{min-height:min(78svh,720px)!important;max-height:88svh!important;overflow:auto}
+.diagnosis-modal .modal-head{position:sticky;top:-16px;z-index:4;background:#151515;padding-top:2px;margin:-2px -1px 0}
+.diagnosis-wrap{display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
+.diagnosis-loading{min-height:46svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;color:#ddd}
+.diagnosis-loading b{font-size:18px;letter-spacing:-.02em}
+.diagnosis-loading small{max-width:280px;color:#858078;font-size:10px;line-height:1.5}
+.diagnosis-spinner{width:24px;height:24px;border:2px solid #39342d;border-top-color:#d7bd7b;border-radius:50%;animation:diagnosisSpin .8s linear infinite}
+@keyframes diagnosisSpin{to{transform:rotate(360deg)}}
+.diagnosis-summary-strong{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:9px;padding:12px;border:1px solid #3a342b;border-radius:15px;background:#1a1815}
+.diagnosis-summary-strong>b{font-size:16px}
+.diagnosis-summary-strong>div{min-width:0}
+.diagnosis-summary-strong>div>b{display:block;font-size:16px}
+.diagnosis-summary-strong>div>small{display:block;margin-top:2px;color:#9d958a;font-size:9px;line-height:1.4}
+.diagnosis-summary-strong>strong{font-size:9px;color:#8a8174}
+.diagnosis-status-dot{width:11px;height:11px;border-radius:50%;background:#7fb06f;box-shadow:0 0 0 4px #7fb06f18}
+.diagnosis-status-dot.warn{background:#d3a15a;box-shadow:0 0 0 4px #d3a15a18}
+.diagnosis-status-dot.bad{background:#d06f63;box-shadow:0 0 0 4px #d06f6318}
+.diagnosis-section{border:1px solid #2d2924;border-radius:15px;background:#121110;overflow:hidden}
+.diagnosis-section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;background:#1a1815;border-bottom:1px solid #2d2924}
+.diagnosis-section-head>b{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#d8c9ad}
+.diagnosis-section-head>span{font-size:8px;color:#7f776c;white-space:nowrap}
+.diagnosis-section .diagnosis-row{padding:9px 10px;border-bottom:1px solid #28241f}
+.diagnosis-section .diagnosis-row:last-child{border-bottom:0}
+.diagnosis-row b{font-size:10px}
+.diagnosis-row small{font-size:9px;line-height:1.45}
+.diagnosis-footnote{margin:0;color:#736d64;font-size:8.5px;line-height:1.5}
+.diagnosis-runbar{position:sticky;bottom:-1px;z-index:4;padding-top:7px;background:linear-gradient(#15151500,#151515 28%)}
+.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#1c6c88,#124459)!important;color:#fff!important;border-color:#4f9abb!important;box-shadow:0 8px 20px #12445944!important}
+.settings-system-action.diagnosis-action:hover{background:linear-gradient(180deg,#2387aa,#15546e)!important;border-color:#73bcdb!important}
+.settings-system-action.restore-action{background:linear-gradient(180deg,#b87727,#704715)!important;color:#fff!important;border-color:#d69b50!important;box-shadow:0 10px 24px #70471544!important}
+.settings-system-action.restore-action:hover{background:linear-gradient(180deg,#cc8a31,#87541b)!important;border-color:#e5b66f!important}
+@media(max-width:390px){.diagnosis-modal{min-height:80svh!important}.diagnosis-loading{min-height:48svh}.diagnosis-section-head{padding:8px 9px}.diagnosis-section .diagnosis-row{padding:8px 9px}}
