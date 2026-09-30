@@ -344,6 +344,8 @@ assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.incl
 assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
+assert(api.includes('function restaurantNameKey(value)'),'Restaurant API must normalize apostrophe-s and plain name variants consistently');
+assert(app.includes("replace(/[’']s\\b/gi,'s')"),'Browser Restaurant names must normalize Wendy’s and Wendys consistently');
 assert(api.includes('sameName && !conflictingAddress && dist<=0.08'),'Restaurant API same-name dedupe must use a tight same-venue distance threshold');
 assert(app.includes('const close=Number.isFinite(dist)&&dist<=0.08'),'Browser Restaurant dedupe must use the same tight same-venue distance threshold');
 assert(api.includes('const conflictingAddress=!!ax&&!!ar&&!sameAddress'),'Restaurant dedupe must protect distinct nearby addresses from false merges');
