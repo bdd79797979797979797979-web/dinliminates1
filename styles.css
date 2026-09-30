@@ -798,3 +798,27 @@
 
 /* CP300 — satin-blue creator credit at the bottom of About */
 #aboutModal .about-credit{margin:18px 0 2px;text-align:center;color:#8baec8;font-size:10px;font-weight:750;letter-spacing:.03em;}
+
+
+/* CP316 — premium install guide, centered Home install control, and restaurant detail actions */
+.luxury-home .home-foot{justify-content:center!important;text-align:center!important;padding:20px 0 max(8px,env(safe-area-inset-bottom))!important}
+.luxury-home .home-foot #iphoneHelp{font-size:10px!important;color:#8baec8!important;padding:8px 12px!important;border:1px solid #2d4a5e!important;border-radius:999px!important;background:linear-gradient(180deg,#151a1e,#101316)!important;box-shadow:0 6px 18px #0008!important;letter-spacing:.01em}
+.luxury-home .home-foot #iphoneHelp:active{transform:scale(.98)}
+#iphoneModal .iphone-guide{display:grid;gap:14px;padding:3px 2px 2px}
+#iphoneModal .iphone-guide-intro{padding:4px 2px 2px}
+#iphoneModal .iphone-guide-kicker{display:block;color:#8baec8;font-size:8px;font-weight:900;letter-spacing:.18em}
+#iphoneModal .iphone-guide-intro h4{margin:6px 0 5px;font-size:24px;letter-spacing:-.04em;color:#f4eee6}
+#iphoneModal .iphone-guide-intro p{margin:0;color:#92908a;font-size:11px;line-height:1.5}
+#iphoneModal .iphone-guide-steps{display:grid;gap:8px}
+#iphoneModal .iphone-guide-step{display:grid;grid-template-columns:35px 1fr;gap:10px;align-items:start;padding:11px 10px;border:1px solid #2a3135;border-radius:14px;background:linear-gradient(180deg,#1a1d20,#141617)}
+#iphoneModal .iphone-guide-step>span{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#203645;color:#9ec2d8;font-size:9px;font-weight:900;letter-spacing:.06em}
+#iphoneModal .iphone-guide-step b{display:block;color:#eee7de;font-size:11px;line-height:1.25}
+#iphoneModal .iphone-guide-step small{display:block;margin-top:4px;color:#878983;font-size:9px;line-height:1.45}
+#iphoneModal .iphone-guide-note{padding:10px 11px;border-radius:12px;background:#172128;border:1px solid #294456;color:#93afbd;font-size:9px;line-height:1.45}
+#detailsModal .detail-info-link{display:inline-flex;align-items:center;min-height:30px;width:max-content;color:#9fc9df;text-decoration:none;font-size:10px;font-weight:850}
+#detailsModal .detail-actions-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#detailsModal .detail-web-action{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 13px;border-radius:12px;background:#202a2f;border:1px solid #385562;color:#bfe0ef;text-decoration:none;font-size:10px;font-weight:850}
+#detailsModal .detail-directions-action{background:#182e27;border-color:#315a4d;color:#b9e2d1}
+#restaurantCard .card-card-actions{display:flex;gap:7px;flex-wrap:wrap}
+#restaurantCard .card-card-action{min-width:0}
+#restaurantCard .directions-action{background:#182e27;color:#b9e2d1;border-color:#315a4d}
