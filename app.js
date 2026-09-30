@@ -1817,7 +1817,6 @@ if(e.key==='Enter'){
 if(e.key==='Escape'){ e.preventDefault(); invalidateAddressSuggestions(); }
 });
 bindRestaurantTools();
-renderHours();
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
 $('restart').onclick = resetRound;
