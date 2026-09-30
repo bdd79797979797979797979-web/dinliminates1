@@ -1,6 +1,6 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
-const MAX_RADIUS=50;
-const API_VERSION='r20';
+const MAX_RADIUS=100;
+const API_VERSION='r21';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
@@ -540,7 +540,61 @@ function restaurantPhotoMeta(r){
   return{photo:fallback,photoFallback:'',photoSource:'generic-fallback',photoIsGeneric:true,photoConfidence:0.2};
 }
 function image(r){return restaurantPhotoMeta(r).photo;}
-async function geocode(q){const clean=String(q||'').trim().slice(0,180);if(!clean)throw Object.assign(new Error('Enter a location.'),{code:'EMPTY_LOCATION'});let rows=[];try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'6',outFields:'*',forStorage:'false',countryCode:'USA'}),{},8000);for(const c of d?.candidates||[]){const lat=n(c?.location?.y),lon=n(c?.location?.x);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:String(c.address||c.attributes?.Match_addr||clean),score:n(c.score,0)+500})}}catch{}if(!rows.length){try{const d=await json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'6',lang:'en',countrycode:'US'}),{},8000);for(const f of d?.features||[]){const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);if(Number.isFinite(lat)&&Number.isFinite(lon))rows.push({lat,lon,display:[f?.properties?.name,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean,score:100})}}catch{}}if(!rows.length)throw Object.assign(new Error('That address or area could not be located.'),{code:'NOT_FOUND'});rows.sort((a,b)=>b.score-a.score);return rows[0]}
+function geocodeCandidateScore(query,display,baseScore=0){
+ const qNorm=normalizeSearchQuery(query),dNorm=normalizeSearchQuery(display);
+ const qTokens=qNorm.split(' ').filter(Boolean),dTokens=new Set(dNorm.split(' ').filter(Boolean));
+ let score=Number(baseScore)||0;
+ for(const token of qTokens){
+   if(dTokens.has(token))score+=18;
+   else if(token.length>=4&&dNorm.includes(token))score+=8;
+   else score-=4;
+ }
+ const numberMatch=qNorm.match(/^([0-9]+[a-z]?)(?:\\s|$)/i);
+ if(numberMatch){
+   const nTok=numberMatch[1].toLowerCase();
+   if(new RegExp('^'+nTok+'\\b').test(dNorm))score+=100;
+   else if(/^[0-9]+/.test(dNorm))score-=140;
+ }
+ const zip=(qNorm.match(/\\b\\d{5}\\b/)||[])[0];
+ if(zip)score += dNorm.includes(zip)?70:-35;
+ if(qNorm.includes('clarksville'))score += dNorm.includes('clarksville')?35:-60;
+ if(qNorm.includes('tn'))score += /\\btn\\b|tennessee/.test(dNorm)?20:-25;
+ if(qNorm.includes('iron workers'))score += dNorm.includes('iron workers')?70:-100;
+ return score;
+}
+async function geocode(q){
+ const clean=String(q||'').trim().slice(0,180);
+ if(!clean)throw Object.assign(new Error('Enter a location.'),{code:'EMPTY_LOCATION'});
+ const rows=[];
+ const [arc,pho]=await Promise.allSettled([
+  json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({SingleLine:clean,f:'json',maxLocations:'8',outFields:'*',forStorage:'false',countryCode:'USA'}),{},8000),
+  json('https://photon.komoot.io/api/?'+new URLSearchParams({q:clean,limit:'8',lang:'en',countrycode:'US'}),{},8000)
+ ]);
+ if(arc.status==='fulfilled'){
+  for(const c of arc.value?.candidates||[]){
+   const lat=n(c?.location?.y),lon=n(c?.location?.x),display=String(c.address||c.attributes?.Match_addr||clean);
+   if(validCoords(lat,lon))rows.push({lat,lon,display,source:'ArcGIS',score:geocodeCandidateScore(clean,display,n(c.score,0))});
+  }
+ }
+ if(pho.status==='fulfilled'){
+  for(const f of pho.value?.features||[]){
+   const c=f?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]);
+   if(!validCoords(lat,lon))continue;
+   const display=[f?.properties?.name,f?.properties?.housenumber,f?.properties?.street,f?.properties?.city||f?.properties?.town,f?.properties?.state,f?.properties?.postcode].filter(Boolean).join(', ')||clean;
+   rows.push({lat,lon,display,source:'Photon',score:geocodeCandidateScore(clean,display,100)});
+  }
+ }
+ if(!rows.length)throw Object.assign(new Error('That address or area could not be located.'),{code:'NOT_FOUND'});
+ const exactNumber=normalizeSearchQuery(clean).match(/^([0-9]+[a-z]?)(?:\\s|$)/i);
+ const ranked=rows
+  .sort((a,b)=>b.score-a.score)
+  .filter((row,i,all)=>all.findIndex(x=>normalizeSearchQuery(x.display)===normalizeSearchQuery(row.display))===i);
+ if(exactNumber){
+   const matching=ranked.filter(row=>new RegExp('^'+exactNumber[1].toLowerCase()+'\\b').test(normalizeSearchQuery(row.display)));
+   if(matching.length)return matching[0];
+ }
+ return ranked[0];
+}
 async function suggest(q){
  const clean=String(q||'').trim().slice(0,180);if(clean.length<2)return[];
  const rows=[];
@@ -651,6 +705,9 @@ if(mode==='search'){
  const zone=await timezonePromise;
  const checkedAt=new Date();
  const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
+   const distance=miles(lat,lon,n(r.lat),n(r.lon));
+   return {...r,distance};
+ }).filter(r=>Number.isFinite(r.distance)&&r.distance<=radius+0.001).map(r=>{
    const website=r.website||knownRestaurantWebsite(r);
    const phone=String(r.phone||'').trim();
    const classification=RESTAURANT_TAXONOMY.classifyRestaurant({...r,website,phone}); const canonicalCategory=classification.primary||r.category||'American'; const classifiedFastFood=classification.tags.includes('Fast Food'); const photo=restaurantPhotoMeta(r); return normalizeRestaurantHours({...r,category:canonicalCategory,fastFood:classifiedFastFood,quickCutTags:classification.tags,quickCutEvidence:classification.evidence,...photo,website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
