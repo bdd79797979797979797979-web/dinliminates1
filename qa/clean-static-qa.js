@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));
 for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
-assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
+assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r14'])assert(api.includes(s),'missing API contract: '+s);
