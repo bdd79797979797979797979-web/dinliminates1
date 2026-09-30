@@ -167,27 +167,17 @@ function classifyRestaurant(row){
   const providerTypeHay=normalizeRestaurantSearch([row?.providerType,row?.primaryType,row?.types?.join?.(' ')].join(' '));
   const primary=rawCategory+' '+cuisineHay+' '+providerTypeHay;
   const providerRules={
-    Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru|fast food restaurant|fast_food_restaurant)\b/,
+    Fast Food:/\b(fast food|fast_food_restaurant|fast food restaurant|quick service|quick-service|drive thru|drive through|drive-thru)\b/,
     Burgers:/\b(burger restaurant|burger restaurants|burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
-    Pizza:/\b(pizza restaurant|pizzeria|pizza)\b/,
-    Mexican:/\b(mexican restaurant|mexican|tex mex|taqueria)\b/,
+    Pizza:/\b(pizza restaurant|pizzeria|pizza|calzone)\b/,
+    Mexican:/\b(mexican restaurant|mexican|tex mex|taqueria|taco shop|burrito|quesadilla|enchilada|fajita)\b/,
     Asian:/\b(asian restaurant|chinese restaurant|japanese restaurant|thai restaurant|korean restaurant|asian|chinese|japanese|thai|korean|sushi|vietnamese|hibachi|ramen|pho|teriyaki)\b/,
-    Italian:/\b(italian restaurant|italian|pasta|trattoria|osteria|ristorante)\b/,
+    Italian:/\b(italian restaurant|italian|pizzeria|pasta|spaghetti|lasagna|ravioli|trattoria|osteria|ristorante)\b/,
     Southern:/\b(southern restaurant|southern|soul food|country cooking|meat and three|comfort food)\b/,
-    BBQ:/\b(barbecue restaurant|bbq restaurant|bbq|barbecue|smokehouse|smoke shack|pit bbq)\b/,
-    Seafood:/\b(seafood restaurant|fish restaurant|fish house|seafood|catfish|shrimp|crab house|lobster|oyster)\b/,
-    Breakfast:/\b(breakfast restaurant|breakfast|brunch|pancake house|waffle house|waffles?|pancakes?|omelet(?:te)?|eggs? benedict)\b/,
-    American:/\b(american restaurant|diner|steakhouse|steak house|roadhouse|grill|bistro|pub|tavern|american)\b/,
-    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
-    Pizza:/\bpizza\b|\bpizzeria\b|\bcalzone\b/,
-    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
-    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b|\bhibachi\b|\bramen\b|\bpho\b|\bteriyaki\b/,
-    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b|\btrattoria\b|\bosteria\b|\bristorante\b/,
-    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b|\bcomfort food\b/,
-    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
-    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\bcatfish\b|\bshrimp\b|\bcrab house\b|\blobster\b|\boyster\b/,
-    Breakfast:/\bbreakfast\b|\bbrunch\b|\bpancake house\b|\bwaffle house\b|\bwaffles?\b|\bpancakes?\b|\bomelet(?:te)?\b|\beggs? benedict\b/,
-    American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b|\bgrill\b|\bbistro\b/
+    BBQ:/\b(barbecue restaurant|bbq restaurant|bbq|barbecue|barbeque|smokehouse|smoke shack|pit bbq|brisket|ribs|pulled pork)\b/,
+    Seafood:/\b(seafood restaurant|fish restaurant|fish house|seafood|catfish|shrimp|crab house|lobster|oyster|salmon)\b/,
+    Breakfast:/\b(breakfast restaurant|breakfast|brunch|pancake house|waffle house|waffles?|pancakes?|omelet(?:te)?|eggs benedict|biscuits and gravy)\b/,
+    American:/\b(american restaurant|diner|steakhouse|steak house|roadhouse|grill|bistro|pub|tavern|american)\b/
   };
   for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
 
