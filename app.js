@@ -923,7 +923,7 @@ S.restaurantTimezone = String(d.timezone||'');
 S.restaurantSearchDegraded = !!(d.providerErrors?.length);
 S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
 S.restaurantSearchQuery = String(d.searchQuery||searchTerm||'');
-S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||18000;
+S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||19000;
 const previousOrigin=S.restaurantSearchOrigin;
 const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
 const previousRows=sameSearchOrigin?(S.restaurantPool||[]).map(row=>({...row,distance:milesBetween(row.lat,row.lon,loc.lat,loc.lon)})).filter(row=>Number.isFinite(Number(row.distance))&&Number(row.distance)<=radius):[];
