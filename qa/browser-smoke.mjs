@@ -260,12 +260,12 @@ s=await qa(); assert.equal(s.allRestaurantIds.length,7,'combined restaurant pool
 await click('#restaurantMenu'); await settle();
 await click('#settings'); await settle();
 await click('#appDiagnosis'); await settle();
-assert.equal(await visible('diagnosisModal'),true,'App Diagnosis should open from Restaurant Settings');
-assert.match(await page.locator('#diagnosisModal').innerText(),/Restaurant duplicates/i,'Restaurant App Diagnosis should inspect the loaded restaurant pool');
-assert.match(await page.locator('#diagnosisModal').innerText(),/Current restaurant pool/i,'Restaurant App Diagnosis should report the current pool');
-assert.doesNotMatch(await page.locator('#diagnosisModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
-await page.locator('#diagnosisModal [data-close]').click(); await settle();
-assert.equal(await page.locator('#diagnosisModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
+assert.equal(await visible('settingsModal'),true,'App Diagnosis should open from Restaurant Settings');
+assert.match(await page.locator('#settingsModal').innerText(),/Restaurant duplicates/i,'Restaurant App Diagnosis should inspect the loaded restaurant pool');
+assert.match(await page.locator('#settingsModal').innerText(),/Current restaurant pool/i,'Restaurant App Diagnosis should report the current pool');
+assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/miles is not defined/i,'Restaurant App Diagnosis should not throw on loaded restaurant results');
+await page.locator('#settingsModal [data-close]').click(); await settle();
+assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
 const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
 const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
