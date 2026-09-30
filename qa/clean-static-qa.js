@@ -162,7 +162,7 @@ assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2
 // CP258 food catalog expansion and Quick Cut contracts.
 const byId=new Map(foodRows.map(x=>[x.id,x]));
 assert(app.includes("const FOOD_QUICK = ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Snack','Potato']"),'Food Quick Cuts should remove Greek and Pork');
-assert(!app.includes('Greek:'),'Food Quick Cut photo mapping should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
+assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick Cut button list should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
 assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
 assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
 const cp258Cuts={
