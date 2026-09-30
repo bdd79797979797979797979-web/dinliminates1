@@ -1218,6 +1218,16 @@ drawRestaurants();
 save();
 return true;
 }
+function bindCardButton(id,handler){
+ const el=$(id);
+ if(!el)return;
+ el.setAttribute('type',el.getAttribute('type')||'button');
+ el.onclick=e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  try{const result=handler?.(e);if(result&&typeof result.catch==='function')result.catch(()=>{});}catch{}
+ };
+}
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
 function setRestaurantHoursMode(mode){
  S.hoursMode=mode==='all'?'all':'openUnknown';
