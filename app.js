@@ -694,8 +694,8 @@ function restaurantIsFastFood(row){
  return RESTAURANT_TAXONOMY.isFastFood(row);
 }
 function restaurantCuisineTags(row){
- const preset=Array.isArray(row?.quickCutTags)?row.quickCutTags:null;
- return preset ? [...new Set(preset)] : RESTAURANT_TAXONOMY.classifyRestaurant(row).tags;
+ const classified=RESTAURANT_TAXONOMY.classifyRestaurant(row).tags||[];
+ return [...new Set(classified)];
 }
 function restaurantCuisineEvidence(row){
  return RESTAURANT_TAXONOMY.classifyRestaurant(row).evidence;
