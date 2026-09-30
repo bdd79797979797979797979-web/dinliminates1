@@ -89,7 +89,7 @@ await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
 await page.waitForTimeout(100);
 console.log('Food data runtime diagnostic',JSON.stringify({catalog:await page.evaluate(()=>Array.isArray(window.DINLIMINATE_FOODS)?window.DINLIMINATE_FOODS.length:-1),responses:dataResponses,requestFailures,pageErrors,consoleErrors}));
-await assert.equal(await page.locator('#home h1').innerText(),'Dinner Decisions Simplified');
+await assert.equal(await page.locator('#home h1').innerText(),'Dinner Simplified');
 const hourContract=await page.evaluate(()=>{
   const t=window.__DINLIMINATE_TEST__;
   return {
