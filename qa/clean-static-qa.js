@@ -129,6 +129,11 @@ for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','S
 }
 assert(app.includes('function restaurantPoolBase()') && app.includes('function updateRestaurantStatus()'),'Restaurant filters need a shared pre-hours pool and visible count status.');
 assert(app.includes('function restaurantCuisineTags(row)') && app.includes('restaurantCuisineTags(row,label)')===false && app.includes('restaurantQuickMatches(row,label)') && app.includes('restaurantCuisineTags(row).includes(label)'),'Restaurant Quick Cuts must use independent cuisine/category tags.');
+assert(app.includes('const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY'),'Browser must consume the shared restaurant taxonomy.');
+assert(html.includes('<script src="./data/restaurant-taxonomy.js"></script>'),'Shared restaurant taxonomy must load before app.js.');
+assert(api.includes("require('../data/restaurant-taxonomy')"),'API must consume the shared restaurant taxonomy.');
+assert(api.includes('quickCutTags:classification.tags') && api.includes('quickCutEvidence:classification.evidence'),'API results must expose shared restaurant classification tags/evidence.');
+
 assert(app.includes('function restaurantIsFastFood(row)') && app.includes('RESTAURANT_IDENTITY_PROFILES'),'Restaurant Fast Food classification must use centralized restaurant identity profiles.');
 assert(app.includes("if(profile?.tags.includes('Fast Food'))return true;"),'Fast Food classification must honor centralized identity profiles.');
 assert(app.includes("RESTAURANT_IDENTITY_PROFILES.find(p=>p.match.test(identity))") && app.includes("tags:['Pizza']"),'Known pizza venue identity must be represented through the centralized identity profile system.');
