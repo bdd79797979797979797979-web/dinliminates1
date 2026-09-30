@@ -131,7 +131,7 @@ assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode 
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
 assert(app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));'),'Restaurant pool must apply the hours filter');
-assert(app.includes("hoursBtn.addEventListener('click'"),'Hours toggle must have an explicit click event listener');
+assert(app.includes('hoursOpenBtn.onclick') && app.includes('hoursAllBtn.onclick'),'Restaurant hours filters must have explicit click handlers');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
