@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
-new vm.Script(foods);new vm.Script(app);new vm.Script(api);
+const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
+new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));
 for(const s of ['what sounds good tonight?','Choose a food','Find a restaurant','foodPassAround','restaurantPassAround','foodCut','foodMaybe','foodBack','foodHide','randomOne'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && html.includes('<script src="./app.js"></script>'),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
@@ -233,3 +233,13 @@ assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function fini
 assert(app.includes('S.pass=null;removePassSurface();') && !app.includes('S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);'),'Canceling Pass Around should not advance the starting voter');
 assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
 assert(app.includes("quickCats=[...cats,'Other']") && app.includes("x.value"),'Custom Food Quick Cut editor should include optional Other');
+
+// CP261 Vercel image proxy contract.
+const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com'];
+assert(imageApi.includes('ALLOWED_HOSTS')&&imageApi.includes('MAX_BYTES'),'Vercel image proxy must use an explicit allowlist and response size cap');
+assert(imageApi.includes("u.protocol!=='https:'"),'Vercel image proxy must reject non-HTTPS upstream URLs');
+assert(imageProxyHosts.every(h=>imageApi.includes("'"+h+"'")),'Vercel image proxy allowlist must cover all current food image hosts');
+assert(imageApi.includes("Cache-Control")&&imageApi.includes("s-maxage=604800"),'Vercel image proxy must be edge-cacheable');
+assert(app.includes('function imageProxyUrl')&&app.includes('/api/image?url='),'App must route supported external images through the Vercel image proxy');
+assert(html.includes('/api/image?url='),'Home images must use the Vercel image proxy');
+console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
