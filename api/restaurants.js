@@ -101,7 +101,8 @@ function knownRestaurantWebsite(row){
  }
  return '';
 }
-function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\$&');}').replace(/"/g,'\\\"');}
+function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\$&');}').replace(/"/g,'\\\"');}
+function contactQuery').replace(/"/g,'\\\"');}
 function contactQuery(lat,lon,radius,names){
  const pattern=names.map(escapeOverpassRegex).filter(Boolean).join('|');
  const m=Math.round(Math.min(25,Math.max(1,radius))*1609.344);
@@ -110,13 +111,41 @@ function contactQuery(lat,lon,radius,names){
 async function contactEnrichment(lat,lon,radius,names){
  if(!names.length)return{rows:[],errors:[]};
  const data=contactQuery(lat,lon,radius,names),rows=[],errors=[];
- for(const ep of OVERPASS){
-  try{
-   const d=await json(ep+'?data='+encodeURIComponent(data),{},4500);
-   for(const el of d?.elements||[]){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r);}
-   if(rows.length)break;
-  }catch(e){errors.push(String(e?.message||e));}
+ const settled=await Promise.allSettled(OVERPASS.map(ep=>json(ep+'?data='+encodeURIComponent(data),{},3200)));
+ for(const result of settled){
+  if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'request failed'));continue;}
+  for(const el of result.value?.elements||[]){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r);}
  }
+ return{rows:dedupe(rows),errors};
+}
+async function googlePlaces(lat,lon,radius){
+ if(!GOOGLE_KEY)return{rows:[],errors:[]};
+ const meters=Math.round(Math.min(50000,Math.max(1609,radius*1609.344))),rows=[],errors=[];
+ try{
+  const data=await json('https://places.googleapis.com/v1/places:searchNearby',{
+   method:'POST',
+   headers:{
+    'Content-Type':'application/json',
+    'X-Goog-Api-Key':GOOGLE_KEY,
+    'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types'
+   },
+   body:JSON.stringify({
+    includedTypes:['restaurant','fast_food'],
+    maxResultCount:20,
+    locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius:meters}}
+   })
+  },6500);
+  for(const p of data?.places||[]){
+   const loc=p?.location||{},plat=n(loc.latitude),plon=n(loc.longitude),name=String(p?.displayName?.text||'').trim();
+   if(!name||!Number.isFinite(plat)||!Number.isFinite(plon))continue;
+   const types=Array.isArray(p?.types)?p.types.map(String):[];
+   const fast=types.includes('fast_food')||isFastFoodName(name);
+   rows.push({id:p.id?'google-'+p.id:'google-'+norm(name)+'-'+plat.toFixed(5)+'-'+plon.toFixed(5),name,
+    category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',
+    address:String(p?.formattedAddress||''),phone:String(p?.nationalPhoneNumber||''),website:String(p?.websiteUri||''),
+    opening_hours:'',lat:plat,lon:plon,distance:miles(lat,lon,plat,plon),photo:'',menuItems:[],brand:'',source:'Google Places'});
+  }
+ }catch(e){errors.push(String(e?.message||e||'Google Places failed'));}
  return{rows,errors};
 }
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
@@ -253,8 +282,10 @@ if(mode==='search'){
  const primaryBatch=await withinBudget(Promise.allSettled([photonPlaces(lat,lon,radius),arcgisPlaces(lat,lon,radius),googlePlaces(lat,lon,radius)]),Math.max(1000,SEARCH_BUDGET_MS-(Date.now()-startedAt)),'Primary restaurant providers timed out');
  const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
+ const googleResult=Array.isArray(primaryBatch)?primaryBatch[2]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
  const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};
  const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};
+ const googleOut=googleResult.status==='fulfilled'?googleResult.value:{rows:[],errors:[String(googleResult.reason?.message||googleResult.reason||'Google Places unavailable')]};
  const preliminary=dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
  let osmOut={rows:[],errors:[]};
@@ -279,22 +310,27 @@ if(mode==='search'){
  let contactOut={rows:[],errors:[]};
  const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
  const missingContactNames=contactCandidates
-   .filter(r=>!r.phone)
+   .filter(r=>!r.phone||!r.website)
    .sort((a,b)=>Number(b.fastFood)-Number(a.fastFood)||Number(a.distance||0)-Number(b.distance||0))
    .map(r=>r.name)
    .filter(Boolean)
    .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
    .slice(0,15);
  const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
- if(missingContactNames.length&&contactRemaining>2500){
-   const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),missingContactNames),contactRemaining,'Restaurant contact enrichment timed out');
+ if(missingContactNames.length&&contactRemaining>2200){
+   const expandedNames=[...new Set(contactCandidates.filter(r=>missingContactNames.some(n=>norm(n)===norm(r.name))).flatMap(r=>[r.name,r.brand,r.operator]).filter(Boolean))].slice(0,24);
+   const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),expandedNames),contactRemaining,'Restaurant contact enrichment timed out');
    if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
- }
- const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>({...r,photo:image(r),website:r.website||knownRestaurantWebsite(r)}));
+  }
+  const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
+   const website=r.website||knownRestaurantWebsite(r);
+   const phone=String(r.phone||'').trim();
+   return {...r,photo:image(r),website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'};
+  });
  const zone=await timezonePromise;
  const data={ok:true,version:'r15',googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{google:(googleOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
-}catch(e){console.error('dinliminate-r14',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
+}catch(e){console.error('dinliminate-r15',e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
 handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,requestQuery};
 module.exports=handler;
