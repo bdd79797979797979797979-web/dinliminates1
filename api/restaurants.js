@@ -41,7 +41,7 @@ function serverLocalClock(zone,now=new Date()){
  }catch{return {day:new Date().getDay(),minute:new Date().getHours()*60+new Date().getMinutes()};}
 }
 function serverDayMatches(spec,day){
- const names=['sun','mon','tue','wed','thu','fri','sat'],want=names[day];
+ const names=['su','mo','tu','we','th','fr','sa'],want=names[day];
  return String(spec||'').split(',').some(part=>{
   const p=part.trim().toLowerCase(); if(!p)return false;
   if(p===want)return true;
