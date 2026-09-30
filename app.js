@@ -769,7 +769,7 @@ function restaurantHoursFilter(row){
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
- const radius=Math.min(50,Number($('radius')?.value)||10);
+ const radius=Math.min(100,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
  const states={open:0,unknown:0,closed:0};
  for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
