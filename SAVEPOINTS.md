@@ -570,3 +570,11 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Fajitas replaces Mexican Stir Fry.
 - Build: 1.0 / 127.
 - Do not delete the CP258 recovery branches.
+
+
+## CP259 — Food catalog additions
+- Build 128; 116 built-in foods.
+- Requested additions completed with Quick Cut mappings.
+- Fish Sticks moved to final catalog position; Gumbo and Roast Beef Sandwich + Chips are not duplicated.
+- Recovery: `checkpoint-cp259-food-catalog-added-2026-09-30`; `checkpoint-cp259-qa-ready-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
