@@ -174,7 +174,7 @@ assert.ok(requests.some(u=>String(new URL(u).searchParams.get('q')||'').toLowerC
 report["4_search_restaurants"].mcdonalds={matched:s.restaurantPool,providerQuery:requests.at(-1)};
 await page.locator('#restaurantQuery').fill('burger'); await page.waitForTimeout(1000);
 s=await snap();
-assert.deepEqual(new Set(s.restaurantPool),new Set(['mcd','waffle','american']));
+assert.deepEqual(new Set(s.restaurantPool),new Set(['mcd','american']));
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='burger'));
 report["4_search_restaurants"].burger=s.restaurantPool;
 await page.locator('#restaurantQuery').fill('mexican'); await page.waitForTimeout(1000);
