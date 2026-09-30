@@ -772,6 +772,7 @@ function setLocation(lat, lon, label, source='address') {
 S.location = {lat, lon, label};
 S.locationSource = source;
 if(source==='device')S.locationFreshAt=Date.now();
+else S.locationFreshAt=null;
 $('address').value = label || 'Current location';
 renderLocationSource();
 save();
