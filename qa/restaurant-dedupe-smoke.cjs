@@ -37,3 +37,10 @@ const wendysNameForms=[
 ];
 const wendysNameMerged=dedupe(wendysNameForms);
 assert.equal(wendysNameMerged.length,1,"Wendy's, Wendys, and WENDY'S at the same address must resolve to one venue");
+
+const wendyAddressVariants=[
+ {id:'wa',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,source:'Google'},
+ {id:'wb',name:'Wendys',address:'2330 Madison Street, Clarksville, Tennessee, 37043',lat:36.5302,lon:-87.3601,source:'Photon'},
+ {id:'wc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005,source:'ArcGIS'}
+];
+assert.equal(dedupe(wendyAddressVariants).length,1,"Equivalent Wendy's addresses with state/road formatting differences must collapse to one venue");
