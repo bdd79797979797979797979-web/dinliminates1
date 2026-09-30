@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 
 const url='https://deploy-preview-53--diliminate.netlify.app/?remote-smoke='+Date.now();
 const browser=await chromium.launch({headless:true});
-const page=await browser.newPage({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+const context=await browser.newContext({viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true,timezoneId:'America/Chicago'});
+await context.grantPermissions(['geolocation'],{origin:'https://deploy-preview-53--diliminate.netlify.app'});
+await context.setGeolocation({latitude:40,longitude:-75});
+const page=await context.newPage();
 const pageErrors=[]; const consoleErrors=[]; const failed=[]; const badResponses=[];
 page.on('pageerror',e=>pageErrors.push(String(e)));
 page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
@@ -34,6 +37,17 @@ await page.locator('#restStart').click();
 await page.waitForTimeout(150);
 assert.equal(await page.locator('#restaurant').isVisible(),true,'Find a restaurant should open the Restaurant screen');
 
+await page.locator('#address').fill('Main Street, Clarksville, TN');
+await page.locator('#find').click();
+await page.waitForFunction(()=>!document.querySelector('#find')?.disabled,{timeout:30000});
+assert.match(await page.locator('#locationSourceLabel').innerText(),/selected address/i,'Find should resolve a typed address and select it');
+assert.notEqual(await page.locator('#restaurantCount').innerText(),'0 choices','Find should return restaurant choices when the provider has results');
+
+await page.locator('#locate').click();
+await page.waitForFunction(()=>/Using your location/i.test(document.querySelector('#locationSourceLabel')?.textContent||'') || /Location permission|Could not access/i.test(document.querySelector('#status')?.textContent||''),{timeout:20000});
+const locationLabel=await page.locator('#locationSourceLabel').innerText();
+assert.match(locationLabel,/Using your location/i,'Use My Location should set the location source when geolocation is available');
+await page.waitForFunction(()=>!document.querySelector('#find')?.disabled,{timeout:30000});
 await page.locator('#address').fill('Clarksville, TN');
 await page.waitForSelector('#suggestionsBox button',{state:'visible',timeout:15000});
 assert.ok(await page.locator('#suggestionsBox button').count()>0,'Live address autocomplete must return at least one suggestion');
@@ -58,4 +72,5 @@ const diagnosisText=await page.locator('#settingsModal').innerText().catch(()=>'
 assert.equal(diagnosisLoader,0,'Live App Diagnosis must not show the centered loading screen');
 assert.equal(diagnosisSections,5,'Live App Diagnosis must render all five sections immediately');
 assert.match(diagnosisText,/Core app/i,'Live App Diagnosis must show Core app');
+await context.close();
 await browser.close();
