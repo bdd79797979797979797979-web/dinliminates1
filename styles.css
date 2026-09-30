@@ -12,7 +12,6 @@
 
 .food-head-tools{display:flex;justify-content:flex-end;align-items:center;gap:6px}
 
-.round-tools{display:flex;justify-content:center;gap:12px;padding-top:3px}
 .file-label{display:grid;gap:6px;font-size:11px;color:#888}
 .file-label input{height:auto;padding:8px}
 .manage-intro{font-size:12px;color:#929292;line-height:1.45;margin-bottom:10px}
@@ -122,8 +121,6 @@
 .round-cut span{font-size:27px}
 .round-maybe,.round-cut{box-shadow:0 10px 28px #0008}
 
-.round-tools{padding-top:0;padding-bottom:1px}
-.round-tools .text-btn{font-size:9px;color:#666;letter-spacing:.02em}
 
 .restaurant .panel{margin-top:10px;padding:10px 11px;border-radius:16px}
 .restaurant .panel label{margin-bottom:5px;font-size:10px}
@@ -198,8 +195,6 @@
 .decision-bottom{display:flex;justify-content:center;gap:8px;padding:1px 0 2px}
 .bottom-util{height:34px;min-width:112px;padding:0 14px;border-radius:999px;background:#151515;color:#bdbdbd;border:1px solid #303030;font-size:9px;font-weight:800;letter-spacing:.02em}
 .bottom-util:active{transform:scale(.98)}
-.round-tools{padding:0;margin:0}
-.round-tools .text-btn{font-size:9px;color:#555;padding:2px 5px 4px}
 
 .location-strip{margin-top:6px;background:#111;border:1px solid #252525;border-radius:16px;padding:7px 8px 6px}
 .location-main{display:grid;grid-template-columns:minmax(0,1fr) 36px 55px;gap:5px;align-items:center}
@@ -270,7 +265,6 @@
 /* Food bottom utilities are compact and quiet. */
 .decision-bottom{padding:0 0 1px;gap:7px}
 .bottom-util{height:31px;min-width:100px;font-size:9px}
-.round-tools .text-btn{font-size:8px;padding:1px 4px 2px}
 
 /* Restaurant location/search controls are compressed to a single small footprint. */
 .location-strip{margin-top:3px;padding:6px 7px 5px;border-radius:14px}
