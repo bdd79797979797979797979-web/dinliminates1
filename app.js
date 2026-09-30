@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '178';
+let APP_BUILD = '179';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -1747,6 +1747,14 @@ async function auditFoodPhotoUrls(foods){
    duplicateFoodIds?fail('food','Meal catalog','Duplicate meal IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Meal catalog',foods.length+' built-in meals loaded; IDs are unique.');
    const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
    invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Meal details','All '+foods.length+' built-in meals have required Details data.');
+   const photoCatalog=foodPhotoAuditCatalog(foods);
+   photoCatalog.missing.length?fail('food','Meal photo coverage',photoCatalog.missing.length+' built-in meal(s) have no usable web photo URL.',photoCatalog.missing.slice(0,8).join(', ')+(photoCatalog.missing.length>8?' + more':'')):pass('food','Meal photo coverage','All '+photoCatalog.mealCount+' built-in meals have a web-hosted photo URL.','Built-in meal photos are intentionally kept remote so the app package stays small.');
+   const remotePhotoAudit=await auditFoodPhotoUrls(foods);
+   remotePhotoAudit.failed.length?fail('food','Meal photo availability',remotePhotoAudit.failed.length+' unique meal photo URL(s) failed to load or timed out.',foods.filter(x=>remotePhotoAudit.failedSet.has(String(x?.image||'').trim())).slice(0,8).map(x=>x?.name||x?.id).join(', ')+(remotePhotoAudit.failed.length>8?' + more':'')):pass('food','Meal photo availability',remotePhotoAudit.uniqueUrls+' unique web photo URL(s) loaded successfully.','Run again later to catch photos removed or changed by the source host.');
+   if(photoCatalog.reused.length){
+     const examples=photoCatalog.reused.slice(0,5).map(x=>x.meals.join(' / ')).join(' · ');
+     warn('food','Photo review',photoCatalog.reused.length+' photo URL(s) are reused by multiple meals.','These are review flags, not automatic claims that the photos are wrong. Examples: '+examples);
+   }else pass('food','Photo review','No built-in meal photo URL is reused by multiple meals.','Each built-in meal currently has its own photo source.');
    const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
    const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
    missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 11 built-in Quick Cuts; the extra Other option appears only when a custom meal uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
