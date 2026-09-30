@@ -161,11 +161,11 @@ assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2
 
 // CP258 food catalog expansion and Quick Cut contracts.
 const byId=new Map(foodRows.map(x=>[x.id,x]));
-assert(!app.includes("const FOOD_QUICK = ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Greek'"),'Food Quick Cuts must not contain Greek');
-assert(!foodRows.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Greek')),'No built-in food may retain Greek Quick Cut');
-assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
+assert(app.includes("const FOOD_QUICK = ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']"),'Food Quick Cuts should retain Greek while removing Pork');
+assert(app.includes('Greek:'),'Food Quick Cut photo mapping must include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Greek'],'Gyro should use Greek Quick Cut');
+assert.deepEqual(byId.get('gyro')?.quickCuts,['Greek']); assert.equal(byId.get('gyro')?.category,'Greek');
 assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
 const cp258Cuts={
 'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
 for(const [id,cuts] of Object.entries(cp258Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,id+' Quick Cut mapping');
-assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed');
+assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed'); assert(!app.includes("'Pork'"),'Food Quick Cut list must not reintroduce Pork');
