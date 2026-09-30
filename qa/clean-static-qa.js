@@ -6,7 +6,7 @@ assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'r
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
 assert(html.includes('app.js?v=449'),'App script must use the CP449 cache-busting query');
-assert(release.build===156 && release.checkpoint==='CP451','release.json must identify Build 155 / CP450');
+assert(release.build===157 && release.checkpoint==='CP452','release.json must identify Build 155 / CP450');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -340,4 +340,6 @@ assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.incl
 assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
+assert(api.includes('function applyGoogleContactPatches'),'Google contact enrichment must merge into existing rows');
+assert(api.includes("if(got&&!got.__timeout){googleContactOut=got;applyGoogleContactPatches(contactCandidates,googleContactOut.rows)}"),'Google contact patches must be applied without appending duplicate rows');
 
