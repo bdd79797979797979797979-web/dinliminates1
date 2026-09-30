@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 147,
-  "sourceBranch": "cp348-search-six-point-certification-2026-09-30",
+  "build": 149,
+  "sourceBranch": "cp444-fix-four-restaurant-controls-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP442"
+  "checkpoint": "CP444"
 }
