@@ -4,7 +4,7 @@
 - Runtime target: Vercel
 - Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
 - Candidate promotion target: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 129
+- Current app build: Version 1.0 / Build 130
 - CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
@@ -16,7 +16,7 @@
 - Removed the Food Greek Quick Cut and moved Gyro to Healthy only.
 - Added the requested 1–2 Quick Cut mappings for all new foods; sweets are included in Snack.
 - Updated Food editor/static/browser/image QA for the 116-food catalog.
-- Build metadata is now Version 1.0 / Build 128.
+- Build metadata is now Version 1.0 / Build 130.
 
 ## CP258 release gates
 - Static/data contract: updated; automated run pending.
@@ -89,3 +89,14 @@ Do not promote this candidate to Vercel production until the exact release commi
 - Hungry winner keeps the black Hungry state, shows **Fish Sticks?** in small text, and its Details view has no Hide action.
 - Build: **129**.
 - Recovery point before QA: `checkpoint-cp260-product-changes-2026-09-30`.
+
+
+## CP260 — Pass Around and card polish
+- Build: **130**.
+- Food Quick Cuts reordered to a more natural flow: American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Restaurant Details icon sits directly to the right of cuisine on the card.
+- Settings > App Diagnosis now uses a green action treatment.
+- Pass Around now defaults to **Quick Pass**: majority rules and a choice advances as soon as its outcome is mathematically decided.
+- **Full Pass** preserves the original unanimous round-robin behavior as the optional mode.
+- Quick Pass/Full Pass selection, player count, names, full-card swipe, button controls, Back/Undo, and return to the narrowed Tinder deck are covered by regression tests.
+- Quick Pass is designed to preserve Dinliminate's narrowing-down feel while reducing unnecessary votes for choices whose outcome is already settled.
