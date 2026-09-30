@@ -413,16 +413,16 @@ report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalize
 
 // 5. Hours: Open/Unknown excludes explicit closed; All restores it; unknown remains.
 report["5_open_all"]={};
-await page.locator('#hoursToggle').click(); await settle();
+await page.locator('#hoursOpenUnknown').click(); await settle();
 s=await snap();
-assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'All');
+assert.equal((await page.locator('#hoursAll').textContent()).trim(),'All');
 assert.ok(s.restaurantPool.includes('closed'));
 const allCount=s.restaurantPool.length;
 const allVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
 assert.equal(allVisibleCount,allCount,'All mode count must include both open/unknown and closed restaurants.');
-await page.locator('#hoursToggle').click(); await settle();
+await page.locator('#hoursOpenUnknown').click(); await settle();
 s=await snap();
-assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'Open/Unknown');
+assert.equal((await page.locator('#hoursOpenUnknown').textContent()).trim(),'Open + Unknown');
 assert.equal(s.restaurantPool.includes('closed'),false);
 const openVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
 assert.equal(openVisibleCount,allCount-1,'Open/Unknown mode must exclude only the explicit closed fixture.');
