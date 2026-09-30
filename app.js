@@ -1170,7 +1170,12 @@ bindCardButton('restBack', restaurantBack);
 bindCardButton('restMaybe', () => restaurantMaybe(current));
 bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
-$('restDetails').onclick = e => { e.preventDefault(); e.stopPropagation(); detailsSheet(current, 'restaurant'); };
+const restDetailsButton=$('restDetails');
+if(restDetailsButton){
+  restDetailsButton.setAttribute('tabindex','0');
+  restDetailsButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();},{passive:false});
+  restDetailsButton.onclick=e=>{e.preventDefault();e.stopPropagation();detailsSheet(current,'restaurant');};
+}
 bindRestaurantSwipe(current);
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
 hydrateGoogleRestaurantPhoto(row,'#restStage #restaurantCard');
@@ -1222,13 +1227,15 @@ function setRestaurantHoursMode(mode){
  save();
 }
 function renderHours(){
- const btn=$('hoursToggle');if(!btn)return;
+ const openBtn=$('hoursOpenUnknown'),allBtn=$('hoursAll');
+ if(!openBtn||!allBtn)return;
  const openMode=S.hoursMode==='openUnknown';
- btn.textContent=openMode?'Open/Unknown':'All';
- btn.dataset.mode=openMode?'open':'all';
- btn.dataset.hoursMode=openMode?'openUnknown':'all';
- btn.setAttribute('aria-pressed',String(openMode));
- btn.setAttribute('aria-label','Hours filter: '+(openMode?'Open/Unknown':'All'));
+ openBtn.classList.toggle('active-tool',openMode);
+ allBtn.classList.toggle('active-tool',!openMode);
+ openBtn.setAttribute('aria-pressed',String(openMode));
+ allBtn.setAttribute('aria-pressed',String(!openMode));
+ openBtn.setAttribute('aria-label','Show open and unknown-hour restaurants');
+ allBtn.setAttribute('aria-label','Show all restaurants including closed');
 }
 let restaurantQueryTimer = 0;
 function scheduleRestaurantProviderSearch(){
@@ -1259,14 +1266,12 @@ $('restaurantQuery').oninput=()=>{
      if(String(S.restaurantQuery||'').trim())searchRestaurants();
    }
  };
- const hoursBtn=$('hoursToggle');
- if(hoursBtn){
-   hoursBtn.onclick=null;
-   hoursBtn.addEventListener('click',e=>{
-     e.preventDefault();
-     e.stopPropagation();
-     setRestaurantHoursMode(S.hoursMode==='openUnknown'?'all':'openUnknown');
-   });
+ const hoursOpenBtn=$('hoursOpenUnknown'),hoursAllBtn=$('hoursAll');
+ if(hoursOpenBtn){
+   hoursOpenBtn.onclick=e=>{e.preventDefault();e.stopPropagation();setRestaurantHoursMode('openUnknown');};
+ }
+ if(hoursAllBtn){
+   hoursAllBtn.onclick=e=>{e.preventDefault();e.stopPropagation();setRestaurantHoursMode('all');};
  }
  renderHours();
 }
