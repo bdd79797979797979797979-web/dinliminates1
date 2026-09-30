@@ -152,6 +152,48 @@ function bindHomeImageFallbacks(){
   img.onerror=function(){const current=this.currentSrc||this.src;if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  });
 }
+const restaurantGooglePhotoInflight=new Map();
+function decodePhotoAttributions(raw){
+ const value=String(raw||'').trim();if(!value)return[];
+ try{
+  let b64=value.replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';
+  const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const data=JSON.parse(new TextDecoder().decode(bytes));
+  return Array.isArray(data)?data.filter(x=>x&&x.displayName&&x.uri).slice(0,5):[];
+ }catch{return[]}
+}
+function setRestaurantPhotoCredit(card,attributions){
+ const credit=card?.querySelector('.restaurant-photo-credit');if(!credit)return;
+ const safe=(attributions||[]).map(x=>({name:String(x.displayName||''),uri:safeExternalUrl(x.uri)})).filter(x=>x.name&&x.uri).slice(0,3);
+ if(!safe.length){credit.textContent='';credit.classList.remove('is-visible');return;}
+ credit.innerHTML='Photo by '+safe.map(x=>'<a href="'+esc(x.uri)+'" target="_blank" rel="noopener noreferrer">'+esc(x.name)+'</a>').join(', ');
+ credit.classList.add('is-visible');
+}
+async function hydrateGoogleRestaurantPhoto(row,scope){
+ if(!row?.googlePlaceId||row?.photoSource!=='google-places')return;
+ const imgs=[...document.querySelectorAll(scope+' img[data-google-photo-id]')].filter(img=>img.dataset.googlePhotoId===String(row.googlePlaceId));
+ if(!imgs.length)return;
+ const key=String(row.googlePlaceId);
+ let pending=restaurantGooglePhotoInflight.get(key);
+ if(!pending){
+  pending=fetch('/api/restaurant-photo?placeId='+encodeURIComponent(key),{cache:'no-store'}).then(async res=>{
+   if(!res.ok)throw new Error('Google photo unavailable');
+   const blob=await res.blob();
+   if(!blob.type.startsWith('image/'))throw new Error('Google photo response was not an image');
+   return {url:URL.createObjectURL(blob),attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions'))};
+  }).finally(()=>restaurantGooglePhotoInflight.delete(key));
+  restaurantGooglePhotoInflight.set(key,pending);
+ }
+ try{
+  const data=await pending;
+  imgs.forEach(img=>{
+   if(!img.isConnected)return;
+   img.src=data.url;
+   img.dataset.googlePhotoLoaded='true';
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero'),data.attributions);
+  });
+ }catch{}
+}
 function phoneHref(raw){
  const digits=String(raw||'').replace(/[^+0-9]/g,'');
  if(/^\+/.test(digits))return 'tel:'+digits;
