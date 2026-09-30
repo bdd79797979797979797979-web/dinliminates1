@@ -69,3 +69,4 @@ Added-image IDs: pot-pie, blt, reuben, hot-dog, corn-dog, nachos, orange-chicken
 - Pork Tenderloin: Pexels photo 792027 after the original 341044 CDN URL returned HTTP 404 in CI. Pexels identifies 792027 as a pork tenderloin dish. citeturn618106search7
 - Sushi: Pexels photo 6249504; Pexels identifies it as assorted sushi rolls. citeturn618106search17
 - Gumbo: SnapCalorie `gumbo_with_rice.jpg`, retained under the already-listed `snapcalorie-webflow-website.s3.us-east-2.amazonaws.com` host; usage review remains required before public distribution.
+- Cereal: Pexels photo 4324304, replacing a Wikimedia Commons URL that returned HTTP 429 during automated image validation. Pexels describes 4324304 as a cereal breakfast image. 
