@@ -753,6 +753,7 @@
 .diagnosis-summary-strong>div{min-width:0}
 .diagnosis-summary-strong>div>b{display:block;font-size:16px}
 .diagnosis-summary-strong>div>small{display:block;margin-top:2px;color:#9d958a;font-size:9px;line-height:1.4}
+.diagnosis-summary-strong{min-height:48px}
 .diagnosis-summary-strong>strong{font-size:9px;color:#8a8174}
 .diagnosis-status-dot{width:11px;height:11px;border-radius:50%;background:#7fb06f;box-shadow:0 0 0 4px #7fb06f18}
 .diagnosis-status-dot.warn{background:#d3a15a;box-shadow:0 0 0 4px #d3a15a18}
@@ -771,4 +772,4 @@
 .settings-system-action.diagnosis-action:hover{background:linear-gradient(180deg,#2387aa,#15546e)!important;border-color:#73bcdb!important}
 .settings-system-action.restore-action{background:linear-gradient(180deg,#b87727,#704715)!important;color:#fff!important;border-color:#d69b50!important;box-shadow:0 10px 24px #70471544!important}
 .settings-system-action.restore-action:hover{background:linear-gradient(180deg,#cc8a31,#87541b)!important;border-color:#e5b66f!important}
-@media(max-width:390px){.diagnosis-modal{min-height:80svh!important}.diagnosis-loading{min-height:48svh}.diagnosis-section-head{padding:8px 9px}.diagnosis-section .diagnosis-row{padding:8px 9px}}
+@media(max-width:390px){.diagnosis-modal{min-height:80svh!important}.diagnosis-section-head{padding:8px 9px}.diagnosis-section .diagnosis-row{padding:8px 9px}}
