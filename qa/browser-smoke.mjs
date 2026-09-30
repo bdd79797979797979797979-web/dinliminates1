@@ -328,7 +328,7 @@ const cuisineBox=await page.locator('#restaurantCard .card-cuisine-row .cuisine-
 assert.ok(cuisineBox&&detailsInlineBox&&detailsInlineBox.x>=cuisineBox.x+cuisineBox.width-1,'Restaurant Details icon should sit to the right of the cuisine text');
 assert.ok(cuisineBox&&detailsInlineBox&&Math.abs(detailsInlineBox.y-cuisineBox.y)<=8,'Restaurant Details icon should stay aligned with the cuisine row');
 
-assert.ok(currentRestaurantImg && /^https?:\/\//.test(currentRestaurantImg),'Restaurant card should always use a real photo URL');
+assert.ok(currentRestaurantImg && (/^https?:\/\//.test(currentRestaurantImg) || currentRestaurantImg.startsWith('/api/image?url=https%3A%2F%2F')),'Restaurant card should always use a real or securely proxied photo URL');
 assert.notEqual(currentRestaurantImg,'','Restaurant card photo URL must not be empty');
 assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Restaurant should have 10 Quick Cuts');
 assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
