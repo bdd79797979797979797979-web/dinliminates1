@@ -771,10 +771,6 @@ function updateRestaurantStatus(){
  }else{
   el.textContent=(states.open+states.unknown)+' open/unknown · '+states.closed+' closed hidden · '+total+' total · '+radius+' mi';
  }
- el.dataset.hoursOpen=String(states.open);
- el.dataset.hoursUnknown=String(states.unknown);
- el.dataset.hoursClosed=String(states.closed);
- el.dataset.hoursVisible=String(visible.length);
 }
 
 function restaurantQuick() {
