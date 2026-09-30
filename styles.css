@@ -1150,3 +1150,41 @@
  #restaurant .restaurant-card-utility{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
  #restaurant #restaurantCard .card-copy h3{font-size:26px}
 }
+
+
+/* CP455 — premium Manage Meals + clearly differentiated compact Restaurant Search */
+.premium-manage-row{position:relative!important;background:linear-gradient(90deg,#171511,#12110f)!important;border:1px solid #403728!important;border-radius:14px!important;margin:4px 0!important;padding:15px 12px!important;box-shadow:0 8px 24px #0005!important}
+.premium-manage-row::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:2px;border-radius:999px;background:linear-gradient(180deg,#e0c78f,#8baec8)}
+.drawer-row-label{display:inline-flex;align-items:center;gap:9px}
+.drawer-row-icon{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:linear-gradient(145deg,#2a251d,#151412);border:1px solid #564a36;color:#dfc78f;font-size:11px;box-shadow:0 5px 12px #0005}
+
+#manageFoodsModal .manage-meals-view{display:grid;gap:12px;padding-bottom:5px}
+#manageFoodsModal .manage-hero{padding:3px 2px 1px}
+#manageFoodsModal .manage-kicker{display:block;color:#8baec8;font-size:8px;font-weight:900;letter-spacing:.19em}
+#manageFoodsModal .manage-hero h4{margin:6px 0 5px;color:#f3eee7;font-size:26px;line-height:1;letter-spacing:-.045em}
+#manageFoodsModal .manage-hero p{margin:0;color:#928e87;font-size:10.5px;line-height:1.5}
+#manageFoodsModal .manage-add-action{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;background:linear-gradient(180deg,#e8ddc7,#c6b58c)!important;color:#18140f!important;border:1px solid #e2cb99!important;box-shadow:0 9px 22px #0007!important;font:inherit;font-size:12px;font-weight:900;letter-spacing:.01em}
+#manageFoodsModal .manage-add-action:active{transform:translateY(1px) scale(.995)}
+#manageFoodsModal .manage-add-icon{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#1b1812;color:#e5ce9b;font-size:15px;line-height:1}
+#manageFoodsModal .food-list{margin-top:1px;display:grid;gap:7px}
+#manageFoodsModal .manage-food-row{border:1px solid #302b24!important;border-radius:13px!important;padding:10px 10px!important;background:linear-gradient(145deg,#1a1916,#121211);box-shadow:0 7px 18px #0004}
+#manageFoodsModal .manage-food-name b{font-size:11.5px!important;color:#eee8df}
+#manageFoodsModal .manage-food-name .row-state{font-size:8px;color:#8a867f}
+#manageFoodsModal .manage-food-name .row-state.is-active{color:#9fb8a8}
+#manageFoodsModal .manage-food-name .row-state.is-hidden{color:#a99b80}
+#manageFoodsModal .manage-row-action{min-height:30px!important;padding:0 9px!important;border-radius:9px!important;background:#171716!important;border:1px solid #403a31!important;color:#d7c19a!important;font-size:9px!important;font-weight:850!important}
+#manageFoodsModal .manage-row-action:hover{border-color:#6b5c42!important;color:#f0e3c9!important;background:#211e19!important}
+#manageFoodsModal .manage-restore{color:#b7d4c4!important;border-color:#3d574b!important}
+#manageFoodsModal .manage-hide{color:#b8b1a4!important}
+#manageFoodsModal .manage-edit{color:#a9cddd!important;border-color:#3e5661!important}
+#manageFoodsModal .manage-food-row .food-row-actions{gap:5px!important}
+#restaurant .radius-search{width:40px!important;min-width:40px!important;height:39px!important;padding:0!important;border-radius:11px!important;display:grid!important;place-items:center!important;color:#a9cddd!important;background:linear-gradient(180deg,#1b2327,#121719)!important;border:1px solid #445d67!important;box-shadow:0 6px 15px #0006!important}
+#restaurant .radius-search svg{width:17px;height:17px;display:block}
+#restaurant .radius-search:hover{background:linear-gradient(180deg,#243038,#171d20)!important;border-color:#648291!important;color:#d6edf5!important}
+#restaurant .radius-search:active{transform:scale(.97)!important}
+#restaurant .restaurant-search-box{margin-top:6px}
+#restaurant .restaurant-search-box::before{content:"RESTAURANT SEARCH";display:block;margin:0 2px 4px;color:#8baec8;font-size:7px;font-weight:900;letter-spacing:.17em}
+@media(max-width:390px){
+ #restaurant .radius-search{width:38px!important;min-width:38px!important;height:36px!important}
+ #restaurant .radius-search svg{width:16px;height:16px}
+}
