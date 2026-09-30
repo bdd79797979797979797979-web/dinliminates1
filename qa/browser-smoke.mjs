@@ -126,7 +126,7 @@ assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork'
 
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only Potato-mapped foods');
+assert.equal(s.foodPool.length,64,'Potato Quick Cut should remove only Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
@@ -463,7 +463,7 @@ await click('#privacyFromAbout'); await settle(); assert.equal(await visible('pr
 await page.locator('#privacyModal [data-close]').click(); await settle();
 await page.locator('[data-close]').click(); await settle();
 await click('#menu'); await settle(); await click('#settings'); await settle();
-const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.match(settingsFoodText,/Food Choices/i); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Hidden and deleted foods should share one Settings section'); await page.locator('#settingsModal [data-close]').click(); await settle();
+const settingsFoodText=await page.locator('#settingsModal').innerText(); assert.equal(/Food Choices/i.test(settingsFoodText),false,'Settings should not contain a Food Choices section'); assert.equal(await page.locator('#settingsModal h4').filter({hasText:'Deleted Foods'}).count(),0,'Settings should contain no deleted-food section'); await page.locator('#settingsModal [data-close]').click(); await settle();
 await click('#iphoneHelp'); await settle(); assert.equal(await visible('iphoneModal'),true,'iPhone help should open'); await page.locator('[data-close]').click(); await settle();
 
 // Restaurant final-choice right swipe must select the final restaurant, not enter Hungry.
