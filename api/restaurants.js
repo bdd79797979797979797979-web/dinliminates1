@@ -443,7 +443,7 @@ function sameRestaurant(x,r){
   const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
+  const sameNameStreet=sameStreet&&originDistanceClose&&partialAddress&&(variant||sameName);
   const sameCanonicalIdentity=!!identityKey&&identityKey===rowIdentityKey&&dist<=3;
   if(sameAddress && (sameNameFamily||sameBrand))return true;
   if(sameCanonicalIdentity)return true;
