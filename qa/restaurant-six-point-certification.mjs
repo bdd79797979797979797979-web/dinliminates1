@@ -43,7 +43,12 @@ const allResults=[
 ];
 
 page.on('pageerror',e=>pageErrors.push(String(e)));
-page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
+page.on('console',m=>{
+  if(m.type()!=='error') return;
+  const msg=m.text();
+  if(reverseFailure && /Failed to load resource: the server responded with a status of 502/.test(msg)) return;
+  consoleErrors.push(msg);
+});
 page.on('response',r=>{if(r.status()>=400)badResponses.push({status:r.status(),url:r.url()})});
 page.on('request',r=>{if(r.url().includes('/api/restaurant-search?mode=search'))requests.push(r.url())});
 
