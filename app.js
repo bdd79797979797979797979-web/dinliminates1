@@ -1202,7 +1202,7 @@ function settingsView(){
  const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Check the app and current device/runtime state.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores original foods and clears saved round changes. Custom foods remain.</p><button class="danger-action settings-reset-app" id="resetAppData">Reset App Data</button><p class="status">Deletes custom foods, history, hidden choices, and saved settings from this device.</p></div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- $('appDiagnosis').onclick=()=>appDiagnosisView(modal);$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
+ $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
 }
 function diagnosisMiles(a,b,c,d){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
@@ -1226,10 +1226,11 @@ function diagnosisRestaurantDuplicates(rows){
  }
  return out;
 }
-async function appDiagnosisView(existingModal=null){
+async function appDiagnosisView(existingModal){
+ if(!existingModal||!document.body.contains(existingModal))return null;
  const shellClass='diagnosis-modal';
  const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-loading"><span class="diagnosis-spinner" aria-hidden="true"></span><b>Checking Dinliminate…</b><small>Testing the current app, device runtime, and restaurant service.</small></div></div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Ready</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" aria-label="Run diagnostics again">↻ Run again</button></div></div>';
- const modal=existingModal||openModal('diagnosisModal','App Diagnosis',body);
+ const modal=existingModal;
  modal.classList.add(shellClass);
  if(existingModal){
   const head=modal.querySelector('.modal-head');
