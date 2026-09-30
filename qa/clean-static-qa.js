@@ -218,8 +218,8 @@ assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && a
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
-assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
-assert(app.includes("quickCats=[...cats,'Other']") && app.includes("x.value"),'Custom Food Quick Cut editor should include optional Other');
+assert(app.includes("const quickCats=cats") && app.includes("cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
+assert(app.includes('name="editQuickCut"') && app.includes("value=\"Other\"") && app.includes("if(!quickCuts.includes(cat)) quickCuts.unshift(cat)"),'Custom Food Quick Cut editor should include Other and persist the selected category as a Quick Cut');
 
 // CP261 Vercel image proxy contract.
 const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com'];
