@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '169';
+let APP_BUILD = '170';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -1520,16 +1520,13 @@ reader.readAsDataURL(file);
 }
 function foodEditor(item=null) {
 const isEdit=!!item;
-
-
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'];
-const quickCats=cats;
+const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
-'<select id="editFoodCat" aria-label="Cuisine type">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
-'<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+quickCats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. Your first selected category is the primary cuisine.</p><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+(existingCuts.includes(x)?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<textarea id="editFoodRecipe" placeholder="Recipe or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea>'+
@@ -1541,15 +1538,14 @@ const data=await readImageFile($('editFoodFile').files?.[0]);
 if(data) $('editFoodPhoto').value=data;
 } catch(e) { appToast(e.message); }
 };
-$('editFoodCat').onchange=()=>{
- const category=$('editFoodCat').value;
- const quick=document.querySelector('input[name="editQuickCut"][value="'+category+'"]');
- if(quick) quick.checked=true;
-};
 $('foodEditorForm').onsubmit=async e=>{
 e.preventDefault();
-const name=$('editFoodName').value.trim(), cat=$('editFoodCat').value;
-const quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value); if(!quickCuts.includes(cat)) quickCuts.unshift(cat);
+const name=$('editFoodName').value.trim();
+let quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value);
+if(!quickCuts.length){appToast('Choose at least one cuisine or Quick Cut.');return;}
+const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0];
+quickCuts=[preferred,...quickCuts.filter(x=>x!==preferred)];
+const cat=preferred;
 let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMAGE, recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
 if(isEdit){
@@ -1569,12 +1565,11 @@ S.custom.push({id,name,primary:id,category:cat,quickCuts,image:photo,recipe});
 }
 if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other')))S.cutCats.delete('Other');
 buildFood(); foodQuick(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
-
-
 if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
 else manageFoodsView();
 };
 }
+
 function manageFoodsView() {
 const rows=allFoods();
 const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Add a meal, refine the deck, or restore a hidden favorite. Your custom meals stay on this device.</p></div>'+
