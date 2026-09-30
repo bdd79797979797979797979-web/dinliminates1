@@ -4,7 +4,7 @@
 - Runtime target: Vercel
 - Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
 - Candidate promotion target: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 127
+- Current app build: Version 1.0 / Build 128
 - CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
@@ -16,7 +16,7 @@
 - Removed the Food Greek Quick Cut and moved Gyro to Healthy only.
 - Added the requested 1–2 Quick Cut mappings for all new foods; sweets are included in Snack.
 - Updated Food editor/static/browser/image QA for the 116-food catalog.
-- Build metadata is now Version 1.0 / Build 127.
+- Build metadata is now Version 1.0 / Build 128.
 
 ## CP258 release gates
 - Static/data contract: updated; automated run pending.
