@@ -39,7 +39,17 @@ const RESTAURANT_IDENTITY_PROFILES = [
   {pattern:/\bolive garden\b/,tags:['Italian']},
   {pattern:/\bred lobster\b/,tags:['Seafood']},
   {pattern:/\bapplebees?\b|\bchilis\b|\btexas roadhouse\b|\boutback steakhouse\b|\bo charleys\b|\bruby tuesday\b|\bbuffalo wild wings\b|\bgolden corral\b/,tags:['American']},
-  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true}
+  {pattern:/\bthirsty goat\b/,tags:['Pizza'],blockFastFood:true},
+  {pattern:/\btaco johns?\b|\bqdoba\b|\bmoe(?:s)?\b/,tags:['Fast Food','Mexican']},
+  {pattern:/\blos compadres\b|\blos amigos\b|\b(la|el) hacienda\b/,tags:['Mexican']},
+  {pattern:/\bchuy'?s\b|\bfuzzy'?s taco\b/,tags:['Mexican','Fast Food']},
+  {pattern:/\bwingstop\b|\bbuffalo wild wings\b|\bhooters\b/,tags:['Fast Food','American']},
+  {pattern:/\braising cane'?s\b|\bzaxby'?s\b|\bchick fil a\b|\bchick-fil-a\b/,tags:['Fast Food']},
+  {pattern:/\bcaptain d'?s\b|\blong john silver'?s\b/,tags:['Fast Food','Seafood']},
+  {pattern:/\bcracker barrel\b|\bbob evans\b|\bfirst watch\b/,tags:['American','Breakfast']},
+  {pattern:/\bchina (one|garden|wok|house)\b|\bpeking\b|\bgolden dragon\b/,tags:['Asian']},
+  {pattern:/\bthai\b|\bbangkok\b|\bsushi\b|\bhibachi\b/,tags:['Asian']},
+  {pattern:/\bcatfish\b|\bfish house\b|\bseafood\b|\bred lobster\b/,tags:['Seafood']}
 ];
 
 const RESTAURANT_MENU_SIGNALS = {
