@@ -1,46 +1,82 @@
+name: Dinliminate Clean QA
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dinliminate-clean-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clean-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: 22
+
       - name: Static QA
         run: node qa/clean-static-qa.js
+
       - name: Real provider smoke
         run: node qa/api-smoke.cjs
+
       - name: Route adapter smoke
         run: node qa/restaurant-route-smoke.cjs
+
       - name: Restaurant classification smoke
         run: node qa/restaurant-classification-smoke.cjs
+
       - name: Restaurant dedupe smoke
         run: node qa/restaurant-dedupe-smoke.cjs
+
       - name: Food image smoke
         run: node qa/food-image-smoke.mjs
+
       - name: Image source governance audit
         run: node qa/image-source-audit.cjs
+
       - name: Provider failure smoke
         run: node qa/provider-failure-smoke.cjs
+
       - name: Application Syntax
         run: node --check app.js && node --check data/foods.js && node --check qa/browser-smoke.mjs
+
       - name: Install Playwright
         run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
+
       - name: Accessibility smoke
         run: node qa/accessibility-smoke.mjs
+
       - name: Performance budget
         run: node qa/performance-budget.mjs
 
       - name: Visual regression
         run: node qa/visual-regression.mjs
+
       - name: Netlify preview smoke
         env:
           BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-53--diliminate.netlify.app' }}
         run: node qa/netlify-preview-smoke.mjs
+
       - name: Upload visual QA artifacts
         if: always()
         uses: actions/upload-artifact@v6
