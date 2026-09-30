@@ -655,7 +655,6 @@
 .card-card-action.icon-action .details-icon,.card-copy>.icon-action .details-icon{width:16px!important;height:16px!important}
 .card-card-action.icon-action{background:linear-gradient(180deg,#1b1b1b,#101010)!important;border-color:#665538!important;color:#d8bf8d!important;box-shadow:0 4px 12px #0008,inset 0 1px 0 #ffffff0f!important}
 .card-card-action.icon-action:hover{background:linear-gradient(180deg,#25221e,#141310)!important;border-color:#a08351!important;color:#fff!important}
-.diagnosis-action::after{content:'CHECK';position:absolute;top:5px;right:7px;font-size:7px;letter-spacing:.08em;opacity:.55}
 .diagnosis-refresh.selected{box-shadow:0 0 0 2px #bfa16b66,0 8px 20px #173f4755,inset 0 1px 0 #ffffff15!important}
 .diagnosis-refresh.complete::after{content:'READY';font-size:7px;letter-spacing:.08em;margin-left:6px;opacity:.7}
 
@@ -790,3 +789,8 @@
 .settings-reset-app{margin-top:10px}
 .settings-system-action.reset-action{background:linear-gradient(180deg,#8a3b32,#5f2923)!important;color:#fff!important;border-color:#b65f53!important;box-shadow:0 8px 20px #5f292344!important}
 .settings-system-action.reset-action:hover{background:linear-gradient(180deg,#a3483d,#71332c)!important;border-color:#d0796d!important}
+
+/* CP295 — remove the stray Settings CHECK label and restore clear vertical spacing between System actions */
+.settings-stack>#appDiagnosis{margin-bottom:10px!important}
+.settings-stack>#systemRestore{margin-bottom:0!important}
+.settings-stack>#resetAppData{margin-top:10px!important}
