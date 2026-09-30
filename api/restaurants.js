@@ -340,7 +340,7 @@ async function googleContactEnrichment(rows,originLat,originLon){
     const nameMatch=target===candidate||candidate.includes(target)||target.includes(candidate);
     return !nameMatch||distance>1.5?null:{id:p.id?'google-contact-'+p.id:'google-contact-'+norm(name),name,address:String(p?.formattedAddress||r.address||''),phone:String(p?.nationalPhoneNumber||''),website:String(p?.websiteUri||''),openNow,hoursSource:typeof openNow==='boolean'?'Google Places':'',lat,lon,distance:miles(originLat,originLon,lat,lon),category:types.includes('fast_food_restaurant')||types.includes('fast_food')?'Fast Food':(r.category||'Restaurant'),fastFood:types.includes('fast_food_restaurant')||types.includes('fast_food')||!!r.fastFood,cuisine:r.cuisine||'',opening_hours:r.opening_hours||'',photo:'',menuItems:r.menuItems||[],brand:r.brand||'',source:'Google Places Search',googlePlaceId:p.id||''};
    }).filter(Boolean).sort((a,b)=>Number(a.distance)-Number(b.distance))[0];
-   if(best)out.push(best);
+   if(best)out.push({...best,_targetId:r.id});
   }catch(e){errors.push(String(e?.message||e||'Google contact lookup failed'));}
  }
  const workers=Array.from({length:Math.min(3,targets.length)},async()=>{
@@ -348,6 +348,21 @@ async function googleContactEnrichment(rows,originLat,originLon){
  });
  await Promise.all(workers);
  return{rows:dedupe(out),errors};
+}
+function applyGoogleContactPatches(rows,patches){
+ const byId=new Map((rows||[]).map(row=>[String(row?.id||''),row]));
+ for(const patch of (patches||[])){
+  const target=byId.get(String(patch?._targetId||''));
+  if(!target)continue;
+  for(const key of ['address','phone','website','opening_hours','hoursSource','openNow','googlePlaceId']){
+   if(key==='openNow'){
+    if(typeof patch.openNow==='boolean')target.openNow=patch.openNow;
+   }else if(!target[key]&&patch[key])target[key]=patch[key];
+  }
+  if(patch.googlePlaceId)target.googlePlaceId=patch.googlePlaceId;
+  target.contactEnriched=true;
+ }
+ return rows;
 }
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 function restaurantNameTokens(value){
@@ -587,11 +602,11 @@ if(mode==='search'){
  const contactRemaining2=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
  if(contactAllowed&&GOOGLE_KEY&&contactRemaining2>3600){
    const got=await withinBudget(googleContactEnrichment(dedupe([...contactCandidates,...contactOut.rows]),lat,lon),contactRemaining2,'Google contact enrichment timed out');
-   if(got&&!got.__timeout)googleContactOut=got; else googleContactOut.errors.push('Google contact enrichment timed out');
+   if(got&&!got.__timeout){googleContactOut=got;applyGoogleContactPatches(contactCandidates,googleContactOut.rows)} else googleContactOut.errors.push('Google contact enrichment timed out');
  }
  const zone=await timezonePromise;
  const checkedAt=new Date();
- const rows=dedupe([...contactCandidates,...contactOut.rows,...googleContactOut.rows]).map(r=>{
+ const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
    const website=r.website||knownRestaurantWebsite(r);
    const phone=String(r.phone||'').trim();
    const classification=RESTAURANT_TAXONOMY.classifyRestaurant({...r,website,phone}); const classifiedFastFood=classification.tags.includes('Fast Food'); const photo=restaurantPhotoMeta(r); return normalizeRestaurantHours({...r,fastFood:classifiedFastFood,quickCutTags:classification.tags,quickCutEvidence:classification.evidence,...photo,website,phone,websiteSource:r.website?'provider':(website?'official-brand':'google-search-fallback'),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
@@ -600,5 +615,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,centers,radiusDiscoveryPlan,normalizeSearchQuery,searchRegex,searchRegexAlternatives,searchQueryClause,providerSearchTerms,classifySearchTerm,rate,serverHoursState,normalizeRestaurantHours,restaurantPhotoMeta,image,googleContactEnrichment,applyGoogleContactPatches,classifyRestaurant:RESTAURANT_TAXONOMY.classifyRestaurant};
 module.exports=handler;
