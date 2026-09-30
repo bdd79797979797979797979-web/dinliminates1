@@ -100,8 +100,9 @@ function knownRestaurantWebsite(row){
  }
  return '';
 }
+function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\$&');}
 function contactQuery(lat,lon,radius,names){
- const pattern=names.map(name=>String(name||'').replace(/"/g,'\\\"')).filter(Boolean).join('|');
+ const pattern=names.map(escapeOverpassRegex).filter(Boolean).join('|');
  const m=Math.round(Math.min(25,Math.max(1,radius))*1609.344);
  return '[out:json][timeout:5];nwr[amenity~"^(restaurant|fast_food)$"][name~"^('+pattern+')$",i](around:'+m+','+lat+','+lon+');out center tags;';
 }
@@ -275,14 +276,20 @@ if(mode==='search'){
   }else osmOut.errors.push('Search budget reached before wide restaurant search.');
  }
  let contactOut={rows:[],errors:[]};
- const missingContactNames=preliminary.filter(r=>r.fastFood&&!r.phone).map(r=>r.name).filter(Boolean).filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i).slice(0,8);
+ const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
+ const missingContactNames=contactCandidates
+   .filter(r=>!r.phone)
+   .sort((a,b)=>Number(b.fastFood)-Number(a.fastFood)||Number(a.distance||0)-Number(b.distance||0))
+   .map(r=>r.name)
+   .filter(Boolean)
+   .filter((name,i,a)=>a.findIndex(x=>norm(x)===norm(name))===i)
+   .slice(0,12);
  const contactRemaining=Math.max(0,SEARCH_BUDGET_MS-(Date.now()-startedAt));
  if(missingContactNames.length&&contactRemaining>2500){
    const got=await withinBudget(contactEnrichment(lat,lon,Math.min(radius,25),missingContactNames),contactRemaining,'Restaurant contact enrichment timed out');
    if(got&&!got.__timeout)contactOut=got; else contactOut.errors.push('Contact enrichment timed out');
  }
- const rows=dedupe([...preliminary,...osmOut.rows,...contactOut.rows]).map(r=>({...r,photo:image(r),website:r.website||knownRestaurantWebsite(r)}));
- if(!rows.length&&photonOut.errors.length&&arcgisOut.errors.length&&osmOut.errors.length)throw Object.assign(new Error('Restaurant providers are temporarily unavailable. Please try again.'),{code:'PROVIDER_UNAVAILABLE'});
+ const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>({...r,photo:image(r),website:r.website||knownRestaurantWebsite(r)}));
  const zone=await timezonePromise;
  const data={ok:true,version:'r14',radiusMiles:radius,total:rows.length,fastFoodCount:rows.filter(r=>r.fastFood).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,providers:{photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length},providerErrors:[...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
