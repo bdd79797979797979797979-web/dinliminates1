@@ -77,7 +77,7 @@ const RESTAURANT_MENU_SIGNALS = {
 const RESTAURANT_NAME_SIGNALS = {
   Pizza:/\bpizza\b|\bpizzeria\b/,
   Mexican:/\bmexican\b|\btaqueria\b|\btaco\b|\bburrito\b/,
-  Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bramen\b|\bpho\b|\bhibachi\b|\bteriyaki\b/,
+  Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bramen\b|\bpho\b|\bhibachi\b|\bteriyaki\b|\bdim sum\b|\btokyo\b|\bkyoto\b|\bosaka\b|\bseoul\b|\bbangkok\b|\bbeijing\b|\bshanghai\b|\bhong kong\b/
   Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b|\btrattoria\b|\bosteria\b|\bristorante\b/,
   Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b|\bmeat and three\b/,
   BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
