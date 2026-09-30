@@ -134,3 +134,13 @@ Completed:
 Deployment:
 - CP258 Netlify Deploy Preview is expected on PR #45 once created/updated; exact Netlify confirmation remains pending.
 - Vercel remains account-rate-limited.
+
+
+## CP259 — Requested food catalog additions
+- Built-in Food catalog: **116 foods**.
+- Added 26 unique requested foods; Gumbo was already present and was not duplicated.
+- Roast Beef Sandwich + Chips appears once despite the request listing it twice.
+- Fish Sticks was moved to the final built-in catalog position.
+- Build updated from 127 to **128**.
+- Recovery points: `checkpoint-cp259-food-catalog-added-2026-09-30`, `checkpoint-cp259-qa-ready-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
