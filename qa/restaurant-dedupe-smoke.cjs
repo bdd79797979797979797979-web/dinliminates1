@@ -17,6 +17,13 @@ const rows=[
 assert.equal(t.nameVariantMatch("Head's BBQ",'Robert Head’s BBQ'),true,'Robert Head’s BBQ should be recognized as a nearby name variant');
 assert.equal(t.nameVariantMatch('Heads BBQ','Heads BBQ Express'),false,'Format/location modifiers such as Express must not trigger a name-variant merge');
 assert.equal(t.nameVariantMatch('Chris Pizza',"Chris's Pizza"),true,'Chris Pizza and Chris’s Pizza should normalize to the same name family');
+assert.equal(t.classifyRestaurant({name:'The Thirsty Goat',category:'Fast Food',providerType:'Pizza restaurant'}).primary,'Pizza','The Thirsty Goat primary classification must be Pizza');
+assert.deepEqual(t.classifyRestaurant({name:'The Thirsty Goat',category:'Fast Food',providerType:'Pizza restaurant'}).tags,['Pizza'],'The Thirsty Goat must not retain Fast Food taxonomy tagging');
+assert.equal(typeof t.restaurantIdentityKey,'function','restaurantIdentityKey test hook required');
+assert.equal(t.restaurantIdentityKey({name:'Heads BBQ'}),t.restaurantIdentityKey({name:'Robert Heads BBQ'}),'Heads BBQ name variants must share one canonical local identity');
+assert.equal(t.restaurantIdentityKey({name:'Heads BBQ Express'}),'','Heads BBQ Express must not inherit the Heads BBQ canonical identity');
+assert.equal(t.restaurantIdentityKey({name:'Excell BBQ'}),'excell-bbq-clarksville','Excell BBQ must have a canonical local identity');
+
 const out=t.dedupe(rows);
 assert.equal(t.normAddress('100 Main Road, Clarksville, TN 37043'),t.normAddress('100 Main Rd, Clarksville, TN 37043'),'Road/Rd address variants should normalize together');
 assert.equal(out.length,4,'Three duplicate-provider cases should collapse while distinct venues remain');
