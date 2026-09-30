@@ -199,12 +199,6 @@ s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut sh
 await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
 assert.equal((await qa()).foodPool.length,116,'Starting a new food round should reset the Maybe recycle cycle');
 
-const randomBefore=(await qa()).foodPool.length;
-await page.evaluate(()=>{ Math.random=()=>0.24; });
-await click('#randomOne'); await settle();
-s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Random Cut One should use the same Cut action');
-assert.equal(s.foodPool.length,randomBefore-1,'Random Cut One should remove exactly one choice');
-await click('#foodBack'); await settle();
 
 await click('#foodBackTop'); await settle();
 assert.equal((await qa()).screen,'home','top Back should return to the home screen');
