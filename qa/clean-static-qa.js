@@ -136,6 +136,9 @@ assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator 
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
+assert(html.includes('id="restaurantSearch" aria-label="Search restaurants"'),'Restaurant Search control must remain available');
+assert(html.includes('<div class="location-sub">') && html.includes('class="restaurant-tool radius-search" id="restaurantSearch"'),'Restaurant Search must sit in the same Radius row');
+assert(!html.includes('<div class="restaurant-tools"'),'Restaurant Search must not consume a separate full-width row');
 assert(!html.includes('id="hoursToggle"'),'Restaurant hours filter control should be removed from the UI');
 assert(app.includes("'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg"),'Restaurant Asian Quick Cut must have a concrete photo source');
 assert(app.includes("S.hoursMode = 'openUnknown';"),'Persisted Restaurant hours state must normalize to Open/Unknown now that the filter control is removed');
