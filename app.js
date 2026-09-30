@@ -778,6 +778,9 @@ save();
 }
 let suggestController = null;
 let restaurantSearchController = null;
+let reverseLocationController = null;
+let locationRequestActive = false;
+let locationRequestSeq = 0;
 function renderFindButton(){
  const btn=$('find');if(!btn)return;
  btn.textContent=S.location?'Refresh':'Find';
