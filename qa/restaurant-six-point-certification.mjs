@@ -28,6 +28,8 @@ const page=await context.newPage();
 const png1x1=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
 const requests=[],badResponses=[],pageErrors=[],consoleErrors=[];
 let reverseFailure=false;
+const googlePhotoAttributionHeader=Buffer.from(JSON.stringify([{displayName:'Dinliminate Photo Credit',uri:'https://maps.google.com/'}])).toString('base64url');
+const googlePhotoRow={id:'google-photo-test',name:'Google Photo Test Grill',category:'Restaurant',fastFood:false,cuisine:'american',distance:1.6,address:'111 Photo Test Ave, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,photo:'',photoFallback:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',photoSource:'google-places',photoIsGeneric:false,photoConfidence:.95,googlePlaceId:'ChIJ1234567890',menuItems:['Grilled Chicken']};
 
 const allResults=[
  {id:'mcd',name:"McDonald's",category:'Fast Food',fastFood:true,cuisine:'burger',distance:.8,address:'100 Main St, Clarksville, TN',website:'https://www.mcdonalds.com',phone:'(931) 555-0101',opening_hours:'24/7',openNow:true,menuItems:['Big Mac','Fries'],photo:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'},
@@ -73,6 +75,7 @@ await page.route('**/*',async route=>{
  if(u.includes('/api/restaurant-search?mode=search')){
    const url=new URL(u),radius=Number(url.searchParams.get('radius')||10),q=String(url.searchParams.get('q')||'').toLowerCase();
    let results=allResults.filter(x=>x.distance<=radius+1e-9);
+   if(q.replace(/[^a-z0-9]+/g,' ').includes('google photo test'))results=[googlePhotoRow];
    if(q){
      const nq=q.replace(/[^a-z0-9]+/g,' ').trim();
      if(nq.includes('mcdonald'))results=results.filter(x=>x.id==='mcd');
@@ -86,6 +89,9 @@ await page.route('**/*',async route=>{
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
      ok:true,version:'qa',radiusMiles:radius,total:results.length,fastFoodCount:results.filter(x=>x.fastFood).length,timezone:'America/Chicago',searchQuery:q,searchLatencyMs:150,searchBudgetMs:12000,results
    })});
+ }
+ if(u.includes('/api/restaurant-photo?placeId=ChIJ1234567890')){
+   return route.fulfill({status:200,contentType:'image/jpeg',headers:{'X-Restaurant-Photo-Attributions':googlePhotoAttributionHeader},body:png1x1});
  }
  if(u.includes('/api/image?url='))return route.fulfill({status:200,contentType:'image/jpeg',body:png1x1});
  if(u.startsWith('https://images.unsplash.com/')||u.startsWith('https://images.pexels.com/'))return route.fulfill({status:200,contentType:'image/png',body:png1x1});
@@ -288,6 +294,29 @@ s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd']);
 assert.ok(requests.some(u=>String(new URL(u).searchParams.get('q')||'').toLowerCase()==='mcdonalds'),'Explicit restaurant search was not sent to provider search');
 report["4_search_restaurants"].mcdonalds={matched:s.restaurantPool,providerQuery:requests.at(-1)};
+
+// Photo pipeline: a Google-backed venue should hydrate its current Tinder card and Details image,
+// retain an immediate fallback while loading, and surface the required author attribution.
+await page.locator('#restaurantQuery').fill('Google Photo Test');
+await page.locator('#restaurantQuery').press('Enter');
+await waitForRestaurant();
+s=await snap();
+assert.deepEqual(s.restaurantPool,['google-photo-test']);
+const googleCardImg=page.locator('#restaurantCard img[data-google-photo-id="ChIJ1234567890"]');
+await page.waitForFunction(()=>document.querySelector('#restaurantCard img[data-google-photo-loaded="true"]')!==null);
+assert.ok((await googleCardImg.getAttribute('src')).startsWith('blob:'),'Google venue photo should hydrate into an object URL.');
+assert.equal(await page.locator('#restaurantCard .restaurant-photo-credit').evaluate(el=>el.classList.contains('is-visible')),true);
+assert.ok((await page.locator('#restaurantCard .restaurant-photo-credit').innerText()).includes('Dinliminate Photo Credit'));
+report["5_photo"].googleVenueCard=true;
+
+await page.locator('#restDetails').click();
+await page.waitForSelector('#detailsModal');
+await page.waitForFunction(()=>document.querySelector('#detailsModal img[data-google-photo-loaded="true"]')!==null);
+assert.equal(await page.locator('#detailsModal .restaurant-photo-credit').evaluate(el=>el.classList.contains('is-visible')),true);
+assert.ok((await page.locator('#detailsModal .restaurant-photo-credit').innerText()).includes('Dinliminate Photo Credit'));
+report["5_photo"].googleVenueDetails=true;
+await page.locator('#detailsModal [data-close]').click();
+
 await page.locator('#restaurantQuery').fill('burger'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
 s=await snap();
 assert.deepEqual(new Set(s.restaurantPool),new Set(['mcd','american']));
