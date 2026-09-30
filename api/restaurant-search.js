@@ -366,7 +366,8 @@ function providerRowsMatch(a, b) {
   const samePostal = !!postalA && !!postalB && postalA === postalB;
   const sameName = !!an && !!bn && (an === bn || an.includes(bn) || bn.includes(an));
   const sameBrand = !!ab && !!bb && (ab === bb || ab.includes(bb) || bb.includes(ab));
-  return Number.isFinite(da) && da <= 0.30 && (sameName || sameBrand || samePostal);
+  // ZIP agreement alone is not enough: nearby restaurants commonly share the same ZIP.
+  return Number.isFinite(da) && da <= 0.30 && (sameName || sameBrand || (samePostal && sameName));
 }
 
 function mergeProviderContactFields(existing, row) {
