@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 171,
+  "build": 175,
   "sourceBranch": "cp469-restaurant-dedupe-cuisine-final-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
