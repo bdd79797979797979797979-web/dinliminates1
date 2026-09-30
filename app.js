@@ -91,8 +91,8 @@ return imageProxyUrl(QUICK_IMAGES.American);
 function restaurantWebsiteUrl(row){
 const direct=safeExternalUrl(row?.website);
 if(direct)return direct;
-const q=[row?.name,row?.address].filter(Boolean).join(' ');
-return 'https://www.google.com/search?q='+encodeURIComponent(q||'restaurant');
+const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
+return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
 }
 function restaurantDirectionsUrl(row){
 const lat=Number(row?.lat),lon=Number(row?.lon);
@@ -140,7 +140,14 @@ function phoneHref(raw){
  return digits?'tel:'+digits:'';
 }
 function safeExternalUrl(raw){
- try{const u=new URL(String(raw||''),location.origin);return u.protocol==='https:'?u.href:'';}catch{return '';}
+ try{
+  const u=new URL(String(raw||''),location.origin);
+  if(u.protocol!=='https:')return '';
+  const host=u.hostname.toLowerCase(),current=String(location.hostname||'').toLowerCase();
+  const appBrandHost=/(^|[.-])(?:dinliminate|diliminate)([.-]|$)/i.test(host);
+  if(host===current||appBrandHost)return '';
+  return u.href;
+ }catch{return '';}
 }
 const normKey=(v)=>String(v??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -875,7 +882,7 @@ const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisi
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
 const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '';
 const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
-const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(safeExternalUrl(row.website)?'Open restaurant website':'Search restaurant on Google')+'" title="'+(safeExternalUrl(row.website)?'Website':'Search on Google')+'">Website ↗</a>';
+const directWebsite=!!safeExternalUrl(row.website); const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open restaurant website':'Search restaurant on Google')+'" title="'+(directWebsite?'Website':'Search on Google')+'">'+(directWebsite?'Website ↗':'Google ↗')+'</a>';
 $('restStage').innerHTML =
 '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+'<div class="card-cuisine-row">'+(row.cuisine?'<div class="card-detail-line cuisine-line">'+esc(row.cuisine)+'</div>':'<div class="card-detail-line cuisine-line">'+esc(category)+'</div>')+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'</div></div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
