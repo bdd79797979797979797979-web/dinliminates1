@@ -112,14 +112,17 @@ for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','S
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
-for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','BBQ']) {
+for(const label of ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
 assert(app.includes('restaurant-luxury-stat-grid') && app.includes('Distance') && app.includes('Address'),'Restaurant Details must expose richer information');
 assert(app.includes('Typical nutrition') && app.includes('Ingredients'),'Food Details must expose nutrition and ingredients');
 
-assert(app.includes("if (label === 'Potato')") && app.includes("Array.isArray(row.menuItems)"),'Restaurant Potato Quick Cut must use menu-aware matching');
+assert(app.includes("const REST_QUICK = ['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast']"),'Restaurant Quick Cuts must use restaurant categories, not food-item categories');
+for(const legacy of ['Potato','Pasta','Soup/Stew','Healthy']) assert(!/const REST_QUICK = \[[^\]]*['\"]${legacy}['\"]/.test(app),'Restaurant Quick Cuts must not include food-style '+legacy+' shortcut');
+assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
+assert(app.includes("normalized==='burger'") && app.includes('!!row.fastFood'),'Burger Search should include fast-food restaurants');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes('foodMaybeRound') && app.includes('S.foodMaybeRound=true'),'Food Maybe choices must recycle into a second narrowing pass');
