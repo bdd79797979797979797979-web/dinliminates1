@@ -584,3 +584,12 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Food Quick Cuts reordered to American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
 - Hungry winner shows “Fish Sticks?” and its Details view omits Hide.
 - Build 129; recovery points saved before and after product edits.
+
+
+## CP260 — Pass Around rebuild and card polish
+- Build 130.
+- Quick Pass default; Full Pass optional.
+- Liver & Onions: Southern + Healthy.
+- Hungry Details: no Hide; small “Fish Sticks?” prompt.
+- Restaurant Details beside cuisine; App Diagnosis green.
+- Recovery: `checkpoint-cp260-pass-around-tested-2026-09-30`.
