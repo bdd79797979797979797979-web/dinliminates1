@@ -24,3 +24,13 @@ Baseline commit: `bc267e6051b2ec9a1394c9fbc5b5cac57fd26187`
 - McDonalds Sango provider duplicates → one venue.
 - Heads BBQ Express remains a distinct venue.
 - The Thirsty Goat classifies as Pizza.
+
+
+## CP468 hardening added
+- Added exact canonical identity aliases for Heads BBQ / Robert Heads BBQ, Excell BBQ, and The Thirsty Goat.
+- Canonical identity dedupe is applied in both API and browser restaurant pools when records are within 3 miles, covering provider address disagreements.
+- Heads BBQ Express is explicitly excluded from the Heads BBQ canonical identity.
+- The Thirsty Goat has an explicit Pizza primary classification and cannot retain Fast Food taxonomy from a stale/provider category.
+- Restaurant Quick Cut tags now use fresh taxonomy as the source of truth whenever classification has evidence, preventing stale persisted tags from masking the current category.
+- Build/cache metadata advanced to CP468 / Build 174.
+- Regression harness now invokes the actual API dedupe hook consistently.
