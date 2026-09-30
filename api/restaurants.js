@@ -45,7 +45,7 @@ function serverDayMatches(spec,day){
  return String(spec||'').split(',').some(part=>{
   const p=part.trim().toLowerCase(); if(!p)return false;
   if(p===want)return true;
-  const m=p.match(/^(sun|mon|tue|wed|thu|fri|sat)-(sun|mon|tue|wed|thu|fri|sat)$/);
+  const m=p.match(/^(su|mo|tu|we|th|fr|sa)-(su|mo|tu|we|th|fr|sa)$/);
   if(!m)return false;
   const a=names.indexOf(m[1]),b=names.indexOf(m[2]);
   return a<=b?day>=a&&day<=b:day>=a||day<=b;
