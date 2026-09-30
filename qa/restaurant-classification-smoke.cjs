@@ -5,6 +5,10 @@ assert.equal(typeof isFast,'function','fast-food classifier test hook should exi
 assert.equal(typeof dedupe,'function','restaurant dedupe test hook should exist');
 for(const name of ["McDonald's","Wendy's","Burger King","KFC","Taco Bell","Chick-fil-A","Chipotle"]) assert.equal(isFast(name),true,name+' should classify as Fast Food');
 for(const name of ["Applebee's","Ruby Tuesday","Olive Garden","Texas Roadhouse","Outback Steakhouse","Cracker Barrel","O'Charley's","Red Lobster","Panera Bread","The Thirsty Goat"]) assert.equal(isFast(name),false,name+' should not classify as Fast Food');
+const classify=handler._test.classifyRestaurant;
+assert.equal(classify({name:'The Thirsty Goat',category:'Restaurant',cuisine:'',providerType:'restaurant'}).tags.includes('Pizza'),true,'The Thirsty Goat should classify as Pizza');
+assert.equal(classify({name:'Heads BBQ',category:'Restaurant',cuisine:'',providerType:'restaurant'}).tags.includes('BBQ'),true,'Heads BBQ should classify as BBQ');
+assert.equal(classify({name:'Excell BBQ',category:'Restaurant',cuisine:'',providerType:'restaurant'}).tags.includes('BBQ'),true,'Excell BBQ should classify as BBQ');
 console.log('Dinliminate restaurant classification smoke: PASS');
 
 const fixture=[
