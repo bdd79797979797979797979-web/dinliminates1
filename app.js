@@ -892,6 +892,24 @@ let body=null;
 try{body=await response.json();}catch{throw new Error(message||'The restaurant search returned an invalid response.');}
 return body;
 }
+async function fetchRestaurantEndpoint(url,signal){
+let lastError=null;
+for(let attempt=0;attempt<2;attempt++){
+  try{
+    const response=await fetch(url,{signal});
+    if(response.ok || attempt===1 || ![429,500,502,503,504].includes(response.status)) return response;
+    await new Promise(resolve=>setTimeout(resolve,response.status===429?500:250));
+    if(signal?.aborted) throw Object.assign(new Error('Aborted'),{name:'AbortError'});
+  }catch(e){
+    if(e?.name==='AbortError')throw e;
+    lastError=e;
+    if(attempt===1)throw e;
+    await new Promise(resolve=>setTimeout(resolve,250));
+    if(signal?.aborted) throw Object.assign(new Error('Aborted'),{name:'AbortError'});
+  }
+}
+throw lastError||new Error('Restaurant service unavailable.');
+}
 async function searchRestaurants() {
 const searchSeq = ++restaurantSearchSeq;
 restaurantSearchController?.abort();
@@ -906,7 +924,7 @@ let loc = S.location;
 if (!loc) {
 const q = $('address').value.trim();
 if (!q) { $('status').textContent = 'Enter an address or use your location.'; return; }
-const rr = await fetch('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q),{signal});
+const rr = await fetchRestaurantEndpoint('/api/restaurant-search?mode=resolve&q='+encodeURIComponent(q),signal);
 const rd = await responseJson(rr,'Could not locate that address. Please try another address.');
 if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !rd.ok) throw new Error(rr.status===429 ? 'Address lookup is temporarily busy. Please try again.' : (rd.message || 'Could not locate that address.'));
@@ -915,7 +933,7 @@ loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSo
 const radius = Number($('radius').value) || 10;
 const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);
 const queryParam = searchTerm ? '&q='+encodeURIComponent(searchTerm) : '';
-const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius+queryParam,{signal});
+const rr = await fetchRestaurantEndpoint('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius+queryParam,signal);
 const d = await responseJson(rr,'Restaurant search returned an invalid response. Please try again.');
 if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
