@@ -609,9 +609,10 @@ function dedupeRestaurantPool(rows){
    const sameName=!!name&&name===xn;
    const variant=(name&&xn&&(name.includes(xn)||xn.includes(name))&&Math.min(name.split(' ').length,xn.split(' ').length)>=2);
    const sameAddr=!!address&&!!xa&&address===xa;
+   const conflictingAddr=!!address&&!!xa&&!sameAddr;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
    const close=Number.isFinite(dist)&&dist<=0.35;
-   return (sameContact&&close)||(sameAddr&&(sameName||variant))||(sameName&&close);
+   return sameAddr&&(sameName||variant) || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&close);
   });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
@@ -1826,7 +1827,7 @@ window.addEventListener('offline', updateOffline);
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,dedupeRestaurantPool,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
