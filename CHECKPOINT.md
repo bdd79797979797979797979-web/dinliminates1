@@ -115,7 +115,7 @@ Recovery rule: return to `checkpoint-cp257-catalog-and-details-2026-09-29` if a 
 
 ## CP258 — Expanded Food catalog and Quick Cut cleanup
 Working branch: `cp258-food-catalog-expansion-2026-09-30`
-Build: 1.0 / 127
+Build: 1.0 / 132
 CI trigger: CP258 is included in the full clean-qa push trigger.
 
 Recovery points:
@@ -171,3 +171,17 @@ Deployment:
 - Quick Pass remains the default; Full Pass remains optional.
 - Starting voter rotates between Pass Around sessions.
 - Final verified source commit before this note: `51579fe6318d73813db9a3b3956457affc35a0ed`.
+
+
+## CP260 — Final verified state
+- Build: **1.0 / 132**.
+- Final Food Quick Cut order: American → Southern → Mexican → Italian → Asian → Pasta → Soup/Stew → Healthy → Breakfast → Potato → Snack.
+- Liver & Onions: Southern + Healthy.
+- Spaghetti, Pasta Alfredo, Lasagna, Chicken Parmesan: Pasta + Italian.
+- Custom Food “Other” is optional and only appears globally when a custom food uses it.
+- Hungry: black Hungry window, small “Fish Sticks?” prompt, no Hide in Hungry Details.
+- Restaurant Details icon sits to the right of cuisine.
+- App Diagnosis button is green.
+- Swipe engine uses pointer capture; Pass Around Quick Pass is default and Full Pass remains optional; Back/Undo and safe Cancel are covered.
+- Recovery: `checkpoint-cp260-final-code-verified-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
