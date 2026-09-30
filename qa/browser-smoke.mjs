@@ -90,7 +90,7 @@ const homeHeading=await page.locator('#home h1').boundingBox();
 assert.ok(homeHeading && homeHeading.x + homeHeading.width <= homeGeom.clientWidth + 1,'Home headline should fit fully inside the iPhone viewport');
 assert.ok(homeHeading && homeHeading.y >= 0 && homeHeading.y + homeHeading.height <= homeGeom.innerHeight + 2,'Home headline should not be vertically cut off');
 
-await assert.equal((await qa()).foodCatalog,65,'Restored 65-food catalog should load before the round starts');
+await assert.equal((await qa()).foodCatalog,67,'Restored 65-food catalog should load before the round starts');
 await click('#foodStart'); await settle();
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
 assert.equal(await page.locator('[data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
@@ -105,13 +105,25 @@ const imageCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINAT
 assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn should use a popcorn photo');
 assert.match(imageCatalog['stir-fry']||'',/photos\/31673757\//,'Mexican Stir Fry should use the refreshed accurate photo');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
-let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,65,'expected restored food catalog');
+let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,67,'expected restored food catalog');
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
-assert.equal(foodImageSources.length,65,'Food data should expose 65 image-backed choices');
+assert.equal(foodImageSources.length,67,'Food data should expose 65 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
 const refreshedImageChecks=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['tacos','stir-fry','meatloaf','buttermilk-cornbread','potato-soup','stuffed-peppers','stroganoff','health-shake'].includes(x.id)).map(x=>[x.id,x.image])));
 const refreshedExpected={tacos:/14179985/, 'stir-fry':/31673757/, meatloaf:/2397401/, 'buttermilk-cornbread':/36863862/, 'potato-soup':/29653177/, 'stuffed-peppers':/31953510/, stroganoff:/28503619/, 'health-shake':/7974814/};
 for(const [id,re] of Object.entries(refreshedExpected))assert.match(refreshedImageChecks[id]||'',re,id+' should use its refreshed image mapping');
+const requestedCatalog=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['homemade-pizza','meatball-subs','sausage-peppers','buttermilk-cornbread','grilled-salmon','bbq-pulled-pork','pork-chops','pork-tenderloin','white-fish','mashed-potatoes','biscuits-gravy','stuffed-peppers','stroganoff'].includes(x.id)).map(x=>[x.id,{name:x.name,category:x.category,quickCuts:x.quickCuts,image:x.image}])));
+assert.deepEqual(requestedCatalog['homemade-pizza'].quickCuts,['Italian'],'Pizza should be associated with Italian only');
+assert.deepEqual(requestedCatalog['meatball-subs'].quickCuts,['Italian'],'Meatball Sub should be associated with Italian');
+assert.deepEqual(requestedCatalog['sausage-peppers'].quickCuts,['Italian'],'Sausage & Peppers should be associated with Italian');
+assert.deepEqual(requestedCatalog['pork-chops'].quickCuts,['Southern'],'Pork Chops should be associated with Southern');
+assert.deepEqual(requestedCatalog['pork-tenderloin'].quickCuts,['Southern'],'Pork Tenderloin should be associated with Southern');
+assert.deepEqual(requestedCatalog['white-fish'].quickCuts,['Healthy'],'White Fish should be associated with Healthy');
+assert.deepEqual(requestedCatalog['biscuits-gravy'].quickCuts,['Breakfast'],'Biscuits & Gravy should be Breakfast');
+assert.deepEqual(requestedCatalog['stuffed-peppers'].category,'American');
+assert.equal(requestedCatalog['mashed-potatoes'].name,'Mashed Potatoes','Mashed Potatoes should not include gravy in its title');
+assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork')),false,'No Food Quick Cut should include Pork');
+
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
 assert.equal(s.foodPool.length,62,'Potato Quick Cut should remove only Potato-mapped foods');
@@ -119,7 +131,7 @@ assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not 
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
 await click('[data-food-quick="Potato"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Quick Cut should restore');
+s=await qa(); assert.equal(s.foodPool.length,67,'Quick Cut should restore');
 
 const foodBox=await page.locator('#foodCard').boundingBox();
 if(!foodBox) throw new Error('Food card bounding box missing for swipe QA');
@@ -133,7 +145,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'cut','Food left swipe should Cut');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore left swipe');
+s=await qa(); assert.equal(s.foodPool.length,67,'Food Back should restore left swipe');
 
 const foodBox2=await page.locator('#foodCard').boundingBox();
 if(!foodBox2) throw new Error('Food card bounding box missing for right swipe QA');
@@ -144,7 +156,7 @@ await page.mouse.up();
 await settle();
 s=await qa(); assert.equal(s.foodActions.at(-1)?.type,'maybe','Food right swipe should Maybe');
 await click('#foodBack'); await settle();
-s=await qa(); assert.equal(s.foodPool.length,65,'Food Back should restore right swipe');
+s=await qa(); assert.equal(s.foodPool.length,67,'Food Back should restore right swipe');
 const beforeCut=s.foodPool.length;
 await click('#foodCut'); await settle();
 let afterCut=await qa(); assert.equal(afterCut.foodPool.length < beforeCut,true);
@@ -155,14 +167,14 @@ s=await qa(); assert.equal(s.foodPool.includes(cutId),true,'Food Back should res
 
 await click('#foodMaybe'); await settle();
 s=await qa(); assert.equal(s.maybe.length,1,'Maybe should mark the current choice for recycling');
-assert.equal(s.foodPool.length,65,'Maybe should move the current card to the recycle queue for this pass');
+assert.equal(s.foodPool.length,67,'Maybe should move the current card to the recycle queue for this pass');
 while(!s.foodMaybeRound && s.foodPool.length>0){ await click('#foodCut'); await settle(); s=await qa(); }
 assert.equal(s.foodMaybeRound,true,'Food Maybe choices should recycle into a second narrowing pass');
 assert.equal(s.foodPool.includes((await qa()).maybe[0]),true,'The kept food should return when the first pass is exhausted');
 await click('#foodBack'); await settle();
 s=await qa(); assert.equal(s.foodMaybeRound,true,'Back from a second-pass Cut should preserve the recycle round');
 await click('#foodBackTop'); await settle(); await click('#foodStart'); await settle();
-assert.equal((await qa()).foodPool.length,65,'Starting a new food round should reset the Maybe recycle cycle');
+assert.equal((await qa()).foodPool.length,67,'Starting a new food round should reset the Maybe recycle cycle');
 
 const randomBefore=(await qa()).foodPool.length;
 await page.evaluate(()=>{ Math.random=()=>0.24; });
@@ -363,10 +375,11 @@ await click('[data-food-hide="popcorn"]'); await settle();
 s=await qa(); assert.ok(s.hiddenFoods.includes('popcorn'),'Manage Foods Hide should persist the hidden food in state');
 await page.locator('#manageFoodsModal .modal-head [data-close]').click(); await settle();
 await page.locator('#foodMenu').click(); await settle(); await page.locator('#settings').click(); await settle();
-assert.equal((await page.locator('#settingsModal').innerText()).toLowerCase().includes('popcorn'),true,'Settings should list hidden built-in food');
-assert.equal(await page.locator('[data-setting-food-delete="popcorn"]').count(),1,'Settings should place Delete beside hidden-food Restore');
-await page.locator('[data-setting-food-delete="popcorn"]').click(); await settle(); assert.equal(await visible('appConfirmModal'),true,'Settings food removal should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-assert.equal((await page.locator('#settingsModal').innerText()).includes('popcorn'),false,'Settings Delete should remove the hidden food');
+const settingsFoodText=await page.locator('#settingsModal').innerText();
+assert.equal(/Food Choices/i.test(settingsFoodText),false,'Settings should no longer contain a Food Choices section');
+assert.equal(settingsFoodText.toLowerCase().includes('popcorn'),false,'Settings should not list hidden foods');
+assert.equal(await page.locator('[data-setting-food-delete]').count(),0,'Settings should expose no food Delete control');
+assert.equal(await page.locator('[data-setting-food]').count(),0,'Settings should expose no food Restore/Hide control');
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#manageFoodsModal').count(),0,'closing Settings should leave no stale Manage Foods modal');
 assert.equal(await page.locator('#foodEditorModal').count(),0,'closing Settings should leave no stale Food editor modal');
@@ -374,7 +387,7 @@ await page.locator('#addFood').evaluate(el=>el.click()); await settle();
 assert.equal(await visible('manageFoodsModal'),true,'Add Food manager should open');
 await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
-assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Pasta','Pork','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
+assert.deepEqual(await page.locator('#editFoodCat option').allTextContents(),['American','Southern','Asian','Mexican','Italian','Healthy','Breakfast','Soup/Stew','Greek','Snack','Potato'],'Food editor should expose all Quick Cut categories');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
 await page.locator('#editFoodFile').setInputFiles({
@@ -399,23 +412,17 @@ s=await qa(); assert.equal(s.custom.some(x=>x.name==='QA Special'&&x.recipe==='E
 const storedCustomPhoto=await page.evaluate(()=>JSON.parse(localStorage.getItem('dinliminate.clean.cp1')||'{}').custom?.find(x=>x.id==='qa-special')?.image||'');
 assert.equal(storedCustomPhoto,'idb:qa-special','Custom food photo should be stored as an IndexedDB reference in localStorage');
 
-await page.locator('[data-food-delete="qa-special"]').focus(); await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal');
-assert.equal(await page.locator('#appConfirmModal').getAttribute('role'),'dialog','Confirmation modal should expose dialog semantics');
-assert.equal(await page.locator('#appConfirmModal').getAttribute('aria-modal'),'true','Confirmation modal should be modal');
-assert.equal(await page.locator('#appConfirmCancel').evaluate(el=>el===document.activeElement),true,'Confirmation modal should default focus to Cancel');
-await page.keyboard.press('Tab'); await settle(); assert.equal(await page.locator('#appConfirmOk').evaluate(el=>el===document.activeElement),true,'Confirmation modal focus should move through the primary action');
-await page.keyboard.press('Escape'); await settle(); assert.equal(await visible('appConfirmModal'),false,'Escape should close the confirmation modal');
-assert.equal(await page.locator('[data-food-delete="qa-special"]').evaluate(el=>el===document.activeElement),true,'Closing confirmation should restore focus to launcher');
-await click('[data-food-delete="qa-special"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Custom delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-s=await qa(); assert.equal(s.custom.some(x=>x.id==='qa-special'),false,'custom food delete should remove it permanently');
-
-await click('[data-food-delete="popcorn"]'); await settle(); assert.equal(await visible('appConfirmModal'),true,'Built-in delete should use branded confirmation modal'); await click('#appConfirmOk'); await settle();
-s=await qa(); assert.equal(s.foodPool.includes('popcorn'),false,'built-in delete should remove the food from choices');
-assert.equal((await page.locator('[data-food-quick]').count())>0,true,'Quick Cuts should remain intact after food deletion');
-await click('[data-food-restore-deleted="popcorn"]'); await settle();
-s=await qa(); assert.equal(s.foodPool.includes('popcorn'),true,'deleted built-in restore should work');
-assert.equal(await page.locator('#manageFoodsModal').count(),0,'Restoring a deleted built-in should close Manage Foods automatically');
-
+assert.equal(await page.locator('[data-food-delete]').count(),0,'Manage Foods should expose no food Delete controls');
+assert.equal(await page.locator('#manageFoodsModal .danger-lite').count(),0,'Manage Foods should expose no food delete-style action');
+await page.locator('[data-food-hide="popcorn"]').count();
+await page.locator('#manageFoodsModal [data-close]').click(); await settle();
+await page.locator('#foodMenu').click({force:true}); await settle();
+await page.locator('#manage').click({force:true}); await settle();
+assert.equal(await page.locator('[data-food-restore="popcorn"]').count(),1,'Hidden built-in food should be restorable only through Manage Foods');
+await page.locator('[data-food-restore="popcorn"]').click(); await settle();
+s=await qa(); assert.equal(s.hiddenFoods.includes('popcorn'),false,'Manage Foods Restore should unhide the food');
+assert.equal(await page.locator('#manageFoodsModal').count(),1,'Manage Foods should remain available after Restore');
+await page.locator('#manageFoodsModal [data-close]').click(); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
 assert.equal((await qa()).foodPool.length,1,'Food should be able to reach one remaining choice');
 await click('#foodCut'); await settle();
