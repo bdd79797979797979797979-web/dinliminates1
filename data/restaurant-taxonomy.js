@@ -133,7 +133,7 @@ function isFastFood(row){
   const profile=RESTAURANT_IDENTITY_PROFILES.find(p=>p.pattern.test(identity));
   if(profile?.blockFastFood)return false;
   if(profile?.tags.includes('Fast Food'))return true;
-  return !!row?.fastFood || /\\bfast food\\b/.test(normalizeRestaurantSearch(row?.category));
+  return !!row?.fastFood || /\bfast food\b/.test(normalizeRestaurantSearch(row?.category));
 }
 function menuSignalCount(row,tag){
   const items=Array.isArray(row?.menuItems)?row.menuItems:[];
@@ -156,16 +156,16 @@ function classifyRestaurant(row){
   if(isFastFood(row))add('Fast Food','provider fast-food signal');
   const primary=rawCategory+' '+cuisineHay;
   const providerRules={
-    Burgers:/\\b(burgers?|hamburgers?|cheeseburgers?)\\b/,
-    Pizza:/\\bpizza\\b|\\bpizzeria\\b/,
-    Mexican:/\\bmexican\\b|\\btex mex\\b|\\btaqueria\\b/,
-    Asian:/\\basian\\b|\\bchinese\\b|\\bjapanese\\b|\\bthai\\b|\\bkorean\\b|\\bsushi\\b|\\bvietnamese\\b/,
-    Italian:/\\bitalian\\b|\\bpizzeria\\b|\\bpasta\\b/,
-    Southern:/\\bsouthern\\b|\\bsoul food\\b|\\bcountry cooking\\b/,
-    BBQ:/\\bbbq\\b|\\bbarbecue\\b|\\bbarbeque\\b|\\bsmokehouse\\b/,
-    Seafood:/\\bseafood\\b|\\bfish house\\b|\\bfish restaurant\\b/,
-    Breakfast:/\\bbreakfast\\b|\\bbrunch\\b/,
-    American:/\\bamerican\\b/
+    Burgers:/\b(burgers?|hamburgers?|cheeseburgers?)\b/,
+    Pizza:/\bpizza\b|\bpizzeria\b/,
+    Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b/,
+    Asian:/\basian\b|\bchinese\b|\bjapanese\b|\bthai\b|\bkorean\b|\bsushi\b|\bvietnamese\b/,
+    Italian:/\bitalian\b|\bpizzeria\b|\bpasta\b/,
+    Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b/,
+    BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b/,
+    Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b/,
+    Breakfast:/\bbreakfast\b|\bbrunch\b/,
+    American:/\bamerican\b/
   };
   for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
 
