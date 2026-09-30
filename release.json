@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 166,
-  "sourceBranch": "cp461-address-normalization-card-actions-2026-09-30",
-  "checkpoint": "CP461"
+  "build": 167,
+  "sourceBranch": "cp462-frontend-address-finalize-2026-09-30",
+  "checkpoint": "CP462"
 }
