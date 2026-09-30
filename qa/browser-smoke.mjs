@@ -372,6 +372,7 @@ assert.equal(await page.locator('.restaurant .location-sub #restaurantSearch').c
 assert.equal(await page.locator('.restaurant .restaurant-tools').count(),0,'Restaurant Search must not render in a separate tools row.');
 
 assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
+assert.equal(await page.evaluate(()=>Boolean(localStorage.getItem('dinliminate.clean.cp1'))),false,'Browser smoke should not rely on stale fixture storage for search freshness.');
 // Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
 assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet');
