@@ -76,6 +76,8 @@ jobs:
 
       - name: Visual regression
         run: node qa/visual-regression.mjs
+      - name: Netlify preview smoke
+        run: node qa/netlify-preview-smoke.mjs
       - name: Upload visual QA artifacts
         if: always()
         uses: actions/upload-artifact@v6
