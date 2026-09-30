@@ -367,17 +367,17 @@ assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/miles is n
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
-const hoursBefore=await qa(); assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
+const hoursBefore=await qa(); assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open + Unknown','Hours filter should start in Open + Unknown mode');
 const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
 assert.equal(restaurantCountStyle.background,'rgba(0, 0, 0, 0)','Restaurant count should not render as a colored pill');
 assert.equal(restaurantCountStyle.border,'0px','Restaurant count should not render a capsule border');
 assert.equal(restaurantCountStyle.padding,'0px','Restaurant count should not render capsule padding');
-assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
-await click('#hoursOpenUnknown'); await settle();
-assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'All','Hours filter should switch to All');
+assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open + Unknown mode');
+await click('#hoursAll'); await settle();
+assert.equal(await page.locator('#hoursAll').innerText(),'All','Hours filter should switch to All');
 assert.ok((await qa()).restaurantPool.includes('closed-1'),'Closed restaurant should return in All mode');
 await click('#hoursOpenUnknown'); await settle();
-assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open/Unknown','Hours filter should toggle back to Open/Unknown');
+assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open + Unknown','Hours filter should switch back to Open + Unknown');
 
 // Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
@@ -446,8 +446,8 @@ assert.deepEqual(await page.locator('#restQuick [data-rest-quick]').evaluateAll(
 assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
 assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open + Unknown');
-await click('#hoursOpenUnknown'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursAll').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
-await click('#hoursOpenUnknown'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open + Unknown'); assert.equal(s.restaurantPool.includes('closed-1'),false,'Open/Unknown should exclude explicitly closed restaurants');
+await click('#hoursAll'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursAll').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
+await click('#hoursOpenUnknown'); await settle(); s=await qa(); assert.equal(await page.locator('#hoursOpenUnknown').innerText(),'Open + Unknown'); assert.equal(s.restaurantPool.includes('closed-1'),false,'Open + Unknown should exclude explicitly closed restaurants');
 
 const restBefore=s.restaurantPool.length;
 await click('#restCut'); await settle(); let restAfter=await qa(); assert.equal(restAfter.restaurantPool.length,restBefore-1);
