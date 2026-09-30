@@ -913,13 +913,16 @@ if (!rr.ok || !rd.ok) throw new Error(rr.status===429 ? 'Address lookup is tempo
 loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = rd.display;
 }
 const radius = Number($('radius').value) || 10;
-const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius,{signal});
+const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);
+const queryParam = searchTerm ? '&q='+encodeURIComponent(searchTerm) : '';
+const rr = await fetch('/api/restaurant-search?mode=search&lat='+encodeURIComponent(loc.lat)+'&lon='+encodeURIComponent(loc.lon)+'&radius='+radius+queryParam,{signal});
 const d = await responseJson(rr,'Restaurant search returned an invalid response. Please try again.');
 if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
 S.restaurantTimezone = String(d.timezone||'');
 S.restaurantSearchDegraded = !!(d.providerErrors?.length);
 S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
+S.restaurantSearchQuery = String(d.searchQuery||searchTerm||'');
 S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||18000;
 const previousOrigin=S.restaurantSearchOrigin;
 const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
@@ -1078,9 +1081,29 @@ function renderHours(){
  btn.setAttribute('aria-pressed',String(openMode));
  btn.setAttribute('aria-label','Hours filter: '+(openMode?'Open/Unknown':'All'));
 }
+let restaurantQueryTimer = 0;
+function scheduleRestaurantProviderSearch(){
+ clearTimeout(restaurantQueryTimer);
+ const q=String(S.restaurantQuery||'').trim();
+ if(q.length<2)return;
+ restaurantQueryTimer=setTimeout(()=>{searchRestaurants();},650);
+}
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
- $('restaurantQuery').oninput=()=>{S.restaurantQuery=$('restaurantQuery').value;S.restaurantIndex=0;drawRestaurants();save();};
+ $('restaurantQuery').oninput=()=>{
+   S.restaurantQuery=$('restaurantQuery').value;
+   S.restaurantIndex=0;
+   drawRestaurants();
+   save();
+   scheduleRestaurantProviderSearch();
+ };
+ $('restaurantQuery').onkeydown=e=>{
+   if(e.key==='Enter'){
+     e.preventDefault();
+     clearTimeout(restaurantQueryTimer);
+     if(String(S.restaurantQuery||'').trim())searchRestaurants();
+   }
+ };
  const hoursBtn=$('hoursToggle');
  if(hoursBtn){
    hoursBtn.onclick=null;
