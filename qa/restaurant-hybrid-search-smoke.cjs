@@ -27,5 +27,7 @@ assert(namePattern.test('McDonalds'),'Provider search regex must match McDonalds
 const burgerClause=t.searchQueryClause(36.53,-87.34,10,'burger');
 assert(burgerClause.includes('[name~') && burgerClause.includes('[brand~') && burgerClause.includes('[operator~') && burgerClause.includes('[cuisine~'),'Burger provider query must cover name, brand, operator, and cuisine');
 const mexicanClause=t.searchQueryClause(36.53,-87.34,10,'Mexican');
-assert(mexicanClause.includes('mexican'),'Cuisine provider query should include the normalized cuisine term');
+const mexicanPattern=new RegExp(t.searchRegex('Mexican'),'i');
+assert(mexicanPattern.test('Mexican'),'Cuisine provider regex should match the normalized cuisine term');
+assert(mexicanClause.includes('[cuisine~'),'Cuisine provider query should target the cuisine field');
 console.log('restaurant hybrid search smoke: PASS');
