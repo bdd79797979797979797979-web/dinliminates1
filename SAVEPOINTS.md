@@ -596,3 +596,5 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 
 - **Final CP260 verified commit:** `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
 - Final recovery branch: `checkpoint-cp260-final-verified-2026-09-30`.
+
+- CP261 Build 131 final source commit: `51579fe6318d73813db9a3b3956457affc35a0ed`; recovery branch to be anchored after documentation sync.
