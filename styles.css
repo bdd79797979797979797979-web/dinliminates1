@@ -776,3 +776,10 @@
 
 /* CP288 — never show the obsolete centered Diagnosis loading screen */
 .diagnosis-loading{display:none!important}
+
+/* CP290 — compact circular Add Food control beside Hide */
+.food-swipe-actions{grid-template-columns:42px 66px 66px 42px 40px!important;gap:13px!important}
+.round-add-food{width:40px!important;height:40px!important;min-height:40px!important;border-radius:50%!important;background:#151515!important;color:#d7bd7b!important;border:1px solid #4a4133!important;box-shadow:0 6px 16px #0007!important;padding:0!important;display:grid!important;place-items:center!important}
+.round-add-food span{font-size:22px!important;font-weight:500!important;line-height:1!important}
+.round-add-food:active{transform:scale(.94)!important}
+@media(max-width:390px){.food-swipe-actions{grid-template-columns:40px 60px 60px 40px 38px!important;gap:11px!important}.round-add-food{width:38px!important;height:38px!important;min-height:38px!important}.round-add-food span{font-size:20px!important}}
