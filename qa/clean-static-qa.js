@@ -38,10 +38,10 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===90,'The current 90-food deck must be present');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===116,'The current 116-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===90,'Food deck must contain exactly 90 foods');
+assert(foodRows.length===116,'Food deck must contain exactly 90 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
 for(const name of ['Fajitas','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers','Chicken Pot Pie','BLT','Reuben','Hot Dog','Corn Dog','Nachos','Orange Chicken','Chicken Teriyaki','Sushi','Pancakes','Omelet','Oatmeal','Shrimp','Crab Cakes','Gumbo','Chicken Nuggets','Ramen','Pimento Cheese Sandwich','Ice Cream','Protein Bar','Candy Bar','Banana','Apple']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
@@ -169,3 +169,43 @@ const cp258Cuts={
 'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
 for(const [id,cuts] of Object.entries(cp258Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,id+' Quick Cut mapping');
 assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed'); assert(!/const FOOD_QUICK\s*=\s*\[[^\]]*['"]Pork['"]/.test(app),'Food Quick Cut list must not reintroduce Pork');
+
+
+// CP259 requested food catalog additions and ordering.
+const cp259Cuts={
+'turkey-dinner':['Southern','American'],
+'ham-dinner':['Southern','American'],
+'lobster':['Healthy'],
+'crab-legs':['Healthy'],
+'liver-and-onions':['Southern'],
+'duck-dinner':['American'],
+'mexican-burrito':['Mexican'],
+'quesadillas':['Mexican'],
+'roast-beef-sandwich-chips':['American'],
+'eggplant-meal':['Healthy'],
+'ravioli':['Pasta','Italian'],
+'pinto-beans-cornbread':['Southern'],
+'banana-split':['Snack'],
+'fried-eggs':['Breakfast'],
+'boiled-eggs':['Breakfast','Healthy'],
+'mixed-nuts':['Snack','Healthy'],
+'smoked-brisket-sides':['Southern'],
+'clam-chowder':['Soup/Stew'],
+'turkey-sandwich-chips':['American'],
+'masala-pasta':['Pasta'],
+'enchiladas':['Mexican'],
+'white-chicken-chili':['Soup/Stew','Mexican'],
+'corn-chowder':['Soup/Stew'],
+'jell-o':['Snack'],
+'pudding':['Snack'],
+'cottage-cheese':['Healthy']
+};
+for(const [id,cuts] of Object.entries(cp259Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,'CP259 '+id+' Quick Cut mapping');
+for(const id of Object.keys(cp259Cuts)) assert(byId.has(id),'Missing CP259 food: '+id);
+assert.equal(byId.get('gumbo')?.quickCuts?.join('|'),'Southern|Soup/Stew','Gumbo should remain Southern + Soup/Stew');
+assert.equal(byId.get('fish-sticks')?.name,'Fish Sticks','Fish Sticks should remain in the catalog');
+assert.equal(foodRows[foodRows.length-1]?.id,'fish-sticks','Fish Sticks must be the final built-in food');
+assert.equal(foodRows.filter(x=>x.name==='Roast Beef Sandwich + Chips').length,1,'Roast Beef Sandwich + Chips must not be duplicated');
+assert.equal(foodRows.filter(x=>x.id==='gumbo').length,1,'Gumbo must not be duplicated');
+assert.equal(foodRows.length,116,'CP259 built-in food deck must contain exactly 116 foods');
+console.log('Dinliminate CP259 food catalog QA: PASS');
