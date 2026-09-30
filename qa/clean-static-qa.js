@@ -161,7 +161,7 @@ assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2
 
 // CP258 food catalog expansion and Quick Cut contracts.
 const byId=new Map(foodRows.map(x=>[x.id,x]));
-assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick Cut button list should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
 assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
 assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
@@ -217,14 +217,13 @@ assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-a
 // CP260 UI + Pass Around contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
 for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
-for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
 assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
-assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#2f8f5b,#236e45)'),'App Diagnosis should use the green system action treatment');
+assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
 assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
 assert(app.includes("label:'Quick Pass · Default'"),'Quick Pass should be the default labeled mode');
-assert(app.includes("label:'Full Pass · Original'"),'Full Pass should remain the optional original mode');
+assert(app.includes("label:'Full Pass · Optional'"),'Full Pass should remain the optional original mode');
 assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
 assert(app.includes("mode:S.passDraftMode") && app.includes("p.mode==='quick'"),'Pass Around should persist the selected mode and branch behavior');
 assert(app.includes('majority decides early') && app.includes('Everyone must keep a choice.'),'Pass Around modes should clearly explain Quick vs Full behavior');
@@ -245,3 +244,6 @@ assert(html.includes('/api/image?url='),'Home images must use the Vercel image p
 console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
 
 assert(fs.readFileSync('vercel.json','utf8').includes('"api/image.js"') && fs.readFileSync('vercel.json','utf8').includes('"maxDuration": 10'),'Vercel image proxy function must have a 10-second max duration');
+
+assert(css.includes('#diagnosisModal{min-height:78svh'),'App Diagnosis must open at its final size without a small-to-large flash');
+assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
