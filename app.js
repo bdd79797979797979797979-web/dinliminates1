@@ -611,8 +611,8 @@ function dedupeRestaurantPool(rows){
    const sameAddr=!!address&&!!xa&&address===xa;
    const conflictingAddr=!!address&&!!xa&&!sameAddr;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
-   const close=Number.isFinite(dist)&&dist<=0.35;
-   return sameAddr&&(sameName||variant) || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&close);
+   const close=Number.isFinite(dist)&&dist<=0.08;
+   return sameAddr&&(sameName||variant) || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);
   });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
