@@ -35,7 +35,7 @@ const allResults=[
  {id:'taco',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:4.2,address:'300 Madison St, Clarksville, TN',website:'https://www.tacobell.com',phone:'(931) 555-0103',opening_hours:'24/7',openNow:true,menuItems:['Tacos'],photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
  {id:'pizza',name:'Pizza House',category:'Italian',fastFood:false,cuisine:'pizza',distance:9,address:'400 College St, Clarksville, TN',website:'https://example.com',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Pizza'],photo:'https://images.unsplash.com/photo-1579684947550-22e945225d9a?auto=format&fit=crop&w=1200&q=85'},
  {id:'thirsty-goat',name:'Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',distance:7,address:'450 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:[],photo:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85'},
- {id:'american',name:'American Grill',category:'American',fastFood:false,cuisine:'american',distance:24,address:'500 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Chicken','Burger'],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
+ {id:'american',name:'American Grill',category:'American',fastFood:false,cuisine:'burger',distance:24,address:'500 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Chicken','Burger'],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
  {id:'italian',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:49,address:'600 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Pasta'],photo:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=85'},
  {id:'asian',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:50,address:'700 Madison St, Clarksville, TN',website:'',phone:'',opening_hours:'',hoursState:'unknown',hoursSource:'provider-missing',menuItems:['Noodles'],photo:'https://images.unsplash.com/photo-1515669097368-22e681b4d36c?auto=format&fit=crop&w=1200&q=85'},
  {id:'bbq',name:'Clarksville BBQ',category:'BBQ',fastFood:false,cuisine:'bbq',distance:20,address:'800 BBQ Rd, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['BBQ'],photo:'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=85'},
@@ -78,6 +78,8 @@ await page.route('**/*',async route=>{
      if(nq.includes('mcdonald'))results=results.filter(x=>x.id==='mcd');
      else if(nq.includes('burger'))results=results.filter(x=>['mcd','waffle','american'].includes(x.id));
      else if(nq.includes('mexican'))results=results.filter(x=>x.id==='taco');
+     else if(nq.includes('fish'))results=results.filter(x=>x.id==='seafood');
+     else if(nq.includes('breakfast'))results=results.filter(x=>x.id==='waffle');
      else if(nq.includes('fast food'))results=results.filter(x=>['mcd','taco'].includes(x.id));
      else if(nq.includes('pizza')||nq.includes('pasta'))results=results.filter(x=>['pizza','italian','thirsty-goat'].includes(x.id));
    }
@@ -166,7 +168,8 @@ const associationCases=[
  {name:'Olive Garden',category:'Restaurant',fastFood:false,cuisine:'italian',menuItems:['Pasta'],yes:['Italian'],no:['Seafood','Mexican']},
  {name:'Red Lobster',category:'Restaurant',fastFood:false,cuisine:'seafood',menuItems:['Shrimp'],yes:['Seafood'],no:['Italian','Mexican']},
  {name:"Joe's Pizza",category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['Pizza'],no:['Mexican','Seafood']},
- {name:'American Grill',category:'American',fastFood:false,cuisine:'american',menuItems:['Burger'],yes:['American'],no:['Burgers']},
+ {name:'American Grill',category:'American',fastFood:false,cuisine:'burger',menuItems:['Burger'],yes:['American','Burgers'],no:['Seafood']},
+ {name:'Neighborhood Burger Menu',category:'American',fastFood:false,cuisine:'american',menuItems:['Burger'],yes:['American'],no:['Burgers']},
  {name:'Main Street Restaurant',category:'American',fastFood:false,cuisine:'american',menuItems:['Shrimp'],yes:['American'],no:['Seafood']},
  {name:'The Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',menuItems:[],yes:['Pizza'],no:['Fast Food']},
  {name:'Smokehouse Kitchen',category:'Restaurant',fastFood:false,cuisine:'',menuItems:[],yes:['BBQ'],no:['Seafood']},
@@ -238,6 +241,19 @@ s=await snap();
 assert.deepEqual(s.restaurantPool,['taco']);
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='mexican'));
 report["4_search_restaurants"].mexican=s.restaurantPool;
+await page.locator('#restaurantQuery').fill('fish'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+s=await snap();
+assert.deepEqual(s.restaurantPool,['seafood']);
+assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='fish'));
+report["4_search_restaurants"].fish=s.restaurantPool;
+await page.locator('#restaurantQuery').fill('pizza restaurant'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+s=await snap();
+assert.deepEqual(new Set(s.restaurantPool),new Set(['pizza','thirsty-goat']));
+report["4_search_restaurants"].pizzaRestaurant=s.restaurantPool;
+await page.locator('#restaurantQuery').fill('breakfast restaurant'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+s=await snap();
+assert.deepEqual(s.restaurantPool,['waffle']);
+report["4_search_restaurants"].breakfastRestaurant=s.restaurantPool;
 await page.locator('#restaurantQuery').fill(''); await page.locator('#find').click(); await waitForRestaurant();
 
 // Hours data-model contract: explicit normalized state is used, provider openNow remains supported, and unknown is preserved.
