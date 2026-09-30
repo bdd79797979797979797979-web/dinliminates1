@@ -1218,3 +1218,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .premium-retry{min-height:44px;padding:0 15px;border-radius:999px;background:linear-gradient(180deg,#e2cf9e,#b99658)!important;color:#17130d!important;border:1px solid #d9bd80!important;box-shadow:0 9px 22px #0007!important;font-size:10px;font-weight:900;letter-spacing:.02em}
 .premium-retry:hover{background:linear-gradient(180deg,#eadbb3,#c7a96a)!important;border-color:#ead39d!important}
 .premium-retry:active{transform:translateY(1px) scale(.99)}
+
+/* CP461 — Restaurant card utility order: Details first, Website second */
+#restaurant .restaurant-card-utilities{display:flex!important;align-items:center;justify-content:flex-end;gap:7px!important}
+#restaurant .restaurant-card-details-utility{order:1!important;color:#e0c78f!important;border-color:#625238!important;background:linear-gradient(180deg,#201d18,#121110)!important}
+#restaurant .restaurant-card-website-utility{order:2!important;color:#a9cddd!important;border-color:#405763!important;background:linear-gradient(180deg,#192227,#111619)!important}
+#restaurant .restaurant-card-details-utility:hover{color:#f1ddb0!important;border-color:#806942!important}
+#restaurant .restaurant-card-website-utility:hover{color:#d5edf6!important;border-color:#5c7887!important}
+@media(max-width:390px){#restaurant .restaurant-card-utilities{gap:6px!important}}
