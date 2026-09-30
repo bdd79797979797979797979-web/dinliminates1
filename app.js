@@ -1149,15 +1149,10 @@ S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
 if(!S.restaurantMaybeRound){const ni=restaurantChoiceIndex(rows,S.restaurantIndex,false);if(ni>=0)S.restaurantIndex=ni;else if(rows.some(x=>x._maybe)){S.restaurantMaybeRound=true;S.restaurantIndex=restaurantChoiceIndex(rows,0,true);}}
 const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
-const restaurantFallback = (r) => {
-const s = String(r?.name||'').toLowerCase();
-if (/chipotle/.test(s)) return 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85';
-if (/ruby tuesday|thirsty goat/.test(s)) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
-return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85';
-};
-const image = imageProxyUrl(row.photo || row.image || restaurantFallback(row));
+const restaurantFallback = (r) => imageProxyUrl(r?.photo || r?.photoFallback || r?.image || FINAL_RESTAURANT_IMAGE);
+const image = restaurantFallback(row);
 const nextRow = rows[S.restaurantIndex + 1];
-const nextImage = imageProxyUrl(nextRow?.photo || nextRow?.image || restaurantFallback(nextRow));
+const nextImage = restaurantFallback(nextRow);
 const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
 const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
@@ -1165,7 +1160,7 @@ const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+es
 const currentHourStatus=hourStatus(row); const cardHours = '<span class="status-badge">'+(currentHourStatus==='open'?'Open':currentHourStatus==='closed'?'Closed':'Open/Unknown')+'</span>';
 const directWebsite=!!safeExternalUrl(row.website)||!!safeExternalUrl(knownRestaurantWebsite(row)); const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open restaurant website':'Search restaurant on Google')+'" title="'+(directWebsite?'Website':'Search on Google')+'">'+(directWebsite?'Website ↗':'Google ↗')+'</a>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-fallback="'+esc(restaurantFallback(row))+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+'<div class="card-cuisine-row">'+(row.cuisine?'<div class="card-detail-line cuisine-line">'+esc(row.cuisine)+'</div>':'<div class="card-detail-line cuisine-line">'+esc(category)+'</div>')+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'</div></div></div></article></div>'+
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places'?nextRow.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-id="'+esc(row.googlePlaceId||'')+'" data-google-photo-id="'+esc(row.googlePlaceId&&row.photoSource==='google-places'?row.googlePlaceId:'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy"><small>'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</small><h3>'+esc(row.name)+'</h3>'+cardAddress+'<div class="card-cuisine-row">'+(row.cuisine?'<div class="card-detail-line cuisine-line">'+esc(row.cuisine)+'</div>':'<div class="card-detail-line cuisine-line">'+esc(category)+'</div>')+'<button class="card-details card-card-action card-details-action icon-action" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>'+cardCommon+cardPhone+'<div class="card-status">'+cardHours+'</div><div class="card-card-actions">'+cardWebsite+'</div></div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 const bindCardButton = (id, handler) => {
@@ -1182,6 +1177,8 @@ bindCardButton('restHide', async () => { await restaurantHide(current); });
 $('restDetails').onclick = e => { e.preventDefault(); e.stopPropagation(); detailsSheet(current, 'restaurant'); };
 bindRestaurantSwipe(current);
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
+hydrateGoogleRestaurantPhoto(row,'#restStage #restaurantCard');
+if(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places')hydrateGoogleRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 }
 function restaurantCut(row){
  if(!row)return;
