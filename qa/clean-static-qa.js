@@ -1,5 +1,14 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),photoApi=fs.readFileSync('api/restaurant-photo.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
+// CP444 restaurant control regressions
+assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision controls require the shared bindCardButton helper');
+assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
+assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
+assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
+assert(html.includes('app.js?v=444'),'App script must use the CP444 cache-busting query');
+assert(release.build===149 && release.checkpoint==='CP444','release.json must identify Build 149 / CP444');
+assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
+
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
 for(const s of ['Dinner Decisions Simplified','Choose a meal','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
