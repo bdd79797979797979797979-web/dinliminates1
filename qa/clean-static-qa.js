@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=464'),'App script must use the CP455 cache-busting query');
-assert(release.build===169 && release.checkpoint==='CP464','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=465'),'App script must use the CP455 cache-busting query');
+assert(release.build===170 && release.checkpoint==='CP465','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -22,6 +22,9 @@ assert(app.includes("let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMA
 assert(app.includes('else item.image=DEFAULT_FOOD_IMAGE;'),'Missing stored custom photos must recover to the default food image.');
 assert(css.includes('#manageFoodsModal .manage-delete'),'Custom meal Delete action must have premium destructive styling');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
+assert(app.includes('Cuisine &amp; Quick Cuts')&&app.includes('class="quick-cut-editor meal-category-editor"'),'Food editor must present a single shared Cuisine & Quick Cuts field');
+assert(!app.includes('id="editFoodCat"'),'Food editor must not retain a separate duplicate Cuisine selector');
+assert(app.includes('const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0]'),'The first/primary selected category must define the stored meal category');
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
 assert(app.includes('data-food-edit') && app.includes('editQuickCut') && app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore, with Delete available only for added custom meals.');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
