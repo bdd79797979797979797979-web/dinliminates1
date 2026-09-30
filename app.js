@@ -617,6 +617,16 @@ function restaurantStreetFamily(value){
  return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
+const RESTAURANT_NAME_VARIANT_BLOCKERS_UI=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','more','and','at','inside','food','foods','eatery','restaurant','restaurants']);
+function restaurantNameVariantMatchUI(a,b){
+ const aa=restaurantNameFamily(a).split(' ').filter(Boolean),bb=restaurantNameFamily(b).split(' ').filter(Boolean);
+ if(!aa.length||!bb.length)return false;
+ const as=new Set(aa),bs=new Set(bb),shared=aa.filter(t=>bs.has(t)).length,shorter=Math.min(as.size,bs.size),union=new Set([...aa,...bb]).size;
+ if(as.size===bs.size&&shared===as.size)return true;
+ if(shared!==shorter||shared/union<0.6)return false;
+ const longer=aa.length>=bb.length?aa:bb,shorterSet=aa.length>=bb.length?as:bs,extras=longer.filter(t=>!shorterSet.has(t));
+ return !extras.some(t=>RESTAURANT_NAME_VARIANT_BLOCKERS_UI.has(t));
+}
 function dedupeRestaurantPool(rows){
  const out=[];
  for(const row of (rows||[])){
@@ -629,7 +639,8 @@ function dedupeRestaurantPool(rows){
    const xp=String(x.phone||'').replace(/\D/g,'').slice(-10),xw=String(x.website||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/\/$/,'');
    const dist=milesBetween(x.lat,x.lon,lat,lon);
    const sameName=!!name&&name===xn;
-   const variant=(name&&xn&&(name.includes(xn)||xn.includes(name))&&Math.min(name.split(' ').length,xn.split(' ').length)>=2);
+   const variant=restaurantNameVariantMatch(name,xn);
+   const sameNameFamily=sameName||variant;
    const sameAddr=!!address&&!!xa&&address===xa;
    const conflictingAddr=!!address&&!!xa&&!sameAddr;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
@@ -637,13 +648,21 @@ function dedupeRestaurantPool(rows){
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameNameStreet=!!sameName&&sameStreet&&originDistanceClose;
-   return sameAddr&&(sameName||variant) || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
-  if(!match){out.push({...row});continue;}
+   const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
+   return sameAddr&&sameNameFamily || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);
+  });
+  if(!match){
+    const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row);
+    out.push({...row,category:(inferred.primary||row.category||'American'),quickCutTags:[...new Set([...(row.quickCutTags||[]),...inferred.tags])]});
+    continue;
+  }
   match.fastFood=match.fastFood||row.fastFood;
   if(typeof row.openNow==='boolean' && typeof match.openNow!=='boolean')match.openNow=row.openNow;
   for(const key of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!match[key]&&row[key])match[key]=row[key];
   match.menuItems=[...new Set([...(Array.isArray(match.menuItems)?match.menuItems:[]),...(Array.isArray(row.menuItems)?row.menuItems:[])])].slice(0,10);
+  match.quickCutTags=[...new Set([...(match.quickCutTags||[]),...(row.quickCutTags||[]),...RESTAURANT_TAXONOMY.classifyRestaurant({...match,...row}).tags])];
+  const inferred=RESTAURANT_TAXONOMY.classifyRestaurant({...match,...row});
+  if(!match.category || /^(restaurant|eatery|food)$/i.test(String(match.category)))match.category=inferred.primary||'American';
   match.distance=Math.min(Number(match.distance)||Infinity,Number(row.distance)||Infinity);
  }
  return out.sort((a,b)=>Number(a.distance)-Number(b.distance));
@@ -682,8 +701,9 @@ function restaurantIsFastFood(row){
  return RESTAURANT_TAXONOMY.isFastFood(row);
 }
 function restaurantCuisineTags(row){
- const preset=Array.isArray(row?.quickCutTags)?row.quickCutTags:null;
- return preset ? [...new Set(preset)] : RESTAURANT_TAXONOMY.classifyRestaurant(row).tags;
+ const preset=Array.isArray(row?.quickCutTags)?row.quickCutTags:[];
+ const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row).tags;
+ return [...new Set([...preset,...inferred])];
 }
 function restaurantCuisineEvidence(row){
  return RESTAURANT_TAXONOMY.classifyRestaurant(row).evidence;
