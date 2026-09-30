@@ -17,6 +17,9 @@ const RESTAURANT_SEARCH_ALIASES = {
 };
 
 const RESTAURANT_IDENTITY_PROFILES = [
+  {pattern:/\b(?:heads|robert heads) bbq\b/,tags:['BBQ']},
+  {pattern:/\bexcell(?:\'s)? bbq\b/,tags:['BBQ']},
+
   {pattern:/\bmcdonalds?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bwendys?\b/,tags:['Fast Food','Burgers']},
   {pattern:/\bburger king\b/,tags:['Fast Food','Burgers']},
@@ -159,6 +162,18 @@ function menuSignalCount(row,tag){
   const signals=RESTAURANT_MENU_SIGNALS[tag]||[];
   return new Set(signals.filter(signal=>hay.includes(normalizeRestaurantSearch(signal)))).size;
 }
+function restaurantNameKeys(value){
+  const raw=String(value||'');
+  return [...new Set([
+    normalizeRestaurantSearch(raw),
+    normalizeRestaurantSearch(raw.replace(/[’']s\b/gi,'')),
+    normalizeRestaurantSearch(raw.replace(/[’']/g,''))
+  ].filter(Boolean))];
+}
+function namesOverlap(a,b){
+  const A=new Set(restaurantNameKeys(a)),B=restaurantNameKeys(b);
+  return [...A].some(x=>B.includes(x));
+}
 function classifyRestaurant(row){
   const rawCategory=normalizeRestaurantSearch(row?.category);
   const cuisineHay=normalizeRestaurantSearch(row?.cuisine);
@@ -184,8 +199,8 @@ function classifyRestaurant(row){
     Southern:/\bsouthern\b|\bsoul food\b|\bcountry cooking\b/,
     BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b/,
     Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b/,
-    Breakfast:/\bbreakfast\b|\bbrunch\b/,
-    American:/\bamerican\b/
+    Breakfast:/\bbreakfast\b|\bbrunch\b|\bwaffle house\b|\bpancake house\b|\bomelet\b/,
+    American:/\bamerican\b|\bdiner\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b|\broadhouse\b|\bsteakhouse\b/
   };
   for(const [tag,re] of Object.entries(providerRules))if(re.test(primary))add(tag,'provider category/cuisine');
 
@@ -193,6 +208,7 @@ function classifyRestaurant(row){
 
   for(const tag of ['Pizza','Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast']){
     if(menuSignalCount(row,tag)>=2)add(tag,'menu corroboration');
+    else if(menuSignalCount(row,tag)===1 && tag!=='American')add(tag,'specific menu signal');
   }
   // Generic provider labels such as "restaurant" should not block useful identity.
   if(tags.size===0 && /\b(restaurant|eatery|food)\b/.test(rawCategory+' '+cuisineHay)){
@@ -224,6 +240,8 @@ const taxonomy={
   restaurantSearchClassification,
   searchAliasesFor,
   identityHay,
+  restaurantNameKeys,
+  namesOverlap,
   isFastFood,
   classifyRestaurant,
   fillerWords:[...SEARCH_FILLER_WORDS]
