@@ -4,7 +4,7 @@
 - Runtime target: Vercel
 - Working/release branch: `cp258-food-catalog-expansion-2026-09-30`
 - Candidate promotion target: `release-hardening-2026-09-29`
-- Current app build: Version 1.0 / Build 131
+- Current app build: Version 1.0 / Build 132
 - CP258 is the current food-catalog expansion candidate.
 - Production remains intentionally unpromoted until the exact candidate passes the full launch gate.
 - Netlify is legacy/backup and remains a hosted smoke target.
@@ -16,7 +16,7 @@
 - Removed the Food Greek Quick Cut and moved Gyro to Healthy only.
 - Added the requested 1–2 Quick Cut mappings for all new foods; sweets are included in Snack.
 - Updated Food editor/static/browser/image QA for the 116-food catalog.
-- Build metadata is now Version 1.0 / Build 131.
+- Build metadata is now Version 1.0 / Build 132.
 
 ## CP258 release gates
 - Static/data contract: updated; automated run pending.
@@ -85,7 +85,7 @@ Do not promote this candidate to Vercel production until the exact release commi
 
 ## CP260 — Quick Cut and Hungry cleanup
 - Liver & Onions now belongs to **Southern + Healthy**.
-- Food Quick Cuts were reordered for a clearer grouping: American, Southern, Mexican, Italian, Pasta, Asian, Breakfast, Soup/Stew, Healthy, Potato, Snack.
+- Food Quick Cuts were reordered for a clearer grouping: American, Southern, Mexican, Italian, Asian, Pasta, Soup/Stew, Healthy, Breakfast, Potato, Snack.
 - Hungry winner keeps the black Hungry state, shows **Fish Sticks?** in small text, and its Details view has no Hide action.
 - Build: **129**.
 - Recovery point before QA: `checkpoint-cp260-product-changes-2026-09-30`.
@@ -104,3 +104,18 @@ Do not promote this candidate to Vercel production until the exact release commi
 - Final CP260 verified source commit: `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
 
 - CP261: rotating starting voter added to Pass Around for fairness; Build 131.
+
+
+## CP260 — Final phone/Tinder polish
+- Build: **132**.
+- Food Quick Cuts: American, Southern, Mexican, Italian, Asian, Pasta, Soup/Stew, Healthy, Breakfast, Potato, Snack.
+- Custom Food editor adds optional **Other**; the global Other Quick Cut appears only when a custom food actually uses it.
+- Spaghetti, Pasta Alfredo, Lasagna, and Chicken Parmesan use **Pasta + Italian**.
+- Liver & Onions uses **Southern + Healthy**.
+- Hungry winner keeps the black Hungry screen, shows small **“Fish Sticks?”**, and its Details view has no Hide action.
+- Restaurant Details icon is inline to the right of the cuisine type.
+- App Diagnosis uses the green system action.
+- Tinder swipes were hardened to a single pointer-event path with pointer capture for better iPhone reliability.
+- Pass Around: Quick Pass is the default faster majority mode; Full Pass is the optional original unanimous mode. Back undoes votes; the full-card swipe is preserved; Cancel exits without altering the main deck; the next completed pass rotates the starting voter.
+- Recovery: `checkpoint-cp260-current-pre-new-edits-2026-09-30`, `checkpoint-cp260-final-code-verified-2026-09-30`, `checkpoint-cp260-final-pre-test-2026-09-30`.
+- Netlify preview: https://deploy-preview-45--diliminate.netlify.app
