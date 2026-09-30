@@ -637,7 +637,7 @@ function dedupeRestaurantPool(rows){
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameNameStreet=!!sameName&&sameStreet&&originDistanceClose&&(!conflictingAddr||sameStreet);
+   const sameNameStreet=!!sameName&&sameStreet&&originDistanceClose;
    return sameAddr&&(sameName||variant) || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
@@ -693,7 +693,7 @@ function restaurantCategory(row){
  if(/^(American|Mexican|Asian|Italian|Southern|BBQ|Seafood|Breakfast|Burgers|Fast Food)$/i.test(raw))return raw;
  const order=['Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','Fast Food','American'];
  for(const label of order) if(tags.includes(label)) return label;
- const providerRaw=RESTAURANT_TAXONOMY.normalizeRestaurantSearch([row?.cuisine,row?.category].join(' '));
+ const providerRaw=RESTAURANT_TAXONOMY.normalizeRestaurantSearch([row?.cuisine,row?.category,row?.providerType,row?.primaryType,row?.types?.join?.(' ')].join(' '));
  const nameRaw=RESTAURANT_TAXONOMY.normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
  const fallback=[
   ['Pizza',/\b(pizza|pizzeria|calzone)\b/],
