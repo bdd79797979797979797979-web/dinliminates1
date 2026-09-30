@@ -5,7 +5,7 @@ for(const s of ['Dinner Decisions Simplified','Choose a meal','Find a restaurant
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r19'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r20'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
@@ -158,8 +158,9 @@ const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; f
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
 assert(app.includes('RESTAURANT_TAXONOMY.restaurantSearchClassification'),'Restaurant Search should classify semantic cuisine/type queries with the shared taxonomy.');
 assert(app.includes("if(classification.kind==='category'&&classification.tag)"),'Restaurant Search should use taxonomy category matching rather than broad fast-food fallback for semantic searches.');
-assert(api.includes('const MAX_RADIUS=50'),'Restaurant search must cap radius at 50 miles.');
-assert(!/<option>100<\/option>/.test(html),'Restaurant radius UI must not expose 100 miles.');
+assert(api.includes('const MAX_RADIUS=100'),'Restaurant search must support the requested 100-mile radius contract.');
+assert(/<option>100<\/option>/.test(html),'Restaurant radius UI must expose the requested 100-mile tier.');
+assert(api.includes('function centers(lat,lon,r)') && api.includes('radius>50?65:30') && api.includes('count=radius>50?8:6'),'100-mile search must expand multi-center discovery coverage.');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes('foodMaybeRound') && app.includes('S.foodMaybeRound=true'),'Food Maybe choices must recycle into a second narrowing pass');
@@ -253,6 +254,16 @@ assert.equal(foodRows.filter(x=>x.name==='Roast Beef Sandwich + Chips').length,1
 assert.equal(foodRows.filter(x=>x.id==='gumbo').length,1,'Gumbo must not be duplicated');
 assert.equal(foodRows.length,116,'CP259 built-in food deck must contain exactly 116 foods');
 console.log('Dinliminate CP259 food catalog QA: PASS');
+
+// CP428-433 Restaurant overall release contracts.
+assert(app.includes('restaurant-card-meta-row') && app.includes('restaurant-card-location') && app.includes('restaurant-card-utilities'),'Restaurant Tinder card must use the simplified decision-first information hierarchy.');
+assert(app.includes('cardPhoneAction') && app.includes('cardWebsite') && app.includes('cardDetailsAction'),'Restaurant Tinder card must retain compact Phone, Website, and Details utility actions.');
+assert(!app.includes('cardCommon') && !app.includes('cardHours'),'Restaurant Tinder card should not render directory-style menu and hours blocks on-card.');
+assert(app.includes("photoFallback:item.photoFallback||''") && app.includes("googlePlaceId:item.googlePlaceId||''") && app.includes("opening_hours:item.opening_hours||''"),'Restaurant History must persist venue-photo identity and core Details metadata.');
+assert(app.includes("if ($('celebration')) $('celebration').classList.toggle('hidden', hungry)") && app.includes("if (!hungry) {") && app.includes("hydrateGoogleRestaurantPhoto(item,'#winner')"),'Restaurant Winner must use the same celebration behavior and photo hydration path as Food.');
+assert(app.includes("S.winnerType === 'restaurant'"),'Restaurant winner state must remain explicitly tracked.');
+assert(api.includes("source:'Google Places Search',googlePlaceId:p.id||''"),'Google Text Search must preserve Place IDs for venue photo hydration.');
+
 
 assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=hungry?'Fish Sticks?':''"),'Hungry winner must show the Fish Sticks? prompt');
 assert(app.includes("const actionBar=item?.category==='Hungry'?'':"),'Hungry Details must conditionally omit its Hide action');
