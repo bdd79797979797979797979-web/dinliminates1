@@ -120,6 +120,16 @@ const restaurantSearchContract=await page.evaluate(()=>{
   quickBreakfast:t.restaurantQuickMatches(waffle,'Breakfast')
  };
 });
+assert.equal(restaurantSearchContract.mcdNormalized,'mcdonalds','Restaurant search normalizer should remove apostrophes');
+assert.equal(restaurantSearchContract.mcdSearch,true,'Mcdonalds should match McDonald\'s');
+assert.equal(restaurantSearchContract.burgerFastFood,true,'Burger Search should match fast-food restaurants');
+assert.equal(restaurantSearchContract.burgerDedicated,true,'Burger Search should match dedicated burger restaurants');
+assert.equal(restaurantSearchContract.burgerUnrelated,false,'Burger Search should not match unrelated restaurants');
+assert.equal(restaurantSearchContract.mexicanCategory,true,'Cuisine search should match Mexican restaurants');
+assert.equal(restaurantSearchContract.quickBurger,true,'Burger Quick Cut should match burger restaurants');
+assert.equal(restaurantSearchContract.quickPizza,true,'Pizza Quick Cut should match pizza chains');
+assert.equal(restaurantSearchContract.quickBreakfast,true,'Breakfast Quick Cut should match breakfast restaurants');
+
 const contactLinkGuards=await page.evaluate(()=>{
   const t=window.__DINLIMINATE_TEST__;
   return {
