@@ -67,11 +67,6 @@ storageWarning:false,
 restaurantSearchDegraded:false,
 winnerItem:null,
 winnerType:'food',
-pass:null,
-passDraftCount:2,
-passDraftNames:[],
-passDraftMode:'quick',
-passStartVoter:0,
 schemaVersion:4,
 restaurantTimezone:''
 };
@@ -219,8 +214,7 @@ pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
-saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
-passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, passDraftMode:S.passDraftMode==='full'?'full':'quick', passStartVoter:Number.isInteger(S.passStartVoter)?S.passStartVoter:0, schemaVersion:STORAGE_VERSION,
+saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION,
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
@@ -247,7 +241,7 @@ if(!Array.isArray(d.foodCuts)) d.foodCuts=[];
 if(!d.foodCuts.length && Array.isArray(d.foodActions))
 for(const a of d.foodActions) if(a?.type==='cut'&&a.id) d.foodCuts.push(a.id);
 delete d.cutPrimary;
-const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundType','legacyRestaurantPool','restaurantResults'];
+const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundType','legacyRestaurantPool','restaurantResults','pass','passDraftCount','passDraftNames','passDraftMode','passStartVoter'];
 legacyKeys.forEach(key=>{try{delete d[key]}catch{}});
 Object.assign(S, d);
 legacyKeys.forEach(key=>{try{delete S[key]}catch{}});
@@ -265,9 +259,6 @@ S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions :
 S.restaurantMaybeRound = !!d.restaurantMaybeRound;
 S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
-S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
-S.passDraftMode = d.passDraftMode === 'full' ? 'full' : 'quick';
-S.passStartVoter = Number.isInteger(d.passStartVoter) ? d.passStartVoter : 0;
 S.winnerType = d.winnerType || 'food';
 S.restaurantTimezone = String(d.restaurantTimezone||'');
 S.locationSource = String(d.locationSource||'none');
@@ -287,7 +278,7 @@ window.scrollTo?.(0,0);
 function closeOverlays() {
 
 ['drawer','drawerBg','modal','modalBg'].forEach(id => $(id)?.classList.add('hidden'));
-['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg','passSetup','passSetupBg','passModal','passModalBg'].forEach(id => $(id)?.remove());
+['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg',.forEach(id => $(id)?.remove());
 clearSuggestions();
 }
 function home() {
@@ -1348,178 +1339,6 @@ document.querySelector('#drawerBg')?.classList.add('hidden');
 save();
 home();
 }
-function passCandidates() {
-return S.screen === 'restaurant' ? restaurantPoolFiltered() : S.pool;
-}
-function removePassSurface(){
-const el=document.querySelector('#passSurface'); if(el){el._passSwipeCleanup?.(); el.remove();} document.body.classList.remove('pass-active');
-}
-function openPassSurface(inner){
-removePassSurface();
-const surface=document.createElement('section');
-surface.id='passSurface';
-surface.className='pass-surface';
-surface.innerHTML=inner;
-document.body.appendChild(surface); document.body.classList.add('pass-active');
-const gesture=surface.querySelector('#passGestureHit'),card=surface.querySelector('#passCard'),next=surface.querySelector('#passNextCard');
-if(gesture&&card){
-gesture.dataset.passSwipeBound='true';
-let startX=0,startY=0,active=false;
-const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
-const finish=(clientX)=>{
-if(!active)return; active=false;
-const dx=clientX-startX;
-if(Math.abs(dx)>90){
-card.style.transition='transform .16s ease,opacity .16s ease';
-card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
-setTimeout(()=>{reset(); if(window.__DINLIMINATE_TEST__)window.__DINLIMINATE_TEST__.passSurfaceVotes=(window.__DINLIMINATE_TEST__.passSurfaceVotes||0)+1; const current=S.pass?.poolIds?.[S.pass.choiceIndex]; const fn=dx<0?false:true; const keep=fn; if(current){ const item=currentPassItem(); if(item)passVote(keep); }},110);
-}else reset();
-};
-surface.addEventListener('pointerdown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
-surface.addEventListener('pointermove',e=>{if(!active)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.abs(dy)>Math.abs(dx)*1.2)return;if(Math.abs(dx)>8){if(e.cancelable)e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
-surface.addEventListener('pointerup',e=>finish(e.clientX),true);
-surface.addEventListener('pointercancel',()=>{active=false;reset();},true);
-surface.addEventListener('mousedown',e=>{if(e.target===gesture||e.target.closest?.('#passGestureHit')){startX=e.clientX;startY=e.clientY;active=true;}},true);
-surface.addEventListener('mousemove',e=>{if(!active)return;const dx=e.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},true);
-surface.addEventListener('mouseup',e=>finish(e.clientX),true);
-surface.addEventListener('mouseleave',e=>{if(active&&e.buttons===0)finish(e.clientX);},true);
-surface.addEventListener('touchstart',e=>{const t=e.touches?.[0];if(t&&(e.target===gesture||e.target.closest?.('#passGestureHit'))){startX=t.clientX;startY=t.clientY;active=true;}},{capture:true,passive:true});
-surface.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches?.[0];if(!t)return;const dx=t.clientX-startX;if(Math.abs(dx)>8){e.preventDefault();card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));card.dataset.swipe=dx<0?'cut':'maybe';if(next)next.style.transform='scale('+Math.min(1,.96+Math.abs(dx)/1400)+')';}},{capture:true,passive:false});
-surface.addEventListener('touchend',e=>{const t=e.changedTouches?.[0];if(t)finish(t.clientX);},{capture:true,passive:true});
-surface.addEventListener('touchcancel',()=>{active=false;reset();},{capture:true,passive:true});
-}
-return surface;
-}
-function passSetup() {
-const counts=[2,3,4,5,6,7,8];
-const modes=[
- {id:'quick',label:'Quick Pass · Default',desc:'Faster default. A choice survives a majority; the round moves on as soon as the outcome is decided.'},
- {id:'full',label:'Full Pass · Optional',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
-];
-S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick';
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Use the same Tinder-style Cut / Keep decisions, but let the group narrow the choices together.</p><div class="pass-mode" role="radiogroup" aria-label="Pass Around mode">'+modes.map(m=>'<button type="button" class="pass-mode-option '+(S.passDraftMode===m.id?'selected':'')+'" data-pass-mode="'+m.id+'" aria-pressed="'+(S.passDraftMode===m.id)+'"><strong>'+m.label+'</strong><span>'+m.desc+'</span></button>').join('')+'</div><div class="pass-count-label">People</div><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass')+'</button></div>');
-$('passClose').onclick=()=>removePassSurface();
-const renderNames=()=>{
-$('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join(''); 
-document.querySelectorAll('[data-pass-name]').forEach((x,i)=>x.value=S.passDraftNames[i]||'');
-document.querySelectorAll('[data-pass-count]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.passCount)===S.passDraftCount));
-document.querySelectorAll('[data-pass-mode]').forEach(x=>x.classList.toggle('selected',x.dataset.passMode===S.passDraftMode));
-document.querySelectorAll('[data-pass-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.passMode===S.passDraftMode)));
-const begin=$('passBegin');if(begin)begin.textContent='Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass');
-};
-renderNames();
-document.querySelectorAll('[data-pass-count]').forEach(btn=>btn.onclick=()=>{S.passDraftCount=Number(btn.dataset.passCount);renderNames();});
-document.querySelectorAll('[data-pass-mode]').forEach(btn=>btn.onclick=()=>{S.passDraftMode=btn.dataset.passMode==='full'?'full':'quick';renderNames();});
-$('passBegin').onclick=()=>{
-S.passDraftNames=[...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim()||'Person '+(i+1));
-const pool=passCandidates();
-if(!pool.length){removePassSurface();appToast('There are no choices left to pass around.');return;}
-S.pass={type:S.screen==='restaurant'?'restaurant':'food',mode:S.passDraftMode,players:S.passDraftNames,firstVoterIndex:S.passStartVoter%Math.max(1,S.passDraftNames.length),choiceIndex:0,voterIndex:S.passStartVoter%Math.max(1,S.passDraftNames.length),history:[],poolIds:pool.map(x=>x.id),votes:{}};
-save();drawPass();
-};
-}
-function currentPassItem(){
-const id=S.pass?.poolIds?.[S.pass.choiceIndex];
-return passCandidates().find(x=>x.id===id);
-}
-function passVoteButtonState(p){
-const n=p?.players?.length||0;
-const v=p?.votes?.[p?.poolIds?.[p?.choiceIndex]]||{keep:0,cut:0};
-const threshold=Math.floor(n/2)+1;
-if(p?.mode==='quick')return {keep:v.keep,cut:v.cut,threshold};
-return {keep:v.keep,cut:v.cut,threshold:n};
-}
-function drawPass(){
-const p=S.pass;
-if(!p)return;
-if(p.choiceIndex>=p.poolIds.length)return finishPass();
-const item=currentPassItem();
-if(!item){p.choiceIndex++;p.voterIndex=p.firstVoterIndex||0;return drawPass();}
-const voter=p.players[p.voterIndex]||'Next person';
-const vote=passVoteButtonState(p);
-const img=foodPhoto(item);
-const fallback=foodPhotoFallback(item);
-const image=S.screen==='restaurant'?imageProxyUrl(item.photo||item.image||''):img;
-const imageFallback=S.screen==='restaurant'?imageProxyUrl(item.photo||item.image||REST_QUICK_IMAGES.American):fallback;
-const modeTitle=p.mode==='quick'?'QUICK PASS':'FULL PASS';
-const modeHint=p.mode==='quick'?'Majority decides early.':'Everyone must keep a choice.';
-const tally=p.mode==='quick'?(vote.keep+' keep · '+vote.cut+' cut · need '+vote.threshold+' keep'):((vote.cut>0)?'Any Cut removes this choice.':'All players must Keep.');
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Cancel Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>'+modeTitle+' · CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p><p class="pass-rule">'+esc(modeHint)+' '+esc(tally)+'</p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep · Back = Undo</div><div class="pass-actions"><button class="secondary" id="passBack" aria-label="Undo last vote">↶</button><button class="cut" id="passCut" aria-label="Cut this choice">✕</button><button class="maybe" id="passKeep" aria-label="Keep this choice">♥</button></div></div>');
-$('passClose').onclick=()=>endPass();
-$('passBack').onclick=passUndo;
-$('passCut').onclick=()=>passVote(false);
-$('passKeep').onclick=()=>passVote(true);
-const next=p.poolIds[p.choiceIndex+1]?passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]):null;
-if(next){
-const nsrc=S.screen==='restaurant'?imageProxyUrl(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhoto(next);
-$('passNextCard').classList.remove('hidden');
-const passNextImg=$('passNextCard img');
-if(passNextImg){passNextImg.src=nsrc;passNextImg.dataset.fallback=S.screen==='restaurant'?imageProxyUrl(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhotoFallback(next);passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};}
-}
-$('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
-}
-function passVote(keep){
-const p=S.pass,item=currentPassItem();
-if(!p||!item)return;
-const id=item.id;
-if(!p.votes)p.votes={};
-if(!p.votes[id])p.votes[id]={keep:0,cut:0};
-const before={poolIds:[...p.poolIds],choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,votes:JSON.parse(JSON.stringify(p.votes))};
-p.history.push(before);
-if(keep)p.votes[id].keep++;else p.votes[id].cut++;
-const players=p.players.length, tally=p.votes[id], threshold=p.mode==='quick'?Math.floor(players/2)+1:players;
-let outcome=null;
-if(p.mode==='full'){
- if(!keep){ outcome='eliminate'; }
- else if(tally.keep>=threshold){ outcome='survive'; }
-}else{
- const remainingVotes=Math.max(0,players-(tally.keep+tally.cut));
- if(tally.keep>=threshold) outcome='survive';
- else if(tally.cut>=threshold || tally.keep+remainingVotes<threshold) outcome='eliminate';
-}
-if(outcome==='eliminate'){
-p.poolIds=p.poolIds.filter(x=>x!==id);
-delete p.votes[id];
-if(p.poolIds.length===0)return finishPass();
-if(p.poolIds.length===1)return finishPass();
-p.choiceIndex=Math.min(p.choiceIndex,Math.max(0,p.poolIds.length-1));
-p.voterIndex=p.firstVoterIndex||0;
-return drawPass();
-}
-if(outcome==='survive'){
-delete p.votes[id];
-p.choiceIndex++;
-p.voterIndex=p.firstVoterIndex||0;
-return drawPass();
-}
-p.voterIndex++;
-if(p.voterIndex>=players){p.voterIndex=0;}
-drawPass();
-}
-function passUndo(){
-const p=S.pass;if(!p?.history?.length)return;
-const last=p.history.pop();
-p.poolIds=[...last.poolIds];p.choiceIndex=last.choiceIndex;p.voterIndex=last.voterIndex;p.votes=JSON.parse(JSON.stringify(last.votes||{}));
-drawPass();
-}
-function finishPass(){
-const p=S.pass;if(!p)return;
-const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
-S.pass=null;removePassSurface();
-S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
-if(rows.length===1){save();winner(rows[0]);return;}
-if(!rows.length){save();winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
-if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
-else {S.pool=rows;S.index=0;drawFood();}
-save();
-}
-function endPass(){
-const p=S.pass;if(!p)return;
-S.pass=null;removePassSurface();
-if(p.type==='restaurant'){S.restaurantIndex=Math.min(S.restaurantIndex,Math.max(0,S.restaurantPool.length-1));}
-else {S.index=Math.min(S.index,Math.max(0,S.pool.length-1));}
-save();
-}
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
 ['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
@@ -1530,8 +1349,6 @@ $('foodBack').onclick = foodBack;
 $('foodHide').onclick = foodHide;
 $('addFood').onclick = manageFoodsView;
 $('randomOne').onclick = randomCutOne;
-$('foodPassAround').onclick = passSetup;
-$('restaurantPassAround').onclick = passSetup;
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
 const appMenu = $('menu'); if (appMenu) appMenu.onclick = openDrawer;
