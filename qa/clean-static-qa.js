@@ -10,7 +10,7 @@ assert(!app.includes("document.createElement('style')"),'app should not construc
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
-assert(app.includes('data-food-edit') && app.includes('data-food-delete') && app.includes('data-setting-food-delete'),'food edit/delete support is required');
+assert(app.includes('data-food-edit') && app.includes('editQuickCut') && !app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore without Delete controls');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 assert(app.includes('legacyKeys') && app.includes('cutPrimary'),'Persisted state migration must retire legacy fields');
 console.log('Dinliminate clean static QA: PASS');
@@ -38,18 +38,29 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===65,'The current 65-food deck must be present');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===116,'The current 116-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===65,'Food deck must contain exactly 65 foods');
+assert(foodRows.length===116,'Food deck must contain exactly 116 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
-for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
+for(const name of ['Fajitas','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers','Chicken Pot Pie','BLT','Reuben','Hot Dog','Corn Dog','Nachos','Orange Chicken','Chicken Teriyaki','Sushi','Pancakes','Omelet','Oatmeal','Shrimp','Crab Cakes','Gumbo','Chicken Nuggets','Ramen','Pimento Cheese Sandwich','Ice Cream','Protein Bar','Candy Bar','Banana','Apple']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
 assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
+assert(foodRows.filter(x=>x.quickCuts?.includes('Pork')).length===0,'No built-in food should retain the removed Pork Quick Cut');
+assert.deepEqual(foodRows.find(x=>x.id==='homemade-pizza')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='meatball-subs')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='sausage-peppers')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-chops')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-tenderloin')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='white-fish')?.quickCuts,['Healthy']);
+assert.deepEqual(foodRows.find(x=>x.id==='biscuits-gravy')?.quickCuts,['Breakfast']);
+assert.equal(foodRows.find(x=>x.id==='mashed-potatoes')?.name,'Mashed Potatoes');
+assert.ok(foodRows.find(x=>x.id==='white-fish')?.ingredients?.length && foodRows.find(x=>x.id==='white-fish')?.nutrition && foodRows.find(x=>x.id==='white-fish')?.recipe);
+assert.ok(foodRows.find(x=>x.id==='pork-tenderloin')?.ingredients?.length && foodRows.find(x=>x.id==='pork-tenderloin')?.nutrition && foodRows.find(x=>x.id==='pork-tenderloin')?.recipe);
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
-assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
+assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
@@ -73,7 +84,7 @@ assert(app.includes("const randomCutOne()") || app.includes("function randomCutO
 assert(app.includes("if (!S.pool.length) return;") && !app.includes("if (S.pool.length < 2) return;"),'Random Cut One must operate when one choice remains');
 assert(app.includes("HUNGRY ☹") && app.includes("HUNGRY_IMAGE"),'Last-choice Cut must use the Hungry frown state');
 assert(app.includes("classList.toggle('hungry-image', hungry)"),'Hungry winner must use the dedicated artwork class');
-assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='125','About must expose the current app version/build');
+assert(app.includes("const APP_VERSION = '1.0'") && new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app) && String(release.build)==='132','About must expose the current app version/build');
 assert(app.includes('function appConfirm'),'professional confirmation modal contract missing');
 assert(app.includes("aria-labelledby",0) && app.includes("aria-modal"),'Generic modals must expose labelled dialog semantics');
 assert(app.includes('localClockForZone'),'timezone-aware opening-hours helper is required');
@@ -92,11 +103,11 @@ assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from 
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
-for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
+for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
-for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','BBQ']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
@@ -144,6 +155,81 @@ assert(app.includes('Browser certification'),'App Diagnosis must distinguish bro
 assert(app.includes('Runtime release identity'),'App Diagnosis must report runtime release identity');
 assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewport overflow');
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
-assert(app.includes("let APP_BUILD = '125'"),'CP250 build should be 125');
+assert(app.includes("let APP_BUILD = '132'"),'CP260 build should be 132');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
-assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('36863862')&&foods.includes('29653177')&&foods.includes('31953510')&&foods.includes('28503619')&&foods.includes('7974814'),'CP246 stabilized food photo mappings should be present');
+assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
+
+// CP258 food catalog expansion and Quick Cut contracts.
+const byId=new Map(foodRows.map(x=>[x.id,x]));
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick Cut button list should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
+assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
+assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
+const cp258Cuts={
+'pot-pie':['Southern','American'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
+for(const [id,cuts] of Object.entries(cp258Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,id+' Quick Cut mapping');
+assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed'); assert(!/const FOOD_QUICK\s*=\s*\[[^\]]*['"]Pork['"]/.test(app),'Food Quick Cut list must not reintroduce Pork');
+
+
+// CP259 requested food catalog additions and ordering.
+const cp259Cuts={
+'turkey-dinner':['Southern','American'],
+'ham-dinner':['Southern','American'],
+'lobster':['Healthy'],
+'crab-legs':['Healthy'],
+'liver-and-onions':['Southern'],
+'duck-dinner':['American'],
+'mexican-burrito':['Mexican'],
+'quesadillas':['Mexican'],
+'roast-beef-sandwich-chips':['American'],
+'eggplant-meal':['Healthy'],
+'ravioli':['Pasta','Italian'],
+'pinto-beans-cornbread':['Southern'],
+'banana-split':['Snack'],
+'fried-eggs':['Breakfast'],
+'boiled-eggs':['Breakfast','Healthy'],
+'mixed-nuts':['Snack','Healthy'],
+'smoked-brisket-sides':['Southern'],
+'clam-chowder':['Soup/Stew'],
+'turkey-sandwich-chips':['American'],
+'masala-pasta':['Pasta'],
+'enchiladas':['Mexican'],
+'white-chicken-chili':['Soup/Stew','Mexican'],
+'corn-chowder':['Soup/Stew'],
+'jell-o':['Snack'],
+'pudding':['Snack'],
+'cottage-cheese':['Healthy']
+};
+for(const [id,cuts] of Object.entries(cp259Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,'CP259 '+id+' Quick Cut mapping');
+for(const id of Object.keys(cp259Cuts)) assert(byId.has(id),'Missing CP259 food: '+id);
+assert.equal(byId.get('gumbo')?.quickCuts?.join('|'),'Southern|Soup/Stew','Gumbo should remain Southern + Soup/Stew');
+assert.equal(byId.get('fish-sticks')?.name,'Fish Sticks','Fish Sticks should remain in the catalog');
+assert.equal(foodRows[foodRows.length-1]?.id,'fish-sticks','Fish Sticks must be the final built-in food');
+assert.equal(foodRows.filter(x=>x.name==='Roast Beef Sandwich + Chips').length,1,'Roast Beef Sandwich + Chips must not be duplicated');
+assert.equal(foodRows.filter(x=>x.id==='gumbo').length,1,'Gumbo must not be duplicated');
+assert.equal(foodRows.length,116,'CP259 built-in food deck must contain exactly 116 foods');
+console.log('Dinliminate CP259 food catalog QA: PASS');
+
+assert(html.includes('id="hungryNote"') && app.includes("hungryNote.textContent=hungry?'Fish Sticks?':''"),'Hungry winner must show the Fish Sticks? prompt');
+assert(app.includes("item?.category==='Hungry'?'':'<button class=\"detail-hide-action\" id=\"detailHide\">Hide</button>'"),'Hungry Details must omit Hide');
+
+
+// CP260 UI + Pass Around contracts.
+assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
+for(const id of ['spaghetti','pasta-alfredo','lasagna','chicken-parmesan']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian');
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
+assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#2f8f5b,#236e45)'),'App Diagnosis should use the green system action treatment');
+assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
+assert(app.includes("label:'Quick Pass · Default'"),'Quick Pass should be the default labeled mode');
+assert(app.includes("label:'Full Pass · Original'"),'Full Pass should remain the optional original mode');
+assert(app.includes("S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick'"),'Quick Pass should be the persisted default mode');
+assert(app.includes("mode:S.passDraftMode") && app.includes("p.mode==='quick'"),'Pass Around should persist the selected mode and branch behavior');
+assert(app.includes('majority decides early') && app.includes('Everyone must keep a choice.'),'Pass Around modes should clearly explain Quick vs Full behavior');
+assert(app.includes('Back = Undo') && app.includes('p.history.push(before)'),'Pass Around must support deterministic undo');
+assert(app.includes('p.poolIds=p.poolIds.filter') && app.includes('function finishPass'),'Pass Around should narrow the active deck and finish cleanly');
+assert(app.includes('S.pass=null;removePassSurface();') && !app.includes('S.pass=null;removePassSurface();S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);'),'Canceling Pass Around should not advance the starting voter');
+assert(app.includes('const quickCats=[...cats,\'Other\']') && app.includes('foodQuickLabels()'),'Custom Food Other should be available only when added');
+assert(app.includes("quickCats=[...cats,'Other']") && app.includes("x.value"),'Custom Food Quick Cut editor should include optional Other');
