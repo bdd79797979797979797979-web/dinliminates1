@@ -38,15 +38,26 @@ assert(css.includes('round-maybe') && css.includes('background:#28c76f'),'Maybe 
 assert(css.includes('max-height:61svh') && css.includes('max-height:57svh'),'Decision cards must remain large on desktop and iPhone');
 assert(css.includes('flex:1;height:25px'),'Restaurant Search/Hours controls must remain compact');
 assert(css.includes('.location-strip{margin-top:3px'),'Restaurant location strip must remain compact');
-assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===65,'The current 65-food deck must be present');
+assert(foods.includes('window.DINLIMINATE_FOODS=') && (foods.match(/"id":/g)||[]).length===67,'The current 67-food deck must be present');
 const dataJson=foods.slice(foods.indexOf('=')+1).trim().replace(/;\s*$/,'');
 const foodRows=JSON.parse(dataJson);
-assert(foodRows.length===65,'Food deck must contain exactly 65 foods');
+assert(foodRows.length===67,'Food deck must contain exactly 67 foods');
 assert(foodRows.every(x=>x.image && x.ingredients?.length && x.nutrition && x.quickCuts?.length && x.recipe),'Every restored food must have photo, ingredients, nutrition, Quick Cut mapping, and recipe details');
 for(const name of ['Mexican Stir Fry','Meatloaf & Mashed Potatoes','Beef Stroganoff','Fried Rice','Pot Roast','Pork Chops','Potato Soup','Cereal','Fish Sticks','Health Shake','Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers']) assert(foodRows.some(x=>x.name===name),'Missing restored food: '+name);
 const steak=foodRows.find(x=>x.id==='steak-potato'), potato=foodRows.find(x=>x.id==='loaded-baked-potato');
 assert(!steak.quickCuts.includes('Potato'),'Steak & Potato must not be a Potato Quick Cut');
 assert(potato.quickCuts.includes('Potato'),'Loaded Baked Potato must be a Potato Quick Cut');
+assert(foodRows.filter(x=>x.quickCuts?.includes('Pork')).length===0,'No built-in food should retain the removed Pork Quick Cut');
+assert.deepEqual(foodRows.find(x=>x.id==='homemade-pizza')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='meatball-subs')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='sausage-peppers')?.quickCuts,['Italian']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-chops')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='pork-tenderloin')?.quickCuts,['Southern']);
+assert.deepEqual(foodRows.find(x=>x.id==='white-fish')?.quickCuts,['Healthy']);
+assert.deepEqual(foodRows.find(x=>x.id==='biscuits-gravy')?.quickCuts,['Breakfast']);
+assert.equal(foodRows.find(x=>x.id==='mashed-potatoes')?.name,'Mashed Potatoes');
+assert.ok(foodRows.find(x=>x.id==='white-fish')?.ingredients?.length && foodRows.find(x=>x.id==='white-fish')?.nutrition && foodRows.find(x=>x.id==='white-fish')?.recipe);
+assert.ok(foodRows.find(x=>x.id==='pork-tenderloin')?.ingredients?.length && foodRows.find(x=>x.id==='pork-tenderloin')?.nutrition && foodRows.find(x=>x.id==='pork-tenderloin')?.recipe);
 const popcorn=foodRows.find(x=>x.id==='popcorn'), stir=foodRows.find(x=>x.id==='stir-fry');
 assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a popcorn photo');
 assert(stir?.image?.includes('photos/31673757/'),'Mexican Stir Fry must use an accurate Mexican stir-fry photo');
@@ -92,11 +103,11 @@ assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from 
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
 assert(app.includes("S.hoursMode==='openUnknown'?'all':'openUnknown'"),'Hours toggle must alternate between Open/Unknown and All');
-for(const label of ['Southern','Pasta','Asian','Mexican','Pork','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
+for(const label of ['Southern','Pasta','Italian','Asian','Mexican','Soup/Stew','Healthy','Breakfast','American','Greek','Snack','Potato']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
-for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','Pork','BBQ']) {
+for(const label of ['American','Fast Food','Mexican','Asian','Pasta','Southern','Healthy','Soup/Stew','Potato','Greek','BBQ']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Restaurant Quick Cut photo mapping must include '+label);
 }
