@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=462'),'App script must use the CP455 cache-busting query');
-assert(release.build===167 && release.checkpoint==='CP462','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=463'),'App script must use the CP455 cache-busting query');
+assert(release.build===168 && release.checkpoint==='CP463','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -17,6 +17,10 @@ for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','rest
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r20'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
+assert(app.includes("const DEFAULT_FOOD_IMAGE = './fallback-food.svg';"),'Added meals must have a dedicated default food image.');
+assert(app.includes("let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMAGE"),'Meals saved without an uploaded photo must use the default food image.');
+assert(app.includes('else item.image=DEFAULT_FOOD_IMAGE;'),'Missing stored custom photos must recover to the default food image.');
+assert(css.includes('#manageFoodsModal .manage-delete'),'Custom meal Delete action must have premium destructive styling');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
 assert(app.includes('data-food-edit') && app.includes('editQuickCut') && !app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore without Delete controls');
