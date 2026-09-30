@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 161,
-  "sourceBranch": "cp456-wendys-dedupe-final-2026-09-30",
+  "build": 162,
+  "sourceBranch": "cp457-restaurant-name-normalization-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP456"
+  "checkpoint": "CP457"
 }
