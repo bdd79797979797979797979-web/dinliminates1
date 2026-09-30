@@ -244,8 +244,8 @@ assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classL
 assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
 
 assert(app.includes("const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Food editor cuisine/category dropdown must include Other');
-assert(app.includes('restaurantDirectionsUrl') && app.includes('detailDirections') && app.includes('Get Google Maps directions'),'Restaurant Details must include Google Maps directions');
-assert(app.includes('restaurant-detail-contact-link') && app.includes('phoneHref(item.phone)'),'Restaurant Details must include a tap-to-call phone number');
+assert(app.includes('restaurantDirectionsUrl') && app.includes('detail-directions-action') && app.includes('Get Google Maps directions'),'Restaurant Details must include Google Maps directions');
+assert(app.includes('restaurant-luxury-contact-row') && app.includes('phoneHref(detailPhone)'),'Restaurant Details must include a tap-to-call phone number');
 assert(app.includes('const appBrandHost=/(^|[.-])(?:dinliminate|diliminate)([.-]|$)/i.test(host)'),'Restaurant Website must reject Dinliminate deployment hosts');
 assert(app.includes('KNOWN_RESTAURANT_WEBSITES') && app.includes('mcdonalds.com'),'Restaurant Website must have an official national-chain website registry');
 assert(app.includes("(q||'restaurant')+' restaurant website'"),'Restaurant Website must use a Google restaurant-website fallback query');
@@ -263,5 +263,5 @@ assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifull
 
 // CP323 Restaurant Details visibility contract
 assert(app.includes("type==='restaurant'?'Restaurant Details':'Details'"),'Restaurant Details modal must have an explicit Restaurant Details title');
-assert(app.includes('restaurant-detail-contact') && app.includes('Google Maps ↗') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
-assert(css.includes('#detailsModal .restaurant-detail-contact') && css.includes('#detailsModal .contact-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
+assert(app.includes('restaurant-luxury-contact-card') && app.includes('detail-directions-action') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
+assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
