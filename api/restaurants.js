@@ -101,8 +101,54 @@ function knownRestaurantWebsite(row){
  }
  return '';
 }
-function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\$&');}').replace(/"/g,'\\\"');}
+function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\function escapeOverpassRegex(value){return String(value||'').replace(/[\\^$.*+?()[\\]{}|]/g,'\\\\$&');}').replace(/"/g,'\\\"');}
 function contactQuery').replace(/"/g,'\\\"');}
+function contactQuery(lat,lon,radius,names){
+ const pattern=names.map(escapeOverpassRegex).filter(Boolean).join('|');
+ const m=Math.round(Math.min(25,Math.max(1,radius))*1609.344);
+ return '[out:json][timeout:5];nwr[amenity~"^(restaurant|fast_food)$"][name~"^('+pattern+')$",i](around:'+m+','+lat+','+lon+');out center tags;';
+}
+async function contactEnrichment(lat,lon,radius,names){
+ if(!names.length)return{rows:[],errors:[]};
+ const data=contactQuery(lat,lon,radius,names),rows=[],errors=[];
+ const settled=await Promise.allSettled(OVERPASS.map(ep=>json(ep+'?data='+encodeURIComponent(data),{},3200)));
+ for(const result of settled){
+  if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'request failed'));continue;}
+  for(const el of result.value?.elements||[]){const r=osmRow(el,{lat,lon});if(r&&r.distance<=radius)rows.push(r);}
+ }
+ return{rows:dedupe(rows),errors};
+}
+async function googlePlaces(lat,lon,radius){
+ if(!GOOGLE_KEY)return{rows:[],errors:[]};
+ const meters=Math.round(Math.min(50000,Math.max(1609,radius*1609.344))),rows=[],errors=[];
+ try{
+  const data=await json('https://places.googleapis.com/v1/places:searchNearby',{
+   method:'POST',
+   headers:{
+    'Content-Type':'application/json',
+    'X-Goog-Api-Key':GOOGLE_KEY,
+    'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.types'
+   },
+   body:JSON.stringify({
+    includedTypes:['restaurant','fast_food'],
+    maxResultCount:20,
+    locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius:meters}}
+   })
+  },6500);
+  for(const p of data?.places||[]){
+   const loc=p?.location||{},plat=n(loc.latitude),plon=n(loc.longitude),name=String(p?.displayName?.text||'').trim();
+   if(!name||!Number.isFinite(plat)||!Number.isFinite(plon))continue;
+   const types=Array.isArray(p?.types)?p.types.map(String):[];
+   const fast=types.includes('fast_food')||isFastFoodName(name);
+   rows.push({id:p.id?'google-'+p.id:'google-'+norm(name)+'-'+plat.toFixed(5)+'-'+plon.toFixed(5),name,
+    category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',
+    address:String(p?.formattedAddress||''),phone:String(p?.nationalPhoneNumber||''),website:String(p?.websiteUri||''),
+    opening_hours:'',lat:plat,lon:plon,distance:miles(lat,lon,plat,plon),photo:'',menuItems:[],brand:'',source:'Google Places'});
+  }
+ }catch(e){errors.push(String(e?.message||e||'Google Places failed'));}
+ return{rows,errors};
+}
+function providerPriority').replace(/"/g,'\\\"');}
 function contactQuery(lat,lon,radius,names){
  const pattern=names.map(escapeOverpassRegex).filter(Boolean).join('|');
  const m=Math.round(Math.min(25,Math.max(1,radius))*1609.344);
