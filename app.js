@@ -1313,7 +1313,7 @@ if(navigator.share){navigator.share({title:'Dinliminate',text}).catch(()=>{});}
 else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToast('Decision copied.')).catch(()=>{});
 }
 function resetRound(){
-S.pass=null; S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
+S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.deleted.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
@@ -1322,7 +1322,7 @@ home();
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom foods, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
@@ -1330,7 +1330,7 @@ home();
 async function systemRestoreFlow(){
 if(!await appConfirm('Restore system defaults?', 'This restores the original food deck and clears saved round changes. Custom foods remain on this device.', 'Restore'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.pass=null; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.restaurantTimezone=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 document.querySelector('#settingsModal')?.remove();
 document.querySelector('#settingsModalBg')?.remove();
@@ -1422,8 +1422,7 @@ restaurantMaybeRound:!!S.restaurantMaybeRound,
 restaurantCuts:[...S.restaurantCuts],
 winner:S.winnerItem ? {...S.winnerItem} : null,
 winnerType:S.winnerType,
-location:S.location ? {...S.location} : null,
-pass:S.pass ? JSON.parse(JSON.stringify(S.pass)) : null
+location:S.location ? {...S.location} : null
 })
 };
 }
