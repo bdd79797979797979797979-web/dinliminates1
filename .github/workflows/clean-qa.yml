@@ -1,3 +1,42 @@
+name: Dinliminate Clean QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'app.js'
+      - 'styles.css'
+      - 'data/**'
+      - 'api/**'
+      - 'qa/**'
+      - '.github/workflows/clean-qa.yml'
+      - 'manifest.webmanifest'
+      - 'vercel.json'
+      - 'sw.js'
+      - 'release.json'
+      - 'icon.svg'
+      - '*.png'
+      - 'README.md'
+      - 'CHECKPOINT.md'
+      - 'SAVEPOINTS.md'
+      - 'CURRENT-RELEASE.md'
+  push:
+    branches: [clean-rebuild, clean-release-candidate, release-hardening-2026-09-29, cp258-food-catalog-expansion-2026-09-30, 'cp*-launch-hardening']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dinliminate-clean-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clean-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -38,8 +77,6 @@
       - name: Visual regression
         run: node qa/visual-regression.mjs
       - name: Netlify preview smoke
-        env:
-          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-53--diliminate.netlify.app' }}
         run: node qa/netlify-preview-smoke.mjs
       - name: Upload visual QA artifacts
         if: always()
