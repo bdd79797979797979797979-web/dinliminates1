@@ -30,7 +30,7 @@ assert.equal(out.length,4,'Three duplicate-provider cases should collapse while 
 assert.equal(out.some(x=>/Robert Head/i.test(x.name)),false,'Provider variant should not survive as a duplicate');
 assert.equal(out.some(x=>/Chris.?s? Pizza/i.test(x.name)),true,'One Chris Pizza record should remain');
 assert.equal(out.some(x=>x.id==='other'),true,'Distinct nearby restaurant should remain');
-const namedVariants=t.dedupe([
+const namedVariants=t.t.dedupe([
  {id:'h1',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:0.2,source:'Photon'},
  {id:'h2',name:'Robert Heads BBQ',address:'Iron Workers Rd, Clarksville, TN 37043',lat:36.5311,lon:-87.3602,distance:0.21,source:'ArcGIS'},
  {id:'e1',name:'Excell BBQ',address:'500 College St, Clarksville, TN 37043',lat:36.531,lon:-87.34,distance:0.5,source:'Photon'},
@@ -42,7 +42,7 @@ const namedVariants=t.dedupe([
 assert.equal(namedVariants.filter(x=>/heads bbq/i.test(x.name)).length,2,'Heads BBQ should remain separate from the intentionally distinct Heads BBQ Express venue');
 assert.equal(namedVariants.filter(x=>/^(excell bbq)$/i.test(x.name)).length,1,'Duplicate Excell BBQ provider rows should collapse');
 assert.equal(namedVariants.filter(x=>/mcdonald/i.test(x.name)).length,1,'Duplicate McDonalds Sango provider rows should collapse');
-const chainStores=t.dedupe([
+const chainStores=t.t.dedupe([
  {id:'m1',name:"McDonald's",address:'100 Main St, Clarksville, TN 37040',lat:36.5304,lon:-87.3601,distance:1,source:'Photon',website:'https://www.mcdonalds.com'},
  {id:'m2',name:"McDonald's",address:'500 Tiny Town Rd, Clarksville, TN 37042',lat:36.6204,lon:-87.2601,distance:8,source:'ArcGIS POI',website:'https://www.mcdonalds.com'}
 ]);
@@ -55,7 +55,7 @@ const wendysNameForms=[
  {id:'w2',name:'Wendys',address:'2330 Madison Street, Clarksville, TN 37043',lat:36.5303,lon:-87.3602,source:'Photon'},
  {id:'w3',name:"WENDY'S",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5302,lon:-87.3601,source:'ArcGIS'}
 ];
-const wendysNameMerged=dedupe(wendysNameForms);
+const wendysNameMerged=t.dedupe(wendysNameForms);
 assert.equal(wendysNameMerged.length,1,"Wendy's, Wendys, and WENDY'S at the same address must resolve to one venue");
 
 const wendyAddressVariants=[
@@ -63,7 +63,7 @@ const wendyAddressVariants=[
  {id:'wb',name:'Wendys',address:'2330 Madison Street, Clarksville, Tennessee, 37043',lat:36.5302,lon:-87.3601,source:'Photon'},
  {id:'wc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005,source:'ArcGIS'}
 ];
-assert.equal(dedupe(wendyAddressVariants).length,1,"Equivalent Wendy's addresses with state/road formatting differences must collapse to one venue");
+assert.equal(t.dedupe(wendyAddressVariants).length,1,"Equivalent Wendy's addresses with state/road formatting differences must collapse to one venue");
 
 
 const countryAddressVariants=[
@@ -71,42 +71,42 @@ const countryAddressVariants=[
  {id:'cb',name:"Wendys",address:'2330 Madison Street, Clarksville, Tennessee, 37043 United States',lat:36.5302,lon:-87.3601},
  {id:'cc',name:"WENDY'S",address:'2330 Madison St., Clarksville, TN 37043, USA',lat:36.5301,lon:-87.36005}
 ];
-assert.equal(dedupe(countryAddressVariants).length,1,"Country/state/road-format variants of the same Wendy's venue must collapse to one result");
+assert.equal(t.dedupe(countryAddressVariants).length,1,"Country/state/road-format variants of the same Wendy's venue must collapse to one result");
 
 
 const sameStreetPartialAddress=[
  {id:'ws1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
  {id:'ws2',name:'Wendys',address:'Madison St, Clarksville, TN 37043',lat:36.5312,lon:-87.3590,distance:6.91,source:'Photon'}
 ];
-assert.equal(dedupe(sameStreetPartialAddress).length,1,"Same-name restaurants on the same street with one partial street address and matching search distance must collapse to one venue");
+assert.equal(t.dedupe(sameStreetPartialAddress).length,1,"Same-name restaurants on the same street with one partial street address and matching search distance must collapse to one venue");
 
 const sameStreetTwoFullAddresses=[
  {id:'sf1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
  {id:'sf2',name:"Wendy's",address:'2500 Madison St, Clarksville, TN 37043',lat:36.5312,lon:-87.3590,distance:6.91,source:'Photon'}
 ];
-assert.equal(dedupe(sameStreetTwoFullAddresses).length,2,"Two separately numbered same-name locations on the same street must remain separate");
+assert.equal(t.dedupe(sameStreetTwoFullAddresses).length,2,"Two separately numbered same-name locations on the same street must remain separate");
 
 
 const sameWendysStreetDistance=[
  {id:'wd1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
  {id:'wd2',name:'Wendys',address:'Madison St, Clarksville, TN 37043',lat:36.59,lon:-87.30,distance:6.91,source:'Photon'}
 ];
-assert.equal(dedupe(sameWendysStreetDistance).length,1,"Same-name Wendy's on the same street with matching reported search distance must collapse even when provider coordinates differ");
+assert.equal(t.dedupe(sameWendysStreetDistance).length,1,"Same-name Wendy's on the same street with matching reported search distance must collapse even when provider coordinates differ");
 
 const sameStreetDifferentDistance=[
  {id:'wd3',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.53,lon:-87.36,distance:6.90,source:'Google'},
  {id:'wd4',name:"Wendy's",address:'2500 Madison St, Clarksville, TN 37043',lat:36.60,lon:-87.29,distance:8.20,source:'Photon'}
 ];
-assert.equal(dedupe(sameStreetDifferentDistance).length,2,"Same-name restaurants on the same street must remain separate when their displayed distances materially differ");
+assert.equal(t.dedupe(sameStreetDifferentDistance).length,2,"Same-name restaurants on the same street must remain separate when their displayed distances materially differ");
 
 const sameNameSameStreetDistance=[
  {id:'sd1',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90,source:'Google'},
  {id:'sd2',name:"Wendy's",address:'Madison St, Clarksville, TN 37043',lat:36.7000,lon:-87.2000,distance:6.91,source:'Photon'}
 ];
-assert.equal(dedupe(sameNameSameStreetDistance).length,1,"Same-name Wendy's on the same street with matching displayed search distance must collapse to one result");
+assert.equal(t.dedupe(sameNameSameStreetDistance).length,1,"Same-name Wendy's on the same street with matching displayed search distance must collapse to one result");
 
 const sameStreetDifferentDistance2=[
  {id:'sd3',name:"Wendy's",address:'2330 Madison St, Clarksville, TN 37043',lat:36.5300,lon:-87.3600,distance:6.90,source:'Google'},
  {id:'sd4',name:"Wendy's",address:'2500 Madison St, Clarksville, TN 37043',lat:36.7000,lon:-87.2000,distance:8.10,source:'Photon'}
 ];
-assert.equal(dedupe(sameStreetDifferentDistance2).length,2,"Same-name same-street restaurants with materially different displayed distances must remain distinct");
+assert.equal(t.dedupe(sameStreetDifferentDistance2).length,2,"Same-name same-street restaurants with materially different displayed distances must remain distinct");
