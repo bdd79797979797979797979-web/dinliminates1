@@ -185,3 +185,7 @@ Deployment:
 - Swipe engine uses pointer capture; Pass Around Quick Pass is default and Full Pass remains optional; Back/Undo and safe Cancel are covered.
 - Recovery: `checkpoint-cp260-final-code-verified-2026-09-30`.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+
+## Netlify sync marker — CP261
+- Triggered from current branch head `270d136df9b8db3b6fdc5f3c691bf87c21afdf86` so the PR preview redeploys the exact current state.
