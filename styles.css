@@ -559,24 +559,6 @@
 .photo-chip::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#0002 20%,#000b 100%);z-index:1;pointer-events:none}
 .photo-chip span{position:relative;z-index:2}
 
-.pass-surface .pass-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 0 10px}
-.pass-surface .pass-top b{font-size:10px;letter-spacing:.14em;color:#bfa16b}
-.pass-surface .pass-top button{min-width:38px;min-height:38px}
-.pass-surface .pass-setup-wrap{width:min(92vw,430px);margin:6vh auto 0;text-align:center}
-.pass-surface .pass-setup-wrap h2{font-size:31px;line-height:1;letter-spacing:-.05em;margin:0 0 8px}
-.pass-surface .pass-setup-wrap .status{max-width:390px;margin:0 auto 18px;line-height:1.55}
-
-
-
-
-
-.pass-card-stack .pass-card img{width:100%;height:100%;object-fit:cover;display:block}
-.pass-card-stack .pass-card .shade{position:absolute;inset:0;background:linear-gradient(180deg,#0001 38%,#000d 100%)}
-
-.pass-card-copy small{font-size:9px;letter-spacing:.12em;color:#d0bd98;font-weight:900}
-.pass-card-copy h2{font-size:32px;line-height:.98;margin:5px 0}
-.pass-card-copy p{margin:0;color:#c9c0b4;font-size:11px}
-
 
 
 @media(max-width:390px){.luxury-home h1{font-size:29px;max-width:12em}.pass-card-copy h2{font-size:28px}}
@@ -710,11 +692,6 @@
 .settings-system-action.diagnosis-action:hover{background:linear-gradient(180deg,#238d94,#17656b)!important;border-color:#72bbc0!important}
 
 
-.pass-mode-option strong{font-size:13px;color:#fff}
-.pass-mode-option span{font-size:10px;line-height:1.35;color:#777}
-.pass-mode-option.selected{border-color:#8e7650;background:#211d17;box-shadow:inset 0 0 0 1px #8e765022}
-
-
 @media(max-width:390px){.pass-mode-option span{font-size:9px}}
 
 
@@ -761,5 +738,4 @@
 .food-cuisine-row #foodDetails{flex:0 0 28px;margin:0!important}
 .card-cuisine-row .card-details-action{flex:0 0 28px;margin:0!important}
 
-/* CP269 — two-column Restaurant tools after removing Pass Around */
 .restaurant-tools{grid-template-columns:1fr 1fr!important}
