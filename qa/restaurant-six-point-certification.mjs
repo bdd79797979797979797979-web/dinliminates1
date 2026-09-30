@@ -101,9 +101,39 @@ await page.goto('http://127.0.0.1:4174/?qa=1');
 await page.waitForLoadState('domcontentloaded');
 await settle();
 
+// Persisted device coordinates must reopen as a last-used location, not as freshly confirmed GPS.
+await page.evaluate(() => localStorage.setItem('dinliminate.clean.cp1', JSON.stringify({
+  screen:'home',saved:true,location:{lat:36.5304,lon:-87.3601,label:'Previous location'},locationSource:'device',
+  locationFreshAt:Date.now()-86400000,restaurantPool:[],pool:[],custom:[]
+})));
+await page.reload();
+await page.waitForLoadState('domcontentloaded');
+await settle();
+assert.equal(await page.locator('#locationSourceLabel').textContent(),'Last used location');
 const report={};
 report["1_use_location"]={};
 await openRestaurantScreen();
+
+// Double-tap protection: the first request puts the button into a disabled/busy state,
+// preventing a second acquisition from starting while the first one is active.
+await page.evaluate(() => {
+  window.__DINLIMINATE_GEO_CALLS__=0;
+  const geo=navigator.geolocation;
+  geo.getCurrentPosition=(success,error,options)=>{
+    window.__DINLIMINATE_GEO_CALLS__++;
+    setTimeout(()=>success({coords:{latitude:36.5304,longitude:-87.3601,accuracy:25}}),550);
+  };
+});
+await page.locator('#locate').click();
+assert.equal(await page.locator('#locate').isDisabled(),true);
+assert.equal(await page.locator('#locate').getAttribute('aria-busy'),'true');
+await page.locator('#locate').click({force:true}).catch(()=>{});
+await page.waitForTimeout(120);
+assert.equal(await page.evaluate(()=>window.__DINLIMINATE_GEO_CALLS__),1);
+await waitForRestaurant();
+assert.equal(await page.locator('#locate').isDisabled(),false);
+assert.equal(await page.locator('#locate').getAttribute('aria-busy'),'false');
+
 await page.locator('#locate').click();
 await waitForRestaurant();
 let s=await snap();
@@ -153,6 +183,8 @@ report["2_search_address"].directEnter=true;
 // a complete-looking street address should resolve the typed value directly.
 assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron'),false);
 assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron Workers Rd, Clarksville, TN 37043'),true);
+assert.equal(await page.evaluate((a,b)=>window.__DINLIMINATE_TEST__.locationMovedMiles(a,b),
+ {lat:36.5304,lon:-87.3601},{lat:36.5304,lon:-87.3601}),0);
 
 await page.locator('#address').fill('801 Iron');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
