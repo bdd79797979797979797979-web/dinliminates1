@@ -1108,13 +1108,19 @@ function scheduleRestaurantProviderSearch(){
 }
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
- $('restaurantQuery').oninput=()=>{
+$('restaurantQuery').oninput=()=>{
+   const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
    S.restaurantIndex=0;
    drawRestaurants();
    save();
+   if(!String(S.restaurantQuery||'').trim() && previousQuery){
+     clearTimeout(restaurantQueryTimer);
+     searchRestaurants();
+     return;
+   }
    scheduleRestaurantProviderSearch();
- };
+};
  $('restaurantQuery').onkeydown=e=>{
    if(e.key==='Enter'){
      e.preventDefault();
