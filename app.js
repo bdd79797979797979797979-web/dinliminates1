@@ -88,11 +88,28 @@ const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCut
 for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);}
 return imageProxyUrl(QUICK_IMAGES.American);
 }
+const KNOWN_RESTAURANT_WEBSITES={
+  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
+};
+function knownRestaurantWebsite(row){
+ const name=normKey(row?.name),brand=normKey(row?.brand);
+ for(const [key,url] of Object.entries(KNOWN_RESTAURANT_WEBSITES)){
+  const k=normKey(key);
+  if(name===k||name.includes(k)||brand===k||brand.includes(k))return url;
+ }
+ return '';
+}
 function restaurantWebsiteUrl(row){
 const direct=safeExternalUrl(row?.website);
 if(direct)return direct;
+const known=knownRestaurantWebsite(row);
+if(known)return known;
 const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
 return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
+}
+function restaurantPhoneSearchUrl(row){
+ const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
+ return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' phone number');
 }
 function restaurantDirectionsUrl(row){
 const lat=Number(row?.lat),lon=Number(row?.lon);
@@ -880,7 +897,7 @@ const nextImage = imageProxyUrl(nextRow?.photo || nextRow?.image || restaurantFa
 const cardAddress = row.address ? '<div class="card-detail-line">'+esc(row.address)+'</div>' : '';
 const cardCuisine = row.cuisine ? '<div class="card-detail-line">'+esc(row.cuisine)+'</div>' : '';
 const cardCommon = Array.isArray(row.menuItems) && row.menuItems.length ? '<div class="card-detail-line common-line">'+esc(row.menuItems.slice(0,2).join(' · '))+'</div>' : '';
-const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '';
+const cardPhone = row.phone ? '<a class="card-detail-line card-phone" href="'+esc(phoneHref(row.phone))+'">'+esc(row.phone)+'</a>' : '<a class="card-detail-line card-phone card-phone-fallback" href="'+esc(restaurantPhoneSearchUrl(row))+'" target="_blank" rel="noopener noreferrer">Phone ↗</a>';
 const cardHours = '<span class="status-badge">'+(hourStatus(row)==='open'?'Open':hourStatus(row)==='closed'?'Closed':'Open/Unknown')+'</span>';
 const directWebsite=!!safeExternalUrl(row.website); const websiteUrl=restaurantWebsiteUrl(row); const cardWebsite = '<a class="card-card-action website-action" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open restaurant website':'Search restaurant on Google')+'" title="'+(directWebsite?'Website':'Search on Google')+'">'+(directWebsite?'Website ↗':'Google ↗')+'</a>';
 $('restStage').innerHTML =
@@ -1025,7 +1042,7 @@ function detailsSheet(item,type){
  const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
  const menu=type==='restaurant'&&menus.length?'<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menus.slice(0,8).join(' · '))+'</p></div>':'';
  const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
- const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHref(item.phone))+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<div class="restaurant-detail-contact-muted"><span class="contact-label">Phone</span><strong>Not available</strong></div>';
+ const phoneLink=item.phone?'<a class="restaurant-detail-contact-link" href="'+esc(phoneHref(item.phone))+'"><span class="contact-label">Phone</span><strong>'+esc(item.phone)+'</strong></a>':'<a class="restaurant-detail-contact-link restaurant-phone-fallback" href="'+esc(restaurantPhoneSearchUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Search for restaurant phone number on Google"><span class="contact-label">Phone</span><strong>Find on Google ↗</strong></a>';
  const addressLink=item.address?'<div class="restaurant-detail-address"><span class="contact-label">Address</span><strong>'+esc(item.address)+'</strong></div>':'';
  const meta=type==='restaurant'?'<div class="detail-section restaurant-detail-summary"><div class="detail-section-title">Restaurant information</div><div class="restaurant-detail-grid"><div><span>Category</span><b>'+esc(cat)+'</b></div>'+(item.cuisine?'<div><span>Cuisine</span><b>'+esc(item.cuisine)+'</b></div>':'')+(item.distance!=null?'<div><span>Distance</span><b>'+Number(item.distance).toFixed(1)+' mi</b></div>':'')+'<div><span>Hours</span><b>'+esc(item.opening_hours||'Open/Unknown')+'</b></div></div><div class="restaurant-detail-contact"><div class="contact-card">'+phoneLink+addressLink+'</div><div class="contact-actions"><a class="detail-web-action detail-website-action" id="detailWeb" href="'+esc(restaurantWebsiteUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Open restaurant website or Google search fallback">'+(safeExternalUrl(item.website)?'Website ↗':'Google Search ↗')+'</a><a class="detail-web-action detail-directions-action" id="detailDirections" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions">Google Maps ↗</a></div></div></div>':'';
  const final=type==='restaurant'?FINAL_RESTAURANT_IMAGE:FINAL_FOOD_IMAGE;
