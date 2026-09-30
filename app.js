@@ -607,7 +607,9 @@ function normalizeRestaurantSearch(value){
   .trim();
 }
 function restaurantCategory(row) {
-if (row.fastFood || /fast[ -]?food/i.test(String(row.category || ''))) return 'Fast Food';
+const rawCategory=String(row?.category||'').trim();
+if (row.fastFood || /fast[ -]?food/i.test(rawCategory)) return 'Fast Food';
+if (/^american$/i.test(rawCategory)) return 'American';
 const s = normalizeRestaurantSearch([row.category,row.cuisine,row.name,row.brand,row.operator,...(Array.isArray(row.menuItems)?row.menuItems:[])].join(' '));
 if (/mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(s)) return 'Mexican';
 if (/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(s)) return 'Asian';
@@ -618,7 +620,6 @@ if (/seafood|fish house|fish restaurant|shrimp|crab|lobster|oyster/.test(s)) ret
 if (/breakfast|brunch|waffle house|ihop|denny/.test(s)) return 'Breakfast';
 if (/burger|hamburger|cheeseburger|grill/.test(s)) return 'Burgers';
 if (/american|diner|grill/.test(s)) return 'American';
-const rawCategory=String(row?.category||'').trim();
 return rawCategory || 'Restaurant';
 }
 function restaurantQuickMatches(row, label) {
