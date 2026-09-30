@@ -3,6 +3,7 @@ const handler=require('../api/restaurants');
 const t=handler._test||{};
 assert.equal(typeof t.dedupe,'function','dedupe test hook required');
 assert.equal(typeof t.nameVariantMatch,'function','name variant test hook required');
+assert.equal(typeof t.normAddress,'function','normAddress test hook required');
 
 const rows=[
  {id:'osm-heads',name:"Head's BBQ",address:'100 Main St, Clarksville, TN 37043',lat:36.5300,lon:-87.3400,distance:.2,source:'OpenStreetMap',fastFood:false,menuItems:[],photo:''},
@@ -21,4 +22,9 @@ assert.equal(out.length,4,'Three duplicate-provider cases should collapse while 
 assert.equal(out.some(x=>/Robert Head/i.test(x.name)),false,'Provider variant should not survive as a duplicate');
 assert.equal(out.some(x=>/Chris.?s? Pizza/i.test(x.name)),true,'One Chris Pizza record should remain');
 assert.equal(out.some(x=>x.id==='other'),true,'Distinct nearby restaurant should remain');
+const chainStores=t.dedupe([
+ {id:'m1',name:"McDonald's",address:'100 Main St, Clarksville, TN 37040',lat:36.5304,lon:-87.3601,distance:1,source:'Photon',website:'https://www.mcdonalds.com'},
+ {id:'m2',name:"McDonald's",address:'500 Tiny Town Rd, Clarksville, TN 37042',lat:36.6204,lon:-87.2601,distance:8,source:'ArcGIS POI',website:'https://www.mcdonalds.com'}
+]);
+assert.equal(chainStores.length,2,'Two same-chain locations with the same corporate website must remain separate');
 console.log('restaurant dedupe smoke: PASS',JSON.stringify(out.map(x=>({name:x.name,address:x.address,id:x.id}))));
