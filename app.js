@@ -816,6 +816,29 @@ let suggestTimer = 0;
 let suggestSeq = 0;
 let suggestionIndex = -1;
 const suggestCache = new Map();
+function invalidateAddressSuggestions() {
+  suggestSeq++;
+  clearTimeout(suggestTimer);
+  suggestTimer=0;
+  suggestController?.abort();
+  suggestController=null;
+  clearSuggestions();
+}
+function addressLooksComplete(value) {
+  const q=String(value||'').trim().replace(/\s+/g,' ');
+  if(!/^\d+\s+[^,]+/i.test(q))return false;
+  if(/\b\d{5}(?:-\d{4})?\b/.test(q))return true;
+  const parts=q.split(',').map(x=>x.trim()).filter(Boolean);
+  if(parts.length>=3&&/\b[A-Z]{2}\b/i.test(parts[parts.length-2]))return true;
+  return parts.length>=2&&/\b[A-Z]{2}\b/i.test(parts[parts.length-1]);
+}
+async function chooseAddressSuggestion(index) {
+  const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+  const btn=opts[index];
+  if(!btn)return false;
+  btn.click();
+  return true;
+}
 async function suggestAddresses() {
 const q = $('address').value.trim();
 const seq = ++suggestSeq;
@@ -849,21 +872,22 @@ box.id = 'suggestionsBox';
 $('address').insertAdjacentElement('afterend', box);
 }
 box.innerHTML = (rows || []).map((row, i) =>
-'<button type="button" role="option" aria-selected="false" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
+'<button type="button" role="option" aria-selected="false" id="addressSuggestion-'+i+'" data-suggestion="'+i+'">'+esc(row.display)+'</button>'
 ).join('');
 const hasRows=!!rows?.length;
 box.hidden=!hasRows;
 box.style.display=hasRows ? 'grid' : 'none';
 $('address')?.setAttribute('aria-expanded',String(hasRows));
+$('address')?.removeAttribute('aria-activedescendant');
 box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
-btn.onclick = async () => {
-const row = rows[i];
-suggestionIndex = -1;
-setLocation(row.lat, row.lon, row.display,'address');
-clearSuggestions();
-$('status').textContent = 'Location selected. Searching restaurants…';
-await searchRestaurants();
-};
+  btn.onclick = async () => {
+    const row = rows[i];
+    suggestionIndex = -1;
+    invalidateAddressSuggestions();
+    setLocation(row.lat, row.lon, row.display,'address');
+    $('status').textContent = 'Location selected. Searching restaurants…';
+    await searchRestaurants();
+  };
 });
 }
 function clearSuggestions() {
@@ -871,13 +895,16 @@ suggestionIndex = -1;
 const box = $('suggestionsBox');
 if (box) { box.style.display = 'none'; box.hidden=true; }
 $('address')?.setAttribute('aria-expanded','false');
+$('address')?.removeAttribute('aria-activedescendant');
 }
 function moveSuggestion(delta){
 const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
 if(!opts.length)return false;
 suggestionIndex=(suggestionIndex+delta+opts.length)%opts.length;
 opts.forEach((el,i)=>el.setAttribute('aria-selected',String(i===suggestionIndex)));
-opts[suggestionIndex].scrollIntoView?.({block:'nearest'});
+const active=opts[suggestionIndex];
+$('address')?.setAttribute('aria-activedescendant',active.id);
+active.scrollIntoView?.({block:'nearest'});
 return true;
 }
 let restaurantSearchSeq = 0;
@@ -905,6 +932,7 @@ for(let attempt=0;attempt<2;attempt++){
 throw lastError||new Error('Restaurant service unavailable.');
 }
 async function searchRestaurants() {
+invalidateAddressSuggestions();
 const searchSeq = ++restaurantSearchSeq;
 restaurantSearchController?.abort();
 restaurantSearchController = new AbortController();
@@ -1619,17 +1647,34 @@ $('radius').addEventListener('change', () => {
  if(!hasLocation){$('status').textContent='Enter an address or use your location.';renderFindButton();return;}
  searchRestaurants();
 });
-$('address').addEventListener('input', () => { S.location=null; S.locationSource='typed'; S.restaurantSearchOrigin=null; renderLocationSource(); clearSuggestions(); suggestAddresses(); });
+$('address').addEventListener('input', () => {
+  S.location=null;
+  S.locationSource='typed';
+  S.restaurantSearchOrigin=null;
+  renderLocationSource();
+  suggestAddresses();
+});
 $('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
 $('address').addEventListener('keydown', e => {
 if(e.key==='ArrowDown'){ if(moveSuggestion(1)){e.preventDefault();return;} }
 if(e.key==='ArrowUp'){ if(moveSuggestion(-1)){e.preventDefault();return;} }
 if(e.key==='Enter'){
-const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
-if(suggestionIndex>=0&&opts[suggestionIndex]){e.preventDefault();opts[suggestionIndex].click();return;}
-e.preventDefault();clearSuggestions();searchRestaurants();
+  const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
+  if(suggestionIndex>=0&&opts[suggestionIndex]){
+    e.preventDefault();
+    chooseAddressSuggestion(suggestionIndex);
+    return;
+  }
+  if(opts.length&&!addressLooksComplete($('address').value)){
+    e.preventDefault();
+    chooseAddressSuggestion(0);
+    return;
+  }
+  e.preventDefault();
+  invalidateAddressSuggestions();
+  searchRestaurants();
 }
-if(e.key==='Escape') clearSuggestions();
+if(e.key==='Escape'){ e.preventDefault(); invalidateAddressSuggestions(); }
 });
 bindRestaurantTools();
 renderHours();
@@ -1642,7 +1687,7 @@ window.addEventListener('offline', updateOffline);
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,setRestaurantHoursMode};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,setRestaurantHoursMode,addressLooksComplete};
 load();
 renderLocationSource();
 renderFindButton();
