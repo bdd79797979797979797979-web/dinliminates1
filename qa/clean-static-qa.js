@@ -94,8 +94,8 @@ assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protoco
 assert(app.includes('storageWarning'),'storage failure state is required');
 assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
-const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon-512.png'") && sw.includes("'./apple-touch-icon.png'"),'Offline shell must cache both PWA raster icons');
-assert(html.includes('apple-touch-icon.png'),'iOS touch icon contract missing');
+const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./icon.svg'"),'Offline shell must cache the PWA icon');
+assert(html.includes('rel="icon"') && html.includes('./icon.svg'),'PWA icon link contract missing');
 assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator must be unique');
 
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
@@ -123,10 +123,8 @@ assert(app.includes('right to Keep'),'Right swipe must communicate Keep semantic
 assert(!app.includes("if (S.pool.length === 1) winner(S.pool[0]);"),'Food must not auto-win at one remaining choice');
 
 const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
-assert(fs.existsSync('icon-512.png'),'512px PWA icon asset is required');
-assert(fs.existsSync('apple-touch-icon.png'),'180px iOS icon asset is required');
-assert(manifest.icons.some(x=>x.src==='./icon-512.png'&&x.sizes==='512x512'),'manifest must declare the 512px PNG icon');
-assert(manifest.icons.some(x=>x.src==='./apple-touch-icon.png'&&x.sizes==='180x180'),'manifest must declare the 180px iOS PNG icon');
+assert(fs.existsSync('icon.svg'),'PWA icon asset is required');
+assert(manifest.icons.some(x=>x.src==='./icon.svg'),'manifest must declare the available PWA icon');
 assert(manifest.id==='./'&&manifest.scope==='./'&&manifest.orientation==='portrait','manifest PWA identity/orientation contract must be stable');
 const vercelConfig=JSON.parse(fs.readFileSync('vercel.json','utf8'));
 const globalHeaders=vercelConfig.headers?.find(x=>x.source==='/(.*)')?.headers||[];
