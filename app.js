@@ -375,23 +375,27 @@ S.pool = foodPool();
 S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
 }
 function foodQuick() {
-$('foodQuick').innerHTML = foodQuickLabels().map(label => {
-const cut = S.cutCats.has(label);
-const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(QUICK_IMAGES.American))+'" alt="'+esc(label)+' meal photo"><span>'+esc(label)+'</span></button>';
-}).join('');
-bindImageFallbackAttrs('[data-food-quick] img');
-document.querySelectorAll('[data-food-quick]').forEach(btn => {
-btn.onclick = () => {
-const label = btn.dataset.foodQuick;
-S.cutCats.has(label) ? S.cutCats.delete(label) : S.cutCats.add(label);
-S.index = 0;
-buildFood();
-foodQuick();
-drawFood();
-save();
-};
-});
+ const labels=foodQuickLabels();
+ const existing=[...document.querySelectorAll('#foodQuick [data-food-quick]')].map(btn=>btn.dataset.foodQuick);
+ if(existing.length!==labels.length||existing.some((x,i)=>x!==labels[i])){
+  $('foodQuick').innerHTML = labels.map(label => {
+   const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
+   return '<button class="chip photo-chip" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" alt="'+esc(label)+' meal photo" draggable="false"><span>'+esc(label)+'</span></button>';
+  }).join('');
+  bindImageFallbackAttrs('[data-food-quick] img');
+ }
+ document.querySelectorAll('#foodQuick [data-food-quick]').forEach(btn => {
+  const label=btn.dataset.foodQuick;
+  btn.classList.toggle('cut',S.cutCats.has(label));
+  btn.onclick = () => {
+   S.cutCats.has(label) ? S.cutCats.delete(label) : S.cutCats.add(label);
+   S.index=0;
+   buildFood();
+   foodQuick();
+   drawFood();
+   save();
+  };
+ });
 }
 function maybeShowSwipeHint(){
 try{if(localStorage.getItem('dinliminate.swipeHint.v1'))return;localStorage.setItem('dinliminate.swipeHint.v1','1');}catch{}
