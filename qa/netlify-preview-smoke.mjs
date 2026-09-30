@@ -30,7 +30,25 @@ assert.equal(searchResponse.body?.ok,true,'Live Netlify restaurant-search route 
 assert.equal(Number(searchResponse.body?.radiusMiles),5,'Live Netlify restaurant-search route must preserve the requested radius');
 assert.ok(Array.isArray(searchResponse.body?.results),'Live Netlify restaurant-search route must return a results array');
 
-await page.locator('#menu').click();
+await page.locator('#restStart').click();
+await page.waitForTimeout(150);
+assert.equal(await page.locator('#restaurant').isVisible(),true,'Find a restaurant should open the Restaurant screen');
+
+await page.locator('#address').fill('Clarksville, TN');
+await page.waitForSelector('#suggestionsBox button',{state:'visible',timeout:15000});
+assert.ok(await page.locator('#suggestionsBox button').count()>0,'Live address autocomplete must return at least one suggestion');
+await page.locator('#suggestionsBox button').first().click();
+await page.waitForFunction(()=>!document.querySelector('#find')?.disabled,{timeout:30000});
+assert.match((await page.locator('#locationSourceLabel').innerText()),/selected address/i,'Selecting an address must set the location source');
+assert.notEqual(await page.locator('#address').inputValue(),'','Selecting an address must populate the address field');
+assert.match(await page.locator('#restaurantCount').innerText(),/choice/i,'Live restaurant search must populate the restaurant choice count');
+
+await page.locator('#hoursToggle').click();
+assert.equal(await page.locator('#hoursToggle').innerText(),'All','Open/Unknown toggle must switch to All');
+await page.locator('#hoursToggle').click();
+assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Open/Unknown toggle must switch back');
+
+await page.locator('#restaurantMenu').click();
 await page.waitForTimeout(100);
 await page.locator('#settings').click();
 await page.waitForTimeout(100);
