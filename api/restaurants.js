@@ -592,6 +592,7 @@ async function geocode(q){
  if(exactNumber){
    const matching=ranked.filter(row=>new RegExp('^'+exactNumber[1].toLowerCase()+'\\b').test(normalizeSearchQuery(row.display)));
    if(matching.length)return matching[0];
+   throw Object.assign(new Error('That street address could not be matched exactly. Please choose the matching address from the suggestions.'),{code:'ADDRESS_MISMATCH'});
  }
  return ranked[0];
 }
