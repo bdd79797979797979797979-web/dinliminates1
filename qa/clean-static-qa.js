@@ -134,13 +134,9 @@ assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator 
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
-assert(app.includes("const btn=$('hoursToggle')") && app.includes("btn.textContent=allMode?'All':'Open/Unknown'"),'Hours filter must use one Open/Unknown-All toggle button');
-assert(app.includes("function setRestaurantHoursMode(mode)"),'Hours toggle must use an explicit restaurant hours-mode setter');
-assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open/Unknown');
+assert(!html.includes('id="hoursToggle"'),'Restaurant hours filter control should be removed from the UI');
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
-assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
-assert(app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));'),'Restaurant pool must apply the hours filter');
-assert(app.includes('hoursToggle.onclick') && app.includes("S.hoursMode==='all'?'openUnknown':'all'"),'Restaurant hours toggle must have an explicit click handler');
+assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must remain available internally');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
@@ -332,5 +328,5 @@ assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifull
 // CP323 Restaurant Details visibility contract
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
 assert(app.includes('restaurant-luxury-contact-card') && app.includes('detail-directions-action') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
-assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling')assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');
-;
+assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
+assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');
