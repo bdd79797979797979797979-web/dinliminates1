@@ -30,7 +30,7 @@ assert.equal(out.length,4,'Three duplicate-provider cases should collapse while 
 assert.equal(out.some(x=>/Robert Head/i.test(x.name)),false,'Provider variant should not survive as a duplicate');
 assert.equal(out.some(x=>/Chris.?s? Pizza/i.test(x.name)),true,'One Chris Pizza record should remain');
 assert.equal(out.some(x=>x.id==='other'),true,'Distinct nearby restaurant should remain');
-const namedVariants=t.t.dedupe([
+const namedVariants=t.dedupe([
  {id:'h1',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:0.2,source:'Photon'},
  {id:'h2',name:'Robert Heads BBQ',address:'Iron Workers Rd, Clarksville, TN 37043',lat:36.5311,lon:-87.3602,distance:0.21,source:'ArcGIS'},
  {id:'e1',name:'Excell BBQ',address:'500 College St, Clarksville, TN 37043',lat:36.531,lon:-87.34,distance:0.5,source:'Photon'},
@@ -42,7 +42,7 @@ const namedVariants=t.t.dedupe([
 assert.equal(namedVariants.filter(x=>/heads bbq/i.test(x.name)).length,2,'Heads BBQ should remain separate from the intentionally distinct Heads BBQ Express venue');
 assert.equal(namedVariants.filter(x=>/^(excell bbq)$/i.test(x.name)).length,1,'Duplicate Excell BBQ provider rows should collapse');
 assert.equal(namedVariants.filter(x=>/mcdonald/i.test(x.name)).length,1,'Duplicate McDonalds Sango provider rows should collapse');
-const chainStores=t.t.dedupe([
+const chainStores=t.dedupe([
  {id:'m1',name:"McDonald's",address:'100 Main St, Clarksville, TN 37040',lat:36.5304,lon:-87.3601,distance:1,source:'Photon',website:'https://www.mcdonalds.com'},
  {id:'m2',name:"McDonald's",address:'500 Tiny Town Rd, Clarksville, TN 37042',lat:36.6204,lon:-87.2601,distance:8,source:'ArcGIS POI',website:'https://www.mcdonalds.com'}
 ]);
