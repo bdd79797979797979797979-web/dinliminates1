@@ -331,4 +331,5 @@ assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifull
 // CP323 Restaurant Details visibility contract
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
 assert(app.includes('restaurant-luxury-contact-card') && app.includes('detail-directions-action') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
-assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
+assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling')assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');
+;
