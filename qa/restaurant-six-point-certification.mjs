@@ -183,7 +183,7 @@ for(const row of associationCases){
  for(const label of row.no)assert.equal(tags.includes(label),false,row.name+' should not match '+label+'; got '+JSON.stringify(tags));
 }
 const evidence=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCuisineEvidence(row),associationCases.find(x=>x.name==="Joe's Pizza"));
-assert.ok(evidence.Pizza?.includes('restaurant name'),'Quick Cut evidence should identify Joe\\'s Pizza by restaurant name');
+assert.ok(evidence.Pizza?.includes('restaurant name'),"Quick Cut evidence should identify Joe's Pizza by restaurant name");
 const weakMenu=await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCuisineTags(row),{name:'Neighborhood Cafe',category:'Restaurant',cuisine:'',fastFood:false,menuItems:['Shrimp']});
 assert.equal(weakMenu.includes('Seafood'),false,'One incidental menu item must not create Seafood');
 report["2_search_address"].quickCutAssociationMatrix={cases:associationCases.length,identityFirst:true,weakMenuGuard:true,evidenceHook:true};
