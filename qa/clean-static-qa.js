@@ -23,7 +23,7 @@ assert(app.includes('else item.image=DEFAULT_FOOD_IMAGE;'),'Missing stored custo
 assert(css.includes('#manageFoodsModal .manage-delete'),'Custom meal Delete action must have premium destructive styling');
 assert(app.includes('editFoodRecipe') && app.includes('editFoodFile') && app.includes('readImageFile'),'custom food recipe/photo upload support is required');
 assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods must support multiple Quick Cut groups');
-assert(app.includes('data-food-edit') && app.includes('editQuickCut') && !app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore without Delete controls');
+assert(app.includes('data-food-edit') && app.includes('editQuickCut') && app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore, with Delete available only for added custom meals.');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 assert(app.includes('legacyKeys') && app.includes('cutPrimary'),'Persisted state migration must retire legacy fields');
 assert(app.includes('restaurantSearchOrigin'),'Restaurant search origin must be persisted for radius expansion behavior');
