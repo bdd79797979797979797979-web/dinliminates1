@@ -241,9 +241,8 @@ assert(app.includes('restaurantDirectionsUrl') && app.includes('detailDirections
 assert(app.includes('restaurant-detail-contact-link') && app.includes('phoneHref(item.phone)'),'Restaurant Details must include a tap-to-call phone number');
 assert(app.includes('const appBrandHost=/(^|[.-])(?:dinliminate|diliminate)([.-]|$)/i.test(host)'),'Restaurant Website must reject Dinliminate deployment hosts');
 assert(app.includes("(q||'restaurant')+' restaurant website'"),'Restaurant Website must use a Google restaurant-website fallback query');
-const restaurantsApi=fs.readFileSync(path.join(root,'api','restaurants.js'),'utf8');
-assert(restaurantsApi.includes("Country,Phone,URL"),'Restaurant provider lookup should request phone/URL metadata where available');
-assert(restaurantsApi.includes("attrs.Phone||attrs.phone") && restaurantsApi.includes("attrs.URL||attrs.Url||attrs.url"),'Restaurant API should preserve provider phone and website metadata');
+assert(api.includes("Country,Phone,URL"),'Restaurant provider lookup should request phone/URL metadata where available');
+assert(api.includes("attrs.Phone||attrs.phone") && api.includes("attrs.URL||attrs.Url||attrs.url"),'Restaurant API should preserve provider phone and website metadata');
 assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
 assert(html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('How to add to your phone'),'Current Home copy must be present');
 
