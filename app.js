@@ -639,7 +639,7 @@ function dedupeRestaurantPool(rows){
    const xp=String(x.phone||'').replace(/\D/g,'').slice(-10),xw=String(x.website||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/\/$/,'');
    const dist=milesBetween(x.lat,x.lon,lat,lon);
    const sameName=!!name&&name===xn;
-   const variant=restaurantNameVariantMatch(name,xn);
+   const variant=restaurantNameVariantMatchUI(name,xn);
    const sameNameFamily=sameName||variant;
    const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(row);
    const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
