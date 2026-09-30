@@ -1378,6 +1378,10 @@ function detailsSheet(item,type){
 hydrateGoogleRestaurantPhoto(item,'#detailsModal');
 }
 
+function historyImageSource(row){
+ const fallback=row?.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE;
+ return imageProxyUrl(row?.image||row?.photoFallback||fallback);
+}
 function recordHistory(item, type) {
 const history = readHistory();
 history.unshift({
@@ -1432,11 +1436,11 @@ const entries = history.filter(x => x.date === key);
 const entry = entries[0];
 const more = entries.length>1 ? '<span class="cal-more">+'+(entries.length-1)+'</span>' : '';
 body += '<div class="cal-cell">'+
-(entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(imageProxyUrl(entry.image||entry.photoFallback||HUNGRY_IMAGE))+'" data-google-photo-id="'+esc(entry.googlePlaceId&&entry.photoSource==='google-places'?entry.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(entry.name)+'">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
+(entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(historyImageSource(entry))+'" data-google-photo-id="'+esc(entry.googlePlaceId&&entry.photoSource==='google-places'?entry.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(entry.name)+'">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
 '<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
 }
 body += '</div></div><div class="history-list">';
-body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(imageProxyUrl(x.image||x.photoFallback||HUNGRY_IMAGE))+'" data-google-photo-id="'+esc(x.googlePlaceId&&x.photoSource==='google-places'?x.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(x.name)+'"><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
+body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(historyImageSource(x))+'" data-google-photo-id="'+esc(x.googlePlaceId&&x.photoSource==='google-places'?x.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(x.name)+'"><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
 body += '</div>';
 const modal = openModal('historyModal','History',body);
 bindImageFallback('#historyModal img',FINAL_RESTAURANT_IMAGE,FINAL_RESTAURANT_IMAGE);
