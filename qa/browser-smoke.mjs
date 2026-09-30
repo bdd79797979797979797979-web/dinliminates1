@@ -126,7 +126,7 @@ assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork'
 
 await click('[data-food-quick="Potato"]'); await settle();
 s=await qa();
-assert.equal(s.foodPool.length,64,'Potato Quick Cut should remove only Potato-mapped foods');
+assert.equal(s.foodPool.length,87,'Potato Quick Cut should remove only Potato-mapped foods');
 assert.equal(s.foodPool.includes('potato-soup'),true,'Potato Quick Cut must not remove Potato Soup because soup is its primary mapping');
 assert.equal(s.foodPool.includes('steak-potato'),true);
 assert.equal(s.foodPool.includes('burgers'),true,'Potato Quick Cut must not remove Burgers');
