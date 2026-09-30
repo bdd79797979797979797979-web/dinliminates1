@@ -405,9 +405,9 @@ function sameRestaurant(x,r){
   const sameAddress=!!ax&&!!ar&&ax===ar;
   const conflictingAddress=!!ax&&!!ar&&!sameAddress;
   if(sameAddress && (sameName||variant||sameBrand))return true;
-  if(sameName && !conflictingAddress && dist<=0.35)return true;
-  if(sameContact(x,r) && !conflictingAddress && dist<=0.35)return true;
-  if(variant && sameBrand && !conflictingAddress && dist<=0.5)return true;
+  if(sameName && !conflictingAddress && dist<=0.08)return true;
+  if(sameContact(x,r) && !conflictingAddress && dist<=0.12)return true;
+  if(variant && sameBrand && !conflictingAddress && dist<=0.12)return true;
   return false;
 }
 function dedupe(rows){
