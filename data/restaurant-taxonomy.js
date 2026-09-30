@@ -168,6 +168,16 @@ function classifyRestaurant(row){
   const primary=rawCategory+' '+cuisineHay+' '+providerTypeHay;
   const providerRules={
     Fast Food:/\b(fast food|quick service|quick-service|drive thru|drive through|drive-thru|fast food restaurant|fast_food_restaurant)\b/,
+    Burgers:/\b(burger restaurant|burger restaurants|burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
+    Pizza:/\b(pizza restaurant|pizzeria|pizza)\b/,
+    Mexican:/\b(mexican restaurant|mexican|tex mex|taqueria)\b/,
+    Asian:/\b(asian restaurant|chinese restaurant|japanese restaurant|thai restaurant|korean restaurant|asian|chinese|japanese|thai|korean|sushi|vietnamese|hibachi|ramen|pho|teriyaki)\b/,
+    Italian:/\b(italian restaurant|italian|pasta|trattoria|osteria|ristorante)\b/,
+    Southern:/\b(southern restaurant|southern|soul food|country cooking|meat and three|comfort food)\b/,
+    BBQ:/\b(barbecue restaurant|bbq restaurant|bbq|barbecue|smokehouse|smoke shack|pit bbq)\b/,
+    Seafood:/\b(seafood restaurant|fish restaurant|fish house|seafood|catfish|shrimp|crab house|lobster|oyster)\b/,
+    Breakfast:/\b(breakfast restaurant|breakfast|brunch|pancake house|waffle house|waffles?|pancakes?|omelet(?:te)?|eggs? benedict)\b/,
+    American:/\b(american restaurant|diner|steakhouse|steak house|roadhouse|grill|bistro|pub|tavern|american)\b/,
     Burgers:/\b(burgers?|hamburgers?|cheeseburgers?|smashburgers?|burger joint)\b/,
     Pizza:/\bpizza\b|\bpizzeria\b|\bcalzone\b/,
     Mexican:/\bmexican\b|\btex mex\b|\btaqueria\b|\btaco shop\b|\bburrito\b|\bquesadilla\b|\benchilada\b/,
