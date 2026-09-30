@@ -69,6 +69,7 @@ winnerType:'food',
 pass:null,
 passDraftCount:2,
 passDraftNames:[],
+passDraftMode:'quick',
 schemaVersion:4,
 restaurantTimezone:''
 };
@@ -211,7 +212,7 @@ restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
-passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, schemaVersion:STORAGE_VERSION,
+passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, passDraftMode:S.passDraftMode==='full'?'full':'quick', schemaVersion:STORAGE_VERSION,
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
@@ -257,6 +258,7 @@ S.restaurantMaybeRound = !!d.restaurantMaybeRound;
 S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
 S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
+S.passDraftMode = d.passDraftMode === 'full' ? 'full' : 'quick';
 S.winnerType = d.winnerType || 'food';
 S.restaurantTimezone = String(d.restaurantTimezone||'');
 S.locationSource = String(d.locationSource||'none');
