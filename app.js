@@ -1103,7 +1103,7 @@ S.restaurantPool = dedupeRestaurantPool([...incomingRows,...previousRows]);
 S.restaurantSearchOrigin = {lat:Number(loc.lat),lon:Number(loc.lon)};
 S.restaurantSearchKey = searchKey;
 S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantMaybeRound = false;
-renderHours(); S.winnerItem = null;
+S.winnerItem = null;
 const poolFastFoodCount=S.restaurantPool.filter(r=>restaurantIsFastFood(r)).length;
 if(S.restaurantPool.length) {
   updateRestaurantStatus();
@@ -1139,7 +1139,6 @@ row._maybe = false;
 S.winnerItem = null;
 show('restaurant');
 restaurantQuick();
-renderHours();
 $('restaurantSearchBox')?.classList.add('hidden');
 $('restaurantQuery').value = '';
 maybeShowSwipeHint();
@@ -1237,14 +1236,6 @@ function bindCardButton(id,handler){
  };
 }
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
-function setRestaurantHoursMode(mode){
- S.hoursMode='openUnknown';
- S.restaurantIndex=0;
- renderHours();
- drawRestaurants();
- save();
-}
-function renderHours(){}
 let restaurantQueryTimer = 0;
 function scheduleRestaurantProviderSearch(){
  clearTimeout(restaurantQueryTimer);
@@ -1274,7 +1265,6 @@ $('restaurantQuery').oninput=()=>{
      if(String(S.restaurantQuery||'').trim())searchRestaurants();
    }
  };
- renderHours();
 }
 
 function triggerCelebration() {
@@ -1837,7 +1827,7 @@ window.addEventListener('offline', updateOffline);
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,setRestaurantHoursMode,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
@@ -1847,7 +1837,7 @@ migrateCustomPhotos();
 if (S.saved && S.screen === 'food' && S.pool.length) {
 show('food'); foodQuick(); drawFood();
 } else if (S.saved && S.screen === 'restaurant' && S.restaurantPool.length) {
-show('restaurant'); restaurantQuick(); renderHours(); drawRestaurants();
+show('restaurant'); restaurantQuick(); drawRestaurants();
 } else {
 home();
 }
