@@ -134,13 +134,13 @@ assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator 
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
-assert(app.includes("openBtn.classList.toggle('active-tool',openMode)") && app.includes("allBtn.classList.toggle('active-tool',!openMode)"),'Hours filters must expose explicit Open + Unknown and All controls');
+assert(app.includes("const btn=$('hoursToggle')") && app.includes("btn.textContent=allMode?'All':'Open/Unknown'"),'Hours filter must use one Open/Unknown-All toggle button');
 assert(app.includes("function setRestaurantHoursMode(mode)"),'Hours toggle must use an explicit restaurant hours-mode setter');
-assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open + Unknown');
+assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open/Unknown');
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
 assert(app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));'),'Restaurant pool must apply the hours filter');
-assert(app.includes('hoursOpenBtn.onclick') && app.includes('hoursAllBtn.onclick'),'Restaurant hours filters must have explicit click handlers');
+assert(app.includes('hoursToggle.onclick') && app.includes("S.hoursMode==='all'?'openUnknown':'all'"),'Restaurant hours toggle must have an explicit click handler');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
