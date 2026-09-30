@@ -28,6 +28,12 @@ assert(app.includes('fetchRestaurantEndpoint') && app.includes('attempt<2'),'Res
 assert(app.includes('function invalidateAddressSuggestions()') && app.includes('suggestController?.abort()'),'Address search must abort stale in-flight suggestion requests before starting a new location search.');
 assert(app.includes('function addressLooksComplete(value)') && app.includes('chooseAddressSuggestion(0)'),'Enter Address must distinguish complete-looking input from partial input with visible suggestions.');
 assert(app.includes("aria-activedescendant") && app.includes("addressSuggestion-"),'Address suggestions must expose keyboard active-descendant semantics.');
+assert(app.includes('function setLocationBusy(busy)') && app.includes("btn.setAttribute('aria-label',busy?'Getting your location…':'Use My Location')"),'Use My Location must expose a busy/disabled state while location acquisition is active.');
+assert(app.includes('let locationRequestActive = false') && app.includes('if(locationRequestActive)return;'),'Use My Location must prevent overlapping location acquisition requests.');
+assert(app.includes('function reverseLocationLabel') && app.includes('setTimeout(()=>ctl.abort(),5000)'),'Reverse geocoding must have a bounded client timeout with raw-coordinate fallback.');
+assert(app.includes("enableHighAccuracy:true,timeout:10000,maximumAge:0") && app.includes('moved>=0.1'),'Use My Location must request a fresh high-accuracy fix and only re-search when the new fix materially differs.');
+assert(app.includes("if(S.locationSource==='device' && S.location)S.locationSource='last'") && app.includes("last:'Last used location'"),'Persisted device locations must be labeled as last-used rather than freshly confirmed.');
+
 assert(app.includes('const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},14500)'),'Restaurant search client timeout should remain bounded');
 assert(api.includes('const SEARCH_BUDGET_MS=12000') && api.includes('const WIDE_DISCOVERY_RESERVE_MS=4500'),'Restaurant search reliability budget contract must be present');
 assert(api.includes('const MAX_SEARCH_PER_MINUTE=60') && api.includes("mode!=='search'&&rate(req,mode)"),'Restaurant search rate limiter should tolerate normal interactive use and spare cached hits');
