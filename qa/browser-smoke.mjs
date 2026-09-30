@@ -61,6 +61,9 @@ await page.route('**/*', async route => {
       {id:'closed-1',name:'Closed Grill',category:'American',fastFood:false,cuisine:'american',distance:6.2,address:'700 Main St, Clarksville, TN',website:'https://example.com',opening_hours:'closed',photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
     ]})});
   }
+  if (u.includes('/api/image?url=')) {
+    return route.fulfill({status:200,contentType:'image/jpeg',body:png1x1});
+  }
   if (u.startsWith('https://images.unsplash.com/') || u.startsWith('https://images.pexels.com/')) {
     return route.fulfill({status:200,contentType:'image/png',body:png1x1});
   }
@@ -84,6 +87,7 @@ assert.equal(await page.locator('#home .home-card-photo').count(),2,'Home should
 assert.ok(homeGeom.scrollHeight <= homeGeom.innerHeight + 2,'Home should fit one iPhone viewport without vertical scrolling');
 assert.equal(await page.locator('#home .home-card-photo').count(),2,'Home should have one photo-backed Food choice and one photo-backed Restaurant choice');
 assert.equal((await page.locator('#home .home-card-photo').evaluateAll(els=>els.map(e=>e.getAttribute('style')||''))).every(s=>s.includes('--home-photo')),true,'Both Home choices should have dedicated food/restaurant photos');
+assert.equal((await page.locator('#home .home-card-photo').evaluateAll(els=>els.map(e=>e.getAttribute('style')||''))).every(s=>s.includes('/api/image?url=')),true,'Home image URLs should route through the Vercel image proxy');
 assert.equal(await page.locator('#home #continue').count(),0,'Continue saved round should not appear on the home screen');
 assert.equal(await page.locator('#home .made-by').count(),0,'Home attribution should not appear on the front page');
 const homeHeading=await page.locator('#home h1').boundingBox();
