@@ -218,6 +218,7 @@ await page.locator('#detailsModal [data-close]').click(); await settle();
 
 await click('#foodPassAround'); await settle();
 assert.equal(await visible('passSurface'),true,'Pass Around setup should use the full page, not a popup');
+assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('pass-active')),true,'Pass Around should lock background page scrolling on iPhone');
 assert.equal(await page.locator('#passModal').count(),0,'Pass Around should not open a modal');
 assert.equal(await page.locator('[data-pass-mode="quick"]').getAttribute('aria-pressed'),'true','Quick Pass should be the default');
 assert.equal(await page.locator('[data-pass-mode="full"]').getAttribute('aria-pressed'),'false','Full Pass should start as the optional mode');
