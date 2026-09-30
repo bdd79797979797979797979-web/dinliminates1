@@ -6953,7 +6953,7 @@ function openDetails(item){
     const phoneRaw=String(item.phone||'').trim();
     const phoneTarget=restaurantPhoneTarget(item);
     const phoneMarkup=phoneRaw
-      ? `<a class="restaurant-link" href="tel:${escapeHtml(phoneRaw.replace(/[^+\\d]/g,''))}">${escapeHtml(phoneRaw)}</a>`
+      ? `<a class="restaurant-link" href="tel:${escapeHtml(phoneRaw.replace(/[^+\d]/g,''))}">${escapeHtml(phoneRaw)}</a>`
       : `<a class="restaurant-link" href="${escapeHtml(phoneTarget)}" target="_blank" rel="noopener,noreferrer">Find phone on Google ↗</a>`;
     const menuItems=restaurantMenuItems(item);
     const menuBox=menuItems.length ? `<div class="detail-box restaurant-menu-box"><h4>Common menu items</h4><ul>${menuItems.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>` : '';
@@ -7152,12 +7152,12 @@ function restaurantWebsiteTarget(item){
 }
 function restaurantPhoneTarget(item){
   const raw=String(item?.phone||'').trim();
-  if(raw)return 'tel:'+raw.replace(/[^+\\d]/g,'');
+  if(raw)return 'tel:'+raw.replace(/[^+\d]/g,'');
   return safeExternalUrl(item?.phoneFallbackUrl) || restaurantGoogleSearchUrl(item,'phone number');
 }
 function restaurantPhoneMarkup(item){
   const raw=String(item?.phone||'').trim();
-  if(raw)return `<a class="restaurant-phone-link-v240" href="tel:${escapeHtml(raw.replace(/[^+\\d]/g,''))}">☎ ${escapeHtml(raw)}</a>`;
+  if(raw)return `<a class="restaurant-phone-link-v240" href="tel:${escapeHtml(raw.replace(/[^+\d]/g,''))}">☎ ${escapeHtml(raw)}</a>`;
   return `<a class="restaurant-phone-link-v240" href="${escapeHtml(restaurantPhoneTarget(item))}" target="_blank" rel="noopener,noreferrer">☎ Find phone</a>`;
 }
 function guessTags(name) {
@@ -8463,6 +8463,7 @@ function renderRestaurantStage(){
     const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';
     const menuItems=restaurantMenuItems(item);
     const menuBox=menuItems.length?'<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>'+menuItems.map(x=>escapeHtml(x)).join(' · ')+'</strong></div>':'';
+    const phoneBox=`<div class="restaurant-phone-v240">${restaurantPhoneMarkup(item)}</div>`;
     const cls=i===0?'restaurant-card restaurant-card-v240 active':i===1?'restaurant-card restaurant-card-v240 back-one':'restaurant-card restaurant-card-v240 back-two';
     const actions=i===0
       ? '<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-website-btn-v240" data-rest-action="website">'+(website?'Website':'Search')+'</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>'
