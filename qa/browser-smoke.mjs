@@ -367,20 +367,9 @@ assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/miles is n
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
-const hoursBefore=await qa(); assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should start in Open/Unknown mode');
-const restaurantCountStyle=await page.locator('#restaurantCount').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding}});
-assert.equal(restaurantCountStyle.background,'rgba(0, 0, 0, 0)','Restaurant count should not render as a colored pill');
-assert.equal(restaurantCountStyle.border,'0px','Restaurant count should not render a capsule border');
-assert.equal(restaurantCountStyle.padding,'0px','Restaurant count should not render capsule padding');
-assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Closed restaurant should not be shown in Open/Unknown mode');
-await click('#hoursToggle'); await settle();
-assert.equal(await page.locator('#hoursToggle').innerText(),'All','Hours filter should switch to All');
-assert.ok((await qa()).restaurantPool.includes('closed-1'),'Closed restaurant should return in All mode');
-await click('#hoursToggle'); await settle();
-assert.equal(await page.locator('#hoursToggle').innerText(),'Open/Unknown','Hours filter should switch back to Open/Unknown');
-assert.equal((await qa()).restaurantPool.includes('closed-1'),false,'Closed restaurant should be hidden after toggling back to Open/Unknown');
-
-// // Restaurant card controls must all be real interactive elements.
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should no longer be shown');
+assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
+// Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
 assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet');
 await page.locator('#detailsModal [data-close]').click(); await settle();
