@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 155,
-  "sourceBranch": "cp450-search-freshness-qa-sync-2026-09-30",
-  "checkpoint": "CP450"
+  "build": 156,
+  "sourceBranch": "cp451-photo-priority-hours-details-2026-09-30",
+  "checkpoint": "CP451"
 }
