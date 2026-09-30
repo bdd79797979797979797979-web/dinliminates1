@@ -737,6 +737,8 @@ function restaurantChoiceIndex(rows,start,keepState=false){
  return -1;
 }
 function restaurantHourState(row){
+ const normalized=String(row?.hoursState||'').toLowerCase();
+ if(normalized==='open'||normalized==='closed'||normalized==='unknown')return normalized;
  const state=hourStatus(row);
  return state==='open'||state==='closed'||state==='unknown' ? state : 'unknown';
 }
@@ -769,6 +771,10 @@ function updateRestaurantStatus(){
  }else{
   el.textContent=(states.open+states.unknown)+' open/unknown · '+states.closed+' closed hidden · '+total+' total · '+radius+' mi';
  }
+ el.dataset.hoursOpen=String(states.open);
+ el.dataset.hoursUnknown=String(states.unknown);
+ el.dataset.hoursClosed=String(states.closed);
+ el.dataset.hoursVisible=String(restaurantPoolFiltered().length);
 }
 
 function restaurantQuick() {
@@ -970,7 +976,7 @@ S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;
 const previousOrigin=S.restaurantSearchOrigin;
 const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
 const previousRows=sameSearchOrigin?(S.restaurantPool||[]).map(row=>({...row,distance:milesBetween(row.lat,row.lon,loc.lat,loc.lon)})).filter(row=>Number.isFinite(Number(row.distance))&&Number(row.distance)<=radius):[];
-const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
+const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), hoursState:restaurantHourState(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
  const dist=milesBetween(row.lat,row.lon,loc.lat,loc.lon);
  return !Number.isFinite(dist) || dist<=radius+0.05;
 });
@@ -1010,7 +1016,6 @@ for (const row of S.restaurantPool || []) {
 row._cut = false;
 row._maybe = false;
 }
-S.hoursMode = 'openUnknown';
 S.winnerItem = null;
 show('restaurant');
 restaurantQuick();
