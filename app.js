@@ -1131,7 +1131,7 @@ const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast
 const quickCats=cats;
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Food name" required value="'+esc(item?.name||'')+'">'+
-'<select id="editFoodCat">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
+'<select id="editFoodCat" aria-label="Cuisine type">'+cats.map(x=>'<option '+(x===(item?.category||'American')?'selected':'')+'>'+x+'</option>').join('')+'</select>'+
 '<fieldset class="quick-cut-editor"><legend>Quick Cuts</legend><div class="quick-cut-editor-grid">'+quickCats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+((item?.quickCuts||[]).includes(x)||(!item&&x===(item?.category||'American'))?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
@@ -1143,6 +1143,11 @@ try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
 if(data) $('editFoodPhoto').value=data;
 } catch(e) { appToast(e.message); }
+};
+$('editFoodCat').onchange=()=>{
+ const category=$('editFoodCat').value;
+ const quick=document.querySelector('input[name="editQuickCut"][value="'+category+'"]');
+ if(quick) quick.checked=true;
 };
 $('foodEditorForm').onsubmit=async e=>{
 e.preventDefault();
