@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 166,
-  "sourceBranch": "cp461-address-normalization-card-actions-2026-09-30",
+  "build": 167,
+  "sourceBranch": "cp462-frontend-address-finalize-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP461"
+  "checkpoint": "CP462"
 }
