@@ -790,22 +790,26 @@ function updateRestaurantStatus(){
 }
 
 function restaurantQuick() {
-$('restQuick').innerHTML = REST_QUICK.map(label => {
-const cut = S.restaurantCuts.has(label);
-const src=imageProxyUrl(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American);
-return '<button class="chip photo-chip '+(cut?'cut':'')+'" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" data-fallback="'+esc(imageProxyUrl(REST_QUICK_IMAGES.American))+'" alt="'+esc(label)+' restaurant photo"><span>'+esc(label)+'</span></button>';
-}).join('');
-bindImageFallbackAttrs('[data-rest-quick] img');
-document.querySelectorAll('[data-rest-quick]').forEach(btn => {
-btn.onclick = () => {
-const label = btn.dataset.restQuick;
-S.restaurantCuts.has(label) ? S.restaurantCuts.delete(label) : S.restaurantCuts.add(label);
-S.restaurantIndex = 0;
-restaurantQuick();
-drawRestaurants();
-save();
-};
-});
+ const labels=REST_QUICK;
+ const existing=[...document.querySelectorAll('#restQuick [data-rest-quick]')].map(btn=>btn.dataset.restQuick);
+ if(existing.length!==labels.length||existing.some((x,i)=>x!==labels[i])){
+  $('restQuick').innerHTML = labels.map(label => {
+   const src=imageProxyUrl(REST_QUICK_IMAGES[label] || REST_QUICK_IMAGES.American);
+   return '<button class="chip photo-chip" data-rest-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" alt="'+esc(label)+' restaurant photo" draggable="false"><span>'+esc(label)+'</span></button>';
+  }).join('');
+  bindImageFallbackAttrs('[data-rest-quick] img');
+ }
+ document.querySelectorAll('#restQuick [data-rest-quick]').forEach(btn => {
+  const label=btn.dataset.restQuick;
+  btn.classList.toggle('cut',S.restaurantCuts.has(label));
+  btn.onclick = () => {
+   S.restaurantCuts.has(label) ? S.restaurantCuts.delete(label) : S.restaurantCuts.add(label);
+   S.restaurantIndex=0;
+   restaurantQuick();
+   drawRestaurants();
+   save();
+  };
+ });
 }
 function renderLocationSource(){
 const el=$('locationSourceLabel'); if(!el)return;
