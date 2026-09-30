@@ -34,6 +34,7 @@ const allResults=[
  {id:'waffle',name:'Waffle House',category:'American',fastFood:false,cuisine:'breakfast',distance:2.8,address:'200 Riverside Dr, Clarksville, TN',website:'https://www.wafflehouse.com',phone:'(931) 555-0102',opening_hours:'24/7',openNow:true,menuItems:['Waffles'],photo:'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'},
  {id:'taco',name:'Taco Bell',category:'Fast Food',fastFood:true,cuisine:'mexican',distance:4.2,address:'300 Madison St, Clarksville, TN',website:'https://www.tacobell.com',phone:'(931) 555-0103',opening_hours:'24/7',openNow:true,menuItems:['Tacos'],photo:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'},
  {id:'pizza',name:'Pizza House',category:'Italian',fastFood:false,cuisine:'pizza',distance:9,address:'400 College St, Clarksville, TN',website:'https://example.com',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Pizza'],photo:'https://images.unsplash.com/photo-1579684947550-22e945225d9a?auto=format&fit=crop&w=1200&q=85'},
+ {id:'thirsty-goat',name:'Thirsty Goat',category:'Fast Food',fastFood:true,cuisine:'',distance:7,address:'450 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:[],photo:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85'},
  {id:'american',name:'American Grill',category:'American',fastFood:false,cuisine:'american',distance:24,address:'500 Main St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Chicken','Burger'],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
  {id:'italian',name:'Pasta House',category:'Italian',fastFood:false,cuisine:'italian',distance:49,address:'600 College St, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Pasta'],photo:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=85'},
  {id:'asian',name:'Asian Garden',category:'Asian',fastFood:false,cuisine:'asian',distance:50,address:'700 Madison St, Clarksville, TN',website:'',phone:'',opening_hours:'',menuItems:['Noodles'],photo:'https://images.unsplash.com/photo-1515669097368-22e681b4d36c?auto=format&fit=crop&w=1200&q=85'},
@@ -91,7 +92,7 @@ await page.route('**/*',async route=>{
 
 const settle=()=>page.waitForTimeout(180);
 const snap=()=>page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
-async function waitForRestaurant(){await page.waitForFunction(()=>/restaurants found|choices/.test(document.querySelector('#status')?.textContent||''));await settle();}
+async function waitForRestaurant(){await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';return !!t&&!/Searching restaurants/.test(t)});await settle();}
 async function openRestaurantScreen(){await page.locator('#restStart').click();await settle();}
 
 await page.goto('http://127.0.0.1:4174/?qa=1');
@@ -145,6 +146,13 @@ s=await snap();
 assert.equal(s.locationSource,'address');
 assert.equal(await page.locator('#address').inputValue(),'801 Iron Workers Rd, Clarksville, TN 37043');
 report["2_search_address"].directEnter=true;
+
+// 2b. Cuisine/category regression: Thirsty Goat may be tagged fast food by a provider but is a pizza venue.
+const thirstyGoat=allResults.find(x=>x.id==='thirsty-goat');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),thirstyGoat),'Pizza');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Pizza'),thirstyGoat),true);
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),true);
+report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Quick Cut matches provider fast-food tag without using it as the display cuisine.';
 
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
@@ -200,11 +208,18 @@ s=await snap();
 assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'All');
 assert.ok(s.restaurantPool.includes('closed'));
 const allCount=s.restaurantPool.length;
+const allVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
+assert.equal(allVisibleCount,allCount,'All mode count must include both open/unknown and closed restaurants.');
 await page.locator('#hoursToggle').click(); await settle();
 s=await snap();
 assert.equal((await page.locator('#hoursToggle').textContent()).trim(),'Open/Unknown');
 assert.equal(s.restaurantPool.includes('closed'),false);
+const openVisibleCount=Number((await page.locator('#restaurantCount').textContent()).trim().split(/\s+/)[0]);
+assert.equal(openVisibleCount,allCount-1,'Open/Unknown mode must exclude only the explicit closed fixture.');
+assert.ok(Number((await page.locator('#status').textContent()).match(/open\/unknown/i)?.length||0)>0,'Status must expose the Open/Unknown filtered count.');
 report["5_open_all"].allCount=allCount;
+report["5_open_all"].allVisibleCount=allVisibleCount;
+report["5_open_all"].openVisibleCount=openVisibleCount;
 report["5_open_all"].openUnknownCount=s.restaurantPool.length;
 report["5_open_all"].closedExcluded=true;
 const unknown=allResults.find(x=>x.id==='asian');
