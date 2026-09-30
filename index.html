@@ -6947,20 +6947,13 @@ function openDetails(item){
   $('detailFallback').textContent = displayIcon(item);
   const detailPhoto=item?.type==='restaurant'?restaurantPhotoUrl(item):photoFor(item); const detailImg=$('detailImage'); detailImg.removeAttribute('src'); detailImg.style.display='block'; detailImg.style.objectPosition=photoPosition(item); $('detailHero').classList.toggle('no-photo',!detailPhoto); if(detailPhoto){detailImg.src=detailPhoto;} else {detailImg.src=item?.type==='restaurant'?RESTAURANT_FALLBACK_PHOTO:FOOD_FALLBACK_PHOTO;}
   if(item.type === 'restaurant'){
-    const websiteTarget=restaurantWebsiteTarget(item);
-    const websiteLabel=safeExternalUrl(item.website)?'Visit Restaurant Website ↗':'Search restaurant website ↗';
-    const website = `<a class="restaurant-link" href="${escapeHtml(websiteTarget)}" target="_blank" rel="noopener,noreferrer">${websiteLabel}</a>`;
-    const phoneRaw=String(item.phone||'').trim();
-    const phoneTarget=restaurantPhoneTarget(item);
-    const phoneMarkup=phoneRaw
-      ? `<a class="restaurant-link" href="tel:${escapeHtml(phoneRaw.replace(/[^+\d]/g,''))}">${escapeHtml(phoneRaw)}</a>`
-      : `<a class="restaurant-link" href="${escapeHtml(phoneTarget)}" target="_blank" rel="noopener,noreferrer">Find phone on Google ↗</a>`;
+    const website = safeExternalUrl(item.website) ? `<a class="restaurant-link" href="${escapeHtml(safeExternalUrl(item.website))}" target="_blank" rel="noopener">Visit Restaurant Website ↗</a>` : `<a class="restaurant-link" href="https://www.google.com/search?q=${encodeURIComponent(item.name)}" target="_blank" rel="noopener">Search restaurant ↗</a>`;
     const menuItems=restaurantMenuItems(item);
     const menuBox=menuItems.length ? `<div class="detail-box restaurant-menu-box"><h4>Common menu items</h4><ul>${menuItems.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div>` : '';
     const cuisine=restaurantCuisineLabel(item);
     const cuisineBox=cuisine ? `<div class="detail-box"><h4>Cuisine</h4><p>${escapeHtml(cuisine)}</p></div>` : '';
     const menuLink = safeExternalUrl(item.menuUrl||item.menu_url||'') ? `<div class="detail-box"><h4>Menu</h4><p><a class="restaurant-link" href="${escapeHtml(safeExternalUrl(item.menuUrl||item.menu_url))}" target="_blank" rel="noopener">View menu ↗</a></p></div>` : '';
-    $('detailGrid').innerHTML = `<div class="detail-box"><h4>Address</h4><p>${escapeHtml(item.address||'Address unavailable')}</p></div><div class="detail-box"><h4>Contact</h4><p>${phoneMarkup}</p></div><div class="detail-box"><h4>Open/Unknown Hours</h4><p>${escapeHtml(restaurantHoursDisplay(item)||'Hours not provided')}</p></div><div class="detail-box"><h4>Website</h4><p>${website}</p></div>${cuisineBox}${menuLink}${menuBox}`;
+    $('detailGrid').innerHTML = `<div class="detail-box"><h4>Address</h4><p>${escapeHtml(item.address||'Address unavailable')}</p></div><div class="detail-box"><h4>Contact</h4><p>${escapeHtml(item.phone||'Phone unavailable')}</p></div><div class="detail-box"><h4>Open/Unknown Hours</h4><p>${escapeHtml(restaurantHoursDisplay(item)||'Hours not provided')}</p></div><div class="detail-box"><h4>Website</h4><p>${website}</p></div>${cuisineBox}${menuLink}${menuBox}`;
     $('detailFact').innerHTML = `<strong>About this place</strong>${escapeHtml(cuisine || item.category || 'Restaurant')}.`;
   } else {
     const key=String(item.name||'').trim().toLowerCase();
@@ -7134,31 +7127,7 @@ function escapeHtml(value) {
 function safeExternalUrl(value){
   const raw=String(value||'').trim();
   if(!raw)return '';
-  try{
-    const u=new URL(/^https?:\/\//i.test(raw)?raw:`https://${raw}`);
-    if(!['http:','https:'].includes(u.protocol))return '';
-    const host=String(u.hostname||'').toLowerCase();
-    const appHost=String(window.location?.hostname||'').toLowerCase();
-    if(host===appHost || /(?:^|\.)(?:dinliminate|dinlimate|dinliminates1)(?:\.|-)(?:vercel\.app|netlify\.app)$/i.test(host))return '';
-    return u.href;
-  }catch{return '';}
-}
-function restaurantGoogleSearchUrl(item,intent=''){
-  const q=[item?.name,item?.address,intent].map(x=>String(x||'').trim()).filter(Boolean).join(' ');
-  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
-}
-function restaurantWebsiteTarget(item){
-  return safeExternalUrl(item?.website) || safeExternalUrl(item?.websiteFallbackUrl) || restaurantGoogleSearchUrl(item,'official website');
-}
-function restaurantPhoneTarget(item){
-  const raw=String(item?.phone||'').trim();
-  if(raw)return 'tel:'+raw.replace(/[^+\d]/g,'');
-  return safeExternalUrl(item?.phoneFallbackUrl) || restaurantGoogleSearchUrl(item,'phone number');
-}
-function restaurantPhoneMarkup(item){
-  const raw=String(item?.phone||'').trim();
-  if(raw)return `<a class="restaurant-phone-link-v240" href="tel:${escapeHtml(raw.replace(/[^+\d]/g,''))}">☎ ${escapeHtml(raw)}</a>`;
-  return `<a class="restaurant-phone-link-v240" href="${escapeHtml(restaurantPhoneTarget(item))}" target="_blank" rel="noopener,noreferrer">☎ Find phone</a>`;
+  try{const u=new URL(/^https?:\/\//i.test(raw)?raw:`https://${raw}`);return ['http:','https:'].includes(u.protocol)?u.href:'';}catch{return '';}
 }
 function guessTags(name) {
   const n = name.toLowerCase();
@@ -8463,12 +8432,11 @@ function renderRestaurantStage(){
     const openLabel=open===true?'Open now':open===false?'Closed':'Open/Unknown Hours';
     const menuItems=restaurantMenuItems(item);
     const menuBox=menuItems.length?'<div class="restaurant-menu-card" aria-label="Common menu items"><span>Common menu items</span><strong>'+menuItems.map(x=>escapeHtml(x)).join(' · ')+'</strong></div>':'';
-    const phoneBox=`<div class="restaurant-phone-v240">${restaurantPhoneMarkup(item)}</div>`;
     const cls=i===0?'restaurant-card restaurant-card-v240 active':i===1?'restaurant-card restaurant-card-v240 back-one':'restaurant-card restaurant-card-v240 back-two';
     const actions=i===0
       ? '<div class="restaurant-card-choice-row"><button type="button" class="restaurant-card-choose-btn" data-rest-action="choose" aria-label="Choose this restaurant">Choose</button></div><div class="restaurant-v240-actions"><button type="button" class="restaurant-detail-btn-v240" data-rest-action="details">Details</button><button type="button" class="restaurant-website-btn-v240" data-rest-action="website">'+(website?'Website':'Search')+'</button></div><div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>'
       : '<div class="restaurant-v240-hint">Swipe left to cut · right to maybe</div>';
-    return '<article class="'+cls+'" data-restaurant-id="'+escapeHtml(String(item.id||item.name))+'"><div class="restaurant-photo-v240"><img src="'+escapeHtml(photoSrc||'about:blank')+'" alt="'+escapeHtml(item.name)+'" loading="'+(i===0?'eager':'lazy')+'" decoding="async" onerror="this.onerror=null;this.style.display=\'none\';this.parentElement.classList.add(\'no-image\')"><div class="restaurant-photo-placeholder">🍽️<span>'+escapeHtml(item.category||'Restaurant')+'</span></div><div class="restaurant-photo-gradient"></div><div class="swipe-badge cut">CUT</div><div class="swipe-badge hold">MAYBE</div><div class="restaurant-top-pills"><span class="restaurant-status-pill '+(open===true?'open':'')+'">'+openLabel+'</span><span class="restaurant-distance-pill">'+escapeHtml(distance)+'</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">'+escapeHtml(item.name)+'</div><div class="restaurant-meta-v240">'+escapeHtml(item.category&&/^restaurant$/i.test(String(item.category).trim())?(restaurantCuisineLabel(item)||'Restaurant'):(restaurantCuisineLabel(item)||item.category||'Restaurant'))+'</div></div></div><div class="restaurant-address-v240">'+escapeHtml(item.address||'Address unavailable')+'</div>'+phoneBox+menuBox+actions+'</div></article>';
+    return '<article class="'+cls+'" data-restaurant-id="'+escapeHtml(String(item.id||item.name))+'"><div class="restaurant-photo-v240"><img src="'+escapeHtml(photoSrc||'about:blank')+'" alt="'+escapeHtml(item.name)+'" loading="'+(i===0?'eager':'lazy')+'" decoding="async" onerror="this.onerror=null;this.style.display=\'none\';this.parentElement.classList.add(\'no-image\')"><div class="restaurant-photo-placeholder">🍽️<span>'+escapeHtml(item.category||'Restaurant')+'</span></div><div class="restaurant-photo-gradient"></div><div class="swipe-badge cut">CUT</div><div class="swipe-badge hold">MAYBE</div><div class="restaurant-top-pills"><span class="restaurant-status-pill '+(open===true?'open':'')+'">'+openLabel+'</span><span class="restaurant-distance-pill">'+escapeHtml(distance)+'</span></div></div><div class="restaurant-body-v240"><div class="restaurant-v240-title-row"><div><div class="restaurant-name-v240">'+escapeHtml(item.name)+'</div><div class="restaurant-meta-v240">'+escapeHtml(item.category&&/^restaurant$/i.test(String(item.category).trim())?(restaurantCuisineLabel(item)||'Restaurant'):(restaurantCuisineLabel(item)||item.category||'Restaurant'))+'</div></div></div><div class="restaurant-address-v240">'+escapeHtml(item.address||'Address unavailable')+'</div>'+menuBox+actions+'</div></article>';
   }).join('');
 
   const card=$('restaurantStage').querySelector('.active');
@@ -8479,8 +8447,9 @@ function renderRestaurantStage(){
     if(a==='choose'){chooseRestaurantCurrent();return;}
     if(a==='details')openDetails(list[0]);
     if(a==='website'){
-      const target=restaurantWebsiteTarget(list[0]);
-      window.open(target,'_blank','noopener,noreferrer');
+      const website=safeExternalUrl(list[0]?.website);
+      if(website)window.open(website,'_blank','noopener,noreferrer');
+      else window.open(`https://www.google.com/search?q=${encodeURIComponent(list[0]?.name||'restaurant')}`,'_blank','noopener,noreferrer');
     }
   }));
   syncRestaurantActionLabels();
@@ -10486,10 +10455,4 @@ body.restaurant-mode .restaurant-stage .restaurant-v240-hint{
 }
 </style>
 
-<style id="dinliminate-p910-contact">
-.restaurant-phone-v240{margin-top:3px;min-height:14px;line-height:1.15;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.restaurant-phone-link-v240{font-size:.48rem;color:#6f776f;text-decoration:none;font-weight:750}
-.restaurant-phone-link-v240:hover,.restaurant-phone-link-v240:focus-visible{text-decoration:underline}
-@media(max-width:390px){.restaurant-phone-v240{margin-top:2px;min-height:12px}.restaurant-phone-link-v240{font-size:.45rem}}
-</style>
 <style id="dinliminate-p900-final-ui">#restaurantSearchBtn,#restaurantOpenUnknownBtn,#restaurantPassAroundBtn{min-height:36px;touch-action:manipulation}body.restaurant-mode .restaurant-website-btn-v240,body.restaurant-mode .restaurant-detail-btn-v240{touch-action:manipulation}.home-phone-help{touch-action:manipulation}</style>
