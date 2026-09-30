@@ -559,9 +559,9 @@ assert.equal(bg,'rgb(9, 9, 9)','winner should use the black Hungry/winner window
 assert.equal(await page.locator('#winImg').getAttribute('class'),'hungry-image','Hungry winner should use the dedicated black hungry artwork');
 assert.ok((await page.locator('#winImg').getAttribute('src')||'').startsWith('data:image/svg'),'Hungry winner should use the built-in frown artwork');
 assert.equal(await page.locator('#hungryNote').innerText(),'Fish Sticks?','Hungry winner should show the Fish Sticks? prompt');
-await page.locator('#details').click(); await settle();
-assert.equal(await page.locator('#detailsModal #detailHide').count(),0,'Hungry Details should not include Hide');
-await page.locator('#detailsModal [data-close]').click(); await settle();
+assert.equal(await page.locator('#details').count(),1,'Winner Details control should remain in the DOM for normal winners.');
+assert.equal(await page.locator('#details').isHidden(),true,'Hungry state should not show a Details action.');
+
 await click('#restart'); await settle();
 await click('#foodStart'); await settle();
 while((await qa()).foodPool.length>1) { await click('#foodCut'); await settle(); }
