@@ -48,6 +48,9 @@
     },
     "api/image.js": {
       "maxDuration": 10
+    },
+    "api/restaurant-photo.js": {
+      "maxDuration": 10
     }
   }
 }
