@@ -755,15 +755,20 @@ function restaurantPoolFiltered(){
 function restaurantHoursFilter(row){
  return S.hoursMode==='all' || restaurantHourState(row)!=='closed';
 }
-function updateRestaurantStatus(){
+function updateRestaurantStatus(visibleRows=null){
  const el=$('status'); if(!el)return;
  const radius=Math.min(50,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
+ const visible=Array.isArray(visibleRows)?visibleRows:restaurantPoolFiltered();
  const states={open:0,unknown:0,closed:0};
  for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
  const total=base.length,degraded=S.restaurantSearchDegraded;
  if(!total){
   el.textContent=degraded?'Restaurant sources are unavailable. Try again.':'No restaurants match the current filters.';
+  el.dataset.hoursOpen=String(states.open);
+  el.dataset.hoursUnknown=String(states.unknown);
+  el.dataset.hoursClosed=String(states.closed);
+  el.dataset.hoursVisible=String(visible.length);
   return;
  }
  if(S.hoursMode==='all'){
@@ -774,7 +779,7 @@ function updateRestaurantStatus(){
  el.dataset.hoursOpen=String(states.open);
  el.dataset.hoursUnknown=String(states.unknown);
  el.dataset.hoursClosed=String(states.closed);
- el.dataset.hoursVisible=String(restaurantPoolFiltered().length);
+ el.dataset.hoursVisible=String(visible.length);
 }
 
 function restaurantQuick() {
@@ -1026,7 +1031,7 @@ maybeShowSwipeHint();
 }
 function drawRestaurants() {
 const rows = restaurantPoolFiltered();
-updateRestaurantStatus();
+updateRestaurantStatus(rows);
 const countEl = $('restaurantCount');
 if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
 if (!rows.length) {
