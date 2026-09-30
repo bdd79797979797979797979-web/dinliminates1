@@ -558,3 +558,15 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Categories: Pizza, Meatball Sub, and Sausage & Peppers → Italian; Biscuits & Gravy → Breakfast; Pork Chops and Pork Tenderloin → Southern; White Fish → Healthy.
 - UI: Details sheet starts directly below the decision header; Food Delete controls removed; Settings Food Choices section removed; Hide/Restore is the Food management path.
 - Do not delete prior recovery branches. Use the pre-QA checkpoint if QA-only changes destabilize the release candidate.
+
+
+## CP258 — expanded Food catalog
+- Working branch: `cp258-food-catalog-expansion-2026-09-30`
+- Pre-edit recovery: `recovery-cp258-before-new-foods-2026-09-30`
+- Core recovery: `checkpoint-cp258-catalog-core-2026-09-30`
+- QA recovery: `checkpoint-cp258-qa-2026-09-30`
+- Catalog: 90 foods.
+- Food Quick Cuts: Greek removed; Snack includes sweets; Gyro is Healthy only.
+- Fajitas replaces Mexican Stir Fry.
+- Build: 1.0 / 127.
+- Do not delete the CP258 recovery branches.
