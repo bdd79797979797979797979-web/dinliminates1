@@ -70,6 +70,7 @@ pass:null,
 passDraftCount:2,
 passDraftNames:[],
 passDraftMode:'quick',
+passStartVoter:0,
 schemaVersion:4,
 restaurantTimezone:''
 };
@@ -212,7 +213,7 @@ restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, pass:S.pass,
-passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, passDraftMode:S.passDraftMode==='full'?'full':'quick', schemaVersion:STORAGE_VERSION,
+passDraftCount:S.passDraftCount, passDraftNames:S.passDraftNames, passDraftMode:S.passDraftMode==='full'?'full':'quick', passStartVoter:Number.isInteger(S.passStartVoter)?S.passStartVoter:0, schemaVersion:STORAGE_VERSION,
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
@@ -259,6 +260,7 @@ S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
 S.passDraftNames = Array.isArray(d.passDraftNames) ? d.passDraftNames : [];
 S.passDraftMode = d.passDraftMode === 'full' ? 'full' : 'quick';
+S.passStartVoter = Number.isInteger(d.passStartVoter) ? d.passStartVoter : 0;
 S.winnerType = d.winnerType || 'food';
 S.restaurantTimezone = String(d.restaurantTimezone||'');
 S.locationSource = String(d.locationSource||'none');
@@ -1377,7 +1379,7 @@ $('passBegin').onclick=()=>{
 S.passDraftNames=[...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim()||'Person '+(i+1));
 const pool=passCandidates();
 if(!pool.length){removePassSurface();appToast('There are no choices left to pass around.');return;}
-S.pass={type:S.screen==='restaurant'?'restaurant':'food',mode:S.passDraftMode,players:S.passDraftNames,choiceIndex:0,voterIndex:0,history:[],poolIds:pool.map(x=>x.id),votes:{}};
+S.pass={type:S.screen==='restaurant'?'restaurant':'food',mode:S.passDraftMode,players:S.passDraftNames,firstVoterIndex:S.passStartVoter%Math.max(1,S.passDraftNames.length),choiceIndex:0,voterIndex:S.passStartVoter%Math.max(1,S.passDraftNames.length),history:[],poolIds:pool.map(x=>x.id),votes:{}};
 save();drawPass();
 };
 }
@@ -1446,13 +1448,13 @@ delete p.votes[id];
 if(p.poolIds.length===0)return finishPass();
 if(p.poolIds.length===1)return finishPass();
 p.choiceIndex=Math.min(p.choiceIndex,Math.max(0,p.poolIds.length-1));
-p.voterIndex=0;
+p.voterIndex=p.firstVoterIndex||0;
 return drawPass();
 }
 if(outcome==='survive'){
 delete p.votes[id];
 p.choiceIndex++;
-p.voterIndex=0;
+p.voterIndex=p.firstVoterIndex||0;
 return drawPass();
 }
 p.voterIndex++;
@@ -1469,7 +1471,7 @@ function finishPass(){
 const p=S.pass;if(!p)return;
 const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
 S.pass=null;removePassSurface();
-if(rows.length===1){winner(rows[0]);return;}
+if(rows.length===1){S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);save();winner(rows[0]);return;}
 if(!rows.length){winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
 if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
 else {S.pool=rows;S.index=0;drawFood();}
@@ -1478,7 +1480,7 @@ save();
 function endPass(){
 const p=S.pass;if(!p)return;
 const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
-S.pass=null;removePassSurface();
+S.pass=null;removePassSurface(); S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
 if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
 else {S.pool=rows;S.index=0;drawFood();}
 save();
