@@ -16,3 +16,9 @@ Resulting commit:
 - `94da7720241bf493a74e641e445a904152fd0736`
 
 Recovery rule: return to `cp263-recovery-before-diagnosis-rework-2026-09-30` if a later change destabilizes the flow.
+
+## CP263 final implementation
+- Final application/QA commit: `d296d91fde40e5aed12d0168d192018a2f9da71f`
+- Recovery branch: `cp264-recovery-diagnosis-single-modal-2026-09-30`
+- Browser smoke expectations were updated so the Settings shell is replaced by Diagnosis and no stale Settings modal remains.
+- The current Clean QA run is queued; earlier failures in this branch stop at the pre-existing About build/version assertion, before browser tests execute.
