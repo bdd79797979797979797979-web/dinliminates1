@@ -25,14 +25,14 @@ assert.equal(p25.groups[0][0].radius,25);
 
 const p50=t.radiusDiscoveryPlan(36.53,-87.34,50);
 assert.equal(p50.mode,'wide');
-assert.equal(p50.reserveMs,7000);
+assert.equal(p50.reserveMs,4500);
 assert.equal(p50.coveragePoints,1);
 assert.equal(p50.groups.length,1);
 assert.equal(p50.groups[0][0].radius,50);
 
 const p100=t.radiusDiscoveryPlan(36.53,-87.34,100);
 assert.equal(p100.mode,'wide');
-assert.equal(p100.reserveMs,7000);
+assert.equal(p100.reserveMs,4500);
 assert.equal(p100.coveragePoints,9);
 assert.equal(p100.groups.length,3);
 assert.deepEqual(p100.groups.map(g=>g.length),[3,3,3]);
