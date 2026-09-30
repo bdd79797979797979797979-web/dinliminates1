@@ -100,3 +100,5 @@ Do not promote this candidate to Vercel production until the exact release commi
 - **Full Pass** preserves the original unanimous round-robin behavior as the optional mode.
 - Quick Pass/Full Pass selection, player count, names, full-card swipe, button controls, Back/Undo, and return to the narrowed Tinder deck are covered by regression tests.
 - Quick Pass is designed to preserve Dinliminate's narrowing-down feel while reducing unnecessary votes for choices whose outcome is already settled.
+
+- Final CP260 verified source commit: `1b6c2f19e23ccb6cbd2ab341cdf795a6bb504d31`.
