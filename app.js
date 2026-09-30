@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '170';
+let APP_BUILD = '171';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -637,7 +637,7 @@ function dedupeRestaurantPool(rows){
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameNameStreet=!!sameName&&sameStreet&&partialAddress&&((Number.isFinite(dist)&&dist<=0.15)||originDistanceClose);
+   const sameNameStreet=!!sameName&&sameStreet&&originDistanceClose&&(!conflictingAddr||sameStreet);
    return sameAddr&&(sameName||variant) || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);  });
   if(!match){out.push({...row});continue;}
   match.fastFood=match.fastFood||row.fastFood;
@@ -690,10 +690,25 @@ function restaurantCuisineEvidence(row){
 }
 function restaurantCategory(row){
  const tags=restaurantCuisineTags(row),raw=String(row?.category||'').trim();
- if(tags.includes('Pizza'))return 'Pizza';
- if(/^(American|Mexican|Asian|Italian|Southern|BBQ|Seafood|Breakfast|Burgers)$/i.test(raw))return raw;
- for(const label of ['Mexican','Asian','Italian','Southern','BBQ','Seafood','Breakfast','Burgers','American','Fast Food']) if(tags.includes(label)) return label;
- return raw||'Restaurant';
+ if(/^(American|Mexican|Asian|Italian|Southern|BBQ|Seafood|Breakfast|Burgers|Fast Food)$/i.test(raw))return raw;
+ const order=['Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','Fast Food','American'];
+ for(const label of order) if(tags.includes(label)) return label;
+ const providerRaw=RESTAURANT_TAXONOMY.normalizeRestaurantSearch([row?.cuisine,row?.category].join(' '));
+ const nameRaw=RESTAURANT_TAXONOMY.normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
+ const fallback=[
+  ['Pizza',/\b(pizza|pizzeria|calzone)\b/],
+  ['Mexican',/\b(mexican|taco|burrito|taqueria|enchilada|quesadilla|fajita)\b/],
+  ['Asian',/\b(asian|chinese|japanese|thai|korean|sushi|ramen|pho|hibachi|teriyaki)\b/],
+  ['Italian',/\b(italian|pasta|spaghetti|lasagna|ravioli|trattoria|ristorante)\b/],
+  ['BBQ',/\b(bbq|barbecue|smokehouse|brisket|ribs|pulled pork)\b/],
+  ['Seafood',/\b(seafood|fish house|catfish|shrimp|crab|lobster|oyster|salmon)\b/],
+  ['Breakfast',/\b(breakfast|brunch|pancake|waffle|omelet|eggs benedict|biscuits and gravy)\b/],
+  ['Burgers',/\b(burger|hamburger|cheeseburger|smashburger)\b/],
+  ['Southern',/\b(southern|soul food|country cooking|meat and three|comfort food)\b/],
+  ['American',/\b(diner|steakhouse|roadhouse|grill|bistro|pub|tavern|american)\b/]
+ ];
+ for(const [label,re] of fallback)if(re.test(nameRaw)||re.test(providerRaw))return label;
+ return raw&&/^(restaurant|eatery|food)$/i.test(raw)?'American':(raw||'American');
 }
 function restaurantQuickMatches(row,label){
  return restaurantCuisineTags(row).includes(label);
