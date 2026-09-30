@@ -1243,7 +1243,11 @@ async function appDiagnosisView(existingModal=null){
   const head=modal.querySelector('.modal-head');
   [...modal.children].forEach(child=>{if(child!==head)child.remove();});
   const title=head?.querySelector('h3');
-  if(title)title.textContent='App Diagnosis';
+  if(title){title.textContent='App Diagnosis';title.id='diagnosisModalTitle';}
+  modal.id='diagnosisModal';
+  modal.setAttribute('aria-labelledby','diagnosisModalTitle');
+  const bg=document.getElementById('settingsModalBg');
+  if(bg)bg.id='diagnosisModalBg';
   modal.insertAdjacentHTML('beforeend',body);
  }
  let running=false,run=0;
