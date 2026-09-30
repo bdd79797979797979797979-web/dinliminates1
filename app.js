@@ -694,6 +694,7 @@ const el=$('locationSourceLabel'); if(!el)return;
 const labels={device:'Using your location',address:'Using selected address',typed:'Address needs selection',none:'No location selected'};
 el.textContent=labels[S.locationSource]||labels.none;
 el.classList.toggle('is-ready',S.locationSource==='device'||S.locationSource==='address');
+renderFindButton();
 }
 function setLocation(lat, lon, label, source='address') {
 S.location = {lat, lon, label};
@@ -853,8 +854,9 @@ S.restaurantPool = uniq([...incomingRows,...previousRows]);
 S.restaurantSearchOrigin = {lat:Number(loc.lat),lon:Number(loc.lon)};
 S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantMaybeRound = false;
 renderHours(); S.winnerItem = null;
-if(d.total) {
-$('status').textContent = d.total+' restaurants found'+(d.fastFoodCount ? ' · '+d.fastFoodCount+' fast food' : '')+(d.providerErrors?.length ? ' · some sources unavailable' : '');
+const poolFastFoodCount=S.restaurantPool.filter(r=>r.fastFood).length;
+if(S.restaurantPool.length) {
+$('status').textContent = S.restaurantPool.length+' restaurants found'+(poolFastFoodCount ? ' · '+poolFastFoodCount+' fast food' : '')+(d.providerErrors?.length ? ' · some sources unavailable' : '');
 } else {
 $('status').textContent = d.providerErrors?.length ? 'Restaurant sources are unavailable. Try again.' : 'No restaurants found in this radius.';
 }
