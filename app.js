@@ -856,7 +856,9 @@ save();
 if(fresh&&Number.isFinite(fresh.lat)&&Number.isFinite(fresh.lon)){
 const moved=locationMovedMiles(firstLoc,fresh);
 if(Number.isFinite(moved)&&moved>=0.1){
-setLocation(fresh.lat,fresh.lon,label||'Current location','device');
+const freshLabel=await reverseLocationLabel(fresh.lat,fresh.lon,seq);
+if(seq!==locationRequestSeq)return;
+setLocation(fresh.lat,fresh.lon,freshLabel||'Current location','device');
 $('status').textContent='Location updated. Refreshing restaurants…';
 await searchRestaurants().catch(()=>{});
 }else{
