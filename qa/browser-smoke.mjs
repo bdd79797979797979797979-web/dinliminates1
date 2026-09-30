@@ -96,7 +96,7 @@ const contactLinkGuards=await page.evaluate(()=>{
 assert.equal(contactLinkGuards.appOrigin,'','Restaurant Website must never point back to the current Dinliminate app');
 assert.equal(contactLinkGuards.appBrand,'','Restaurant Website must reject a Dinliminate deployment host');
 assert.equal(contactLinkGuards.direct,'https://example.com/restaurant','A real HTTPS restaurant website should remain a direct external link');
-assert.match(contactLinkGuards.appFallback||'',/google\\.com\\/search\\?q=/,'A Dinliminate/app URL must fall back to a Google restaurant website search');
+assert.match(contactLinkGuards.appFallback||'',/google\.com\/search\?q=/,'A Dinliminate/app URL must fall back to a Google restaurant website search');
 assert.equal(contactLinkGuards.phone,'tel:+19315550101','Restaurant phone numbers should normalize to tappable tel links');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,clientWidth:document.documentElement.clientWidth,innerHeight:window.innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth,'Home should not horizontally overflow on iPhone');
