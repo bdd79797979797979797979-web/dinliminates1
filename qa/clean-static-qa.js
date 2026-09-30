@@ -18,6 +18,11 @@ assert(app.includes("$('radius').addEventListener('change'"),'Radius changes mus
 assert(app.includes('renderFindButton') && app.includes("S.location?'Refresh':'Find'"),'Find control must act as Refresh once a location is selected');
 assert(app.includes("if(row&&typeof row.openNow==='boolean')return row.openNow?'open':'closed';"),'Hours filtering must honor provider current open state when available');
 assert(api.includes("currentOpeningHours.openNow") && api.includes('openNow'),'Restaurant API must request and preserve current opening status');
+assert(api.includes("function googleSearchPlaces") && api.includes("textQuery:term+' restaurant'"),'Restaurant provider-backed search must use Google text search for non-empty queries');
+assert(api.includes('searchQueryMany') && api.includes('cuisine~') && api.includes('brand~'),'Restaurant provider-backed fallback must search OSM name, brand, operator, and cuisine');
+assert(api.includes("searchTerm=normalizeSearchQuery(q.get('q')||'')") && api.includes("+':'+searchTerm,hit=cache.get(key)"),'Restaurant API search cache must vary by search query');
+assert(app.includes("const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);") && app.includes("searchTerm ? '&q='+encodeURIComponent(searchTerm) : ''"),'Restaurant Search box must send its query to the restaurant API');
+assert(app.includes('scheduleRestaurantProviderSearch') && app.includes("setTimeout(()=>{searchRestaurants();},650)"),'Restaurant Search box must trigger provider-backed search after typing settles');
 assert(api.includes('normAddress') && api.includes('sameRestaurant'),'Restaurant dedupe must normalize provider address variants and compare venue identity');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
@@ -69,7 +74,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r17'"),'Restaurant API should report r17 after the search hardening pass');
+assert(api.includes("const API_VERSION='r18'"),'Restaurant API should report r18 after hybrid provider search');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
