@@ -127,7 +127,7 @@ Completed:
 - Food catalog increased from 67 to 90.
 - Added the 23 requested foods with complete photo/detail/Quick Cut data.
 - Fajitas replaces Mexican Stir Fry.
-- Greek removed from Food Quick Cuts; Gyro is Healthy only.
+- Greek remains available in Food and Restaurant Quick Cuts; Pasta remains available in Food; Pork remains removed; Gyro is Greek.
 - Snack now contains sweet/snack additions.
 - Food QA expectations raised to 90 and new mappings are explicitly checked.
 
