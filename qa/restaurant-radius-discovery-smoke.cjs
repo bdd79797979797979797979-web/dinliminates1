@@ -26,9 +26,10 @@ assert.equal(p25.groups[0][0].radius,25);
 const p50=t.radiusDiscoveryPlan(36.53,-87.34,50);
 assert.equal(p50.mode,'wide');
 assert.equal(p50.reserveMs,4500);
-assert.equal(p50.coveragePoints,1);
+assert.equal(p50.coveragePoints,7);
 assert.equal(p50.groups.length,1);
-assert.equal(p50.groups[0][0].radius,50);
+assert.equal(p50.groups[0].length,7);
+assert(p50.groups[0].every(x=>x.radius===50),'50-mile discovery batches must use overlapping 50-mile circles');
 
 const p100=t.radiusDiscoveryPlan(36.53,-87.34,100);
 assert.equal(p100.mode,'wide');
