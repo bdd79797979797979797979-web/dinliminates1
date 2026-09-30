@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=455'),'App script must use the CP449 cache-busting query');
-assert(release.build===160 && release.checkpoint==='CP455','release.json must identify Build 155 / CP450');
+assert(html.includes('app.js?v=455'),'App script must use the CP455 cache-busting query');
+assert(release.build===160 && release.checkpoint==='CP455','release.json must identify Build 160 / CP455');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -137,6 +137,10 @@ assert(!html.includes('id="newCat"'),'legacy Add Food category control must be r
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
 assert(html.includes('id="restaurantSearch" aria-label="Search restaurants by name or cuisine"'),'Restaurant Search control must remain available');
+assert(css.includes('#restaurant .radius-search svg'),'Restaurant Search needs a compact visual icon distinct from Find');
+assert(css.includes('#manageFoodsModal .manage-add-action')&&css.includes('.premium-manage-row'),'Manage Meals must use the current premium treatment');
+assert(app.includes('Contact coverage')&&app.includes('Photo coverage')&&app.includes('Radius controls'),'App Diagnosis must include the current Restaurant checks');
+
 assert(html.includes('<div class="location-sub">') && html.includes('class="restaurant-tool radius-search" id="restaurantSearch"'),'Restaurant Search must sit in the same Radius row');
 assert(!html.includes('<div class="restaurant-tools"'),'Restaurant Search must not consume a separate full-width row');
 assert(!html.includes('id="hoursToggle"'),'Restaurant hours filter control should be removed from the UI');
