@@ -45,7 +45,7 @@ function query(lat,lon,radius,types=DINING_AMENITIES){
 function queryMany(points,types=DINING_AMENITIES){
  return '[out:json][timeout:16];('+points.map(c=>queryClause(c.lat,c.lon,c.radius,types)).join('')+');out center tags;';
 }
-function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const out=[{lat,lon,radius:50}],ring=Math.min(70,r-35),a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<6;i++){const ang=i*Math.PI/3;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
+function centers(lat,lon,r){if(r<=50)return[{lat,lon,radius:r}];const safe=Math.min(99.5,Math.max(50.1,r));let ring=safe*Math.cos(Math.PI/6)-Math.sqrt(Math.max(0,2500-(safe*safe)/4));ring=Math.max(0,Math.min(safe-0.5,ring));const out=[{lat,lon,radius:50}],a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));for(let i=0;i<6;i++){const ang=i*Math.PI/3;out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b,radius:50})}return out}
 
 function photonRow(feature,origin){
  const p=feature?.properties||{},c=feature?.geometry?.coordinates||[],lon=n(c[0]),lat=n(c[1]),name=String(p.name||p.label||'').split(',')[0].trim();
@@ -265,7 +265,7 @@ function dedupe(rows){
     else{
       const x=map.get(key);
       x.fastFood=x.fastFood||r.fastFood;
-      x.openNow=x.openNow===false?r.openNow:(x.openNow||r.openNow);
+      if(typeof r.openNow==='boolean' && (typeof x.openNow!=='boolean' || String(r.source||'').startsWith('Google')))x.openNow=r.openNow;
       for(const f of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!x[f]&&r[f])x[f]=r[f];
       x.menuItems=[...new Set([...(x.menuItems||[]),...(r.menuItems||[])])].slice(0,10);
       if(!x.hoursSource&&r.hoursSource)x.hoursSource=r.hoursSource;
@@ -398,5 +398,5 @@ if(mode==='search'){
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
-handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery,hourStatus:undefined};
+handler._test={isFastFoodName,dedupe,restaurantNameTokens,nameVariantMatch,sameRestaurant,normAddress,phoneKey,websiteKey,requestQuery};
 module.exports=handler;
