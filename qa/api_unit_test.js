@@ -84,6 +84,21 @@ function res(){
   assert(mc);
   assert.equal(mc.opening_hours,'Mo-Su 06:00-23:00');
   assert.equal(mc.website,'https://www.mcdonalds.com');
+  assert.equal(mc.websiteSource,'provider');
+  assert(!mc.phoneFallbackUrl.includes('dinliminate'));
+
+  const wh = r.body.results.find(x=>x.name==='Waffle House');
+  assert(wh);
+  assert.equal(wh.website,'https://www.wafflehouse.com');
+  assert.equal(wh.websiteSource,'official-brand');
+  assert.equal(wh.phone,'');
+  assert(wh.phoneFallbackUrl.includes('google.com/search'));
+
+  const wendy = r.body.results.find(x=>/wendy/i.test(x.name));
+  assert(wendy);
+  assert.equal(wendy.website,'https://www.wendys.com');
+  assert.equal(wendy.websiteSource,'official-brand');
+  assert(wendy.phoneFallbackUrl.includes('google.com/search'));
   assert(r.body.results.every(x=>Number(x.distanceMiles)<=100));
   assert(r.body.results.every(x=>/^osm-|^photon-|^nominatim-/.test(x.id)));
   assert(Array.isArray(r.body.providersUsed) && r.body.providersUsed.length>0);
