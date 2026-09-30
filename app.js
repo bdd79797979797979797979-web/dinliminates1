@@ -770,17 +770,19 @@ function restaurantHoursFilter(row){
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
- const radius=Number($('radius')?.value)||10;
- const base=restaurantPoolBase(), visible=restaurantPoolFiltered();
- const degraded=S.restaurantSearchDegraded;
- if(!base.length){
+ const radius=Math.min(50,Number($('radius')?.value)||10);
+ const base=restaurantPoolBase();
+ const states={open:0,unknown:0,closed:0};
+ for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
+ const total=base.length,degraded=S.restaurantSearchDegraded;
+ if(!total){
   el.textContent=degraded?'Restaurant sources are unavailable. Try again.':'No restaurants match the current filters.';
   return;
  }
  if(S.hoursMode==='all'){
-  el.textContent=visible.length+' restaurants · '+radius+' mi';
+  el.textContent=states.open+' open · '+states.unknown+' unknown · '+states.closed+' closed · '+total+' total · '+radius+' mi';
  }else{
-  el.textContent=visible.length+' open/unknown · '+base.length+' total · '+radius+' mi';
+  el.textContent=(states.open+states.unknown)+' open/unknown · '+states.closed+' closed hidden · '+total+' total · '+radius+' mi';
  }
 }
 
