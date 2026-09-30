@@ -1,5 +1,5 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
-const MAX_RADIUS=100;
+const MAX_RADIUS=50;
 const API_VERSION='r20';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
