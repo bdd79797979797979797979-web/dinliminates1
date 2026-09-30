@@ -40,8 +40,10 @@ for(const [id,re] of Object.entries(expected))assert.match(String((foods.find(x=
 assert.equal((foods.find(x=>x.id==='cheerios')||{}).name,'Cereal','Cheerios should be renamed Cereal');
 assert.equal(foods.some(x=>x.id==='frozen'||/stouffer/i.test(x.name||'')),false,'Stouffer frozen dinner must be absent');
 
-assert.match(String((foods.find(x=>x.id==='pork-tenderloin')||{}).image||''),/341044/,'Pork Tenderloin should use an accurate photo');
+assert.match(String((foods.find(x=>x.id==='pork-tenderloin')||{}).image||''),/792027/,'Pork Tenderloin should use an accurate photo');
 assert.match(String((foods.find(x=>x.id==='white-fish')||{}).image||''),/36378584/,'White Fish should use an accurate photo');
+assert.match(String((foods.find(x=>x.id==='sushi')||{}).image||''),/6249504/,'Sushi should use an accurate photo');
+assert.match(String((foods.find(x=>x.id==='gumbo')||{}).image||''),/gumbo_with_rice\.jpg/,'Gumbo should use a gumbo image');
 assert.equal((foods.find(x=>x.id==='mashed-potatoes')||{}).name,'Mashed Potatoes','Mashed Potatoes should be plain without gravy');
 
 const cp258Ids=['pot-pie','blt','reuben','hot-dog','corn-dog','nachos','orange-chicken','chicken-teriyaki','sushi','pancakes','omelet','oatmeal','shrimp','crab-cakes','gumbo','chicken-nuggets','ramen','pimento-cheese-sandwich','ice-cream','protein-bar','candy-bar','banana','apple'];
