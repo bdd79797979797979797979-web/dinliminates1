@@ -641,6 +641,10 @@ function dedupeRestaurantPool(rows){
    const sameName=!!name&&name===xn;
    const variant=restaurantNameVariantMatch(name,xn);
    const sameNameFamily=sameName||variant;
+   const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(row);
+   const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
+   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey;
+   const canonicalClose=Number.isFinite(dist)&&dist<=3;
    const sameAddr=!!address&&!!xa&&address===xa;
    const conflictingAddr=!!address&&!!xa&&!sameAddr;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
@@ -649,7 +653,11 @@ function dedupeRestaurantPool(rows){
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
    const sameNameStreet=sameStreet&&originDistanceClose&&(variant||(sameName&&partialAddress));
-   return sameAddr&&sameNameFamily || sameNameStreet || (sameName&&!conflictingAddr&&close) || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);
+   return sameAddr&&sameNameFamily
+     || (sameCanonicalIdentity&&canonicalClose)
+     || sameNameStreet
+     || (sameName&&!conflictingAddr&&close)
+     || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);
   });
   if(!match){
     const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row);
@@ -703,12 +711,14 @@ function restaurantIsFastFood(row){
 function restaurantCuisineTags(row){
  const preset=Array.isArray(row?.quickCutTags)?row.quickCutTags:[];
  const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row).tags;
- return [...new Set([...preset,...inferred])];
+ return inferred.length ? inferred : [...new Set(preset)];
 }
 function restaurantCuisineEvidence(row){
  return RESTAURANT_TAXONOMY.classifyRestaurant(row).evidence;
 }
 function restaurantCategory(row){
+ const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row);
+ if(inferred.primary)return inferred.primary;
  const tags=restaurantCuisineTags(row),raw=String(row?.category||'').trim();
  if(/^(American|Mexican|Asian|Italian|Southern|BBQ|Seafood|Breakfast|Burgers|Fast Food)$/i.test(raw))return raw;
  const order=['Burgers','Pizza','Mexican','Asian','Italian','BBQ','Seafood','Breakfast','Southern','Fast Food','American'];
