@@ -830,7 +830,8 @@ function addressLooksComplete(value) {
   if(/\b\d{5}(?:-\d{4})?\b/.test(q))return true;
   const parts=q.split(',').map(x=>x.trim()).filter(Boolean);
   if(parts.length>=3&&/\b[A-Z]{2}\b/i.test(parts[parts.length-2]))return true;
-  return parts.length>=2&&/\b[A-Z]{2}\b/i.test(parts[parts.length-1]);
+  const last=parts[parts.length-1]||'';
+  return parts.length>=2&&/\b[A-Za-z][A-Za-z .'-]+\s+[A-Z]{2}\b/i.test(last);
 }
 async function chooseAddressSuggestion(index) {
   const opts=[...document.querySelectorAll('#suggestionsBox [data-suggestion]')];
