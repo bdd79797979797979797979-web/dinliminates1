@@ -1353,26 +1353,42 @@ return surface;
 }
 function passSetup() {
 const counts=[2,3,4,5,6,7,8];
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Everyone gets a turn. Cut removes a choice. A choice everyone keeps survives.</p><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start Pass Around</button></div>');
+const modes=[
+ {id:'quick',label:'Quick Pass',desc:'Faster default. A choice survives a majority; the round moves on as soon as the outcome is decided.'},
+ {id:'full',label:'Full Pass',desc:'The original mode. Every person votes on each surviving choice; everyone must keep it to survive.'}
+];
+S.passDraftMode = S.passDraftMode === 'full' ? 'full' : 'quick';
+const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="Close Pass Around">×</button></div><div class="pass-setup-wrap"><h2>Pass this one around.</h2><p class="status">Use the same Tinder-style Cut / Keep decisions, but let the group narrow the choices together.</p><div class="pass-mode" role="radiogroup" aria-label="Pass Around mode">'+modes.map(m=>'<button type="button" class="pass-mode-option '+(S.passDraftMode===m.id?'selected':'')+'" data-pass-mode="'+m.id+'" aria-pressed="'+(S.passDraftMode===m.id)+'"><strong>'+m.label+'</strong><span>'+m.desc+'</span></button>').join('')+'</div><div class="pass-count-label">People</div><div class="pass-counts">'+counts.map(n=>'<button class="chip pass-count '+(S.passDraftCount===n?'selected':'')+'" data-pass-count="'+n+'">'+n+'</button>').join('')+'</div><div id="passNames"></div><button class="cut" id="passBegin" style="width:100%;margin-top:14px;min-height:50px;border-radius:15px">Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass')+'</button></div>');
 $('passClose').onclick=()=>removePassSurface();
 const renderNames=()=>{
-$('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join('')+'</div>';
+$('passNames').innerHTML='<div class="pass-name-grid">'+Array.from({length:S.passDraftCount},(_,i)=>'<input class="pass-name" data-pass-name="'+i+'" placeholder="Person '+(i+1)+'" maxlength="24">').join(''); 
 document.querySelectorAll('[data-pass-name]').forEach((x,i)=>x.value=S.passDraftNames[i]||'');
 document.querySelectorAll('[data-pass-count]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.passCount)===S.passDraftCount));
+document.querySelectorAll('[data-pass-mode]').forEach(x=>x.classList.toggle('selected',x.dataset.passMode===S.passDraftMode));
+document.querySelectorAll('[data-pass-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.passMode===S.passDraftMode)));
+const begin=$('passBegin');if(begin)begin.textContent='Start '+(S.passDraftMode==='quick'?'Quick Pass':'Full Pass');
 };
 renderNames();
 document.querySelectorAll('[data-pass-count]').forEach(btn=>btn.onclick=()=>{S.passDraftCount=Number(btn.dataset.passCount);renderNames();});
+document.querySelectorAll('[data-pass-mode]').forEach(btn=>btn.onclick=()=>{S.passDraftMode=btn.dataset.passMode==='full'?'full':'quick';renderNames();});
 $('passBegin').onclick=()=>{
 S.passDraftNames=[...document.querySelectorAll('[data-pass-name]')].map((x,i)=>x.value.trim()||'Person '+(i+1));
 const pool=passCandidates();
 if(!pool.length){removePassSurface();appToast('There are no choices left to pass around.');return;}
-S.pass={type:S.screen==='restaurant'?'restaurant':'food',players:S.passDraftNames,choiceIndex:0,voterIndex:0,history:[],poolIds:pool.map(x=>x.id)};
-drawPass();
+S.pass={type:S.screen==='restaurant'?'restaurant':'food',mode:S.passDraftMode,players:S.passDraftNames,choiceIndex:0,voterIndex:0,history:[],poolIds:pool.map(x=>x.id),votes:{}};
+save();drawPass();
 };
 }
 function currentPassItem(){
 const id=S.pass?.poolIds?.[S.pass.choiceIndex];
 return passCandidates().find(x=>x.id===id);
+}
+function passVoteButtonState(p){
+const n=p?.players?.length||0;
+const v=p?.votes?.[p?.poolIds?.[p?.choiceIndex]]||{keep:0,cut:0};
+const threshold=Math.floor(n/2)+1;
+if(p?.mode==='quick')return {keep:v.keep,cut:v.cut,threshold};
+return {keep:v.keep,cut:v.cut,threshold:n};
 }
 function drawPass(){
 const p=S.pass;
@@ -1381,49 +1397,71 @@ if(p.choiceIndex>=p.poolIds.length)return finishPass();
 const item=currentPassItem();
 if(!item){p.choiceIndex++;p.voterIndex=0;return drawPass();}
 const voter=p.players[p.voterIndex]||'Next person';
+const vote=passVoteButtonState(p);
 const img=foodPhoto(item);
 const fallback=foodPhotoFallback(item);
-const image= S.screen==='restaurant' ? (item.photo||item.image||'') : img;
-const imageFallback= S.screen==='restaurant' ? (item.photo||item.image||REST_QUICK_IMAGES.American) : fallback;
-const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep</div><div class="pass-actions"><button class="secondary" id="passBack">↶</button><button class="cut" id="passCut">✕</button><button class="maybe" id="passKeep">♥</button></div></div>');
+const image=S.screen==='restaurant'?(item.photo||item.image||''):img;
+const imageFallback=S.screen==='restaurant'?(item.photo||item.image||REST_QUICK_IMAGES.American):fallback;
+const modeTitle=p.mode==='quick'?'QUICK PASS':'FULL PASS';
+const modeHint=p.mode==='quick'?'Majority decides early.':'Everyone must keep a choice.';
+const tally=p.mode==='quick'?(vote.keep+' keep · '+vote.cut+' cut · need '+vote.threshold+' keep'):((vote.cut>0)?'Any Cut removes this choice.':'All players must Keep.');
+const surface=openPassSurface('<div class="pass-top"><b>PASS AROUND</b><button class="menu" id="passClose" type="button" aria-label="End Pass Around">×</button></div><div class="pass-card-stage"><div class="pass-card-stack"><article class="pass-card next-card hidden" id="passNextCard" aria-hidden="true"><img alt=""></article><article class="pass-card current-card" id="passCard"><img id="passImg" alt="'+esc(item.name)+'" src="'+esc(image||imageFallback)+'" data-fallback="'+esc(imageFallback)+'"><div class="shade"></div><button class="pass-gesture-hit" id="passGestureHit" type="button" aria-label="Swipe choice left to cut or right to keep" tabindex="-1"></button><div class="pass-card-copy"><small>'+modeTitle+' · CHOICE '+(p.choiceIndex+1)+' OF '+p.poolIds.length+'</small><h2>'+esc(item.name)+'</h2><p>Pass to <strong style="color:#eee">'+esc(voter)+'</strong></p><p class="pass-rule">'+esc(modeHint)+' '+esc(tally)+'</p></div></article></div><div class="pass-voter">Left = Cut · Right = Keep · Back = Undo</div><div class="pass-actions"><button class="secondary" id="passBack" aria-label="Undo last vote">↶</button><button class="cut" id="passCut" aria-label="Cut this choice">✕</button><button class="maybe" id="passKeep" aria-label="Keep this choice">♥</button></div></div>');
 $('passClose').onclick=()=>endPass();
 $('passBack').onclick=passUndo;
-$('passCut').setAttribute('aria-label','Cut this choice');
-$('passKeep').setAttribute('aria-label','Keep this choice');
 $('passCut').onclick=()=>passVote(false);
 $('passKeep').onclick=()=>passVote(true);
-const next=p.poolIds[p.choiceIndex+1] ? passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]) : null;
+const next=p.poolIds[p.choiceIndex+1]?passCandidates().find(x=>x.id===p.poolIds[p.choiceIndex+1]):null;
 if(next){
-const nsrc=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhoto(next);
+const nsrc=S.screen==='restaurant'?(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhoto(next);
 $('passNextCard').classList.remove('hidden');
-const passNextImg = $('passNextCard img');
-if (passNextImg) {
-passNextImg.src=nsrc;
-passNextImg.dataset.fallback=S.screen==='restaurant' ? (next.photo||next.image||REST_QUICK_IMAGES.American) : foodPhotoFallback(next);
-passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};
-}
+const passNextImg=$('passNextCard img');
+if(passNextImg){passNextImg.src=nsrc;passNextImg.dataset.fallback=S.screen==='restaurant'?(next.photo||next.image||REST_QUICK_IMAGES.American):foodPhotoFallback(next);passNextImg.onerror=function(){this.onerror=null;this.src=this.dataset.fallback;};}
 }
 $('passImg').onerror=function(){this.onerror=null;this.src=this.dataset.fallback||imageFallback;};
-
 }
 function passVote(keep){
 const p=S.pass,item=currentPassItem();
 if(!p||!item)return;
-p.history.push({choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,choiceId:item.id,keep});
-if(!keep){
-p.poolIds=p.poolIds.filter(id=>id!==item.id);
+const id=item.id;
+if(!p.votes)p.votes={};
+if(!p.votes[id])p.votes[id]={keep:0,cut:0};
+const before={poolIds:[...p.poolIds],choiceIndex:p.choiceIndex,voterIndex:p.voterIndex,votes:JSON.parse(JSON.stringify(p.votes))};
+p.history.push(before);
+if(keep)p.votes[id].keep++;else p.votes[id].cut++;
+const players=p.players.length, tally=p.votes[id], threshold=p.mode==='quick'?Math.floor(players/2)+1:players;
+let outcome=null;
+if(p.mode==='full'){
+ if(!keep){ outcome='eliminate'; }
+ else if(tally.keep>=threshold){ outcome='survive'; }
+}else{
+ const remainingVotes=Math.max(0,players-(tally.keep+tally.cut));
+ if(tally.keep>=threshold) outcome='survive';
+ else if(tally.cut>=threshold || tally.keep+remainingVotes<threshold) outcome='eliminate';
+}
+if(outcome==='eliminate'){
+p.poolIds=p.poolIds.filter(x=>x!==id);
+delete p.votes[id];
+if(p.poolIds.length===0)return finishPass();
 if(p.poolIds.length===1)return finishPass();
 p.choiceIndex=Math.min(p.choiceIndex,Math.max(0,p.poolIds.length-1));
-p.voterIndex=0; drawPass(); return;
+p.voterIndex=0;
+return drawPass();
 }
-if(p.voterIndex<p.players.length-1){p.voterIndex++;drawPass();return;}
-p.choiceIndex++;p.voterIndex=0;drawPass();
+if(outcome==='survive'){
+delete p.votes[id];
+p.choiceIndex++;
+p.voterIndex=0;
+return drawPass();
+}
+p.voterIndex++;
+if(p.voterIndex>=players){p.voterIndex=0;}
+drawPass();
 }
 function passUndo(){
 const p=S.pass;if(!p?.history?.length)return;
 const last=p.history.pop();
-if(!last.keep&&last.choiceId&&!p.poolIds.includes(last.choiceId))p.poolIds.splice(Math.min(last.choiceIndex,p.poolIds.length),0,last.choiceId);
-p.choiceIndex=last.choiceIndex;p.voterIndex=last.voterIndex;drawPass();
+p.poolIds=[...last.poolIds];p.choiceIndex=last.choiceIndex;p.voterIndex=last.voterIndex;p.votes=JSON.parse(JSON.stringify(last.votes||{}));
+drawPass();
 }
 function finishPass(){
 const p=S.pass;if(!p)return;
