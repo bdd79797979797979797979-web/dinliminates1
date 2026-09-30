@@ -1233,7 +1233,7 @@ function bindCardButton(id,handler){
 }
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
 function setRestaurantHoursMode(mode){
- S.hoursMode=mode==='all'?'all':'openUnknown';
+ S.hoursMode='openUnknown';
  S.restaurantIndex=0;
  renderHours();
  drawRestaurants();
