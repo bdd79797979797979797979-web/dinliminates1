@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 177,
+  "build": 178,
   "sourceBranch": "cp466-restaurant-identity-final-2026-09-30",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP471"
+  "checkpoint": "CP472"
 }
