@@ -1,7 +1,7 @@
 # Dinliminate image-source governance
 
 ## Current release
-Build 126 · cp257-food-catalog-refresh-2026-09-29
+Build 127 · cp258-food-catalog-expansion-2026-09-30
 
 ## Policy
 Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved image CDNs used by the release. The app also inventories every third-party food-image host so usage can be reviewed before public launch.
@@ -57,3 +57,9 @@ The automated inventory is complete. The legal/usage verification of the non-app
 - Pork Tenderloin: Pexels photo 341044.
 - White Fish: Pexels photo 36378584.
 - The Stouffer/Goodnes asset is an official product image and still requires usage/redistribution review before public distribution.
+
+
+## CP258 new food images
+All CP258 additions currently use HTTPS Pexels image URLs in the catalog for the newly added food choices. The exact source URL is stored with each item in `data/foods.js` and is covered by the image smoke audit.
+
+Added-image IDs: pot-pie, blt, reuben, hot-dog, corn-dog, nachos, orange-chicken, chicken-teriyaki, sushi, pancakes, omelet, oatmeal, shrimp, crab-cakes, gumbo, chicken-nuggets, ramen, pimento-cheese-sandwich, ice-cream, protein-bar, candy-bar, banana, apple.
