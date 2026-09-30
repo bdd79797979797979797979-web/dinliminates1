@@ -83,7 +83,7 @@ const RESTAURANT_NAME_SIGNALS = {
   BBQ:/\bbbq\b|\bbarbecue\b|\bbarbeque\b|\bsmokehouse\b|\bsmoke shack\b|\bpit bbq\b/,
   Seafood:/\bseafood\b|\bfish house\b|\bfish restaurant\b|\boyster\b|\bcrab house\b|\blobster\b/,
   Breakfast:/\bbreakfast\b|\bbrunch\b|\bpancake house\b|\bwaffle house\b/,
-  American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b/
+  American:/\bamerican\b|\bdiner\b|\bsteakhouse\b|\broadhouse\b|\bgrill\b|\bkitchen\b|\bcafe\b|\bbistro\b|\bfamily restaurant\b|\bfamily dining\b/
 };
 
 const SEARCH_FILLER_WORDS = new Set(['restaurant','restaurants','place','places','food','foodie','near','me']);
