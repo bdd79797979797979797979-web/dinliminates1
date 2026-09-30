@@ -606,6 +606,11 @@ function normalizeRestaurantSearch(value){
   .replace(/\s+/g,' ')
   .trim();
 }
+function restaurantIsFastFood(row){
+ const hay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
+ if(/thirsty goat/.test(hay)) return false;
+ return !!row?.fastFood || /fast[ -]?food/.test(normalizeRestaurantSearch(row?.category));
+}
 function restaurantCategory(row) {
 const rawCategory=String(row?.category||'').trim();
 const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
@@ -622,7 +627,7 @@ if(/^southern$/i.test(rawCategory)) return 'Southern';
 if(/^bbq$/i.test(rawCategory)) return 'BBQ';
 if(/^seafood$/i.test(rawCategory)) return 'Seafood';
 if(/^breakfast$/i.test(rawCategory)) return 'Breakfast';
-if (knownFastFood || row.fastFood || /fast[ -]?food/i.test(rawCategory)) return 'Fast Food';
+if (knownFastFood || restaurantIsFastFood(row)) return 'Fast Food';
 if (/mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(allHay)) return 'Mexican';
 if (/asian|chinese|japanese|thai|korean|sushi|vietnamese/.test(allHay)) return 'Asian';
 if (/italian|pizzeria|pasta|spaghetti|lasagna|ravioli/.test(allHay)) return 'Italian';
@@ -638,7 +643,7 @@ function restaurantQuickMatches(row, label) {
 const hay = normalizeRestaurantSearch(restaurantSearchText(row));
 const nameHay=normalizeRestaurantSearch([row?.name,row?.brand,row?.operator].join(' '));
 const cuisineHay=normalizeRestaurantSearch([row?.cuisine,...(Array.isArray(row?.menuItems)?row.menuItems:[])].join(' '));
-if (label === 'Fast Food') return !!row.fastFood || /fast[ -]?food/.test(hay) || /mcdonald|taco bell|wendy|burger king|kfc|chick fil a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak n shake|white castle|freddy|in n out|carls jr|panda express|chipotle/.test(nameHay);
+if (label === 'Fast Food') return restaurantIsFastFood(row) || /mcdonald|taco bell|wendy|burger king|kfc|chick fil a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak n shake|white castle|freddy|in n out|carls jr|panda express|chipotle/.test(nameHay);
 if (label === 'Burgers') return /burger|hamburger|cheeseburger/.test(hay) || (restaurantCategory(row)==='American' && /grill|diner/.test(hay));
 if (label === 'Pizza') return /pizza|pizzeria|domino|papa john|pizza hut|little caesars|marcos/.test(hay) || /thirsty goat/.test(nameHay) || /pizza|pizzeria/.test(cuisineHay);
 if (label === 'Mexican') return /mexican|tex mex|taco|burrito|enchilada|quesadilla/.test(hay);
@@ -986,7 +991,7 @@ S.restaurantPool = dedupeRestaurantPool([...incomingRows,...previousRows]);
 S.restaurantSearchOrigin = {lat:Number(loc.lat),lon:Number(loc.lon)};
 S.restaurantIndex = 0; S.restaurantActions = []; S.restaurantMaybeRound = false;
 renderHours(); S.winnerItem = null;
-const poolFastFoodCount=S.restaurantPool.filter(r=>r.fastFood).length;
+const poolFastFoodCount=S.restaurantPool.filter(r=>restaurantIsFastFood(r)).length;
 if(S.restaurantPool.length) {
   updateRestaurantStatus();
 } else {
