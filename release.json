@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 150,
-  "sourceBranch": "cp445-radius50-toggle-asian-flicker-2026-09-30",
-  "checkpoint": "CP445"
+  "build": 151,
+  "sourceBranch": "cp446-remove-hours-control-2026-09-30",
+  "checkpoint": "CP446"
 }
