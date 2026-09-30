@@ -822,3 +822,25 @@
 #restaurantCard .card-card-actions{display:flex;gap:7px;flex-wrap:wrap}
 #restaurantCard .card-card-action{min-width:0}
 #restaurantCard .directions-action{background:#182e27;color:#b9e2d1;border-color:#315a4d}
+
+
+/* CP323 — make Restaurant Details visibly distinct and action-forward */
+#detailsModal .detail-title-block{display:flex;flex-direction:column;gap:4px;margin:12px 0 2px}
+#detailsModal .detail-title-block .detail-kicker{font-size:8px;font-weight:900;letter-spacing:.18em;color:#8baec8}
+#detailsModal .detail-title-block h2{margin:0!important;font-size:28px!important;line-height:1!important;letter-spacing:-.05em}
+#detailsModal .restaurant-detail-summary{margin-top:10px}
+#detailsModal .restaurant-detail-contact{margin-top:10px;padding-top:10px;border-top:1px solid #2b2a28}
+#detailsModal .contact-card{display:grid;gap:7px;padding:11px;border-radius:14px;background:linear-gradient(180deg,#1a1c1d,#141617);border:1px solid #2d3538}
+#detailsModal .restaurant-detail-contact-link,
+#detailsModal .restaurant-detail-address,
+#detailsModal .restaurant-detail-contact-muted{display:flex;align-items:center;justify-content:space-between;gap:14px;text-decoration:none;min-height:32px}
+#detailsModal .contact-label{font-size:8px;text-transform:uppercase;letter-spacing:.13em;color:#777}
+#detailsModal .restaurant-detail-contact-link strong,
+#detailsModal .restaurant-detail-address strong,
+#detailsModal .restaurant-detail-contact-muted strong{font-size:11px;line-height:1.35;text-align:right;color:#e8e3dc}
+#detailsModal .restaurant-detail-contact-link strong{color:#a9d4e6}
+#detailsModal .contact-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+#detailsModal .contact-actions .detail-web-action{width:100%;min-height:44px!important}
+#detailsModal .detail-website-action{background:#20262a!important;border-color:#3d5864!important;color:#c5e5f0!important}
+#detailsModal .detail-directions-action{background:#193128!important;border-color:#396756!important;color:#c1e6d6!important}
+@media(max-width:390px){#detailsModal .contact-actions{grid-template-columns:1fr 1fr}#detailsModal .detail-title-block h2{font-size:25px!important}}
