@@ -58,3 +58,12 @@ assert.ok(classifyRestaurant({name:'The Thirsty Goat',category:'Restaurant'}).ta
 assert.ok(classifyRestaurant({name:'Heads BBQ',category:'Restaurant'}).tags.includes('BBQ'),'Heads BBQ must classify as BBQ');
 assert.ok(classifyRestaurant({name:'Excell BBQ',category:'Restaurant'}).tags.includes('BBQ'),'Excell BBQ must classify as BBQ');
 console.log('restaurant classification hardening extended smoke: PASS');
+
+
+const additionalTypeCases=[
+ ['Fast food type',{name:'Local Place',category:'Restaurant',primaryType:'fast_food_restaurant',providerTypes:['fast_food_restaurant']},'Fast Food'],
+ ['Burger type',{name:'Local Place',category:'Restaurant',primaryType:'hamburger_restaurant',providerTypes:['hamburger_restaurant']},'Burgers'],
+ ['Pizza cuisine',{name:'Local Place',category:'Restaurant',cuisine:'pizza',primaryType:'restaurant',providerTypes:['restaurant']},'Pizza'],
+ ['Burger cuisine',{name:'Local Place',category:'Restaurant',cuisine:'burger',primaryType:'restaurant',providerTypes:['restaurant']},'Burgers']
+];
+for(const [label,row,tag] of additionalTypeCases)assert.ok(classifyRestaurant(row).tags.includes(tag),label+' must classify as '+tag);
