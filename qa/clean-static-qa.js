@@ -54,7 +54,7 @@ assert(html.includes('id="restaurantBackTop"') && html.includes('id="restaurantM
 assert(html.includes('id="foodCount"') && html.includes('id="restaurantCount"'),'Choice counts must be present on the Quick Cuts rows');
 assert(!/<span>FOOD<\/span>/.test(html) && !/<span>RESTAURANTS<\/span>/.test(html),'Standalone FOOD/RESTAURANTS header labels must stay removed');
 assert(html.includes('id="foodDetails"') && html.includes('details-icon') && app.includes("detailsSheet(item,'food')"),'Food card Details must use the crisp icon and open the full Details sheet');
-assert(app.includes('id="restDetails"') && app.includes("detailsSheet(current, 'restaurant')"),'Restaurant card Details must open the full Details sheet');
+assert(app.includes('id="restDetails"') && app.includes('restDetailsButton') && app.includes("detailsSheet(current,'restaurant')"),'Restaurant card Details must open the full Details sheet with a protected touch handler');
 assert(!app.includes("$('globalBack').onclick"),'Removed global Back must not be referenced');
 assert(!app.includes("$('restWebsite').onclick"),'Removed stale Restaurant website binding must not be referenced');
 assert(app.includes("e.target.closest('button,a,input,select')") || app.includes("e.target.closest?.('button,a,input,select')"),'Swipe handlers must ignore interactive controls');
@@ -125,9 +125,9 @@ assert((html.match(/id="offlineIndicator"/g)||[]).length===1,'offline indicator 
 assert(!html.includes('id="newCat"'),'legacy Add Food category control must be removed');
 assert(app.includes('Intl.DateTimeFormat'),'About date should be generated from the current date');
 assert(css.includes('#aboutModal .about-test') && css.includes('color:#bfa16b'),'About test build label should be gold');
-assert(app.includes("openMode?'Open/Unknown':'All'"),'Hours toggle must use Open/Unknown and All');
+assert(app.includes("openBtn.classList.toggle('active-tool',openMode)") && app.includes("allBtn.classList.toggle('active-tool',!openMode)"),'Hours filters must expose explicit Open + Unknown and All controls');
 assert(app.includes("function setRestaurantHoursMode(mode)"),'Hours toggle must use an explicit restaurant hours-mode setter');
-assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open/Unknown');
+assert(app.includes("S.hoursMode=mode==='all'?'all':'openUnknown'"),'Hours mode setter must explicitly select All or Open + Unknown');
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must use a dedicated filter');
 assert(app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));'),'Restaurant pool must apply the hours filter');
