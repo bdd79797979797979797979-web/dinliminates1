@@ -151,8 +151,8 @@ report["2_search_address"].directEnter=true;
 const thirstyGoat=allResults.find(x=>x.id==='thirsty-goat');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),thirstyGoat),'Pizza');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Pizza'),thirstyGoat),true);
-assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),true);
-report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Quick Cut matches provider fast-food tag without using it as the display cuisine.';
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),false);
+report["2_search_address"].thirstyGoatCuisine='Pizza override verified; Pizza Quick Cut matches while the incorrect provider fast-food tag is ignored for this known venue.';
 
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
