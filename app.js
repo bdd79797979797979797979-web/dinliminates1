@@ -7,7 +7,7 @@ const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
 const RELEASE_SOURCE_BRANCH = 'release-hardening-2026-09-29';
-let APP_BUILD = '130';
+let APP_BUILD = '131';
 fetch('./release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const FOOD_QUICK = ['American','Southern','Mexican','Italian','Pasta','Asian','Breakfast','Soup/Stew','Healthy','Potato','Snack'];
@@ -1399,7 +1399,7 @@ const p=S.pass;
 if(!p)return;
 if(p.choiceIndex>=p.poolIds.length)return finishPass();
 const item=currentPassItem();
-if(!item){p.choiceIndex++;p.voterIndex=0;return drawPass();}
+if(!item){p.choiceIndex++;p.voterIndex=p.firstVoterIndex||0;return drawPass();}
 const voter=p.players[p.voterIndex]||'Next person';
 const vote=passVoteButtonState(p);
 const img=foodPhoto(item);
@@ -1471,8 +1471,9 @@ function finishPass(){
 const p=S.pass;if(!p)return;
 const rows=p.poolIds.map(id=>passCandidates().find(x=>x.id===id)).filter(Boolean);
 S.pass=null;removePassSurface();
-if(rows.length===1){S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);save();winner(rows[0]);return;}
-if(!rows.length){winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
+S.passStartVoter=(S.passStartVoter+1)%Math.max(1,p.players.length);
+if(rows.length===1){save();winner(rows[0]);return;}
+if(!rows.length){save();winner({name:'Nothing left — hungry mode',image:HUNGRY_IMAGE,category:'Hungry'});return;}
 if(S.screen==='restaurant'){S.restaurantPool=S.restaurantPool.filter(x=>rows.some(r=>r.id===x.id));S.restaurantIndex=0;drawRestaurants();}
 else {S.pool=rows;S.index=0;drawFood();}
 save();
