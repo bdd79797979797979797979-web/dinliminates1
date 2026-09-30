@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
-new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));
+const html=fs.readFileSync('index.html','utf8'),app=fs.readFileSync('app.js','utf8'),css=fs.readFileSync('styles.css','utf8'),foods=fs.readFileSync('data/foods.js','utf8'),api=fs.readFileSync('api/restaurants.js','utf8'),imageApi=fs.readFileSync('api/image.js','utf8'),photoApi=fs.readFileSync('api/restaurant-photo.js','utf8'),release=JSON.parse(fs.readFileSync('release.json','utf8')),releaseApi=fs.readFileSync('api/release.js','utf8'),releaseManifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
+new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
 for(const s of ['Dinner Decisions Simplified','Choose a meal','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
@@ -279,6 +279,13 @@ assert(html.includes('/api/image?url='),'Home images must use the Vercel image p
 console.log('Dinliminate CP261 Vercel image proxy QA: PASS');
 
 assert(fs.readFileSync('vercel.json','utf8').includes('"api/image.js"') && fs.readFileSync('vercel.json','utf8').includes('"maxDuration": 10'),'Vercel image proxy function must have a 10-second max duration');
+assert(photoApi.includes("GOOGLE_PLACES_API_KEY") && photoApi.includes("GOOGLE_MAPS_API_KEY"),'Restaurant photo endpoint must use the server-side Google Places key only.');
+assert(photoApi.includes("X-Goog-FieldMask':'photos'"),'Restaurant photo endpoint must request fresh Google photo resources through Place Details.');
+assert(photoApi.includes("Cache-Control",'no-store') && photoApi.includes("X-Restaurant-Photo-Attributions"),'Google restaurant photo responses must be non-cacheable and carry attribution metadata.');
+assert(photoApi.includes("photo.name") && photoApi.includes("/media?maxWidthPx=1200"),'Google restaurant photo endpoint must resolve a fresh photo resource and request an appropriately sized image.');
+assert(app.includes('hydrateGoogleRestaurantPhoto') && app.includes('/api/restaurant-photo?placeId='),'Browser must hydrate Google venue photos through the server endpoint without exposing the Places API key.');
+assert(app.includes('photoSource') && app.includes('photoIsGeneric') && app.includes('photoConfidence'),'Restaurant rows must expose photo provenance metadata.');
+assert(api.includes('restaurantPhotoMeta') && api.includes('photoSource') && api.includes('photoFallback'),'Restaurant API must use a unified photo resolver with provenance and fallback metadata.');
 
 assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classList.add('diagnosis-modal')"),'App Diagnosis must use only the existing Settings modal shell');
 assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
