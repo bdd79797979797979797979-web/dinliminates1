@@ -24,6 +24,13 @@ assert.equal(cuisine.photoIsGeneric,true);
 const generic=t.restaurantPhotoMeta({name:'Unknown Neighborhood Restaurant',category:'Restaurant'});
 assert.equal(generic.photoSource,'generic-fallback');
 assert.equal(generic.photoIsGeneric,true);
+const merged=t.dedupe([
+  {id:'osm-photo',name:'Photo Merge Grill',category:'Restaurant',fastFood:false,cuisine:'american',address:'1 Main St, Clarksville, TN',phone:'',website:'',lat:36.53,lon:-87.36,distance:1,photo:'https://images.unsplash.com/photo-provider',source:'OpenStreetMap'},
+  {id:'google-photo',name:'Photo Merge Grill',category:'Restaurant',fastFood:false,cuisine:'',address:'1 Main St, Clarksville, TN',phone:'',website:'',lat:36.53,lon:-87.36,distance:1,photo:'',googlePlaceId:'ChIJ1234567890',source:'Google Places'}
+]);
+assert.equal(merged.length,1,'Provider duplicate should remain one venue.');
+assert.equal(merged[0].photo,'https://images.unsplash.com/photo-provider','Existing venue-specific provider photo should win.');
+assert.equal(merged[0].googlePlaceId,'ChIJ1234567890','Google Place ID should survive dedupe for photo enrichment.');
 const attrs=pt.normalizeAttributions([{displayName:'Jane Doe',uri:'//maps.google.com/maps/contrib/123'},{displayName:'Bad',uri:'javascript:alert(1)'}]);
 assert.deepEqual(attrs,[{displayName:'Jane Doe',uri:'https://maps.google.com/maps/contrib/123'}]);
 console.log(JSON.stringify({ok:true,cases:7,verified:['provider photo metadata','Google venue-photo tier','known entity fallback','cuisine fallback','generic fallback','Google attribution normalization','no cached Google photo resource name in search rows']},null,2));
