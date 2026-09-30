@@ -355,6 +355,28 @@ assert.ok((await page.locator('#detailsModal .restaurant-photo-credit').innerTex
 report["5_photo"].googleVenueDetails=true;
 await page.locator('#detailsModal [data-close]').click();
 
+// Winner + History continuity: Google-backed restaurant photo identity survives the decision and rehydrates in History.
+await page.evaluate(row=>window.__DINLIMINATE_TEST__.winner(row),googlePhotoRow);
+await page.waitForSelector('#winner');
+assert.equal(await page.locator('#celebration').evaluate(el=>el.classList.contains('hidden')),false,'Restaurant Winner should trigger the same celebration as Food.');
+await page.waitForFunction(()=>document.querySelector('#winImg[data-google-photo-id="ChIJ1234567890"][data-google-photo-loaded="true"]')!==null);
+const storedHistory=await page.evaluate(()=>JSON.parse(localStorage.getItem('dinliminate.clean.history')||'[]')[0]);
+assert.equal(storedHistory.googlePlaceId,'ChIJ1234567890');
+assert.equal(storedHistory.photoSource,'google-places');
+assert.ok(storedHistory.photoFallback,'History should retain an immediate photo fallback.');
+report["5_photo"].restaurantWinnerCelebration=true;
+report["5_photo"].historyPhotoIdentityPersisted=true;
+
+await page.locator('#menu').click();
+await page.locator('#history').click();
+await page.waitForSelector('#historyModal');
+const historyGoogleImg=page.locator('#historyModal img[data-google-photo-id="ChIJ1234567890"]').first();
+assert.equal(await historyGoogleImg.count(),1,'History should retain the Google Place ID on its restaurant image.');
+await page.waitForFunction(()=>document.querySelector('#historyModal img[data-google-photo-loaded="true"]')!==null);
+assert.ok((await historyGoogleImg.getAttribute('src')).startsWith('blob:'),'History should rehydrate the Google venue photo.');
+report["5_photo"].historyPhotoHydrated=true;
+
+
 await page.locator('#restaurantQuery').fill('burger'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
 s=await snap();
 assert.deepEqual(new Set(s.restaurantPool),new Set(['mcd','american']));
