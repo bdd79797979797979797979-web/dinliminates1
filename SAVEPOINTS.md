@@ -613,3 +613,5 @@ Commit: `b31f45393e798ae40fc4f7a8f7710e0f983213a9`
 - Pass Around defaults to Quick Pass, keeps Full Pass as the optional original mode, supports Back/Undo, rotates starting voter after completed sessions, and Cancel leaves the main deck unchanged.
 - Recovery: `checkpoint-cp260-final-code-verified-2026-09-30` and `checkpoint-cp260-current-pre-new-edits-2026-09-30`.
 - Netlify preview: https://deploy-preview-45--diliminate.netlify.app
+
+- CP261 Netlify sync trigger: current PR head was explicitly re-touched to force the Netlify Deploy Preview to rebuild from the latest commit.
