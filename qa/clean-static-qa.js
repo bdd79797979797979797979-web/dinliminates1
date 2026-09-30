@@ -13,6 +13,12 @@ assert(app.includes('editQuickCut') && app.includes('quickCuts'),'Custom foods m
 assert(app.includes('data-food-edit') && app.includes('editQuickCut') && !app.includes('data-food-delete') && !app.includes('data-setting-food-delete'),'Food management must use Edit plus Hide/Restore without Delete controls');
 assert(app.includes('S.deleted'),'deleted-food persistence is required');
 assert(app.includes('legacyKeys') && app.includes('cutPrimary'),'Persisted state migration must retire legacy fields');
+assert(app.includes('restaurantSearchOrigin'),'Restaurant search origin must be persisted for radius expansion behavior');
+assert(app.includes("$('radius').addEventListener('change'"),'Radius changes must automatically trigger a restaurant refresh');
+assert(app.includes('renderFindButton') && app.includes("S.location?'Refresh':'Find'"),'Find control must act as Refresh once a location is selected');
+assert(app.includes("if(row&&typeof row.openNow==='boolean')return row.openNow?'open':'closed';"),'Hours filtering must honor provider current open state when available');
+assert(api.includes("currentOpeningHours.openNow") && api.includes('openNow'),'Restaurant API must request and preserve current opening status');
+assert(api.includes('normAddress') && api.includes('sameRestaurant'),'Restaurant dedupe must normalize provider address variants and compare venue identity');
 console.log('Dinliminate clean static QA: PASS');
 console.log('HTML bytes:',html.length,'APP bytes:',app.length,'FOODS bytes:',foods.length,'API bytes:',api.length);
 
