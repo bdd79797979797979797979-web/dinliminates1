@@ -727,3 +727,26 @@ body.pass-active{overflow:hidden}
 
 /* CP262 — App Diagnosis opens at final size; prevents the small-to-large modal flash. */
 #diagnosisModal{min-height:78svh;overflow:auto}
+
+
+/* CP265 — make Settings system actions clearly distinct */
+.settings-system-action.diagnosis-action{
+  background:linear-gradient(180deg,#1f6f9d,#123f5d)!important;
+  color:#fff!important;
+  border-color:#4e94bf!important;
+  box-shadow:0 8px 20px #123f5d44!important;
+}
+.settings-system-action.diagnosis-action:hover{
+  background:linear-gradient(180deg,#2788bb,#165676)!important;
+  border-color:#6db5df!important;
+}
+.settings-system-action.restore-action{
+  background:linear-gradient(180deg,#b77724,#704512)!important;
+  color:#fff!important;
+  border-color:#d79a4d!important;
+  box-shadow:0 10px 24px #70451244!important;
+}
+.settings-system-action.restore-action:hover{
+  background:linear-gradient(180deg,#ce8a2c,#87541a)!important;
+  border-color:#e5b46f!important;
+}
