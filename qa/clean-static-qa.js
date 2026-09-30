@@ -74,7 +74,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r18'"),'Restaurant API should report r18 after hybrid provider search');
+assert(api.includes("const API_VERSION='r19'"),'Restaurant API should report r19 after hybrid provider search');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
