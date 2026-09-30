@@ -97,7 +97,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r20'"),'Restaurant API should report r20 after the 100-mile radius contract update');
+assert(api.includes("const API_VERSION='r20'"),'Restaurant API should report r20');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
@@ -167,9 +167,10 @@ const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; f
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
 assert(app.includes('RESTAURANT_TAXONOMY.restaurantSearchClassification'),'Restaurant Search should classify semantic cuisine/type queries with the shared taxonomy.');
 assert(app.includes("if(classification.kind==='category'&&classification.tag)"),'Restaurant Search should use taxonomy category matching rather than broad fast-food fallback for semantic searches.');
-assert(api.includes('const MAX_RADIUS=100'),'Restaurant search must support the requested 100-mile radius contract.');
-assert(/<option>100<\/option>/.test(html),'Restaurant radius UI must expose the requested 100-mile tier.');
-assert(api.includes('function centers(lat,lon,r)') && api.includes('radius>50?65:30') && api.includes('count=radius>50?8:6'),'100-mile search must expand multi-center discovery coverage.');
+assert(api.includes('const MAX_RADIUS=50'),'Restaurant search must be capped at 50 miles.');
+assert(!/<option>100<\/option>/.test(html),'Restaurant radius UI must not expose a 100-mile tier.');
+assert(api.includes('function centers(lat,lon,r)'),'Restaurant search must retain center-based coverage through the 50-mile maximum.');
+assert(app.includes('existing.length!==labels.length||existing.some((x,i)=>x!==labels[i])'),'Quick Cut rendering must preserve existing photo nodes when the set of labels is unchanged.');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
 assert(app.includes('foodMaybeRound') && app.includes('S.foodMaybeRound=true'),'Food Maybe choices must recycle into a second narrowing pass');
