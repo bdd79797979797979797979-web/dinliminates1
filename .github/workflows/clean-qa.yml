@@ -50,6 +50,8 @@ jobs:
         run: node qa/restaurant-radius-discovery-smoke.cjs
       - name: Restaurant search reliability smoke
         run: node qa/restaurant-search-reliability-smoke.cjs
+      - name: Restaurant contact enrichment merge smoke
+        run: node qa/restaurant-contact-enrichment-smoke.cjs
       - name: Install Playwright for six-point certification
         run: npm install --no-save playwright@1.55.0 pngjs@7.0.0
 
