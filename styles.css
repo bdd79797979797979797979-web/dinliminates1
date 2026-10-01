@@ -1925,3 +1925,34 @@ button,a,select{touch-action:manipulation}
   border-radius:50%!important;
   animation:restaurantFindSpin .72s linear infinite!important;
 }
+
+/* CP646 — unified Settings actions + quiet PDF export utility */
+.settings-stack{padding-bottom:18px}
+.settings-actions{display:grid;gap:8px}
+.settings-action{
+ width:100%;min-height:64px;padding:10px 12px;display:grid;grid-template-columns:38px minmax(0,1fr) 18px;gap:10px;align-items:center;
+ border:1px solid #302e2a;border-radius:16px;background:linear-gradient(145deg,#191817,#121210);color:#eee;text-align:left;
+ box-shadow:0 8px 24px #0006;transition:transform .12s ease,border-color .12s ease,background .12s ease
+}
+.settings-action:active{transform:scale(.992)}
+.settings-action-icon{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#20201e;border:1px solid #37332d;color:#d8c39a;font-size:16px;font-weight:800}
+.settings-action-copy{min-width:0;display:grid;gap:3px}
+.settings-action-copy b{font-size:13px;font-weight:850;letter-spacing:-.01em}
+.settings-action-copy small{font-size:10px;line-height:1.35;color:#8f8b84;font-weight:550}
+.settings-action-chevron{font-size:24px;line-height:1;color:#6f6b65;text-align:right}
+.settings-action.diagnosis-action{background:linear-gradient(145deg,#183e46,#122c31)!important;border-color:#3e747c!important;box-shadow:0 8px 24px #0d292e66!important}
+.settings-action.diagnosis-action .settings-action-icon{background:#214c55;border-color:#5b929a;color:#ccebed}
+.settings-action.diagnosis-action .settings-action-copy small{color:#a9ced2}
+.settings-action.restore-action{background:linear-gradient(145deg,#251d33,#17131f)!important;border-color:#4d3d64!important;box-shadow:0 8px 24px #160f1f88!important}
+.settings-action.restore-action .settings-action-icon{background:#30233e;border-color:#725891;color:#d9c8ef}
+.settings-action.reset-action{background:linear-gradient(145deg,#351c19,#1e1412)!important;border-color:#704038!important;box-shadow:0 8px 24px #170b0988!important}
+.settings-action.reset-action .settings-action-icon{background:#45231f;border-color:#8a5147;color:#efc5be}
+.settings-utility-heading{margin-top:22px!important}
+.settings-action.export-action{background:linear-gradient(145deg,#1d1e1d,#151614)!important;border-color:#3a3c38!important}
+.settings-action.export-action .settings-action-icon{background:#22241f;border-color:#5a5e54;color:#b9d0bf}
+.settings-action.export-choice{box-shadow:none;background:linear-gradient(145deg,#191817,#141412)}
+.export-pdf-copy{padding:4px 2px 4px}
+.export-pdf-kicker{font-size:9px;letter-spacing:.17em;color:#777;font-weight:850}
+.export-pdf-copy h4{font-size:26px;line-height:1;letter-spacing:-.04em;margin:7px 0 8px}
+.export-pdf-copy>p{margin:0 0 15px;font-size:12px;line-height:1.5;color:#999}
+.export-pdf-options{display:grid;gap:8px}
