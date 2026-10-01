@@ -342,7 +342,7 @@ assert(app.includes("(q||'restaurant')+' restaurant website'"),'Restaurant Websi
 assert(api.includes("Country,Phone,URL"),'Restaurant provider lookup should request phone/URL metadata where available');
 assert(api.includes("attrs.Phone||attrs.phone") && api.includes("attrs.URL||attrs.Url||attrs.url"),'Restaurant API should preserve provider phone and website metadata');
 assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
-assert(html.includes('Dinner Decisions Simplified') && !html.includes('Dinner Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('Add to iPhone'),'Current Home copy must be present');
+assert(html.includes('Dinner Decisions Simplified') && !html.includes('Dinner Simplified') && html.includes('Swipe. Dinliminate. Enjoy.') && html.includes('Add to iPhone'),'Current Home copy must be present');
 
 // CP323 Restaurant Details visibility contract
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
@@ -382,8 +382,8 @@ assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold
 // CP532 meal photo contracts.
 const foodPhotoRows=(()=>{const w={};vm.runInNewContext(foods,{window:w});return w.DINLIMINATE_FOODS||[]})();
 const foodByName=new Map(foodPhotoRows.map(x=>[x.name,x]));
-assert(/shop\.barebells\.com.*salty-peanut-gallery-0-8491550198\.png/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut bar product image');
-assert(/images\.pexels\.com.*pexels-photo-19202817\.jpeg/i.test(foodByName.get('BLT')?.image||''),'BLT must use the refreshed bacon-lettuce-tomato sandwich photo');
+assert(/shop\.barebells\.com.*US--barebells-salty-peanut-gallery-1-be48a101c1\.png/i.test(foodByName.get('Protein Bar')?.image||'')),'Protein Bar must use the Barebells Salty Peanut bar product image');
+assert(/snapcalorie-webflow-website\.s3\.us-east-2\.amazonaws\.com.*\/media\/food_pics_v2\/medium\/blt\.jpg/i.test(foodByName.get('BLT')?.image||'')),'BLT must use the refreshed bacon-lettuce-tomato sandwich photo');
 assert(/ourstate\.s3\.amazonaws\.com.*FEB25-PE_Cornbread-and-Buttermilk__TimRobison\.jpg/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the requested glass-and-cornbread pairing');
 assert(/images\.pexels\.com.*pexels-photo-2397401\.jpeg/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the refreshed Southern-style plate photo');
-assert(/commons\.wikimedia\.org.*Soup_beans_and_corn_bread\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed Southern pairing photo');
+assert(/www\.africanbites\.com.*\/wp-content\/uploads\/2018\/09\/IMG_9983-2\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||'')),'Pinto Beans & Cornbread must use the refreshed Southern pairing photo');
