@@ -1304,9 +1304,7 @@ function scheduleRestaurantProviderSearch(){
  restaurantQueryTimer=setTimeout(()=>{searchRestaurants();},650);
 }
 function bindRestaurantTools(){
- const hoursToggle=$('hoursToggle');
- if(hoursToggle) hoursToggle.querySelectorAll('[data-hours-mode]').forEach(btn=>{btn.onclick=()=>setRestaurantHoursMode(btn.dataset.hoursMode);});
-  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
+ $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
