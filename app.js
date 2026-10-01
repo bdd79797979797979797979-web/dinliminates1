@@ -192,7 +192,8 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
  let pending=restaurantGooglePhotoInflight.get(rowKey);
  if(!pending){
   const params=new URLSearchParams();
-  if(row.googlePlaceId)params.set('placeId',String(row.googlePlaceId));
+  if(row.googlePhotoName)params.set('photoName',String(row.googlePhotoName));
+  else if(row.googlePlaceId)params.set('placeId',String(row.googlePlaceId));
   else{
    if(row.name)params.set('name',String(row.name));
    if(row.address)params.set('address',String(row.address));
