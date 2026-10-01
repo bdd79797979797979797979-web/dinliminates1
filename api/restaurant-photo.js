@@ -382,6 +382,76 @@ async function bingImages(name,address,website){
   });
 }
 
+function sendPhotoRedirect(res,found){
+  const source=absoluteHttpsUrl(found?.imageUrl||'');
+  if(!source)return json(res,404,{ok:false,error:'No usable venue photo URL was found'});
+  const proxied='https://wsrv.nl/?url='+encodeURIComponent(source)+'&w=1200&h=800&fit=cover&q=85&output=webp&maxage=7d';
+  res.statusCode=302;
+  res.setHeader?.('Location',proxied);
+  res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
+  res.setHeader?.('X-Restaurant-Photo-Source',found.source||'verified-venue-photo');
+  if(found.sourceUrl)res.setHeader?.('X-Restaurant-Photo-Source-URL',found.sourceUrl);
+  res.end?.();
+  return res;
+}
+
+function exactAddressEvidence(text,address){
+  const body=normalizeText(text);
+  const a=String(address||'').match(/^\s*(\d{1,6})\b/);
+  const number=a?normalizeText(a[1]):'';
+  const parts=String(address||'').split(',').map(x=>normalizeText(x)).filter(Boolean);
+  const city=parts[1]||'';
+  return !!number&&body.includes(number)&&(!city||body.includes(city));
+}
+
+function exactNameEvidence(text,name){
+  const body=normalizeText(text);
+  const tokens=significantNameTokens(name);
+  return tokens.length>0&&tokens.every(token=>body.includes(token));
+}
+
+function isUsableOfficialImage(candidate){
+  const proof=String(candidate?.evidence||'')+' '+String(candidate?.url||'');
+  if(BLOCKED_IMAGE_HINTS.test(proof)||FOOD_IMAGE_HINTS.test(proof))return false;
+  return true;
+}
+
+async function fastOfficialPhoto(name,address,website){
+  const site=absoluteHttpsUrl(website);
+  if(!site)return null;
+  try{
+    const html=await fetchText(site,{},2200,1000000);
+    if(!exactNameEvidence(html,name)||!exactAddressEvidence(html,address))return null;
+    const candidates=extractVenueImageCandidates(html,site,name,address,website)
+      .filter(x=>x.source!=='meta'&&isUsableOfficialImage(x))
+      .sort((a,b)=>b.score-a.score);
+    const candidate=candidates.find(x=>VENUE_IMAGE_HINTS.test(String(x.evidence||'')+' '+String(x.url||'')))||candidates[0];
+    if(candidate)return{imageUrl:candidate.url,source:'official-restaurant-website',sourceUrl:site};
+  }catch{}
+  return null;
+}
+
+async function fastPublicSearchPhoto(name,address,website){
+  const safeName=String(name||'').replace(/"/g,'');
+  const safeAddress=String(address||'').replace(/"/g,'');
+  const host=hostOf(website).replace(/^www\./,'');
+  const query='"'+safeName+'" "'+safeAddress+'" exterior';
+  try{
+    const html=await fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:query,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},3500,1100000);
+    const candidates=extractBingImageCandidates(html);
+    for(const candidate of candidates){
+      const evidence=[candidate.title,candidate.description,candidate.hostPageUrl].join(' ');
+      if(!exactNameEvidence(evidence,name)||!exactAddressEvidence(evidence,address))continue;
+      if(!VENUE_IMAGE_HINTS.test(evidence)||FOOD_IMAGE_HINTS.test(evidence)||BLOCKED_IMAGE_HINTS.test(evidence))continue;
+      const sourceHost=hostOf(candidate.hostPageUrl).replace(/^www\./,'');
+      const trusted=host&&sourceHost&&sourceHost===host;
+      const publicVenue=/(?:tripadvisor\.com|tripadvisor\.co\.uk|restaurantji\.com|usarestaurants\.info|restaurantguru\.com|yelp\.com)$/.test(sourceHost);
+      if(trusted||publicVenue)return{imageUrl:candidate.contentUrl,source:'exact-public-search',sourceUrl:candidate.hostPageUrl};
+    }
+  }catch{}
+  return null;
+}
+
 function sendMedia(res,found){
   res.setHeader?.('Content-Type',found.media.type);
   res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
@@ -403,63 +473,22 @@ module.exports=async function handler(req,res){
   const website=String(q.website||'').trim().slice(0,700);
   const osmPhoto=absoluteHttpsUrl(q.osmPhoto||'');
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
+
   try{
     const verified=verifiedRestaurantPhoto(name,address);
-    if(verified){
-      const media=await fetchImage(verified.imageUrl,{},6500);
-      return sendMedia(res,{media,source:'verified-exact-public-photo',sourceUrl:verified.sourceUrl,sourceName:hostOf(verified.sourceUrl)});
-    }
+    if(verified)return sendPhotoRedirect(res,{imageUrl:verified.imageUrl,source:'verified-exact-public-photo',sourceUrl:verified.sourceUrl});
 
     if(osmPhoto&&!isBlockedHost(osmPhoto)&&!BLOCKED_IMAGE_HINTS.test(osmPhoto)&&!FOOD_IMAGE_HINTS.test(osmPhoto)){
-      try{
-        const media=await fetchImage(osmPhoto,{},6500);
-        return sendMedia(res,{media,source:'openstreetmap-poi-image',sourceUrl:'https://www.openstreetmap.org/',sourceName:'OpenStreetMap'});
-      }catch{}
+      return sendPhotoRedirect(res,{imageUrl:osmPhoto,source:'openstreetmap-poi-image',sourceUrl:'https://www.openstreetmap.org/'});
     }
 
-    const verifiedPages=await findVerifiedRestaurantPages(name,address,website);
+    const official=await fastOfficialPhoto(name,address,website);
+    if(official)return sendPhotoRedirect(res,official);
 
-    // 1) Exact restaurant pages: only use images that look like the venue itself.
-    for(const entry of verifiedPages){
-      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,website)
-        .filter(item=>{
-          if(item.score<55||item.score<=0)return false;
-          const proof=String(item.evidence||'')+' '+String(item.url||'');
-          if(BLOCKED_IMAGE_HINTS.test(proof)||FOOD_IMAGE_HINTS.test(proof))return false;
-          return hasVenueSignal(item)||(entry.verifiedFixture&&item.source!=='meta'&&item.score>=55);
-        });
-      for(const candidate of candidates.slice(0,14)){
-        try{
-          const media=await fetchImage(candidate.url,{'Referer':entry.url},6500);
-          return sendMedia(res,{media,source:'verified-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
-        }catch{}
-      }
-    }
+    const searched=await fastPublicSearchPhoto(name,address,website);
+    if(searched)return sendPhotoRedirect(res,searched);
 
-    // 2) Bing is discovery only; image must point back to a verified exact restaurant page
-    // and carry strong venue/exterior evidence.
-    const bing=await bingImages(name,address,website);
-    for(const candidate of bing.slice(0,40)){
-      if(candidate.score<150||!candidate.hostPageUrl)continue;
-      const html=await verifiedRestaurantPage(candidate.hostPageUrl,name,address);
-      if(!html)continue;
-      const pageCandidates=extractVenueImageCandidates(html,candidate.hostPageUrl,name,address,website);
-      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && hasVenueSignal(item));
-      try{
-        if(bestPage){
-          const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},6500);
-          return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
-        }
-      }catch{}
-      for(const pageCandidate of pageCandidates.filter(item=>item.score>=65 && hasVenueSignal(item)).slice(0,10)){
-        try{
-          const media=await fetchImage(pageCandidate.url,{'Referer':candidate.hostPageUrl},6500);
-          return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
-        }catch{}
-      }
-    }
-
-    return json(res,404,{ok:false,error:'No verified venue photo was found from non-Google sources'});
+    return json(res,404,{ok:false,error:'No verified venue photo was found'});
   }catch(e){
     console.error('dinliminate-restaurant-photo',e);
     return json(res,502,{ok:false,error:'Could not load the restaurant photo'});
@@ -477,5 +506,5 @@ module.exports._test={
   extractVenueImageCandidates,
   pageMatchesRestaurant,
   venueScore,
-  hasVenueSignal,matchesVerifiedPageFixture,VERIFIED_VENUE_PAGES,verifiedRestaurantPhoto,VERIFIED_RESTAURANT_PHOTOS
+  hasVenueSignal,matchesVerifiedPageFixture,VERIFIED_VENUE_PAGES,verifiedRestaurantPhoto,VERIFIED_RESTAURANT_PHOTOS,exactAddressEvidence,exactNameEvidence,fastOfficialPhoto,fastPublicSearchPhoto
 };
