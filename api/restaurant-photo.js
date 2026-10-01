@@ -290,10 +290,11 @@ async function findVerifiedRestaurantPages(name,address,website){
 
   if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos');
-  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
   if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
 
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,4);
+  const unique=[...new Set(queries.filter(Boolean))].slice(0,5);
   const pages=await Promise.allSettled(unique.map(q=>fetchText(
     'https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),
     {},4500,1100000
@@ -325,10 +326,11 @@ async function bingImages(name,address,website){
   const websiteHost=hostOf(website);
 
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant exterior');
+  if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
 
-  const unique=[...new Set(queries)].slice(0,3);
+  const unique=[...new Set(queries)].slice(0,4);
   const pages=await Promise.allSettled(unique.map(q=>fetchText(
     'https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),
     {},4500,1200000
@@ -399,11 +401,13 @@ module.exports=async function handler(req,res){
     // and carry strong venue/exterior evidence.
     const bing=await bingImages(name,address,website);
     for(const candidate of bing.slice(0,40)){
-      if(candidate.score<150||!candidate.hostPageUrl)continue;
+      if(candidate.score<115||!candidate.hostPageUrl)continue;
       const html=await verifiedRestaurantPage(candidate.hostPageUrl,name,address);
       if(!html)continue;
+      const pageText=normalizeMatchText(String(html||'').slice(0,700000));
+      const isGalleryPage=/(?:photo gallery|traveler photos|photos of|location photos|our photos|photos|gallery)/.test(pageText);
       const pageCandidates=extractVenueImageCandidates(html,candidate.hostPageUrl,name,address,website);
-      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && hasVenueSignal(item));
+      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && !FOOD_IMAGE_HINTS.test(String(item.context||'')) && (hasVenueSignal(item)||isGalleryPage||item.source==='meta'));
       try{
         if(bestPage){
           const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},6500);
