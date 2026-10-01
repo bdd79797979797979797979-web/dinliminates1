@@ -18,8 +18,8 @@ async function callNetlify(){
 
 (async()=>{
   const v=await callVercel(), n=await callNetlify();
-  assert.equal(v.status,200); assert.equal(v.body.ok,true); assert.equal(v.body.version,'r20');
-  assert.equal(n.status,200); assert.equal(n.body.ok,true); assert.equal(n.body.version,'r20');
+  assert.equal(v.status,200); assert.equal(v.body.ok,true); assert.equal(v.body.version,'r22');
+  assert.equal(n.status,200); assert.equal(n.body.ok,true); assert.equal(n.body.version,'r22');
 
   const api=require('../api/restaurants');
   const rq=api._test.requestQuery;
