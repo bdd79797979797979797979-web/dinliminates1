@@ -23,9 +23,10 @@ try{
 
     await page.locator('#foodStart').click();
     await page.waitForTimeout(150);
-    const foodButtons=await page.evaluate(()=>{const ids=['foodBack','foodCut','foodMaybe','foodHide','addFood'];const out={};for(const id of ids){const el=document.getElementById(id);if(!el)continue;const r=el.getBoundingClientRect();out[id]={width:r.width,height:r.height};}return out;});
+    const foodButtons=await page.evaluate(()=>{const ids=['foodBack','foodCut','foodChoose','foodMaybe','foodHide','addFood'];const out={};for(const id of ids){const el=document.getElementById(id);if(!el)continue;const r=el.getBoundingClientRect();out[id]={width:r.width,height:r.height};}return out;});
     assert.ok(foodButtons.foodCut.width>=60&&foodButtons.foodCut.height>=60,'Meal Cut should remain large');
     assert.ok(foodButtons.foodMaybe.width>=60&&foodButtons.foodMaybe.height>=60,'Meal Maybe should remain large');
+    assert.ok(foodButtons.foodChoose.width>=44&&foodButtons.foodChoose.height>=44,'Meal Choose should have an iPhone-safe target');
     for(const id of ['foodBack','foodHide','addFood']) assert.ok(foodButtons[id].width>=44&&foodButtons[id].height>=44,id+' should have an iPhone-safe target');
 
     const foodViewport=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight}));
@@ -45,7 +46,7 @@ try{
     assert.deepEqual(await hours.allTextContents(),['Open','All']);
     assert.equal(await hours.nth(0).getAttribute('aria-pressed'),'true');
 
-    const restaurantControls=await page.evaluate(()=>{const ids=['restaurantBackTop','restaurantMenu','locate','find','restaurantSearch'];const out={};for(const id of ids){const el=document.getElementById(id);if(!el)continue;const r=el.getBoundingClientRect();out[id]={width:r.width,height:r.height};}return out;});
+    const restaurantControls=await page.evaluate(()=>{const ids=['restaurantBackTop','restaurantMenu','locate','find','restaurantSearch','restChoose'];const out={};for(const id of ids){const el=document.getElementById(id);if(!el)continue;const r=el.getBoundingClientRect();out[id]={width:r.width,height:r.height};}return out;});
     for(const id of Object.keys(restaurantControls)) assert.ok(restaurantControls[id].width>=32&&restaurantControls[id].height>=32,id+' should remain usable');
 
     const restViewport=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
