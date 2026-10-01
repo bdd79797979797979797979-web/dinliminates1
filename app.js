@@ -1728,17 +1728,27 @@ const render = () => {
 const history = readHistory();
 const y = cursor.getFullYear(), m = cursor.getMonth();
 const first = new Date(y,m,1).getDay(), last = new Date(y,m+1,0).getDate();
-let body = '<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext">›</button></div><div class="cal-grid cal-grid-20">';
-['S','M','T','W','T','F','S'].forEach(d => body += '<span class="cal-d">'+d+'</span>');
-for(let i=0;i<first;i++) body += '<span></span>';
+const today = new Date();
+const todayKey = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+let body = '<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev" aria-label="Previous month">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext" aria-label="Next month">›</button></div><div class="cal-grid cal-grid-20" role="grid" aria-label="'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+' history">'; 
+['S','M','T','W','T','F','S'].forEach(d => body += '<span class="cal-d" role="columnheader">'+d+'</span>');
+for(let i=0;i<first;i++) body += '<span class="cal-empty" aria-hidden="true"></span>';
 for(let day=1;day<=last;day++) {
 const key = y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
 const entries = history.filter(x => x.date === key);
-const entry = entries[0];
-const more = entries.length>1 ? '<span class="cal-more">+'+(entries.length-1)+'</span>' : '';
-body += '<div class="cal-cell">'+
-(entry ? '<button class="cal-day has" data-history-date="'+esc(entry.id)+'"><b>'+day+'</b><img src="'+esc(historyImageSource(entry))+'" data-restaurant-photo-key="'+esc(entry.type==='restaurant'?entry.id:'')+'" data-final-fallback="'+(entry.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE)+'" alt="'+esc(entry.name)+'">'+more+'</button><button class="cal-x" data-history-delete="'+esc(entry.id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' :
-'<div class="cal-day"><b>'+day+'</b></div>')+'</div>';
+const todayClass = key===todayKey ? ' today' : '';
+const limited = entries.slice(0,2);
+const more = entries.length>2 ? '<span class="cal-more">+'+(entries.length-2)+'</span>' : '';
+let dayMarkup;
+if(limited.length===0){
+  dayMarkup = '<div class="cal-day"><b>'+day+'</b></div>';
+} else if(limited.length===1){
+  const entry=limited[0];
+  dayMarkup = '<button class="cal-day has single" data-history-date="'+esc(entry.id)+'" aria-label="View '+esc(entry.name)+' from '+esc(key)+'"><span class="cal-date-chip">'+day+'</span><img src="'+esc(historyImageSource(entry))+'" data-restaurant-photo-key="'+esc(entry.type==='restaurant'?entry.id:'')+'" data-final-fallback="'+(entry.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE)+'" alt="'+esc(entry.name)+'"><span class="cal-entry-kind">'+(entry.type==='restaurant'?'Restaurant':'Food')+'</span></button>';
+} else {
+  dayMarkup = '<div class="cal-day has dual" aria-label="'+entries.length+' history entries on '+esc(key)+'"><span class="cal-date-chip">'+day+'</span>'+limited.map(entry=>'<button class="cal-photo-link" data-history-date="'+esc(entry.id)+'" aria-label="View '+esc(entry.name)+' from '+esc(key)+'"><img src="'+esc(historyImageSource(entry))+'" data-restaurant-photo-key="'+esc(entry.type==='restaurant'?entry.id:'')+'" data-final-fallback="'+(entry.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE)+'" alt="'+esc(entry.name)+'"><span class="cal-photo-kind">'+(entry.type==='restaurant'?'Restaurant':'Food')+'</span></button>').join('')+more+'</div>';
+}
+body += '<div class="cal-cell'+todayClass+'" role="gridcell">'+dayMarkup+(entries.length ? '<button class="cal-x" data-history-delete="'+esc(entries[0].id)+'" aria-label="Remove history entry for '+esc(key)+'">×</button>' : '')+'</div>';
 }
 body += '</div></div><div class="history-list">';
 body += history.length ? '<div class="history-toolbar"><span class="status">'+history.length+' saved decision'+(history.length===1?'':'s')+'</span><button class="secondary" id="historyClearAll" type="button">Clear all</button></div>'+history.slice(0,30).map(x => '<button class="history-row history-open" data-history-id="'+esc(x.id)+'"><img src="'+esc(historyImageSource(x))+'" data-restaurant-photo-key="'+esc(x.type==='restaurant'?x.id:'')+'" data-final-fallback="'+(x.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE)+'" alt="'+esc(x.name)+'"><span><b>'+esc(x.name)+'</b><small>'+esc(x.date)+' · '+esc(x.type)+'</small></span></button>').join('') : '<p class="status">No history yet.</p>';
