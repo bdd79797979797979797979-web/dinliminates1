@@ -1639,3 +1639,16 @@ button,a,select{touch-action:manipulation}
   justify-content:space-between!important;
   gap:0!important;
 }
+
+
+/* CP566 — color swipe feedback by decision direction: premium red for Cut, muted green for Maybe. */
+.card[data-swipe="cut"]::after{
+  color:#e06a61;
+  border-color:#b84c45;
+  text-shadow:0 0 12px #b84c4538;
+}
+.card[data-swipe="maybe"]::after{
+  color:#79c892;
+  border-color:#4e9c68;
+  text-shadow:0 0 12px #4e9c6850;
+}
