@@ -198,7 +198,11 @@ assert.match(imageCatalog.popcorn||'',/pexels-photo-6422042\.jpeg/,'Popcorn shou
 assert.equal(await page.evaluate(()=>window.DINLIMINATE_FOODS.find(x=>x.id==='stir-fry')?.name),'Fajitas');
 const foodGeom=await page.evaluate(()=>{const card=document.querySelector('#foodCard'),actions=document.querySelector('#foodCut')?.parentElement;return {scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,cardBottom:card?.getBoundingClientRect().bottom||0,actionsBottom:actions?.getBoundingClientRect().bottom||0,h:innerHeight}});
 let s=await qa(); assert.equal(s.screen,'food'); assert.equal(s.foodPool.length,116,'expected restored food catalog');
-await click('#foodChoose'); await settle(); assert.equal(await page.locator('#winner').isVisible(),true,'Choose should immediately open the winner screen'); await click('#restart'); await settle(); await click('#foodStart'); await settle();
+await click('#foodChoose'); await settle(); assert.equal(await page.locator('#winner').isVisible(),true,'Choose should immediately open the winner screen');
+const foodWinnerSrc=await page.locator('#winImg').getAttribute('src');
+assert.ok(foodWinnerSrc && !foodWinnerSrc.endsWith('HUNGRY_IMAGE'),'Food winner should display a meal photo');
+assert.ok((await page.locator('#winImg').evaluate(el=>el.complete && el.naturalWidth>0)),'Food winner image should load successfully');
+ await click('#restart'); await settle(); await click('#foodStart'); await settle();
 const foodImageSources=await page.evaluate(()=>window.DINLIMINATE_FOODS.map(x=>({id:x.id,image:x.image})));
 assert.equal(foodImageSources.length,116,'Food data should expose 116 image-backed choices');
 assert.equal(foodImageSources.every(x=>typeof x.image==='string'&&x.image.length>0),true,'Every built-in food must have an image URL');
@@ -391,6 +395,13 @@ assert.equal(await page.locator('.restaurant .restaurant-tools').count(),0,'Rest
 const restSearchSnapshot=await qa();
 assert.equal(restSearchSnapshot.restaurantPool.includes('closed-1'),true,'Restaurant results must not be filtered by opening hours');
 // Restaurant card controls must all be real interactive elements.
+const restWinnerButton=page.locator('#restChoose');
+assert.equal(await restWinnerButton.count(),1,'Restaurant Choose should be present on the restaurant card');
+await restWinnerButton.click(); await settle();
+assert.equal(await page.locator('#winner').isVisible(),true,'Restaurant Choose should open the winner screen');
+assert.ok(await page.locator('#winImg').getAttribute('src'),'Restaurant winner should have a photo source');
+assert.ok((await page.locator('#winImg').evaluate(el=>el.complete && el.naturalWidth>0)),'Restaurant winner image should load successfully');
+await click('#restart'); await settle();
 await page.locator('#restDetails').click(); await settle();
 assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet');
 await page.locator('#detailsModal [data-close]').click(); await settle();
