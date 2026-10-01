@@ -1,0 +1,92 @@
+name: Dinliminate CP655 Official Website QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/restaurants.js"
+      - "app.js"
+      - "qa/restaurant-website-resolver-smoke.cjs"
+      - ".github/workflows/cp654-website-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Run deterministic resolver regression
+        run: node qa/restaurant-website-resolver-smoke.cjs
+
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Test live Netlify preview resolver
+        env:
+          PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--dinliminate112.netlify.app
+        run: |
+          node <<'NODE'
+          const base=(process.env.PREVIEW_URL||'').replace(/\/$/,'');
+          const cases=[
+            {
+              name:"Camacho's Famous",
+              address:"1021 Highway 76, Clarksville, TN 37043, Suite 106",
+              expectHost:"camachosfamous.com"
+            },
+            {
+              name:"HoneyBaked of Clarksville",
+              address:"1822 Fort Campbell Blvd, Clarksville, TN 37042",
+              expectHost:"honeybaked.com"
+            },
+            {
+              name:"The Thirsty Goat",
+              address:"4044 Highway 41A South, Clarksville, TN 37043",
+              expectHost:"thirstygoatsango.com"
+            },
+            {
+              name:"Chris' Pizza Village - Sango",
+              address:"3383 Highway 41A South, Clarksville, TN 37043",
+              expectHost:"chrispizzavillagetn.com"
+            }
+          ];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          async function run(){
+            for(let attempt=1;attempt<=12;attempt++){
+              try{
+                for(const item of cases){
+                  const qs=new URLSearchParams({mode:'website',name:item.name,address:item.address});
+                  const res=await fetch(base+'/api/restaurants?'+qs.toString());
+                  if(!res.ok)throw new Error(item.name+' HTTP '+res.status);
+                  const data=await res.json();
+                  if(!data.ok)throw new Error(item.name+' resolver not ok');
+                  if(!data.website)throw new Error(item.name+' returned no website');
+                  const host=new URL(data.website).hostname.replace(/^www\./,'');
+                  if(host!==item.expectHost&&!host.endsWith('.'+item.expectHost)){
+                    throw new Error(item.name+' resolved to unexpected host '+host);
+                  }
+                  console.log(item.name+' -> '+data.website+' ('+data.source+')');
+                }
+                console.log('CP655 live official web presence resolver: PASS');
+                return;
+              }catch(err){
+                console.log('Attempt '+attempt+' failed: '+err.message);
+                if(attempt===12)process.exit(1);
+                await sleep(5000);
+              }
+            }
+          }
+          run();
+          NODE
