@@ -25,4 +25,7 @@ Base: CP648 photo quality gate
 - No existing history data format migration was introduced.
 
 ## Testing status
-Code changes are committed on the branch. Hosted visual verification is the remaining gate; no claim of live deployment is made until a preview is available and tested.
+- Netlify deploy preview 121 reached READY on commit `30b42bc03b929aa07897e194685efaf37caf3f65`.
+- GitHub commit status for `netlify/dinliminate112/deploy-preview` is success.
+- Source regression checks confirmed single-entry tap targets, dual-entry tap targets, +N handling, today styling, accessibility labels, CP649 release metadata, and checkpoint documentation.
+- Browser-level visual automation was not available in this environment, so the preview build is host-certified but not claimed as visually inspected here.
