@@ -1029,7 +1029,9 @@ function renderFindButton(){
  const btn=$('find');if(!btn)return;
  const state=S.location?'refresh':'find';
  btn.dataset.state=state;
- btn.textContent=state==='refresh'?'Refresh':'Find';
+ btn.innerHTML=state==='refresh'
+  ? '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 8.5V4.8l-2.2 2.2A7.5 7.5 0 1 0 19.2 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 4.8h-3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Refresh</span>'
+  : '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Find</span>';
  btn.setAttribute('aria-label',state==='refresh'?'Refresh restaurant search':'Find restaurants');
 }
 function setFindBusy(busy) {
@@ -1038,7 +1040,11 @@ btn.disabled=busy;
 btn.setAttribute('aria-busy',String(busy));
 const state=busy?'busy':(S.location?'refresh':'find');
 btn.dataset.state=state;
-btn.textContent=busy?'Search':(S.location?'Refresh':'Find');
+btn.innerHTML=busy
+ ? '<span class="find-spinner" aria-hidden="true"></span><span class="sr-only">Searching</span>'
+ : (state==='refresh'
+   ? '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 8.5V4.8l-2.2 2.2A7.5 7.5 0 1 0 19.2 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 4.8h-3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Refresh</span>'
+   : '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Find</span>');
 }
 function setLocationBusy(busy) {
 const btn=$('locate');if(!btn)return;
