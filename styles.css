@@ -1588,3 +1588,7 @@ button,a,select{touch-action:manipulation}
   .luxury-home .home-foot-actions{gap:2px}
   .luxury-home .home-foot-action{width:126px;min-width:126px;height:27px;min-height:27px;font-size:8.5px!important}
 }
+
+
+/* CP559 — Restaurant swipe feedback is explicitly top-centered; decision buttons stay in the bottom Tinder row. */
+#restaurant .card[data-swipe="cut"]::after,#restaurant .card[data-swipe="maybe"]::after{top:18px!important;left:50%!important;right:auto!important;transform:translateX(-50%) rotate(0deg)!important;}
