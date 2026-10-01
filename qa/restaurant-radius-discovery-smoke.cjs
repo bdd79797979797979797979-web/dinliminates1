@@ -28,8 +28,8 @@ assert.equal(p50.mode,'wide');
 assert.equal(p50.reserveMs,4500);
 assert.equal(p50.coveragePoints,1);
 assert.equal(p50.groups.length,1);
-assert.equal(p50.groups[0].length,7);
-assert.equal(p50.groups.length,1); assert.equal(p50.groups[0].length,1); assert.equal(p50.groups[0][0].radius,50);
+assert.equal(p50.groups[0].length,1);
+assert.equal(p50.groups[0][0].radius,50);
 
 const p100=t.radiusDiscoveryPlan(36.53,-87.34,100); assert.equal(p100.mode,'wide'); assert.equal(p100.reserveMs,4500); assert.equal(p100.coveragePoints,13); assert.equal(p100.groups.length,4); assert.deepEqual(p100.groups.map(g=>g.length),[4,4,4,1]); assert(p100.groups.flat().every(x=>x.radius===50),'100-mile discovery must use overlapping <=50-mile provider circles');
 console.log('restaurant radius discovery smoke: PASS');
