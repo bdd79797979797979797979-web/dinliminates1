@@ -40,3 +40,18 @@ CP643 isolated photo QA passed:
 Deployment status:
 - This checkpoint has not been promoted to production.
 - No preview URL is recorded here until a deployed build is READY and runtime-verified.
+
+
+## Final hosted verification
+
+- Netlify preview: https://deploy-preview-117--dinliminate112.netlify.app
+- Netlify deployment for commit `efd290d55c21b64d231ff7f8858b0586831c1964`: READY.
+- Live HTTP certification: PASS.
+- Hosted home: HTTP 200 and expected Dinner Decisions / restaurant entry points present.
+- Hosted release metadata: Build 643 / CP643.
+- Restaurant health: HTTP 200, max radius 100 miles.
+- Exact Wendy's Clarksville venue test: photo returned HTTP 200 from `official-venue-page`.
+- Exact venue test response size: 6,249 bytes.
+- Unknown restaurant test: HTTP 404; no generic photo returned.
+- Netlify preview SSO requirement was disabled for non-production/deploy-preview access; production access was not changed.
+- Vercel remains un-deployed for CP643 because the account is currently rate-limited for 24 hours.
