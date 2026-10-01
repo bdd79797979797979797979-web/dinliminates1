@@ -1980,6 +1980,23 @@ function aboutView(){
 function iphoneHelp() {
 openModal('iphoneModal','Add to iPhone','<div class="iphone-guide"><div class="iphone-guide-intro"><span class="iphone-guide-kicker">ADD TO HOME SCREEN</span><h4>One tap away.</h4><p>Use Safari on your iPhone, then follow these three steps.</p></div><div class="iphone-guide-steps"><div class="iphone-guide-step"><span>1</span><div><b>Open Dinliminate in Safari</b></div></div><div class="iphone-guide-step"><span>2</span><div><b>Tap Share</b></div></div><div class="iphone-guide-step"><span>3</span><div><b>Tap Add to Home Screen</b></div></div></div></div>');
 }
+async function shareApp() {
+ const url=String(location.href||'').split('#')[0];
+ const shareData={
+  title:'Dinliminate — Dinner Decisions Simplified',
+  text:'Try Dinliminate — swipe until dinner is decided.',
+  url
+ };
+ if(navigator.share){
+  try{await navigator.share(shareData);return;}catch(err){if(err?.name==='AbortError')return;}
+ }
+ if(navigator.clipboard){
+  try{await navigator.clipboard.writeText(url);appToast('App link copied.');return;}catch{}
+ }
+ openModal('shareAppModal','Share Dinliminate','<div class="share-app-fallback"><span class="share-app-kicker">SHARE DINLIMINATE</span><h4>Pass it along.</h4><p>Copy the link below and send it to anyone who needs help deciding dinner.</p><input class="share-app-url" type="text" readonly value="'+esc(url)+'" onclick="this.select()"><button class="detail-web-action share-app-copy" id="shareAppCopy" type="button">Copy link</button></div>');
+ const copy=$('shareAppCopy');
+ if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(url);appToast('App link copied.');}catch{const field=document.querySelector('.share-app-url');field?.focus();field?.select();}};
+}
 function shareWinner() {
 if (!S.winnerItem)return;
 const text='Tonight: '+S.winnerItem.name;
@@ -2037,6 +2054,7 @@ $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').
 $('backToStart').onclick = () => home();
 $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
 $('iphoneHelp').onclick = iphoneHelp;
+$('shareApp').onclick = shareApp;
 $('locate').onclick = useLocation;
 $('find').onclick = searchRestaurants;
 $('radius').addEventListener('change', () => {
