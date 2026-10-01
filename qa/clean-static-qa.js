@@ -17,7 +17,7 @@ for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','rest
 for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r22'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
-assert(app.includes("const DEFAULT_FOOD_IMAGE = './fallback-food.svg';"),'Added meals must have a dedicated default food image.');
+assert(app.includes("const DEFAULT_FOOD_IMAGE = 'https://images.pexels.com/photos/16365767/pexels-photo-16365767.jpeg?auto=compress&cs=tinysrgb&w=1800';"),'Added meals must have a dedicated default food image.');
 assert(app.includes("let photo=$('editFoodPhoto').value.trim()||DEFAULT_FOOD_IMAGE"),'Meals saved without an uploaded photo must use the default food image.');
 assert(app.includes('else item.image=DEFAULT_FOOD_IMAGE;'),'Missing stored custom photos must recover to the default food image.');
 assert(css.includes('#manageFoodsModal .manage-delete'),'Custom meal Delete action must have premium destructive styling');
