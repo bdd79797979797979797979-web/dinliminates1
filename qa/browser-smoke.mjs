@@ -290,7 +290,7 @@ assert.equal(await page.locator('#settingsModal .diagnosis-loading').count(),0,'
 assert.equal(await page.locator('#settingsModal .diagnosis-section').count(),5,'App Diagnosis should render all diagnostic sections immediately');
 assert.ok((await page.locator('#settingsModal').boundingBox())?.height>500,'App Diagnosis should open at full size without a small-to-large flash');
 assert.match(await page.locator('#settingsModal').innerText(),/Core app/i,'App Diagnosis should show grouped diagnostic sections');
-assert.match(await page.locator('#settingsModal').innerText(),/Food system/i,'App Diagnosis should report Food system health');
+assert.match(await page.locator('#settingsModal').innerText(),/Meal system/i,'App Diagnosis should report Meal system health');
 assert.match(await page.locator('#settingsModal').innerText(),/Restaurant system/i,'App Diagnosis should report Restaurant system health');
 assert.match(await page.locator('#settingsModal').innerText(),/Device & runtime/i,'App Diagnosis should report device/runtime health');
 assert.match(await page.locator('#settingsModal').innerText(),/Build & deployment/i,'App Diagnosis should report build/deployment health');
