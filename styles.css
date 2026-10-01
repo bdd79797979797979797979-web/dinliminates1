@@ -1299,13 +1299,8 @@ button,a,select{touch-action:manipulation}
   #restaurant .swipe-actions .round-cut,
   #restaurant .swipe-actions .round-maybe{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important}
   .food-swipe-actions,#restaurant .swipe-actions{grid-template-columns:44px 64px 64px 44px;gap:9px!important}
-  #restaurant .restaurant-hours-control{min-height:40px;margin-top:3px}
-  #restaurant .hours-control-btn{min-height:36px;height:36px!important;min-width:56px;font-size:9px!important}
-  #restaurant .restaurant-hours-buttons{min-height:40px}
 }
 @media(max-width:340px){
-  #restaurant .restaurant-hours-control{gap:4px}
-  #restaurant .hours-control-btn{min-width:52px}
   .food-swipe-actions,#restaurant .swipe-actions{grid-template-columns:44px 60px 60px 44px;gap:7px!important}
 }
 
