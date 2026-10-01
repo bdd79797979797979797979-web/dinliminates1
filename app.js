@@ -1391,7 +1391,10 @@ S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
 if(!S.restaurantMaybeRound){const ni=restaurantChoiceIndex(rows,S.restaurantIndex,false);if(ni>=0)S.restaurantIndex=ni;else if(rows.some(x=>x._maybe)){S.restaurantMaybeRound=true;S.restaurantIndex=restaurantChoiceIndex(rows,0,true);}}
 const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
-const restaurantFallback = () => FINAL_RESTAURANT_IMAGE;
+const restaurantFallback = (r) => {
+ const exact=String(r?.photo||'').trim();
+ return /^https:\/\//i.test(exact)&&String(r?.photoSource||'').toLowerCase().includes('openstreetmap') ? imageProxyUrl(exact) : FINAL_RESTAURANT_IMAGE;
+};
 const image = restaurantFallback(row);
 const distanceLabel=Number.isFinite(Number(row.distance)) ? Number(row.distance).toFixed(1)+' mi away' : '';
 const restaurantMaybeBadge=row._maybe?'<span class="maybe-stamp restaurant-maybe-stamp" aria-label="Marked Maybe">MAYBE</span>':'';
