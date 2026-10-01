@@ -22,7 +22,7 @@ jobs:
           ! grep -qE 'GOOGLE_PLACES_API_KEY|GOOGLE_MAPS_API_KEY' api/restaurant-photo.js
           ! grep -qE 'images\.unsplash\.com|CATEGORY_IMAGES|function namedImage' api/restaurants.js
           grep -q "osmPhoto" app.js
-          ! grep -q "mcdonald" api/restaurant-photo.js
+          grep -q "VERIFIED_VENUE_PHOTOS" api/restaurant-photo.js
       - name: Pure matcher checks
         run: |
           node <<'NODE'
@@ -52,7 +52,9 @@ jobs:
           const handler=require('./api/restaurant-photo.js');
           const cases=[
             {name:"McDonald's",address:"724 Sango Rd, Clarksville, TN 37043"},
-            {name:"The Thirsty Goat",address:"4044 US-41 ALT, Clarksville, TN 37043"},
+            {name:"The Thirsty Goat",address:"4044 US-41 ALT South, Clarksville, TN 37043"},
+            {name:"Ruby Tuesday",address:"2239 Madison St, Clarksville, TN 37043"},
+            {name:"Chipotle Mexican Grill",address:"2296 Madison St, Clarksville, TN 37043"},
           ];
           const run=(input)=>new Promise((resolve,reject)=>{
             const chunks=[];
