@@ -1,6 +1,7 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
+const net=require('net');
 const MAX_RADIUS=100;
-const API_VERSION='r26';
+const API_VERSION='r27';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
@@ -937,6 +938,20 @@ async function suggest(q){
  const seen=new Set();return rows.filter(x=>{const k=norm(x.display);if(seen.has(k))return false;seen.add(k);return true}).slice(0,7)
 }
 async function reverse(lat,lon){try{const d=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?'+new URLSearchParams({location:lon+','+lat,f:'json'}),{},7000);return String(d?.address?.Match_addr||'Current location')}catch{return'Current location'}}
+function clientIp(req){
+ const headers=req?.headers||{};
+ const candidates=[headers['x-nf-client-connection-ip'],headers['x-forwarded-for'],headers['client-ip'],headers['cf-connecting-ip']].flatMap(v=>String(v||'').split(',')).map(v=>v.trim()).filter(Boolean);
+ return candidates.find(ip=>net.isIP(ip))||'';
+}
+async function ipLocation(req){
+ const ip=clientIp(req); if(!ip)throw Object.assign(new Error('Client network location is unavailable.'),{code:'NO_CLIENT_IP'});
+ const url='https://ipapi.co/'+encodeURIComponent(ip)+'/json/';
+ const data=await json(url,{headers:{'User-Agent':'Dinliminate/1.0 location fallback'}},5000);
+ const lat=n(data?.latitude),lon=n(data?.longitude); if(!validCoords(lat,lon))throw Object.assign(new Error('Network location returned invalid coordinates.'),{code:'INVALID_IP_LOCATION'});
+ const city=String(data?.city||'').trim(),region=String(data?.region_code||data?.region||'').trim(),postal=String(data?.postal||'').trim();
+ const display=[city,region,postal].filter(Boolean).join(', ')||'Approximate network location';
+ return {lat,lon,display,timezone:String(data?.timezone||'').trim(),source:'ip'};
+}
 function requestQuery(req){
  const source=req?.query&&typeof req.query==='object'?req.query:(req?.queryStringParameters&&typeof req.queryStringParameters==='object'?req.queryStringParameters:null);
  if(source){
@@ -955,6 +970,7 @@ if(mode==='health'){if(res.setHeader)res.setHeader('Cache-Control','public, max-
 if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');return res.status(200).json({ok:true,results:await suggest(q.get('q'))});}
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(q.get('lat')),lon=n(q.get('lon'));if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
+if(mode==='ip-location'){const result=await ipLocation(req);if(res.setHeader)res.setHeader('Cache-Control','private, max-age=300, stale-while-revalidate=300');return res.status(200).json({ok:true,...result})}
 if(mode==='website'){
  const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80),force=String(q.get('refresh')||'')==='1';
  if(!name)return res.status(400).json({ok:false,message:'Restaurant name is required.'});
