@@ -81,6 +81,10 @@ jobs:
 
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
+      - name: iPhone optimization smoke
+        env:
+          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-94--diliminate.netlify.app' }}
+        run: node qa/iphone-optimization-smoke.mjs
 
       - name: Accessibility smoke
         run: node qa/accessibility-smoke.mjs
