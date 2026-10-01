@@ -1535,3 +1535,56 @@ button,a,select{touch-action:manipulation}
     gap:10px!important;
   }
 }
+
+
+/* CP554 — subtle premium Home footer actions */
+.luxury-home .home-foot-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+}
+.luxury-home .home-foot-action{
+  width:126px;
+  min-width:126px;
+  height:28px;
+  min-height:28px;
+  padding:0 8px!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:linear-gradient(180deg,#181715,#12110f)!important;
+  border:1px solid #373127!important;
+  color:#a8a198!important;
+  box-shadow:0 5px 15px #0005,inset 0 1px 0 #ffffff08;
+  font-size:9px!important;
+  font-weight:750;
+  letter-spacing:.02em;
+  transition:transform .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.luxury-home .home-foot-action:hover{
+  color:#d7c7aa!important;
+  border-color:#514632!important;
+  box-shadow:0 6px 17px #0006,inset 0 1px 0 #ffffff0c;
+}
+.luxury-home .home-foot-action:active{
+  transform:translateY(1px) scale(.985);
+}
+.luxury-home .home-foot-action + .home-foot-action{
+  border-color:#2e2a25!important;
+  color:#8f8a83!important;
+}
+#shareApp{
+  background:linear-gradient(180deg,#161615,#10100f)!important;
+}
+.share-app-fallback{display:grid;gap:11px;padding:3px 2px 2px}
+.share-app-kicker{color:#8baec8;font-size:8px;font-weight:900;letter-spacing:.18em}
+.share-app-fallback h4{margin:0;color:#f4eee6;font-size:23px;letter-spacing:-.04em}
+.share-app-fallback p{margin:0;color:#92908a;font-size:11px;line-height:1.5}
+.share-app-url{width:100%;height:42px;border-radius:12px;border:1px solid #34302a;background:#191817;color:#d8d0c5;padding:0 11px;font-size:10px;outline:none}
+.share-app-copy{width:100%;min-height:42px!important;height:42px!important;border-radius:12px!important}
+@media(max-width:390px){
+  .luxury-home .home-foot-actions{gap:2px}
+  .luxury-home .home-foot-action{width:126px;min-width:126px;height:27px;min-height:27px;font-size:8.5px!important}
+}
