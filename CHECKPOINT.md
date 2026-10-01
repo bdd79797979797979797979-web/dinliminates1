@@ -1,3 +1,23 @@
+# CURRENT CHECKPOINT — Build 197 / CP487–CP488
+
+Date: 2026-10-01
+
+Working branch: `cp487-launch-candidate-full-pass-2026-10-01`
+Exact Build 197 baseline: `97ce05a158520462e7e546f1dadd3e9b81913403`
+Baseline recovery: `recovery-cp487-build197-pre-launch-pass-2026-09-30`
+Latest verified result: 116 unique built-in meals; QA synchronized to API r22 and 100-mile radius; current food image hosts aligned across proxy layers.
+
+Recovery chain:
+- `checkpoint-cp487-pre-launch-qa-sync-2026-10-01`
+- `checkpoint-cp487-pre-food-catalog-repair-2026-10-01`
+- `checkpoint-cp488-pre-launch-qa-update-2026-10-01`
+- `checkpoint-cp488-pre-photo-host-alignment-2026-10-01`
+- `checkpoint-cp488-photo-hosts-verified-2026-10-01`
+
+Use the baseline branch for an exact Build 197 rollback; use the staged branches for narrower recovery.
+
+---
+
 # CHECKPOINT 76 — Clean release candidate
 
 Branch: `clean-rebuild`
