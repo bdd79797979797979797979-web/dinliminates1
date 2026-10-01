@@ -1860,9 +1860,11 @@ async function appDiagnosisView(existingModal){
    sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
    const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
    ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
-   const requiredIds=['foodQuick','restQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails','restCut','restMaybe','restBack','restDetails'];
+   const requiredIds=['foodQuick','foodCut','foodMaybe','foodBack','foodHide','foodDetails'];
    const missingUi=requiredIds.filter(id=>!$(id));
-   missingUi.length?fail('core','Core UI contract','Missing '+missingUi.length+' required UI element(s): '+missingUi.join(', '),'A missing element can break the corresponding screen control.'):pass('core','Core UI contract','All core Meal/Restaurant decision and Quick Cut elements are present.');
+   const missingRestUi=restVisible?['restQuick','restCut','restMaybe','restBack','restDetails'].filter(id=>!$(id)):[];
+   const allMissing=missingUi.concat(missingRestUi);
+   allMissing.length?fail('core','Core UI contract','Missing '+allMissing.length+' required UI element(s): '+allMissing.join(', '),'Open the affected screen and rerun App Diagnosis; Restaurant controls are generated when Restaurant mode is opened.'):pass('core','Core UI contract',restVisible?'All core Meal/Restaurant decision and Quick Cut elements are present.':'Core Meal controls are present; Restaurant controls are deferred until Restaurant mode is opened.');
    const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
    pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Meal Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
    try{
