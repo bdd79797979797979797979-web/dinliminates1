@@ -112,7 +112,7 @@ await page.route('**/*',async route=>{
 
 const settle=()=>page.waitForTimeout(180);
 const snap=()=>page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
-async function waitForRestaurant(){await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy});await settle();}
+async function waitForRestaurant(){await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return /Searching restaurants/.test(t)||locBusy||findBusy},{timeout:5000});await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';const snap=window.__DINLIMINATE_QA__?.snapshot?.();return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy&&!!snap?.restaurantSearchOrigin},{timeout:30000});await settle();}
 async function openRestaurantScreen(){await page.locator('#restStart').click();await settle();}
 
 await page.goto('http://127.0.0.1:4174/?qa=1');
