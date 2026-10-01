@@ -646,12 +646,12 @@ function dedupeRestaurantPool(rows){
    const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
    const sameAddr=!!address&&!!xa&&address===xa;
    const conflictingAddr=!!address&&!!xa&&!sameAddr;
-   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey&&((sameAddr)||(sameStreet&&originDistanceClose&&partialAddress));
-   const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
-   const close=Number.isFinite(dist)&&dist<=0.08;
    const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
    const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
    const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
+   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey&&((sameAddr)||(sameStreet&&originDistanceClose&&partialAddress));
+   const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
+   const close=Number.isFinite(dist)&&dist<=0.08;
    const sameNameStreet=sameStreet&&originDistanceClose&&partialAddress&&(variant||sameName);
    return sameAddr&&sameNameFamily
      || (sameCanonicalIdentity&&canonicalClose)
