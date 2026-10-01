@@ -25,6 +25,6 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Hosted smoke
         env:
-          BASE_URL: https://deploy-preview-92--diliminate.netlify.app
+          BASE_URL: https://deploy-preview-94--diliminate.netlify.app
           REQUIRE_RELEASE: 'false'
         run: node qa/hosted-smoke.mjs
