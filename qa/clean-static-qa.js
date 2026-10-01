@@ -298,10 +298,10 @@ assert(app.includes("const actionBar=item?.category==='Hungry'?'':"),'Hungry Det
 // CP260 UI contracts.
 assert.deepEqual(foodRows.find(x=>x.id==='liver-and-onions')?.quickCuts,['Southern','Healthy'],'Liver & Onions should use Southern + Healthy');
 for(const id of ['spaghetti','pasta-alfredo','lasagna']) assert.deepEqual(foodRows.find(x=>x.id===id)?.quickCuts,['Pasta','Italian'],id+' should use Pasta + Italian'); assert.deepEqual(foodRows.find(x=>x.id==='chicken-parmesan')?.quickCuts,['Italian','Pasta'],'chicken-parmesan should use Italian + Pasta');
-assert(app.includes('card-cuisine-row') && app.includes('id="restDetails"') && app.indexOf('card-cuisine-row')<app.indexOf('card-card-actions'),'Restaurant Details icon should sit beside cuisine above action buttons');
-assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should stay inline with cuisine');
+assert(app.includes('restaurant-card-meta-row') && app.includes('id="restDetails"') && app.includes('restaurant-card-utilities') && app.indexOf('restaurant-card-meta-row')<app.indexOf('swipe-actions'),'Restaurant Details utility should sit in the Restaurant card meta row above decision actions');
+assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#restaurant .restaurant-card-details-utility'),'Restaurant Details utility should retain dedicated premium styling');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
-assert(css.includes('.card-cuisine-row .icon-action{flex:0 0 auto;margin:0!important}'),'Restaurant Details icon should sit inline to the right of cuisine');
+assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#restaurant .restaurant-card-details-utility'),'Restaurant Details utility should sit in the Restaurant card utility row');
 assert(app.includes("const quickCats=cats") && app.includes("cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
 assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes("if(!quickCuts.includes(cat)) quickCuts.unshift(cat)"),'Custom Food Quick Cut editor should include Other and persist the selected category as a Quick Cut');
 
