@@ -1862,7 +1862,6 @@ async function appDiagnosisView(existingModal){
    }catch{warn('release','Runtime release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
    info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
    info('release','Browser certification','This runtime can test browser behavior, but it cannot certify real iPhone Safari behavior from a desktop preview.','Use the installed iPhone PWA as the final device check.');
-   info('core','Pass Around','Removed from the current build.','The normal Meal and Restaurant Tinder-style decision flow is now the group-free path.');
   }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
   const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length,infos=checks.filter(x=>x.state==='info').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW NEEDED':'HEALTHY';
