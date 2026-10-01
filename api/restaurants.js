@@ -287,9 +287,25 @@ async function fetchWebPage(url,timeout=3500,maxBytes=1200000){
    'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-website-resolver)'
   },signal:ctl.signal});
   if(!response.ok)return null;
+  if(isBlockedWebsite(response.url))return null;
   const bytes=Buffer.from(await response.arrayBuffer());
   if(bytes.length>maxBytes)return null;
   return {url:page,html:bytes.toString('utf8')};
+ }catch{return null}finally{clearTimeout(timer)}
+}
+async function fetchBingSearchPage(query){
+ const url='https://www.bing.com/search?'+new URLSearchParams({q:String(query||''),mkt:'en-US',first:'1'}).toString();
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),3500);
+ try{
+  const response=await fetch(url,{headers:{
+   Accept:'text/html,application/xhtml+xml',
+   'Accept-Language':'en-US,en;q=0.8',
+   'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-website-resolver)'
+  },signal:ctl.signal});
+  if(!response.ok)return null;
+  const bytes=Buffer.from(await response.arrayBuffer());
+  if(bytes.length>800000)return null;
+  return bytes.toString('utf8');
  }catch{return null}finally{clearTimeout(timer)}
 }
 function extractBingWebsiteResults(html){
@@ -361,7 +377,7 @@ async function discoverOfficialWebsite(name,address,brand=''){
  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" official website');
  if(safeName&&city)queries.push('"'+safeName+'" "'+city+'" official website');
  if(safeName)queries.push('"'+safeName+'" restaurant website');
- const pages=await Promise.allSettled(queries.map(q=>fetchWebPage('https://www.bing.com/search?'+new URLSearchParams({q,mkt:'en-US',first:'1'}).toString(),3500,800000)));
+ const pages=await Promise.allSettled(queries.map(q=>fetchBingSearchPage(q)));
  const candidates=[];
  for(const p of pages){
   if(p.status!=='fulfilled'||!p.value)continue;
