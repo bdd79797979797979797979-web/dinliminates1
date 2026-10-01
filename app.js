@@ -74,7 +74,7 @@ restaurantTimezone:'',
 restaurantSearchOrigin:null,
 restaurantSearchKey:''
 };
-const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
+const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
  const src=String(raw||'');
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
@@ -1574,6 +1574,36 @@ img.src=reader.result;
 reader.readAsDataURL(file);
 });
 }
+async function findOnlineMealPhoto(name) {
+ try {
+  const query=String(name||'').trim();
+  if(!query)return '';
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),4500);
+  const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent(query)+'&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&formatversion=2&origin=*';
+  const response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});
+  clearTimeout(timer);
+  if(!response.ok)return '';
+  const data=await response.json();
+  const pages=Array.isArray(data?.query?.pages)?data.query.pages:[];
+  const terms=query.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const ranked=pages.map(page=>{
+   const title=String(page?.title||'').toLowerCase();
+   const info=Array.isArray(page?.imageinfo)?page.imageinfo[0]:null;
+   const src=String(info?.thumburl||info?.url||'');
+   let score=0;
+   for(const term of terms){if(title.includes(term))score+=3;}
+   if(/\b(food|dish|meal|butter|sandwich|soup|pasta|rice|chicken|beef|pork|fish|seafood|vegetable|dessert|bread|potato)\b/.test(title))score+=1;
+   if(src.startsWith('https://upload.wikimedia.org/'))score+=2;
+   return {score,src};
+  }).filter(x=>x.src);
+  ranked.sort((a,b)=>b.score-a.score);
+  return ranked[0]?.src||'';
+ } catch {
+  return '';
+ }
+}
+
 function foodEditor(item=null) {
 const isEdit=!!item;
 const managerWasOpen = !!$('manageFoodsModal');
@@ -1632,7 +1662,15 @@ if(Object.values(nutritionValues).some(value=>value==='')){
 const nutrition=nutritionValues;
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const photoInput=$('editFoodPhoto').value.trim();
-let photo=photoInput||(isEdit&&item?.image?item.image:DEFAULT_FOOD_IMAGE), recipe=$('editFoodRecipe').value.trim();
+let photo=photoInput||(isEdit&&item?.image?item.image:'');
+if(!photo && !isEdit){
+  const saveButton=document.querySelector('#foodEditorForm button.cut');
+  if(saveButton){saveButton.disabled=true;saveButton.dataset.originalLabel=saveButton.textContent;saveButton.textContent='Finding photo…';}
+  photo=await findOnlineMealPhoto(name);
+  if(saveButton){saveButton.disabled=false;saveButton.textContent=saveButton.dataset.originalLabel||'Add Meal';}
+}
+if(!photo)photo=DEFAULT_FOOD_IMAGE;
+let recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
 if(isEdit){
 const idx=S.custom.findIndex(x=>x.id===item.id);
