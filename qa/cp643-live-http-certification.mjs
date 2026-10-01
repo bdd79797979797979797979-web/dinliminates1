@@ -51,3 +51,5 @@ console.log(JSON.stringify({
   officialVenuePhoto:{restaurant:"Wendy's",address:'2800 Wilma Rudolph Blvd, Clarksville, TN 37040-5016',source,bytes},
   unknownRestaurantStatus:fake.res.status
 },null,2));
+
+// CP643 final public-preview access check trigger.
