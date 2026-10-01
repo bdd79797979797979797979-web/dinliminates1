@@ -521,5 +521,7 @@ module.exports._test={
   hasVenueSignal,
   extractInternalLinks,
   sameHost,
-  structuredRestaurantMatches
+  structuredRestaurantMatches,
+  bingExactImageCandidates,
+  exactImageFromBing
 };
