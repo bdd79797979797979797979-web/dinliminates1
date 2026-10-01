@@ -309,7 +309,7 @@ async function findExactPages(name,address,website){
   }
   const unique=[...new Set(queries)].filter(Boolean).slice(0,7);
   const searches=await Promise.allSettled(unique.map(q=>fetchText(
-    'https://www.bing.com/search?'+new URLSearchParams({q,mkt:'en-US',first:'1'}).toString(),
+    'https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),
     {},4800,1000000
   )));
   const urls=[];
