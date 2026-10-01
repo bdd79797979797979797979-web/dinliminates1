@@ -512,10 +512,17 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   const dx=e.clientX-downX;
   if(Math.abs(dx)>8){
    if(e.cancelable)e.preventDefault();
+   const absX=Math.abs(dx);
    const snapX=Math.round(dx);
-   const snapRotation=Math.round((dx/22)*10)/10;
-   card.style.transform='translate3d('+snapX+'px,0,0) rotate('+snapRotation+'deg)';
-   card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
+   // Keep very slow drags translation-only so Safari does not resample a rotated photo.
+   const rotationStart=42;
+   const rotation=Math.abs(dx)<rotationStart?0:Math.round(((dx/30)*Math.min(1,(absX-rotationStart)/70))*10)/10;
+   card.style.transform=rotation===0
+     ? 'translate3d('+snapX+'px,0,0)'
+     : 'translate3d('+snapX+'px,0,0) rotate('+rotation+'deg)';
+   // Avoid a noticeable opacity change during slow swipes; color carries the direction cue.
+   card.style.opacity=String(Math.max(.92,1-absX/1800));
+   card.style.setProperty('--swipe-tint-alpha',String(Math.min(.18,absX/700)));
    card.dataset.swipe=dx<0?'cut':'maybe';
   }
  };
