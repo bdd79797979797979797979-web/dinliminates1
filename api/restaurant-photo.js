@@ -389,7 +389,10 @@ async function bingImages(name,address,website){
 
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant exterior');
   if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
-  if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress){
+    queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+    queries.push('site:tripadvisor.co.uk/LocationPhotoDirectLink "'+safeName+'" "'+safeAddress+'"');
+  }
   if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:joe.coffee/locations "'+safeName+'" "'+safeAddress+'"');
 
@@ -415,6 +418,23 @@ async function bingImages(name,address,website){
     seen.add(k);
     return true;
   }).slice(0,24);
+}
+
+function isTripadvisorDirectPhoto(candidate,name,address){
+  if(!candidate)return false;
+  const host=hostOf(candidate.hostPageUrl||'');
+  if(!(host==='tripadvisor.com'||host.endsWith('.tripadvisor.com')||host==='tripadvisor.co.uk'||host.endsWith('.tripadvisor.co.uk')))return false;
+  const direct=/locationphotodirectlink|locationphoto/i.test(String(candidate.hostPageUrl||''));
+  if(!direct)return false;
+  const evidence=normalizeMatchText([candidate.title,candidate.description].filter(Boolean).join(' '));
+  const query=normalizeMatchText(candidate.query||'');
+  if(FOOD_IMAGE_HINTS.test(evidence))return false;
+  const tokens=significantNameTokens(name);
+  const nameOk=tokens.length>0 && tokens.every(t=>evidence.includes(t));
+  const number=normalizeMatchText((String(address||'').match(/\b\d{1,6}\b/)||[])[0]||'');
+  const addressOk=!!number && query.includes(number) && query.includes(normalizeMatchText(String(address||'').split(',').pop()||''));
+  const venueWord=/(?:front|entrance|building|exterior|outside|outdoor|drive|parking|location|view|storefront)/.test(evidence);
+  return nameOk && addressOk && venueWord;
 }
 
 function bingCandidateHasStrongVenueEvidence(candidate,name,address){
@@ -518,7 +538,17 @@ module.exports=async function handler(req,res){
       if(proxyCandidate) return sendPhotoReference(res,{imageUrl:proxyCandidate.url,source:'verified-venue-image-proxy',sourceUrl:candidate.hostPageUrl});
     }
 
-    // 3) Last-resort image-search evidence: accept only when the image result itself
+    // 3) Tripadvisor direct-location photos are already tied to a specific restaurant
+    // photo page. The search itself must also include the exact address.
+    for(const candidate of bing.slice(0,40)){
+      if(!candidate.contentUrl || !isTripadvisorDirectPhoto(candidate,name,address))continue;
+      try{
+        const media=await fetchImage(candidate.contentUrl,{},5500);
+        return sendMedia(res,{media,source:'tripadvisor-direct-venue-photo',sourceUrl:candidate.hostPageUrl,sourceName:'Tripadvisor'});
+      }catch{}
+    }
+
+    // 4) Last-resort image-search evidence: accept only when the image result itself
     // names the exact restaurant and includes location/venue evidence. This does not
     // accept generic brand imagery or food/menu photos.
     for(const candidate of bing.slice(0,40)){
