@@ -2099,7 +2099,7 @@ async function appDiagnosisView(existingModal){
    pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Meal Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
    try{
     const [localResponse,apiResponse]=await Promise.all([
-      fetch('./release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('./app-release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
       fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}).then(async r=>({ok:r.ok,status:r.status,data:await r.json().catch(()=>null)})).catch(()=>({ok:false,status:0,data:null}))
     ]);
     const localBuild=String(localResponse?.build||''),apiBuild=String(apiResponse?.data?.build||''),apiBranch=String(apiResponse?.data?.branch||apiResponse?.data?.sourceBranch||'');
