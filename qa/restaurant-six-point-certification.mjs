@@ -139,6 +139,7 @@ await page.locator('#locate').click({force:true}).catch(()=>{});
 await page.waitForTimeout(120);
 assert.equal(await page.evaluate(()=>window.__DINLIMINATE_GEO_CALLS__),1);
 await waitForRestaurant();
+await page.waitForFunction(()=>document.querySelector('#locate')?.getAttribute('aria-busy')==='false');
 assert.equal(await page.locator('#locate').isDisabled(),false);
 assert.equal(await page.locator('#locate').getAttribute('aria-busy'),'false');
 
