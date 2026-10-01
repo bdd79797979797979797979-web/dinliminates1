@@ -155,6 +155,7 @@ function bindHomeImageFallbacks(){
  });
 }
 const restaurantGooglePhotoInflight=new Map();
+const restaurantGooglePhotoCache=new Map();
 function decodePhotoAttributions(raw){
  const value=String(raw||'').trim();if(!value)return[];
  try{
@@ -172,19 +173,47 @@ function setRestaurantPhotoCredit(card,attributions){
  credit.classList.add('is-visible');
 }
 async function hydrateGoogleRestaurantPhoto(row,scope){
- if(!row?.googlePlaceId||row?.photoSource!=='google-places')return;
- const imgs=[...document.querySelectorAll(scope+' img[data-google-photo-id]')].filter(img=>img.dataset.googlePhotoId===String(row.googlePlaceId));
+ if(!row)return;
+ const rowKey=String(row.id||row.canonicalId||row.googlePlaceId||'').trim();
+ if(!rowKey)return;
+ const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
  if(!imgs.length)return;
- const key=String(row.googlePlaceId);
- let pending=restaurantGooglePhotoInflight.get(key);
+ const cacheHit=restaurantGooglePhotoCache.get(rowKey);
+ if(cacheHit?.url){
+  imgs.forEach(img=>{
+   if(!img.isConnected)return;
+   img.src=cacheHit.url;
+   img.dataset.googlePhotoLoaded='true';
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions);
+  });
+  return;
+ }
+ let pending=restaurantGooglePhotoInflight.get(rowKey);
  if(!pending){
-  pending=fetch('/api/restaurant-photo?placeId='+encodeURIComponent(key),{cache:'no-store'}).then(async res=>{
-   if(!res.ok)throw new Error('Google photo unavailable');
+  const params=new URLSearchParams();
+  if(row.googlePlaceId)params.set('placeId',String(row.googlePlaceId));
+  else{
+   if(row.name)params.set('name',String(row.name));
+   if(row.address)params.set('address',String(row.address));
+   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
+   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
+  }
+  pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
+   if(!res.ok)throw new Error('Restaurant photo unavailable');
    const blob=await res.blob();
-   if(!blob.type.startsWith('image/'))throw new Error('Google photo response was not an image');
-   return {url:URL.createObjectURL(blob),attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions'))};
-  }).finally(()=>restaurantGooglePhotoInflight.delete(key));
-  restaurantGooglePhotoInflight.set(key,pending);
+   if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
+   return {
+    url:URL.createObjectURL(blob),
+    attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions')),
+    placeId:String(res.headers.get('X-Restaurant-Photo-Place-ID')||'').trim()
+   };
+  }).then(data=>{
+   restaurantGooglePhotoCache.set(rowKey,data);
+   if(data.placeId)row.googlePlaceId=data.placeId;
+   if(data.placeId)row.photoSource='google-places';
+   return data;
+  }).finally(()=>restaurantGooglePhotoInflight.delete(rowKey));
+  restaurantGooglePhotoInflight.set(rowKey,pending);
  }
  try{
   const data=await pending;
@@ -192,10 +221,11 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
    if(!img.isConnected)return;
    img.src=data.url;
    img.dataset.googlePhotoLoaded='true';
-   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero'),data.attributions);
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
   });
  }catch{}
 }
+
 function phoneHref(raw){
  const digits=String(raw||'').replace(/[^+0-9]/g,'');
  if(/^\+/.test(digits))return 'tel:'+digits;
@@ -1243,7 +1273,7 @@ const cardDetailsAction = '<button class="restaurant-card-utility restaurant-car
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
 const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places'?nextRow.googlePlaceId:'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-id="'+esc(row.googlePlaceId||'')+'" data-google-photo-id="'+esc(row.googlePlaceId&&row.photoSource==='google-places'?row.googlePlaceId:'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+'</div></div></article></div>'+
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+'</div></div></article></div>'+
 '<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 bindCardButton('restBack', restaurantBack);
@@ -1381,7 +1411,8 @@ winImg.onerror=function(){
   if(fb && current!==fb){this.src=fb;return;}
   if(!String(current||'').startsWith('data:image/svg') && HUNGRY_IMAGE){this.src=HUNGRY_IMAGE;}
 };
-winImg.dataset.googlePhotoId = item?.googlePlaceId && item?.photoSource==='google-places' ? String(item.googlePlaceId) : '';
+winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||item?.googlePlaceId||'');
+winImg.dataset.googlePhotoId = item?.googlePlaceId ? String(item.googlePlaceId) : '';
 if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
  if (!hungry) {
@@ -1451,7 +1482,7 @@ function detailsSheet(item,type){
  const infoCards='<div class="restaurant-luxury-stat-grid"><div class="restaurant-luxury-stat"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+(item.cuisine?'<div class="restaurant-luxury-stat"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+(item.distance!=null?'<div class="restaurant-luxury-stat"><span>Distance</span><strong>'+Number(item.distance).toFixed(1)+' mi</strong></div>':'')+'<div class="restaurant-luxury-stat"><span>Hours</span><strong>'+esc(hoursLabel)+'</strong></div></div>';
  const contactSection='<div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Visit & contact</div><div class="restaurant-luxury-contact-card">'+phoneRow+addressRow+'</div><div class="restaurant-luxury-actions">'+websiteAction+directionsAction+'</div></div>';
  const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||FINAL_RESTAURANT_IMAGE);
- const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-id="'+esc(item.googlePlaceId||'')+'" data-google-photo-id="'+esc(item.googlePlaceId&&item.photoSource==='google-places'?item.googlePlaceId:'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
+ const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-google-photo-id="'+esc(item.googlePlaceId||'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
  const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,FINAL_RESTAURANT_IMAGE);
 hydrateGoogleRestaurantPhoto(item,'#detailsModal');
 }
