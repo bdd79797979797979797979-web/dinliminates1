@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 647,
-  "sourceBranch": "cp647-photo-fix",
-  "checkpoint": "CP647"
+  "build": 648,
+  "sourceBranch": "cp648-photo-quality-gate",
+  "checkpoint": "CP648"
 }
