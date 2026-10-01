@@ -1623,10 +1623,6 @@ button,a,select{touch-action:manipulation}
   grid-area:1/1!important;
   transition:opacity .16s ease,transform .16s ease!important;
 }
-#restaurant .radius-search .refresh-icon{opacity:0;transform:rotate(-55deg) scale(.8)}
-#restaurant .radius-search .search-icon{opacity:1;transform:scale(1)}
-#restaurant .radius-search[data-state="refresh"] .search-icon{opacity:0;transform:rotate(55deg) scale(.8)}
-#restaurant .radius-search[data-state="refresh"] .refresh-icon{opacity:1;transform:rotate(0deg) scale(1)}
 @media(max-width:430px){
   #restaurant .radius-search{width:36px!important;height:36px!important}
 }
