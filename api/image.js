@@ -14,7 +14,8 @@ const ALLOWED_HOSTS=new Set([
   'cdn.shopify.com',
   'savouryflavor.com',
   'resizer.otstatic.com',
-  'kookycrunch.com'
+  'kookycrunch.com',
+  'cdn.apartmenttherapy.info','www.southernliving.com','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com'
 ]);
 const MAX_BYTES=8*1024*1024;
 module.exports=async function handler(req,res){
