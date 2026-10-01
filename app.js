@@ -644,8 +644,7 @@ function dedupeRestaurantPool(rows){
    const sameNameFamily=sameName||variant;
    const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(row);
    const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
-   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey;
-   const canonicalClose=Number.isFinite(dist)&&dist<=3;
+   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey&&((sameAddr)||(sameStreet&&originDistanceClose&&partialAddress));
    const sameAddr=!!address&&!!xa&&address===xa;
    const conflictingAddr=!!address&&!!xa&&!sameAddr;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
