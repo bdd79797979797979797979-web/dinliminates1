@@ -385,5 +385,5 @@ const foodByName=new Map(foodPhotoRows.map(x=>[x.name,x]));
 assert(/shop\.barebells\.com.*US--barebells-salty-peanut-gallery-1-be48a101c1\.png/i.test(foodByName.get('Protein Bar')?.image||'')),'Protein Bar must use the Barebells Salty Peanut bar product image');
 assert(/snapcalorie-webflow-website\.s3\.us-east-2\.amazonaws\.com.*\/media\/food_pics_v2\/medium\/blt\.jpg/i.test(foodByName.get('BLT')?.image||'')),'BLT must use the refreshed bacon-lettuce-tomato sandwich photo');
 assert(/ourstate\.s3\.amazonaws\.com.*FEB25-PE_Cornbread-and-Buttermilk__TimRobison\.jpg/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the requested glass-and-cornbread pairing');
-assert(/images\.pexels\.com.*pexels-photo-2397401\.jpeg/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the refreshed Southern-style plate photo');
+assert(/crockncle\.com.*\/cdn\/shop\/files\/9F3E2B24-452E-4C92-AA30-53A5D519614C\.jpg/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the refreshed Southern-style plate photo');
 assert(/www\.africanbites\.com.*\/wp-content\/uploads\/2018\/09\/IMG_9983-2\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||'')),'Pinto Beans & Cornbread must use the refreshed Southern pairing photo');
