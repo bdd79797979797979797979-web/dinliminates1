@@ -1594,7 +1594,7 @@ const body='<form class="add" id="foodEditorForm">'+
 '</div></div>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Recipe / notes<textarea id="editFoodRecipe" placeholder="Recipe, preparation steps, or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
-'<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*" capture="environment"></label>'+
+'<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
