@@ -3,7 +3,7 @@ name: Dinliminate Clean QA
 on:
   push:
     branches:
-      - cp348-search-six-point-certification-2026-09-30
+      - cp487-launch-candidate-full-pass-2026-10-01
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -93,7 +93,7 @@ jobs:
 
       - name: Netlify preview smoke
         env:
-          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-53--diliminate.netlify.app' }}
+          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-92--diliminate.netlify.app' }}
         run: node qa/netlify-preview-smoke.mjs
 
       - name: Upload visual QA artifacts
