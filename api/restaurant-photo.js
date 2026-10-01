@@ -283,43 +283,56 @@ function extractBingWebResultUrls(html){
 }
 
 async function findVerifiedRestaurantPages(name,address,website){
-  const queries=[],safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,'');
+  const queries=[];
+  const safeName=String(name||'').replace(/"/g,'');
+  const safeAddress=String(address||'').replace(/"/g,'');
   const websiteHost=hostOf(website);
+
   if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
+  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos');
   if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,6);
-  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),{},7000)));
+
+  const unique=[...new Set(queries.filter(Boolean))].slice(0,4);
+  const pages=await Promise.allSettled(unique.map(q=>fetchText(
+    'https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),
+    {},4500,1100000
+  )));
+
   const candidates=[];
   for(const p of pages){
     if(p.status!=='fulfilled')continue;
-    for(const url of extractBingWebResultUrls(p.value))if(!candidates.includes(url))candidates.push(url);
+    for(const url of extractBingWebResultUrls(p.value)){
+      if(!candidates.includes(url))candidates.push(url);
+      if(candidates.length>=12)break;
+    }
+    if(candidates.length>=12)break;
   }
-  const verified=[];
-  for(const url of candidates.slice(0,30)){
-    const html=await verifiedRestaurantPage(url,name,address);
-    if(html)verified.push({url,html});
-    if(verified.length>=12)break;
-  }
-  return verified;
+
+  const checks=await Promise.allSettled(
+    candidates.slice(0,12).map(async url=>({url,html:await verifiedRestaurantPage(url,name,address)}))
+  );
+  return checks
+    .filter(x=>x.status==='fulfilled'&&x.value.html)
+    .map(x=>x.value)
+    .slice(0,6);
 }
 
 async function bingImages(name,address,website){
-  const queries=[],websiteHost=hostOf(website);
+  const queries=[];
   const safeName=String(name||'').replace(/"/g,'');
   const safeAddress=String(address||'').replace(/"/g,'');
-  if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant exterior photos');
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant storefront');
-  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'" exterior');
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,7);
-  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},7000)));
+  const websiteHost=hostOf(website);
+
+  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant exterior');
+  if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
+
+  const unique=[...new Set(queries)].slice(0,3);
+  const pages=await Promise.allSettled(unique.map(q=>fetchText(
+    'https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),
+    {},4500,1200000
+  )));
   const all=[];
   pages.forEach((p,i)=>{
     if(p.status!=='fulfilled')return;
@@ -327,6 +340,7 @@ async function bingImages(name,address,website){
       item.query=unique[i];
       item.score=scoreImage(item,safeName,safeAddress,website);
       all.push(item);
+      if(all.length>=24)break;
     }
   });
   const seen=new Set();
@@ -335,7 +349,7 @@ async function bingImages(name,address,website){
     if(seen.has(k))return false;
     seen.add(k);
     return true;
-  });
+  }).slice(0,24);
 }
 
 function sendMedia(res,found){
