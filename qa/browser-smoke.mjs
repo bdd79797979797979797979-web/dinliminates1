@@ -26,7 +26,7 @@ const page = await context.newPage();
 
 let forceReverseFailure=false;
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
-const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[];
+const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[]; let lastRestaurantSearchRequestAt=0;
 fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true});
 page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
@@ -84,7 +84,7 @@ function qa(){ return page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot()); 
 async function visible(id){return page.locator('#'+id).isVisible();}
 async function click(sel){await page.locator(sel).click();}
 async function settle(){await page.waitForTimeout(150);}
-async function waitForRestaurantSearch(){await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return /Searching restaurants/.test(t)||locBusy||findBusy},{timeout:5000});await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy},{timeout:30000});await settle();}
+async function waitForRestaurantSearch(){const calledAt=Date.now();const deadline=Date.now()+10000;while(lastRestaurantSearchRequestAt<calledAt-1000&&Date.now()<deadline)await new Promise(r=>setTimeout(r,50));if(lastRestaurantSearchRequestAt<calledAt-1000)throw new Error('Restaurant search request did not start after the triggering action.');await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy},{timeout:30000});await settle();}
 
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
