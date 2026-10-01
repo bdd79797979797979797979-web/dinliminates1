@@ -1,0 +1,31 @@
+name: CP625 Photo Endpoint Test
+on:
+  push:
+    branches: [cp625-no-unverified-restaurant-photos]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test exact venue photo endpoint
+        env:
+          BASE_URL: https://deploy-preview-108--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const base=process.env.BASE_URL;
+          let failed=false;
+          for(const [name,address] of [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043"]
+          ]){
+            const r=await fetch(base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address));
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const source=r.headers.get('x-restaurant-photo-source')||'';
+            const sourceUrl=r.headers.get('x-restaurant-photo-source-url')||'';
+            const bytes=(await r.arrayBuffer()).byteLength;
+            console.log(JSON.stringify({name,status:r.status,type,source,sourceUrl,bytes}));
+            if(r.status!==200||!type.startsWith('image/'))failed=true;
+          }
+          if(failed)process.exit(1);
+          NODE
