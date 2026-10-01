@@ -536,6 +536,11 @@ await page.locator('input[name="editQuickCut"][value="Other"]').check({force:tru
 assert.equal(await page.locator('input[name="editQuickCut"][value="Other"]').isChecked(),true,'Other should be selected from the shared Cuisine & Quick Cuts list');
 await page.locator('#editFoodName').fill('QA Special');
 await page.locator('#editFoodRecipe').fill('Test recipe');
+await page.locator('#editFoodCalories').fill('520');
+await page.locator('#editFoodProtein').fill('25');
+await page.locator('#editFoodCarbs').fill('45');
+await page.locator('#editFoodFat').fill('20');
+await page.locator('#editFoodSodium').fill('700');
 await page.locator('#editFoodFile').setInputFiles({
   name:'qa.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64')
 });
