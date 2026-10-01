@@ -283,6 +283,7 @@ for(const r of radii){
   assert.equal(Number(snapNow.restaurantSearchOrigin?.lat),36.5298);
   const ids=snapNow.allRestaurantIds;
   assert.equal(new Set(ids).size,ids.length);
+  if(!ids.length) console.log('Radius diagnostic',JSON.stringify({radius:r,status:await page.locator('#status').textContent(),findBusy:await page.locator('#find').getAttribute('aria-busy'),loc:snapNow.restaurantSearchOrigin,searchKey:snapNow.restaurantSearchOrigin,lastRequest:requests.at(-1),pool:snapNow.restaurantPool}));
   const outOfRange=(await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot())).restaurantPool;
   const expected=allResults.filter(x=>x.distance<=r).map(x=>x.id);
   assert.deepEqual(new Set(ids),new Set(expected));
