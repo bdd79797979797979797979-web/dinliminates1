@@ -26,12 +26,13 @@ const page = await context.newPage();
 
 let forceReverseFailure=false; let restaurantSearchRequestBaseline=0;
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
-const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[]; let lastRestaurantSearchRequestAt=0;
+const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[]; const requests=[]; let lastRestaurantSearchRequestAt=0;
 fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true});
 page.on('pageerror', err => pageErrors.push(String(err)));
 page.on('console', msg => { if(msg.type()==='error') consoleErrors.push(msg.text()); });
 page.on('response', res => { if(res.url().includes('/data/foods.js')) dataResponses.push({status:res.status(),url:res.url()}); if(res.status()>=400) badResponses.push({status:res.status(),url:res.url(),type:res.request().resourceType()}); });
 page.on('requestfailed', req => { if(req.url().includes('/data/foods.js')) requestFailures.push({url:req.url(),error:req.failure()?.errorText||'unknown'}); });
+page.on('request', req => { if(req.url().includes('/api/restaurant-search?mode=search')) { requests.push(req.url()); lastRestaurantSearchRequestAt=Date.now(); } });
 await page.route('**/*', async route => {
   const u = route.request().url();
   if (u.includes('/api/release')) {
