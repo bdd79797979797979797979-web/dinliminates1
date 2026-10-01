@@ -47,6 +47,16 @@ const allResults=[
  {id:'outer95',name:'Outer 95 Cafe',category:'American',fastFood:false,cuisine:'american',distance:95,address:'1300 River Rd, Clarksville, TN',website:'',phone:'',opening_hours:'24/7',openNow:true,menuItems:['Cafe'],photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
 ];
 
+// Give every fixture a deterministic coordinate that matches its declared distance from the QA origin.
+for(const [i,row] of allResults.entries()){
+  const angle=(i*37)%360;
+  const milesToLat=Number(row.distance||0)/69.0;
+  const milesToLon=Number(row.distance||0)/(69.0*Math.cos(36.5298*Math.PI/180));
+  const rad=angle*Math.PI/180;
+  row.lat=36.5298 + milesToLat*Math.cos(rad);
+  row.lon=-87.3588 + milesToLon*Math.sin(rad);
+}
+
 page.on('pageerror',e=>pageErrors.push(String(e)));
 page.on('console',m=>{
   if(m.type()!=='error') return;
