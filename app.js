@@ -200,6 +200,17 @@ async function hydrateRestaurantPhoto(row,scope){
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
   pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
    if(!res.ok)throw new Error('Restaurant photo unavailable');
+   const contentType=String(res.headers.get('content-type')||'').toLowerCase();
+   if(contentType.includes('application/json')){
+    const payload=await res.json();
+    const url=safeExternalUrl(payload?.url);
+    if(!url)throw new Error('Restaurant photo URL was invalid');
+    return {
+     url,
+     attributions:[],
+     source:String(payload?.source||res.headers.get('X-Restaurant-Photo-Source')||'').trim()
+    };
+   }
    const blob=await res.blob();
    if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
    return {
