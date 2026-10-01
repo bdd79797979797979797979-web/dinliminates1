@@ -1845,3 +1845,54 @@ button,a,select{touch-action:manipulation}
   #food .food-decision-group .round-maybe{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}
   #food .food-decision-group .round-add-food{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
 }
+
+
+/* CP578 — lock the red Cut + green Maybe pair to the visual center of the app.
+   Side controls and the blue All/Maybe filter orbit that center without shifting it. */
+.food-swipe-actions,#restaurant .swipe-actions{
+  position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;max-width:100%!important;min-height:64px!important;margin-left:auto!important;margin-right:auto!important;
+  padding:0!important;gap:0!important;box-sizing:border-box!important;
+}
+#food .food-decision-group{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  left:auto!important;top:auto!important;transform:none!important;display:block!important;
+}
+#food .food-decision-group .round-cut,#food .food-decision-group .round-maybe,
+#restaurant .swipe-actions .round-cut,#restaurant .swipe-actions .round-maybe{
+  position:absolute!important;top:50%!important;margin:0!important;
+}
+#food .food-decision-group .round-cut,#restaurant .swipe-actions .round-cut{
+  left:calc(50% - 65px)!important;transform:translateY(-50%)!important;
+}
+#food .food-decision-group .round-maybe,#restaurant .swipe-actions .round-maybe{
+  left:calc(50% + 5px)!important;transform:translateY(-50%)!important;
+}
+#food .food-decision-group .round-back,#restaurant .swipe-actions .round-back{
+  position:absolute!important;top:50%!important;right:calc(50% + 75px)!important;
+  transform:translateY(-50%)!important;margin:0!important;
+}
+#food .food-decision-group .round-hide,#restaurant .swipe-actions .round-hide{
+  position:absolute!important;top:50%!important;left:calc(50% + 75px)!important;
+  transform:translateY(-50%)!important;margin:0!important;
+}
+#food .food-decision-group .round-add-food{
+  position:absolute!important;top:50%!important;left:calc(50% + 127px)!important;
+  transform:translateY(-50%)!important;margin:0!important;
+}
+#food .food-decision-group .round-cut:active,#food .food-decision-group .round-maybe:active,
+#restaurant .swipe-actions .round-cut:active,#restaurant .swipe-actions .round-maybe:active,
+#food .food-decision-group .round-back:active,#food .food-decision-group .round-hide:active,
+#food .food-decision-group .round-add-food:active,#restaurant .swipe-actions .round-back:active,
+#restaurant .swipe-actions .round-hide:active{
+  transform:translateY(-50%) scale(.94)!important;
+}
+.deck-filter-toggle[data-mode="all"] span.deck-filter-all,
+.deck-filter-toggle[data-mode="maybe"] span.deck-filter-heart{color:#050607!important}
+@media(max-width:390px){
+  #food .food-decision-group .round-cut,#restaurant .swipe-actions .round-cut{left:calc(50% - 62px)!important}
+  #food .food-decision-group .round-maybe,#restaurant .swipe-actions .round-maybe{left:calc(50% + 4px)!important}
+  #food .food-decision-group .round-back,#restaurant .swipe-actions .round-back{right:calc(50% + 70px)!important}
+  #food .food-decision-group .round-hide,#restaurant .swipe-actions .round-hide{left:calc(50% + 70px)!important}
+  #food .food-decision-group .round-add-food{left:calc(50% + 118px)!important}
+}
