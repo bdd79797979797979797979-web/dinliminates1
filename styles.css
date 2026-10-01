@@ -1816,3 +1816,32 @@ button,a,select{touch-action:manipulation}
  .deck-filter-toggle .deck-filter-heart{font-size:16px!important}
  .deck-filter-toggle .deck-filter-all{font-size:15px!important}
 }
+
+
+/* CP574 — center the meal decision controls as an independent group. */
+#food .food-swipe-actions{position:relative!important;display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important;max-width:100%!important;gap:0!important;}
+#food .food-decision-group{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  width:max-content!important;
+  z-index:11!important;
+}
+#food .food-decision-group .round-back,
+#food .food-decision-group .round-hide{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
+#food .food-decision-group .round-cut,
+#food .food-decision-group .round-maybe{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important}
+#food .food-decision-group .round-add-food{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+@media(max-width:390px){
+  #food .food-decision-group{gap:8px!important}
+  #food .food-decision-group .round-back,
+  #food .food-decision-group .round-hide{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+  #food .food-decision-group .round-cut,
+  #food .food-decision-group .round-maybe{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}
+  #food .food-decision-group .round-add-food{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
+}
