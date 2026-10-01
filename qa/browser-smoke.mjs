@@ -384,17 +384,12 @@ assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/miles is n
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
-assert.equal(await page.locator('#hoursToggle').count(),1,'Restaurant Open/All hours filter should be shown');
-assert.deepEqual(await page.locator('#hoursToggle [data-hours-mode]').allTextContents(),['Open','All'],'Restaurant hours control should expose Open and All');
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true','Open should be the default hours mode');
-await page.locator('#hoursToggle [data-hours-mode="all"]').click(); await settle();
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'true','All should activate when tapped');
-await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click(); await settle();
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true','Open should reactivate when tapped');
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant Open/All hours filter should be removed');
+assert.equal(await page.locator('.restaurant .restaurant-hours-control').count(),0,'Restaurant hours control should not consume layout space');
 assert.equal(await page.locator('.restaurant .location-sub #restaurantSearch').count(),1,'Restaurant Search must share the Radius row.');
 assert.equal(await page.locator('.restaurant .restaurant-tools').count(),0,'Restaurant Search must not render in a separate tools row.');
-
-assert.equal((await page.locator('#restaurantCard').innerText()).includes('Closed Grill'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
+const restSearchSnapshot=await qa();
+assert.equal(restSearchSnapshot.restaurantPool.includes('closed-1'),true,'Restaurant results must not be filtered by opening hours');
 // Restaurant card controls must all be real interactive elements.
 await page.locator('#restDetails').click(); await settle();
 assert.equal(await visible('detailsModal'),true,'Restaurant Details should open the Details sheet');
