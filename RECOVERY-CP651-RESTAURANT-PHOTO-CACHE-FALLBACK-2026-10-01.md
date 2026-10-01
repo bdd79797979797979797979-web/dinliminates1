@@ -32,8 +32,11 @@ Base: CP650
 - Fallback images are presentation-only; the restaurant photo resolver still returns no fabricated venue photo metadata.
 
 ## Testing completed
-- Source checks confirmed persistent Cache Storage functions are present and wired ahead of network fetch.
-- Source checks confirmed category fallback mapping is wired for card, winner, details, and History.
+- Source checks confirmed persistent Cache Storage functions are present and checked before network fetch.
+- Source checks confirmed same-session memory caching remains in place.
 - Source checks confirmed cache expiry is enforced at 30 days.
+- Source checks confirmed category fallback mapping is wired for Restaurant card, next card, winner, restaurant details, and History.
 - Source checks confirmed the client asset version markers are 651.
+- Netlify deploy preview 123 reached READY on the CP651 commit and deployed the restaurant-photo, restaurant-search, image, and release functions without deploy errors.
+- Netlify secret validation reported no secret-scan matches.
 - Hosted visual/browser automation is not available in this environment, so no claim is made that the live preview was manually clicked through.
