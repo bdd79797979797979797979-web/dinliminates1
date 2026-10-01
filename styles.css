@@ -1979,3 +1979,56 @@ button,a,select{touch-action:manipulation}
   #historyModal .cal-grid-20{gap:5px}
   #historyModal .cal-cell,#historyModal .cal-day,#historyModal .cal-day.has.single,#historyModal .cal-day.has.dual{min-height:51px;height:51px}
 }
+
+
+/* CP650 — make the Restaurant location controls read in the same order they act:
+   Use My Location → location/address window → Refresh search. */
+#restaurant .location-main{
+  grid-template-columns:36px minmax(0,1fr) 48px!important;
+  gap:5px!important;
+}
+#restaurant .location-main .location-btn{
+  grid-column:1;
+  grid-row:1;
+}
+#restaurant .location-main .address-wrap{
+  grid-column:2;
+  grid-row:1;
+}
+#restaurant .location-main .find{
+  grid-column:3;
+  grid-row:1;
+}
+#restaurant .location-main .location-btn{
+  font-size:16px!important;
+}
+@media(max-width:390px){
+  #restaurant .location-main{
+    grid-template-columns:36px minmax(0,1fr) 48px!important;
+    gap:4px!important;
+  }
+  #restaurant .location-main .location-btn{
+    width:36px!important;
+    height:36px!important;
+  }
+  #restaurant .location-main .find{
+    width:48px!important;
+    min-width:48px!important;
+    height:36px!important;
+  }
+}
+@media(max-width:340px){
+  #restaurant .location-main{
+    grid-template-columns:34px minmax(0,1fr) 45px!important;
+    gap:3px!important;
+  }
+  #restaurant .location-main .location-btn{
+    width:34px!important;
+    height:34px!important;
+  }
+  #restaurant .location-main .find{
+    width:45px!important;
+    min-width:45px!important;
+    height:34px!important;
+  }
+}
