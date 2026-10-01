@@ -54,7 +54,7 @@ for(const [i,row] of allResults.entries()){
   const milesToLon=Number(row.distance||0)/(69.0*Math.cos(36.5298*Math.PI/180));
   const rad=angle*Math.PI/180;
   row.lat=36.5298 + milesToLat*Math.cos(rad);
-  row.lon=-87.3588 + milesToLon*Math.sin(rad);
+  row.lon=-87.3601 + milesToLon*Math.sin(rad);
 }
 
 page.on('pageerror',e=>pageErrors.push(String(e)));
