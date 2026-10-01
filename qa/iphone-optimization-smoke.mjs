@@ -27,6 +27,7 @@ try{
     assert.ok(foodButtons.foodCut.width>=60&&foodButtons.foodCut.height>=60,'Meal Cut should remain large');
     assert.ok(foodButtons.foodMaybe.width>=60&&foodButtons.foodMaybe.height>=60,'Meal Maybe should remain large');
     assert.ok(foodButtons.foodChoose.width>=44&&foodButtons.foodChoose.height>=44,'Meal Choose should have an iPhone-safe target');
+    assert.ok(foodButtons.foodChoose.width<=64,'Meal Choose should remain visually compact on iPhone');
     for(const id of ['foodBack','foodHide','addFood']) assert.ok(foodButtons[id].width>=44&&foodButtons[id].height>=44,id+' should have an iPhone-safe target');
 
     const foodViewport=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight}));
