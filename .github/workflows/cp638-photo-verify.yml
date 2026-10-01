@@ -24,7 +24,7 @@ jobs:
         run: |
           ! grep -qE 'GOOGLE_PLACES_API_KEY|GOOGLE_MAPS_API_KEY' api/restaurant-photo.js
           ! grep -qE 'images\.unsplash\.com|CATEGORY_IMAGES|function namedImage' api/restaurants.js
-          grep -q "const restaurantFallback = () => FINAL_RESTAURANT_IMAGE" app.js
+          grep -q "const restaurantFallback = (r)" app.js
           grep -q "params.set('osmPhoto'" app.js
           ! grep -q "URL.createObjectURL(blob)" app.js
       - name: Pure checks
