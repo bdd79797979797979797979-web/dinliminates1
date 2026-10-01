@@ -22,8 +22,8 @@ jobs:
           BASE_URL: https://deploy-preview-99--dinliminate.netlify.app
         run: |
           node <<'NODE'
-          const { chromium }=require('playwright');
-          const { execSync }=require('child_process');
+          import { chromium } from 'playwright';
+          import { execSync } from 'node:child_process';
           let chrome='';
           for(const cmd of ['google-chrome','chromium','chromium-browser']){
             try{chrome=execSync('command -v '+cmd).toString().trim();if(chrome)break}catch{}
