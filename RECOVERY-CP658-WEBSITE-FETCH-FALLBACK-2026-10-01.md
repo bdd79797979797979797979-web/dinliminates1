@@ -15,3 +15,18 @@ The Thirsty Goat: https://www.thirstygoatsango.com/
 Chris' Pizza Village - Sango: https://chrispizzavillagetn.com/
 
 No restaurant-specific runtime mapping will be added.
+
+## CP658 implemented
+- Added a bounded public webpage-reader fallback using Jina Reader for cases where the restaurant site blocks or defeats direct server-side fetches. Jina documents `r.jina.ai/<URL>` as a server-side URL reader. citeturn677020search0turn677020search3
+- The reader fallback is limited to six attempts per resolver call and is still followed by the same restaurant identity/location/phone verification.
+- No social or directory URL can become the Website destination merely because it was discovered.
+- Client/server retry and cache fixes from CP657 remain intact.
+- Client and service-worker cache markers are now CP658.
+
+## Public website verification references
+- Camacho's Famous: https://www.camachosfamous.com/ (exact Clarksville address shown on the public site). 
+- The Thirsty Goat: https://www.thirstygoatsango.com/ (exact Clarksville address shown on the public site).
+- Chris' Pizza Village - Sango: https://chrispizzavillagetn.com/ (exact Sango/Clarksville address shown on the public site).
+
+## Hosted validation
+A new preview will be created for the CP658 branch. No live resolver PASS is recorded until the runtime endpoint itself can be reached from the test environment.
