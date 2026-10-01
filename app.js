@@ -940,12 +940,18 @@ let locationRequestActive = false;
 let locationRequestSeq = 0;
 function renderFindButton(){
  const btn=$('find');if(!btn)return;
- btn.textContent=S.location?'Refresh':'Find';
- btn.setAttribute('aria-label',S.location?'Refresh restaurant search':'Find restaurants');
+ const state=S.location?'refresh':'find';
+ btn.dataset.state=state;
+ btn.textContent=state==='refresh'?'Refresh':'Find';
+ btn.setAttribute('aria-label',state==='refresh'?'Refresh restaurant search':'Find restaurants');
 }
 function setFindBusy(busy) {
 const btn=$('find'); if(!btn)return;
-btn.disabled=busy; btn.setAttribute('aria-busy',String(busy)); btn.textContent=busy?'Searching…':(S.location?'Refresh':'Find');
+btn.disabled=busy;
+btn.setAttribute('aria-busy',String(busy));
+const state=busy?'busy':(S.location?'refresh':'find');
+btn.dataset.state=state;
+btn.textContent=busy?'Search':(S.location?'Refresh':'Find');
 }
 function setLocationBusy(busy) {
 const btn=$('locate');if(!btn)return;
