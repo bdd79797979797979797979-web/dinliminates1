@@ -491,63 +491,24 @@ function dedupe(rows){
   }
   return[...map.values()].sort((a,b)=>a.distance-b.distance);
 }
-function namedImage(s){
-  const q=norm(s||'');
-  const map=[
-    [/mcdonald/, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85'],
-    [/taco bell/, 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85'],
-    [/wendy/, 'https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1200&q=85'],
-    [/burger king/, 'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=1200&q=85'],
-    [/kfc/, 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=85'],
-    [/popeye/, 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=85'],
-    [/chick fil a|chickfila/, 'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=1200&q=85'],
-    [/subway|jimmy john|jersey mike|firehouse subs/, 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=1200&q=85'],
-    [/sonic/, 'https://images.unsplash.com/photo-1512152272829-e3139592d56f?auto=format&fit=crop&w=1200&q=85'],
-    [/five guys/, 'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=1200&q=85'],
-    [/whataburger/, 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=1200&q=85'],
-    [/waffle house|ihop|denny/, 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'],
-    [/applebee/, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'],
-    [/chili.?s/, 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85'],
-    [/olive garden/, 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'],
-    [/chipotle/, 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=85'],
-    [/pizza|pizzeria|domino|papa john|pizza hut|marcos pizza|little caesars/, 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85'],
-    [/mexican|taco|burrito/, 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85']
-  ];
-  for(const [re,url] of map) if(re.test(q)) return url;
-  return '';
-}
-const CATEGORY_IMAGES={
-  'Fast Food':'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=85',
-  Burgers:'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=85',
-  Pizza:'https://images.unsplash.com/photo-1579684947550-22e945225d9a?auto=format&fit=crop&w=1200&q=85',
-  Mexican:'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=1200&q=85',
-  American:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
-  Italian:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=85',
-  Asian:'https://images.unsplash.com/photo-1515669097368-22e681b4d36c?auto=format&fit=crop&w=1200&q=85',
-  BBQ:'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=85',
-  Seafood:'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=1200&q=85',
-  Breakfast:'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=85'
-};
 function restaurantPhotoMeta(r){
   const raw=String(r?.photo||'').trim();
-  const knownFallback=()=>{
-    const byName=namedImage(r?.name); if(byName)return byName;
-    const byBrand=namedImage(r?.brand); if(byBrand)return byBrand;
-    const byOperator=namedImage(r?.operator); if(byOperator)return byOperator;
-    const keys=[String(r?.cuisine||''),String(r?.category||'')];
-    for(const key of keys){
-      const k=Object.keys(CATEGORY_IMAGES).find(x=>norm(x)===norm(key)||norm(key).includes(norm(x)));
-      if(k)return CATEGORY_IMAGES[k];
-    }
-    return CATEGORY_IMAGES.American;
+  if(/^https:\/\//i.test(raw)){
+    return {
+      photo:raw,
+      photoFallback:'',
+      photoSource:String(r?.source||'').startsWith('OpenStreetMap')?'osm-poi':'provider',
+      photoIsGeneric:false,
+      photoConfidence:0.95
+    };
+  }
+  return {
+    photo:'',
+    photoFallback:'',
+    photoSource:'none',
+    photoIsGeneric:false,
+    photoConfidence:0
   };
-  if(/^https:\/\//i.test(raw))return{photo:raw,photoFallback:'',photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
-  const fallback=knownFallback(),named=String(r?.name||'').trim();
-  const matchedKnown=!!namedImage(named)||!!namedImage(r?.brand)||!!namedImage(r?.operator);
-  if(matchedKnown)return{photo:fallback,photoFallback:'',photoSource:'known-entity',photoIsGeneric:true,photoConfidence:0.55};
-  const hasCategory=Object.keys(CATEGORY_IMAGES).some(x=>[String(r?.cuisine||''),String(r?.category||'')].some(v=>norm(x)===norm(v)||norm(v).includes(norm(x))));
-  if(hasCategory)return{photo:fallback,photoFallback:'',photoSource:'cuisine-fallback',photoIsGeneric:true,photoConfidence:0.4};
-  return{photo:fallback,photoFallback:'',photoSource:'generic-fallback',photoIsGeneric:true,photoConfidence:0.2};
 }
 function image(r){return restaurantPhotoMeta(r).photo;}
 function geocodeCandidateScore(query,display,baseScore=0){
