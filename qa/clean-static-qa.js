@@ -151,9 +151,9 @@ assert(app.includes('Contact coverage')&&app.includes('Photo coverage')&&app.inc
 
 assert(html.includes('<div class="location-sub">') && html.includes('class="restaurant-tool radius-search" id="restaurantSearch"'),'Restaurant Search must sit in the same Radius row');
 assert(!html.includes('<div class="restaurant-tools"'),'Restaurant Search must not consume a separate full-width row');
-assert(html.includes('id="hoursToggle"') && html.includes('data-hours-mode="openUnknown"') && html.includes('data-hours-mode="all"'),'Restaurant hours filter must expose Open and All controls');
+assert(!html.includes('id="hoursToggle"') && !html.includes('data-hours-mode="openUnknown"') && !html.includes('data-hours-mode="all"'),'Restaurant Open/All hours control must be absent');
 assert(app.includes("'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg"),'Restaurant Asian Quick Cut must have a concrete photo source');
-assert(app.includes("S.hoursMode = 'openUnknown';") && app.includes("function setRestaurantHoursMode(mode)"),'Restaurant hours state must default to Open/Unknown and be user-switchable to All');
+assert(!app.includes('hoursMode') && !app.includes('setRestaurantHoursMode') && !app.includes('restaurantHoursFilter'),'Restaurant hours must not participate in restaurant filtering');
 
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must remain available internally');
@@ -161,7 +161,7 @@ for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','B
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
-assert(app.includes('function restaurantPoolBase()') && app.includes('function updateRestaurantStatus()'),'Restaurant filters need a shared pre-hours pool and visible count status.');
+assert(app.includes('function restaurantPoolBase()') && app.includes('function restaurantPoolFiltered()') && app.includes('return restaurantPoolBase();'),'Restaurant filters need a shared pool, and the active pool must not be narrowed by hours.');
 assert(app.includes('function restaurantCuisineTags(row)') && app.includes('restaurantCuisineTags(row,label)')===false && app.includes('restaurantQuickMatches(row,label)') && app.includes('restaurantCuisineTags(row).includes(label)'),'Restaurant Quick Cuts must use independent cuisine/category tags.');
 assert(app.includes('const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY'),'Browser must consume the shared restaurant taxonomy.');
 assert(html.includes('<script src="./data/restaurant-taxonomy.js"></script>'),'Shared restaurant taxonomy must load before app.js.');
@@ -374,7 +374,7 @@ assert(api.includes('const conflictingAddress=!!ax&&!!ar&&!sameAddress'),'Restau
 assert(app.includes('const conflictingAddr=!!address&&!!xa&&!sameAddr'),'Frontend Restaurant dedupe must protect distinct nearby addresses from false merges');
 assert(api.includes('function applyGoogleContactPatches'),'Google contact enrichment must merge into existing rows');
 assert(api.includes("if(got&&!got.__timeout){googleContactOut=got;applyGoogleContactPatches(contactCandidates,googleContactOut.rows)}"),'Google contact patches must be applied without appending duplicate rows');
-assert(app.includes('function setRestaurantHoursMode(mode)')&&app.includes('function syncRestaurantHoursControl()'),'Restaurant hours-control runtime must remain wired for Open/All');
+assert(!app.includes('function setRestaurantHoursMode(mode)')&&!app.includes('function syncRestaurantHoursControl()'),'Restaurant Open/All runtime wiring must be removed');
 
 
 assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold');
