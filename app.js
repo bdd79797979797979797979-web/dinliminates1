@@ -505,20 +505,33 @@ function foodBack(){
  const restored=S.pool.findIndex(x=>x.id===action.id);S.index=restored>=0?restored:Math.max(0,Math.min(action.index||0,Math.max(0,S.pool.length-1)));drawFood();save();
 }
 
+function triggerSwipeHaptic(){
+ try{
+  const nativeHandler=window?.webkit?.messageHandlers?.haptic;
+  if(nativeHandler?.postMessage){nativeHandler.postMessage('light');return true;}
+ }catch{}
+ try{
+  if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function'){
+   return !!navigator.vibrate(8);
+  }
+ }catch{}
+ return false;
+}
+
 function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
  const next=$(nextId);
- let downX=0,active=false,committed=false,pointerId=null,suppressClickUntil=0;
+ let downX=0,active=false,committed=false,hapticTriggered=false,pointerId=null,suppressClickUntil=0;
  card.style.touchAction='none';card.style.userSelect='none';card.style.webkitUserSelect='none';card.style.webkitTouchCallout='none';card.querySelectorAll('img').forEach(img=>{img.draggable=false;img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});});
  const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
  const cleanup=()=>{
   try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
   pointerId=null;
  };
- const cancel=()=>{if(!active)return;active=false;committed=false;cleanup();reset();};
+ const cancel=()=>{if(!active)return;active=false;committed=false;hapticTriggered=false;cleanup();reset();};
  const commit=(dx)=>{
   if(committed||!active)return;
-  committed=true;active=false;cleanup();suppressClickUntil=Date.now()+350;
+  committed=true;active=false;hapticTriggered=false;cleanup();suppressClickUntil=Date.now()+350;
   card.style.transition='transform .16s ease,opacity .16s ease';
   card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
   const action=dx<0?onCut:onMaybe;
@@ -533,7 +546,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   if(e.isPrimary===false)return;
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
-  downX=e.clientX;active=true;committed=false;pointerId=e.pointerId;card.dataset.swipe='';
+  downX=e.clientX;active=true;committed=false;hapticTriggered=false;pointerId=e.pointerId;card.dataset.swipe='';
   try{card.setPointerCapture?.(e.pointerId);}catch{}
   if(e.cancelable)e.preventDefault();
  };
@@ -543,6 +556,10 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   if(Math.abs(dx)>8){
    if(e.cancelable)e.preventDefault();
    const absX=Math.abs(dx);
+   if(absX>=90&&!hapticTriggered){
+    hapticTriggered=true;
+    triggerSwipeHaptic();
+   }
    const snapX=Math.round(dx);
    // Keep very slow drags translation-only so Safari does not resample a rotated photo.
    const rotationStart=42;
