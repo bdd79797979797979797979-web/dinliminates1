@@ -435,25 +435,17 @@ assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHour
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHourState(row),unknownFixture),'unknown');
 report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
 
-// 5. Restaurant hours control is intentionally absent; default presentation remains Open/Unknown.
-report["5_open_all"]={controlPresent:true,defaultOpenUnknown:true};
-assert.equal(await page.locator('#hoursToggle').count(),1,'Restaurant hours filter control should be rendered');
-assert.deepEqual(await page.locator('#hoursToggle [data-hours-mode]').evaluateAll(btns=>btns.map(x=>x.textContent.trim())),['Open','All']);
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true');
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'false');
-await page.locator('#hoursToggle [data-hours-mode="all"]').click(); await page.waitForTimeout(80);
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'true');
-const allSnap=await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
-assert.ok(allSnap.restaurantPool.includes('closed'),'All hours mode should include explicitly closed restaurants');
-await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click(); await page.waitForTimeout(80);
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true');
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'false');
-await page.locator('#restDetails').click(); await page.waitForTimeout(120); assert.equal(await page.locator('#detailsModal').count(),1,'Restaurant Details should open for hours verification');
+// 5. Restaurant hours are informational only; they must not filter the decision deck.
+report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
+report["5_open_all"]={controlPresent:false,nonFiltering:true};
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant Open/All hours control must be absent');
+const noHoursSnap=await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
+assert.ok(noHoursSnap.restaurantPool.includes('closed'),'Closed restaurants must remain in the decision pool; hours must not filter results');
+await page.locator('#restDetails').click(); await page.waitForTimeout(120);
+assert.equal(await page.locator('#detailsModal').count(),1,'Restaurant Details should open for hours verification');
 const detailsHoursText=await page.locator('#detailsModal').innerText();
-assert(detailsHoursText.includes('Open now')||detailsHoursText.includes('Closed now')||detailsHoursText.includes('Hours unknown'),'Restaurant Details should show the normalized hours state');
+assert(detailsHoursText.includes('Open now')||detailsHoursText.includes('Closed now')||detailsHoursText.includes('Hours unknown'),'Restaurant Details should retain informational hours status');
 await page.locator('#detailsModal [data-close]').click(); await page.waitForTimeout(80);
-assert.equal(s.restaurantPool.includes('closed'),false,'Default Restaurant presentation should exclude explicitly closed restaurants');
-report["5_open_all"].unknownPreserved=true;
 
 // 6. All ten Quick Cuts: verify they render as photos and each toggled cut changes the active filter.
 report["6_quick_cuts"]={};
