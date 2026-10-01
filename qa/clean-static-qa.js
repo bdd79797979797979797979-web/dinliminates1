@@ -327,7 +327,7 @@ assert(api.includes('restaurantPhotoMeta') && api.includes('photoSource') && api
 assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classList.add('diagnosis-modal')"),'App Diagnosis must use only the existing Settings modal shell');
 assert(app.includes("card.style.webkitUserSelect='none'") && app.includes("img.draggable=false"),'Tinder card swipe surface must suppress image drag interference on phones');
 
-assert(app.includes("const cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Food editor cuisine/category dropdown must include Other');
+assert(app.includes("const cats=[...FOOD_QUICK,'Other']"),'Food editor cuisine/category dropdown must include Other');
 assert(app.includes('restaurantDirectionsUrl') && app.includes('detail-directions-action') && app.includes('Get Google Maps directions'),'Restaurant Details must include Google Maps directions');
 assert(app.includes('restaurant-luxury-contact-row') && app.includes('phoneHref(detailPhone)'),'Restaurant Details must include a tap-to-call phone number');
 assert(app.includes('const appBrandHost=/(^|[.-])(?:dinliminate|diliminate)([.-]|$)/i.test(host)'),'Restaurant Website must reject Dinliminate deployment hosts');
