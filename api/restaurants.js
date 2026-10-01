@@ -1,6 +1,6 @@
 const RESTAURANT_TAXONOMY=require('../data/restaurant-taxonomy');
 const MAX_RADIUS=100;
-const API_VERSION='r23';
+const API_VERSION='r24';
 const DEFAULT_RADIUS=10;
 const DINING_AMENITIES='restaurant|fast_food';
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
