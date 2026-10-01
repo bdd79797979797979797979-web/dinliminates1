@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
-const baseUrl=(process.env.BASE_URL||'https://deploy-preview-92--diliminate.netlify.app').replace(/\/$/,'');
+const baseUrl=(process.env.BASE_URL||'https://deploy-preview-94--diliminate.netlify.app').replace(/\/$/,'');
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({
   viewport:{width:393,height:852},
