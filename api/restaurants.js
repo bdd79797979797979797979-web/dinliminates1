@@ -541,9 +541,6 @@ function restaurantPhotoMeta(r){
     }
     return CATEGORY_IMAGES.American;
   };
-  // A verified Google Place photo is preferred over any provider/generic image.
-  // Keep the provider image as the immediate fallback if Google photo hydration fails.
-  if(String(r?.googlePlaceId||'').trim()||String(r?.googlePhotoName||'').trim())return{photo:'',photoFallback:/^https:\/\//i.test(raw)?raw:knownFallback(),photoSource:'google-places',photoIsGeneric:false,photoConfidence:0.95,googlePhotoName:String(r?.googlePhotoName||'').trim()};
   if(/^https:\/\//i.test(raw))return{photo:raw,photoFallback:'',photoSource:'provider',photoIsGeneric:false,photoConfidence:0.85};
   const fallback=knownFallback(),named=String(r?.name||'').trim();
   const matchedKnown=!!namedImage(named)||!!namedImage(r?.brand)||!!namedImage(r?.operator);
