@@ -303,7 +303,7 @@ assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#re
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
 assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#restaurant .restaurant-card-details-utility'),'Restaurant Details utility should sit in the Restaurant card utility row');
 assert(app.includes("const cats=[...FOOD_QUICK,'Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
-assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes("if(!quickCuts.includes(cat)) quickCuts.unshift(cat)"),'Custom Food Quick Cut editor should include Other and persist the selected category as a Quick Cut');
+assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes('const cat=preferred') && app.includes('category:cat,quickCuts'),'Custom Food Quick Cut editor should include Other and persist the selected categories');
 
 // CP261 Vercel image proxy contract.
 const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','www.southernliving.com','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com'];
