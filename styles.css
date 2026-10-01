@@ -1000,6 +1000,7 @@
   text-shadow:0 1px 9px #000;
 }
 .restaurant-card-utilities .details-icon{width:15px!important;height:15px!important}
+@media(max-width:430px){#restaurant .restaurant-card-utilities .details-icon{width:14px!important;height:14px!important}}
 @media(max-width:390px){
   .restaurant-card-meta-row{gap:6px;margin-bottom:6px}
   .restaurant-card-meta{font-size:8px}
