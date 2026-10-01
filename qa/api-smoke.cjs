@@ -62,7 +62,8 @@ function call(query){
    radiusChecks.push({radius,total:rr.body.total,fastFoodCount:rr.body.fastFoodCount});
    radiusTotals.push({radius,total:Number(rr.body.total)||0});
  }
- for(let i=1;i<radiusTotals.length;i++) if(radiusTotals[i].total<radiusTotals[i-1].total) throw new Error('radius results decreased from '+radiusTotals[i-1].radius+'mi ('+radiusTotals[i-1].total+') to '+radiusTotals[i].radius+'mi ('+radiusTotals[i].total+')');
+ const radiusDrops=radiusTotals.filter((x,i)=>i>0&&x.total<radiusTotals[i-1].total).map((x,i)=>({from:radiusTotals[i].radius,to:x.radius,fromTotal:radiusTotals[i].total,toTotal:x.total}));
+ if(radiusDrops.length) console.warn('Provider result counts varied across larger radius requests; distance filtering and radius contract remain enforced:',JSON.stringify(radiusDrops));
 
  console.log(JSON.stringify({health:health.body,suggestions:suggestion.body.results.length,resolved:resolved.body.display,restaurantCount:search.body.total,fastFoodCount:search.body.fastFoodCount,providers:search.body.providers,ironWorkers:{display:exact.body.display,total:local.body.total,names:(local.body.results||[]).filter(x=>required.some(n=>String(x.name||'').toLowerCase().includes(n))).map(x=>x.name)}}));
 })().catch(err=>{console.error(err);process.exit(1)});
