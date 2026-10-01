@@ -1931,7 +1931,7 @@ async function appDiagnosisView(existingModal){
    ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
    const requiredIds=['foodQuick','foodCardCut','foodChoose','foodCardMaybe','foodBack','foodHide','foodDetails'];
    const missingUi=requiredIds.filter(id=>!$(id));
-   const missingRestUi=restVisible?['restQuick','restCut','restMaybe','restBack','restHide','restChoose','restDetails'].filter(id=>!$(id)):[];
+   const missingRestUi=restVisible?['restQuick','restCardCut','restCardMaybe','restBack','restHide','restChoose','restDetails'].filter(id=>!$(id)):[];
    const allMissing=missingUi.concat(missingRestUi);
    allMissing.length?fail('core','Core UI contract','Missing '+allMissing.length+' required UI element(s): '+allMissing.join(', '),'Open the affected screen and rerun App Diagnosis; Restaurant controls are generated when Restaurant mode is opened.'):pass('core','Core UI contract',restVisible?'All core Meal/Restaurant decision and Quick Cut elements are present.':'Core Meal controls are present; Restaurant controls are deferred until Restaurant mode is opened.');
    const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;

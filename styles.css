@@ -1524,18 +1524,15 @@ button,a,select{touch-action:manipulation}
 }
 
 
-/* CP553/555 — give Restaurant swipe controls a little more breathing room */
+/* CP553 — give Restaurant swipe controls a little more breathing room */
 #restaurant .swipe-actions{
-  width:min(100%,310px)!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  justify-content:space-between!important;
-  gap:0!important;
-  padding-inline:2px;
+  grid-template-columns:44px 64px 64px 44px!important;
+  gap:11px!important;
 }
 @media(max-width:390px){
   #restaurant .swipe-actions{
-    width:min(100%,300px)!important;
+    grid-template-columns:44px 60px 60px 44px!important;
+    gap:10px!important;
   }
 }
 
@@ -1591,23 +1588,3 @@ button,a,select{touch-action:manipulation}
   .luxury-home .home-foot-actions{gap:2px}
   .luxury-home .home-foot-action{width:126px;min-width:126px;height:27px;min-height:27px;font-size:8.5px!important}
 }
-
-
-/* CP556 — more premium Add to iPhone instructions */
-#iphoneModal{background:linear-gradient(180deg,#191815 0%,#121211 100%)!important;border-color:#433b30!important;box-shadow:0 28px 80px #000c,0 0 0 1px #ffffff06 inset!important}
-#iphoneModal .modal-head{border-bottom:1px solid #342f28;padding-bottom:13px;margin-bottom:2px}
-#iphoneModal .modal-head h3{color:#f1eadf;letter-spacing:-.03em}
-#iphoneModal .iphone-guide{gap:12px}
-#iphoneModal .iphone-guide-intro{padding:14px 13px 13px!important;border:1px solid #3c372e;border-radius:17px;background:radial-gradient(circle at 80% 20%,#8baec814,transparent 46%),linear-gradient(145deg,#201e1a,#141413);box-shadow:0 12px 28px #0006,inset 0 1px 0 #ffffff08}
-#iphoneModal .iphone-guide-intro h4{color:#f4eee6;font-size:25px}
-#iphoneModal .iphone-guide-steps{gap:7px}
-#iphoneModal .iphone-guide-step{grid-template-columns:31px 1fr;gap:10px;padding:11px 10px!important;border:1px solid #332f29!important;border-radius:14px!important;background:linear-gradient(145deg,#1b1a18,#131312)!important;box-shadow:0 7px 17px #0004}
-#iphoneModal .iphone-guide-step>span{width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#e0c893,#b99b64);color:#201a11;box-shadow:0 5px 13px #0006}
-
-/* CP556 — Restaurant Cut / Maybe on-card, top center */
-#restaurantCard .restaurant-card-quick-actions{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:9px}
-#restaurantCard .restaurant-card-quick-action{position:relative;width:43px;height:43px;min-width:43px;min-height:43px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:19px;line-height:1;font-weight:900;border:1px solid #ffffff32;box-shadow:0 9px 24px #0009,inset 0 1px 0 #ffffff2a;backdrop-filter:blur(12px) saturate(1.08);-webkit-backdrop-filter:blur(12px) saturate(1.08)}
-#restaurantCard .restaurant-card-quick-cut{background:linear-gradient(180deg,#a9554fdd,#6f2522e6)!important;color:#fff4ed!important;border-color:#df8b82!important}
-#restaurantCard .restaurant-card-quick-maybe{background:linear-gradient(180deg,#f7f0e5ee,#d8cab9ee)!important;color:#171411!important;border-color:#f5e9d8!important}
-#restaurantCard .restaurant-card-quick-action:active{transform:scale(.92)}
-@media(max-width:390px){#restaurantCard .restaurant-card-quick-actions{top:10px;gap:8px}#restaurantCard .restaurant-card-quick-action{width:40px;height:40px;min-width:40px;min-height:40px;font-size:18px}}

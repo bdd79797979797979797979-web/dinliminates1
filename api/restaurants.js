@@ -669,9 +669,8 @@ if(mode==='search'){
  const googleOut=googleResult.status==='fulfilled'?googleResult.value:{rows:[],errors:[String(googleResult.reason?.message||googleResult.reason||'Google Places unavailable')]};
  const preliminary=dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
- const preliminaryRawPhotoCount=preliminary.filter(r=>/^https:\/\//i.test(String(r.photo||'').trim())).length;
  let osmOut={rows:[],errors:[]};
- const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0||preliminaryRawPhotoCount<3;
+ const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
  if(discoveryPromise){
    if(wideSearch){
      const got=parallelWide;
