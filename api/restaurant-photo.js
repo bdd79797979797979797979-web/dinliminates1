@@ -26,6 +26,11 @@ function absoluteHttpsUrl(raw,base=''){
 }
 
 function hostOf(raw){try{return new URL(raw).hostname.toLowerCase()}catch{return ''}}
+function sameWebsiteHost(a,b){
+  const x=hostOf(a).replace(/^www\./,'');
+  const y=hostOf(b).replace(/^www\./,'');
+  return !!x&&!!y&&(x===y||x.endsWith('.'+y)||y.endsWith('.'+x));
+}
 function isBlockedHost(raw){
   const host=hostOf(raw);
   if(!host)return true;
@@ -363,7 +368,7 @@ async function findVerifiedRestaurantPages(name,address,website){
   for(const url of candidates.slice(0,30)){
     const html=await verifiedRestaurantPage(url,name,address);
     if(!html)continue;
-    const item={url,html,isOfficial:!!websiteHost&&hostOf(url)===websiteHost};
+    const item={url,html,isOfficial:!!websiteHost&&sameWebsiteHost(url,website)};
     if(item.isOfficial)official.push(item);
     else verified.push(item);
     if(verified.length>=12&&official.length>=3)break;
