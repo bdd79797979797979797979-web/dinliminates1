@@ -271,7 +271,7 @@ const WEBSITE_DISCOVERY_HOSTS=new Set([
 ]);
 const WEBSITE_QUERY_FILLERS=new Set(['the','a','an','of','at','on','in','restaurant','restaurants','location','store','llc','inc','co','company','ltd']);
 function websiteHost(url){
- try{return new URL(String(url||'')).hostname.toLowerCase().replace(/^www\\./,'');}catch{return ''}
+ try{return new URL(String(url||'')).hostname.toLowerCase().replace(/^www\./,'');}catch{return ''}
 }
 function isBlockedWebsite(url){
  const host=websiteHost(url);
@@ -284,7 +284,7 @@ function isDiscoveryHost(url){
 }
 function safeWebsiteUrl(url){
  const raw=String(url||'').trim();
- if(!/^https?:\\/\\//i.test(raw)||isBlockedWebsite(raw))return '';
+ if(!/^https?:\/\//i.test(raw)||isBlockedWebsite(raw))return '';
  try{
   const u=new URL(raw);u.hash='';
   return u.toString();
@@ -294,18 +294,17 @@ function safeDiscoveryUrl(url,base=''){
  const raw=String(url||'').trim();
  if(!raw)return '';
  try{
-  let href=raw;
-  const absolute=/^https?:\\/\\//i.test(href)?href:new URL(href,base||undefined).toString();
-  if(!/^https?:\\/\\//i.test(absolute)||!isDiscoveryHost(absolute))return '';
+  const absolute=/^https?:\/\//i.test(raw)?raw:new URL(raw,base||undefined).toString();
+  if(!/^https?:\/\//i.test(absolute)||!isDiscoveryHost(absolute))return '';
   return absolute;
  }catch{return ''}
 }
 function websiteBusinessTokens(value){
  return normalizeSearchQuery(value).split(' ').filter(x=>x.length>=3&&!WEBSITE_QUERY_FILLERS.has(x));
 }
-function digitsOnly(value){return String(value||'').replace(/\\D/g,'');}
+function digitsOnly(value){return String(value||'').replace(/\D/g,'');}
 function htmlText(value){
- return String(value||'').replace(/<script[\\s\\S]*?<\\/script>/gi,' ').replace(/<style[\\s\\S]*?<\\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\\s+/g,' ').trim();
+ return String(value||'').replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s+/g,' ').trim();
 }
 async function fetchWebPage(url,timeout=3500,maxBytes=1200000){
  const page=safeWebsiteUrl(url);if(!page)return null;
@@ -361,12 +360,12 @@ function decodeHtmlAttribute(value){
 }
 function extractBingDiscoveryResults(html){
  const out=[],seen=new Set();
- const re=/<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\\s\\S]*?<h2[^>]*>\\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/ig;
+ const re=/<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/ig;
  let m;
  while((m=re.exec(String(html||'')))&&out.length<18){
   const raw=decodeHtmlAttribute(m[1]);
   let url='';
-  try{url=/^https?:\\/\\//i.test(raw)?raw:new URL(raw,'https://www.bing.com/').toString()}catch{}
+  try{url=/^https?:\/\//i.test(raw)?raw:new URL(raw,'https://www.bing.com/').toString()}catch{}
   if(!url||seen.has(url))continue;
   const host=websiteHost(url);if(!host)continue;
   seen.add(url);
@@ -383,7 +382,7 @@ function extractExternalWebsiteLinks(html,sourceUrl=''){
  const add=(raw,text='')=>{
   let href=decodeHtmlAttribute(raw).trim();if(!href)return;
   try{
-   if(/^https?:\\/\\/i.test(href)===false)href=new URL(href,sourceUrl).toString();
+   if(!/^https?:\/\//i.test(href))href=new URL(href,sourceUrl).toString();
    const u=new URL(href);
    if(u.hostname==='l.facebook.com'){
     const redirected=u.searchParams.get('u')||u.searchParams.get('url');
@@ -396,14 +395,14 @@ function extractExternalWebsiteLinks(html,sourceUrl=''){
   seen.add(safe);
   const label=normalizeSearchQuery(text);
   let score=0;
-  if(/\\b(?:website|official|site|homepage|order|menu)\\b/i.test(label))score+=30;
+  if(/\b(?:website|official|site|homepage|order|menu)\b/i.test(label))score+=30;
   if(host.split('.')[0].length>=5)score+=5;
   out.push({url:safe,title:text,score});
  };
- const anchorRe=/<a\\b[^>]*?href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/ig;
+ const anchorRe=/<a\b[^>]*?href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/ig;
  let m;
  while((m=anchorRe.exec(String(html||'')))&&out.length<40)add(m[1],htmlText(m[2]));
- const plainRe=/(https?:\\/\\/[^\\s"'<>]+)/ig;
+ const plainRe=/(https?:\/\/[^\s"'<>]+)/ig;
  while((m=plainRe.exec(String(html||'')))&&out.length<50)add(m[1],'');
  return out.sort((a,b)=>b.score-a.score);
 }
@@ -418,9 +417,9 @@ function websitePageScore(pageUrl,html,name,address,brand='',phone=''){
  const nameRatio=nameTokens.length?nameHits/nameTokens.length:0;
  const brandHits=brandTokens.filter(t=>source.includes(t)).length;
  const brandRatio=brandTokens.length?brandHits/brandTokens.length:0;
- const number=(String(address||'').match(/\\b\\d{1,6}\\b/)||[])[0];
+ const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
  const addrNorm=normalizeSearchQuery(address);
- const addressTokens=addrNorm.split(' ').filter(x=>x.length>=3&&!/^\\d+$/.test(x));
+ const addressTokens=addrNorm.split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
  const locationTokens=addressTokens.slice(-6);
  const locationHits=locationTokens.filter(x=>source.includes(x)).length;
  const cityTokens=addressTokens.slice(-3),cityHits=cityTokens.filter(x=>source.includes(x)).length;
@@ -436,7 +435,7 @@ function websitePageScore(pageUrl,html,name,address,brand='',phone=''){
  if(name&&source.includes(normalizeSearchQuery(name)))score+=18;
  if(hostBrandHits)score+=Math.min(22,hostBrandHits*11);
  if(phoneMatch)score+=28;
- if(/\\b(?:about|locations|location|contact|menu|order|visit|hours)\\b/.test(source))score+=6;
+ if(/\b(?:about|locations|location|contact|menu|order|visit|hours)\b/.test(source))score+=6;
  return Math.round(score);
 }
 function verifiedWebsiteCandidate(page,name,address,brand='',phone=''){
@@ -448,8 +447,8 @@ function verifiedWebsiteCandidate(page,name,address,brand='',phone=''){
  const nameRatio=nameTokens.length?nameTokens.filter(t=>source.includes(t)).length/nameTokens.length:0;
  const brandRatio=brandTokens.length?brandTokens.filter(t=>source.includes(t)).length/brandTokens.length:0;
  const identity=source.includes(normalizeSearchQuery(name))||nameRatio>=0.7||brandRatio>=0.8;
- const number=(String(address||'').match(/\\b\\d{1,6}\\b/)||[])[0];
- const addrParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\\d+$/.test(x));
+ const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
+ const addrParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
  const locationHits=addrParts.slice(-6).filter(x=>source.includes(x)).length;
  const phoneDigits=digitsOnly(phone),sourceDigits=digitsOnly(page.html);
  const phoneMatch=phoneDigits.length>=7&&sourceDigits.includes(phoneDigits.slice(-Math.min(10,phoneDigits.length)));
@@ -466,8 +465,8 @@ function websiteSearchHitScore(hit,name,address,brand='',phone=''){
  const hostBrandHits=allTokens.filter(t=>host.includes(t)).length;
  const exactName=name&&title.includes(normalizeSearchQuery(name));
  const addressNorm=normalizeSearchQuery(address);
- const addressParts=addressNorm.split(' ').filter(x=>x.length>=3&&!/^\\d+$/.test(x));
- const number=(String(address||'').match(/\\b\\d{1,6}\\b/)||[])[0];
+ const addressParts=addressNorm.split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
+ const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
  const cityHits=addressParts.slice(-3).filter(x=>title.includes(x)).length;
  const phoneDigits=digitsOnly(phone),titleDigits=digitsOnly(title);
  let score=ratio*36+(exactName?25:0)+hostBrandHits*20+(number&&title.includes(number)?18:0)+(cityHits?10:0)+(phoneDigits.length>=7&&titleDigits.includes(phoneDigits.slice(-7))?24:0);
@@ -481,8 +480,8 @@ function verifiedWebsiteSearchHit(hit,name,address,brand='',phone=''){
  const ratio=allTokens.length?allTokens.filter(t=>title.includes(t)).length/allTokens.length:0;
  const host=websiteHost(hit.url);
  const hostBrand=allTokens.some(t=>host.includes(t));
- const number=(String(address||'').match(/\\b\\d{1,6}\\b/)||[])[0];
- const addressParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\\d+$/.test(x));
+ const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
+ const addressParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
  const cityHits=addressParts.slice(-3).filter(x=>title.includes(x)).length;
  const identity=title.includes(normalizeSearchQuery(name||''))||ratio>=0.75;
  const location=!number||title.includes(number)||cityHits>=1;
@@ -494,7 +493,7 @@ function officialPageSearchScore(hit,name,address,brand=''){
  const tokens=[...new Set([...websiteBusinessTokens(name),...websiteBusinessTokens(brand)])];
  const ratio=tokens.length?tokens.filter(t=>title.includes(t)).length/tokens.length:0;
  const exact=name&&title.includes(normalizeSearchQuery(name));
- const addr=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\\d+$/.test(x));
+ const addr=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
  const cityHit=addr.slice(-3).some(x=>title.includes(x));
  return Math.round(ratio*60+(exact?25:0)+(cityHit?15:0));
 }
@@ -548,8 +547,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
  }
  const discoveryHits=results.filter(x=>x.kind!=='website').sort((a,b)=>websiteSearchHitScore(b,name,address,brand,phone)-websiteSearchHitScore(a,name,address,brand,phone));
  const discoveryPages=await Promise.allSettled(discoveryHits.slice(0,6).map(async hit=>({hit,page:await fetchDiscoveryPage(hit.url)})));
- const outbound=[];
- const officialPages=[];
+ const outbound=[],officialPages=[];
  for(const result of discoveryPages){
   if(result.status!=='fulfilled'||!result.value.page)continue;
   const {hit,page}=result.value;
