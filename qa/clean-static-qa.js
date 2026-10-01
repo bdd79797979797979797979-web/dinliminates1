@@ -5,8 +5,8 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=466'),'App script must use the CP466 cache-busting query');
-assert(release.build===172 && release.checkpoint==='CP466','release.json must identify Build 160 / CP455');
+assert(html.includes('app.js?v=487'),'App script must use the current CP487/Build 197 cache-busting query');
+assert(release.build===197 && release.checkpoint==='CP487' && release.sourceBranch==='cp466-restaurant-identity-final-2026-09-30','release.json must identify the current Build 197 / CP487 candidate');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
@@ -14,7 +14,7 @@ for(const s of ['Dinner Simplified','Choose a meal','Find a restaurant','foodCut
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
-for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r20'])assert(api.includes(s),'missing API contract: '+s);
+for(const s of ['fast_food','restaurant',"mode==='search'","mode==='suggest'","mode==='resolve'","mode==='reverse'",'r22'])assert(api.includes(s),'missing API contract: '+s);
 assert(!app.includes("document.createElement('style')"),'app should not construct stylesheet builders');
 assert(app.includes("S.winnerType"),'winner type must be persisted explicitly');
 assert(app.includes("const DEFAULT_FOOD_IMAGE = './fallback-food.svg';"),'Added meals must have a dedicated default food image.');
@@ -104,7 +104,7 @@ assert(popcorn?.image?.includes('pexels-photo-6422042.jpeg'),'Popcorn must use a
 assert(stir?.name==='Fajitas' && stir?.category==='Mexican' && stir?.quickCuts?.join('|')==='Mexican','Fajitas must replace Mexican Stir Fry with a Mexican Quick Cut');
 assert(api.includes("mode==='search'") && api.includes("mode==='suggest'") && api.includes("mode==='resolve'"), 'Restaurant API contract must exist');
 assert(api.includes('amenity:restaurant') && api.includes('amenity:fast_food'),'Restaurant search should use tagged Photon coverage plus restaurant/fast-food discovery');
-assert(api.includes("const API_VERSION='r20'"),'Restaurant API should report r20');
+assert(api.includes("const API_VERSION='r22'"),'Restaurant API should report r22');
 assert(api.includes('TARGETED_FAST') && api.includes('slice(0,4)'),'Fast-food fallback should be bounded to four targeted requests');
 assert(releaseApi.includes("require('../release.json')") && releaseApi.includes('String(release.build)'),'Release endpoint must use release.json as source of truth');
 assert.equal(releaseManifest.build,String(release.build),'Release manifest must match release.json build');
@@ -134,7 +134,7 @@ assert(app.includes('restaurantSearchDegraded'),'degraded-search state is requir
 assert(app.includes('resetRound') && app.includes('systemRestoreFlow') && app.includes('resetAppDataFlow'),'round reset, System Restore, and full app-data reset must be separated');
 assert(app.includes('safeExternalUrl'),'external restaurant URLs must be protocol-validated');
 assert(app.includes('storageWarning'),'storage failure state is required');
-assert(app.includes('card-phone') && app.includes('card-card-action'),'restaurant card phone/action contract missing');
+assert(app.includes('restaurant-card-utility') && app.includes('restaurant-card-details-utility'),'restaurant card utility action contract missing');
 assert(app.includes("serviceWorker.register('./sw.js')"),'service worker registration contract missing');
 const sw=fs.readFileSync('sw.js','utf8'); assert(sw.includes("'./data/restaurant-taxonomy.js'"),'Offline shell must cache the shared restaurant taxonomy'); assert(sw.includes("'./icon.svg'"),'Offline shell must cache the PWA icon');
 assert(html.includes('rel="icon"') && html.includes('./icon.svg'),'PWA icon link contract missing');
@@ -182,9 +182,9 @@ const restQuickLine=(app.match(/const REST_QUICK = \[([^\]]+)\]/)||[])[1]||''; f
 assert(app.includes('normalizeRestaurantSearch') && app.includes('RESTAURANT_SEARCH_ALIASES'),'Restaurant search should normalize punctuation and support cuisine/category aliases');
 assert(app.includes('RESTAURANT_TAXONOMY.restaurantSearchClassification'),'Restaurant Search should classify semantic cuisine/type queries with the shared taxonomy.');
 assert(app.includes("if(classification.kind==='category'&&classification.tag)"),'Restaurant Search should use taxonomy category matching rather than broad fast-food fallback for semantic searches.');
-assert(api.includes('const MAX_RADIUS=50'),'Restaurant search must be capped at 50 miles.');
-assert(!/<option>100<\/option>/.test(html),'Restaurant radius UI must not expose a 100-mile tier.');
-assert(api.includes('function centers(lat,lon,r)'),'Restaurant search must retain center-based coverage through the 50-mile maximum.');
+assert(api.includes('const MAX_RADIUS=100'),'Restaurant search must be capped at 100 miles.');
+assert(/<option>100<\/option>/.test(html),'Restaurant radius UI must expose the 100-mile tier.');
+assert(api.includes('function centers(lat,lon,r)'),'Restaurant search must retain center-based coverage through the 100-mile maximum.');
 assert(app.includes('existing.length!==labels.length||existing.some((x,i)=>x!==labels[i])'),'Quick Cut rendering must preserve existing photo nodes when the set of labels is unchanged.');
 
 assert(!app.includes('Clean rebuild') && !app.includes('clean rebuild'),'App source should not mention build-internal wording');
@@ -348,7 +348,7 @@ assert(!html.includes('Dinner Decisions Simplified') && html.includes('Beautiful
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
 assert(app.includes('restaurant-luxury-contact-card') && app.includes('detail-directions-action') && app.includes('contact-label') && app.includes('Phone'),'Restaurant Details must visibly expose a contact/directions section');
 assert(css.includes('#detailsModal .restaurant-luxury-contact-card') && css.includes('#detailsModal .restaurant-luxury-actions'),'Restaurant Details contact/directions section must have dedicated premium styling');
-assert(api.includes('MAX_RADIUS=50'),'Restaurant API maximum radius must be capped at 50 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
+assert(api.includes('MAX_RADIUS=100'),'Restaurant API maximum radius must be capped at 100 miles');assert(api.includes("if(String(r?.googlePlaceId||'').trim())"),'Google Place photo handling must take priority over generic provider imagery');
 assert(app.includes("const hoursLabel=hoursState==='open'?'Open now'"),'Restaurant Details must expose normalized current hours state');
 assert(app.includes('restaurant-hours-schedule'),'Restaurant Details should retain the provider hours schedule when available');
 assert(app.includes("replace(/\\b(?:usa|united states)\\b/g,'')"),'Browser Restaurant address normalization must strip country suffixes');
