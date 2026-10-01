@@ -185,6 +185,7 @@ async function hydrateRestaurantPhoto(row,scope){
  if(row.address)params.set('address',String(row.address));
  const website=safeExternalUrl(row.website);
  if(website)params.set('website',website);
+ if(String(row.photoSource||'')==='OpenStreetMap'&&/^https:\/\//i.test(String(row.photo||'')))params.set('osmPhoto',String(row.photo));
  if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
  if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
  const photoUrl='/api/restaurant-photo?'+params.toString();
