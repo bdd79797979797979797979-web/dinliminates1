@@ -417,6 +417,21 @@ async function bingImages(name,address,website){
   }).slice(0,24);
 }
 
+function bingCandidateHasStrongVenueEvidence(candidate,name,address){
+  if(!candidate)return false;
+  const evidence=normalizeMatchText([candidate.title,candidate.description].filter(Boolean).join(' '));
+  if(!evidence || FOOD_IMAGE_HINTS.test(evidence))return false;
+  const nameTokens=significantNameTokens(name);
+  if(!nameTokens.length)return false;
+  const matchedName=nameTokens.filter(t=>evidence.includes(t)).length;
+  if(matchedName!==nameTokens.length)return false;
+  const number=normalizeMatchText((String(address||'').match(/\b\d{1,6}\b/)||[])[0]||'');
+  const hasAddress=!!number && evidence.includes(number);
+  const hasVenue=VENUE_IMAGE_HINTS.test(evidence);
+  const hasPhotoWord=/(?:photo|image|picture|front|entrance|building|storefront|exterior|outside|outdoor|drive|patio|parking)/.test(evidence);
+  return hasPhotoWord && (hasAddress||hasVenue);
+}
+
 function photoProxyUrl(raw){
   const src=absoluteHttpsUrl(raw);
   if(!src)return '';
@@ -501,6 +516,17 @@ module.exports=async function handler(req,res){
       }
       const proxyCandidate=proxyCandidates[0];
       if(proxyCandidate) return sendPhotoReference(res,{imageUrl:proxyCandidate.url,source:'verified-venue-image-proxy',sourceUrl:candidate.hostPageUrl});
+    }
+
+    // 3) Last-resort image-search evidence: accept only when the image result itself
+    // names the exact restaurant and includes location/venue evidence. This does not
+    // accept generic brand imagery or food/menu photos.
+    for(const candidate of bing.slice(0,40)){
+      if(!candidate.contentUrl || !bingCandidateHasStrongVenueEvidence(candidate,name,address))continue;
+      try{
+        const media=await fetchImage(candidate.contentUrl,{},5500);
+        return sendMedia(res,{media,source:'bing-exact-venue-evidence',sourceUrl:candidate.hostPageUrl||candidate.contentUrl,sourceName:hostOf(candidate.hostPageUrl||candidate.contentUrl)});
+      }catch{}
     }
 
     return json(res,404,{ok:false,error:'No verified venue photo was found from non-Google sources'});
