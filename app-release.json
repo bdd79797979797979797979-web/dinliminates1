@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 651,
-  "sourceBranch": "cp651-restaurant-photo-cache-fallback",
-  "checkpoint": "CP651"
+  "build": 652,
+  "sourceBranch": "cp652-restaurant-nondining-filter",
+  "checkpoint": "CP652"
 }
