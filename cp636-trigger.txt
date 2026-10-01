@@ -1,0 +1,1 @@
+CP636 trigger after public-discovery rebuild
