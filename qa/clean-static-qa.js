@@ -5,12 +5,12 @@ assert(app.includes("function bindCardButton(id,handler)"),'Restaurant decision 
 assert(app.includes("bindCardButton('restDetails', () => detailsSheet(current,'restaurant'))"),'Restaurant Details must use the shared protected button binding');
 assert(app.includes("bindRestaurantSwipe(current)"),'Restaurant swipe binding must remain after button binding');
 assert(html.includes('<section class="screen hidden decision-screen restaurant" id="restaurant">'),'Restaurant screen must expose the .restaurant scope used by premium restaurant controls');
-assert(html.includes('app.js?v=487'),'App script must use the current CP487/Build 197 cache-busting query');
+assert(html.includes('app.js?v=532'),'App script must use the current CP532/Build 197 cache-busting query');
 assert(release.build===197 && release.checkpoint==='CP487' && release.sourceBranch==='cp466-restaurant-identity-final-2026-09-30','release.json must identify the current Build 197 / CP487 candidate');
 assert(css.includes('#restaurant .find{') && css.includes('#restaurant .round-cut{') && css.includes('#restaurant .round-maybe{'),'Restaurant control styling must be hard-scoped and explicit');
 
 new vm.Script(foods);new vm.Script(app);new vm.Script(api);new vm.Script(imageApi.replace('export default async function handler','async function handler'));new vm.Script(photoApi);
-for(const s of ['Dinner Simplified','Choose a meal','Find a restaurant','foodCut','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s);
+for(const s of ['Dinner Simplified','Choose a meal','Find a restaurant','foodCut','foodChoose','foodMaybe','foodBack','foodHide'])assert(html.includes(s),'missing HTML contract: '+s); assert(app.includes("if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);"),'Food Choose must open the existing winner flow'); assert(app.includes("bindCardButton('restChoose', () => winner(current));"),'Restaurant Choose must open the existing winner flow');
 assert(html.includes('<script src="./data/foods.js"></script>') && /<script src="\.\/app\.js(?:\?v=\d+)?"><\/script>/.test(html),'clean app scripts must load synchronously in data-before-app order');
 assert(!html.includes('defer'),'clean app should not defer its data/app runtime scripts');
 for(const s of ['restaurantPoolFiltered','searchRestaurants','useLocation','restaurantBack','foodCut','foodMaybe','foodCuts','readImageFile','foodEditor'])assert(app.includes(s),'missing app contract: '+s);
@@ -378,3 +378,13 @@ assert(app.includes('function setRestaurantHoursMode(mode)')&&app.includes('func
 
 
 assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold');
+
+
+// CP532 meal photo contracts.
+const foodPhotoRows=(()=>{const w={};vm.runInNewContext(foods,{window:w});return w.DINLIMINATE_FOODS||[]})();
+const foodByName=new Map(foodPhotoRows.map(x=>[x.name,x]));
+assert(/a\.fsimg\.co\.nz.*5325818/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut product image');
+assert(/static\.wixstatic\.com.*4f271e/i.test(foodByName.get('BLT')?.image||''),'BLT must use a bacon-lettuce-tomato sandwich photo');
+assert(/ourstate\.s3\.amazonaws\.com.*Cornbread-and-Buttermilk/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the buttermilk/cornbread pairing');
+assert(/static\.spotapps\.co.*85\/e7cfa642cc4ff4a3673f7dbcc3bfd8\/full/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the Southern-style plate photo');
+assert(/whitneybond\.com.*pinto-beans-13/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed pairing photo');
