@@ -455,9 +455,8 @@ assert.equal(await page.locator('#restQuick [data-rest-quick]').count(),10,'Rest
 assert.deepEqual(await page.locator('#restQuick [data-rest-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'],'Restaurant Quick Cuts should use restaurant categories rather than food types');
 assert.equal(await page.locator('#restQuick [data-rest-quick] .quick-chip-photo').count(),10,'Every Restaurant Quick Cut should render a photo element');
 assert.equal((await page.locator('[data-rest-quick] .quick-chip-photo').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(Boolean),true,'Every Restaurant Quick Cut should have a photo source');
-assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').innerText(),'Open');
-await page.locator('#hoursToggle [data-hours-mode="all"]').click(); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').innerText(),'All'); assert.equal(s.restaurantPool.includes('closed-1'),true,'All should include open, unknown, and closed restaurants');
-await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click(); await settle(); s=await qa(); assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').innerText(),'Open'); assert.equal(s.restaurantPool.includes('closed-1'),false,'Open should exclude explicitly closed restaurants');
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant Open/All hours filter should remain absent after Quick Cuts render');
+s=await qa(); assert.equal(s.restaurantPool.includes('closed-1'),true,'Restaurant Quick Cuts must operate on the full restaurant pool without hours filtering');
 
 const restBefore=s.restaurantPool.length;
 await click('#restCut'); await settle(); let restAfter=await qa(); assert.equal(restAfter.restaurantPool.length,restBefore-1);
