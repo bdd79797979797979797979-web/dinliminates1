@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - cp638-cp591-photo-rebuild
+  pull_request:
+    branches:
+      - main
 
 jobs:
   verify:
