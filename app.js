@@ -49,6 +49,7 @@ hiddenRestaurants:{},
 cutCats:new Set(),
 foodCuts:new Set(),
 maybe:new Set(),
+maybeDeck:false,
 foodMaybeRound:false,
 custom:[],
 pool:[],
@@ -320,7 +321,7 @@ restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION,
-restaurantTimezone:S.restaurantTimezone||'', restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
+restaurantTimezone:S.restaurantTimezone||'', restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
 };
 try {
@@ -356,6 +357,7 @@ S.hiddenRestaurants = d.hiddenRestaurants || {};
 S.cutCats = new Set(d.cutCats || []);
 S.foodCuts = new Set(d.foodCuts || []);
 S.maybe = new Set(d.maybe || []);
+S.maybeDeck = !!d.maybeDeck;
 S.foodMaybeRound = !!d.foodMaybeRound;
 S.restaurantCuts = new Set(d.restaurantCuts || []);
 S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
@@ -395,16 +397,46 @@ S.screen = 'home';
 show('home');
 }
 function foodPool(){
- return allFoods().filter(item=>{
+ const base = allFoods().filter(item=>{
   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
   return true;
  });
+ return S.maybeDeck ? base.filter(item=>S.maybe.has(item.id)) : base;
 }
 function buildFood() {
 S.pool = foodPool();
 S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
+}
+function setMaybeDeck(kind, enabled){
+ const next=!!enabled;
+ if(kind==='food'){
+  S.maybeDeck=next; S.foodMaybeRound=next; S.index=0; buildFood(); drawFood();
+ }else{
+  S.maybeDeck=next; S.restaurantMaybeRound=next; S.restaurantIndex=0; drawRestaurants();
+ }
+ renderMaybeDeckToggle(kind); save();
+}
+function maybeDeckCount(kind){
+ if(kind==='food') return foodPool().filter(item=>S.maybe.has(item.id)).length;
+ return restaurantPoolBase().filter(row=>row._maybe).length;
+}
+function renderMaybeDeckToggle(kind){
+ const id=kind==='food'?'foodMaybeDeck':'restaurantMaybeDeck';
+ const btn=$(id);if(!btn)return;
+ const hasMaybe=maybeDeckCount(kind)>0;
+ btn.dataset.mode=S.maybeDeck?'maybe':'all';
+ btn.disabled=!hasMaybe && !S.maybeDeck;
+ const target=S.maybeDeck?'Show all choices':'Show Maybe choices';
+ btn.setAttribute('aria-label',target); btn.title=target;
+ btn.classList.toggle('is-maybe',S.maybeDeck);
+}
+function bindMaybeDeckToggle(kind){
+ const id=kind==='food'?'foodMaybeDeck':'restaurantMaybeDeck';
+ const btn=$(id);if(!btn)return;
+ btn.onclick=()=>setMaybeDeck(kind,!S.maybeDeck);
+ renderMaybeDeckToggle(kind);
 }
 function foodQuick() {
  const labels=foodQuickLabels();
@@ -439,6 +471,7 @@ setTimeout(()=>el.remove(),2800);
 function startFood() {
 S.foodActions = [];
 S.maybe.clear();
+S.maybeDeck = false;
 S.foodMaybeRound = false;
 S.cutCats.clear();
 S.foodCuts.clear();
@@ -464,6 +497,7 @@ function drawFood(){
  img.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  const foodCard=$('foodCard');if(foodCard){foodCard.querySelector('.maybe-stamp')?.remove();if(S.maybe.has(item.id)){const stamp=document.createElement('span');stamp.className='maybe-stamp';stamp.setAttribute('aria-label','Marked Maybe');stamp.textContent='MAYBE';foodCard.appendChild(stamp);}}
 $('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('foodCount').textContent=S.pool.length+(S.pool.length===1?' choice':' choices');
+renderMaybeDeckToggle('food');
  const nextCard=$('foodNextCard');
  if(nextCard){
   let ni=S.pool.length>1?(S.foodMaybeRound?foodChoiceIndex(S.pool,(S.index+1)%S.pool.length,true):foodChoiceIndex(S.pool,(S.index+1)%S.pool.length,false)):-1;
@@ -471,7 +505,7 @@ $('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('fo
   const next=ni>=0?S.pool[ni]:null;nextCard.classList.toggle('hidden',!next);nextCard.style.display=next?'block':'none';
   if(next){const nimg=$('foodNextImg');nimg.src=foodPhoto(next);nimg.dataset.fallback=foodPhotoFallback(next);nimg.dataset.finalFallback=FINAL_FOOD_IMAGE;nimg.alt=next.name;nimg.referrerPolicy='no-referrer';nimg.loading='eager';nimg.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};nextCard.style.transform='scale(.96)';}
  }
- bindFoodSwipe();$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);if($('foodCut'))$('foodCut').onclick=()=>foodCut();if($('foodMaybe'))$('foodMaybe').onclick=()=>foodMaybe();
+ bindFoodSwipe();bindMaybeDeckToggle('food');$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);if($('foodCut'))$('foodCut').onclick=()=>foodCut();if($('foodMaybe'))$('foodMaybe').onclick=()=>foodMaybe();
 }
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
@@ -919,7 +953,8 @@ function restaurantPoolBase(){
  });
 }
 function restaurantPoolFiltered(){
- return restaurantPoolBase();
+ const base=restaurantPoolBase();
+ return S.maybeDeck ? base.filter(row=>row._maybe) : base;
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
@@ -1300,6 +1335,7 @@ renderRestaurantSearchControl();
 S.screen = 'restaurant';
 S.restaurantActions = [];
 S.restaurantMaybeRound = false;
+S.maybeDeck = false;
 S.restaurantQuery = '';
 S.restaurantCuts.clear();
 for (const row of S.restaurantPool || []) {
@@ -1319,6 +1355,7 @@ renderRestaurantSearchControl();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
 if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
+renderMaybeDeckToggle('restaurant');
 if (!rows.length) {
 const hasResults=!!S.restaurantPool.length;
 const message=hasResults ? 'No restaurants match the current cuts.' : (S.restaurantSearchDegraded ? 'Some restaurant sources are unavailable.' : (S.location ? 'No restaurants found in this radius.' : 'Set a location, then find restaurants.'));
@@ -1346,7 +1383,7 @@ const cardDetailsAction = '<button class="restaurant-card-utility restaurant-car
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
 const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="deck-filter-toggle" id="restaurantMaybeDeck" type="button" data-mode="all"><span>All</span><span class="deck-filter-slash">/</span><span>Maybe</span></button><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
@@ -1354,7 +1391,7 @@ bindCardButton('restMaybe', () => restaurantMaybe(current));
 bindCardButton('restChoose', () => winner(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
 bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
-bindRestaurantSwipe(current);
+bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
 hydrateGoogleRestaurantPhoto(row,'#restStage #restaurantCard');
 if(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places')hydrateGoogleRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
