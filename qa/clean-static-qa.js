@@ -232,7 +232,7 @@ assert.equal(foodRows.length,116,'Built-in food catalog should contain 116 meals
 
 // CP258 food catalog expansion and Quick Cut contracts.
 const byId=new Map(foodRows.map(x=>[x.id,x]));
-assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
+assert(app.includes("const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack']"),'Food Quick Cuts should use the revised logical order');
 assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick Cut button list should not include Greek'); assert.deepEqual(foodRows.find(x=>x.id==='gyro')?.quickCuts,['Healthy'],'Gyro should use Healthy Quick Cut');
 assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
 assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
