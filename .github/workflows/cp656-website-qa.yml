@@ -9,6 +9,7 @@ on:
       - "qa/restaurant-website-resolver-smoke.cjs"
       - ".github/workflows/cp656-website-qa.yml"
       - "index.html"
+      - "sw.js"
   workflow_dispatch:
 
 permissions:
