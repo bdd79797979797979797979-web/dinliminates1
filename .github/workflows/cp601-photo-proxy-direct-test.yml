@@ -1,0 +1,44 @@
+name: CP601 Direct Photo Resolver Test
+
+on:
+  push:
+    branches: [cp601-photo-proxy-preview]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Test public preview photo resolver
+        env:
+          BASE_URL: https://deploy-preview-97--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const cases = [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37040"]
+          ];
+          for (const [name,address] of cases) {
+            const u=BASE_URL+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address);
+            const r=await fetch(u,{redirect:'follow'});
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const source=r.headers.get('x-restaurant-photo-source')||'';
+            const text=await r.text();
+            let parsed=null;
+            try{parsed=JSON.parse(text)}catch{}
+            console.log(JSON.stringify({name,status:r.status,type,source,bodyPreview:text.slice(0,700),jsonUrl:parsed?.url||'',jsonSource:parsed?.source||''}));
+            if(r.status!==200)throw new Error(name+' HTTP '+r.status);
+            if(type==='application/json'){
+              if(!parsed?.url||!/^https:\/\//i.test(parsed.url))throw new Error(name+' returned JSON without valid https URL');
+            } else if(!type.startsWith('image/')){
+              throw new Error(name+' returned unexpected content type '+type);
+            }
+          }
+          const proxy='https://wsrv.nl/?url='+encodeURIComponent('https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg')+'&w=1200&h=800&fit=cover&q=85&output=webp';
+          const pr=await fetch(proxy);
+          console.log(JSON.stringify({proxyStatus:pr.status,proxyType:(pr.headers.get('content-type')||'').split(';')[0],proxyBytes:(await pr.arrayBuffer()).byteLength}));
+          if(pr.status!==200 || !(pr.headers.get('content-type')||'').startsWith('image/')) throw new Error('wsrv proxy did not return an image');
+          NODE
