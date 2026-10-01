@@ -1188,7 +1188,7 @@
 #manageFoodsModal .manage-hide{color:#b8b1a4!important}
 #manageFoodsModal .manage-edit{color:#a9cddd!important;border-color:#3e5661!important}
 #manageFoodsModal .manage-food-row .food-row-actions{gap:5px!important}
-#restaurant .radius-search{width:40px!important;min-width:40px!important;height:39px!important;padding:0!important;border-radius:11px!important;display:grid!important;place-items:center!important;color:#a9cddd!important;background:linear-gradient(180deg,#1b2327,#121719)!important;border:1px solid #445d67!important;box-shadow:0 6px 15px #0006!important}
+#restaurant .radius-search{width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;color:#a9cddd!important;background:linear-gradient(180deg,#1b2327,#121719)!important;border:1px solid #445d67!important;box-shadow:0 6px 15px #0006!important}
 #restaurant .radius-search svg{width:17px;height:17px;display:block}
 #restaurant .radius-search:hover{background:linear-gradient(180deg,#243038,#171d20)!important;border-color:#648291!important;color:#d6edf5!important}
 #restaurant .radius-search:active{transform:scale(.97)!important}
@@ -1200,9 +1200,9 @@
 }
 
 /* CP455 geometry correction — compact Search occupies exactly one grid cell beside Radius */
-#restaurant .location-sub{grid-template-columns:auto 64px 40px minmax(0,1fr)}
-@media(max-width:390px){#restaurant .location-sub{grid-template-columns:auto 66px 38px minmax(0,1fr)}}
-@media(max-width:340px){#restaurant .location-sub{grid-template-columns:auto 62px 38px minmax(0,1fr)}}
+#restaurant .location-sub{grid-template-columns:auto 64px 36px minmax(0,1fr)}
+@media(max-width:390px){#restaurant .location-sub{grid-template-columns:auto 66px 36px minmax(0,1fr)}}
+@media(max-width:340px){#restaurant .location-sub{grid-template-columns:auto 62px 36px minmax(0,1fr)}}
 
 /* CP459 — unify Menu rows and replace orange utility accents with satin-gold */
 .drawer .drawer-row,
