@@ -1896,3 +1896,32 @@ button,a,select{touch-action:manipulation}
   #food .food-decision-group .round-hide,#restaurant .swipe-actions .round-hide{left:calc(50% + 70px)!important}
   #food .food-decision-group .round-add-food{left:calc(50% + 118px)!important}
 }
+
+
+/* CP579 — Restaurant location Find/Refresh is a true icon-only control.
+   Preserve its current right-side footprint and placement; text remains accessible only. */
+#restaurant .location-main .find{
+  font-size:0!important;
+  gap:0!important;
+  padding:0!important;
+}
+#restaurant .location-main .find::before{
+  content:none!important;
+  display:none!important;
+}
+#restaurant .location-main .find .find-icon{
+  width:16px!important;
+  height:16px!important;
+  display:block!important;
+  flex:0 0 16px!important;
+}
+#restaurant .location-main .find .find-spinner{
+  width:11px!important;
+  height:11px!important;
+  display:block!important;
+  flex:0 0 11px!important;
+  border:1.5px solid #8c7442!important;
+  border-top-color:#2d2415!important;
+  border-radius:50%!important;
+  animation:restaurantFindSpin .72s linear infinite!important;
+}
