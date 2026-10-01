@@ -374,7 +374,7 @@ assert(api.includes('const conflictingAddress=!!ax&&!!ar&&!sameAddress'),'Restau
 assert(app.includes('const conflictingAddr=!!address&&!!xa&&!sameAddr'),'Frontend Restaurant dedupe must protect distinct nearby addresses from false merges');
 assert(api.includes('function applyGoogleContactPatches'),'Google contact enrichment must merge into existing rows');
 assert(api.includes("if(got&&!got.__timeout){googleContactOut=got;applyGoogleContactPatches(contactCandidates,googleContactOut.rows)}"),'Google contact patches must be applied without appending duplicate rows');
-assert(!app.includes('function renderHours()')&&!app.includes('setRestaurantHoursMode('),'Removed Restaurant hours-control runtime must stay absent');
+assert(app.includes('function setRestaurantHoursMode(mode)')&&app.includes('function syncRestaurantHoursControl()'),'Restaurant hours-control runtime must remain wired for Open/All');
 
 
 assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold');
