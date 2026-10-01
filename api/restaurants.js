@@ -93,7 +93,12 @@ function normalizeRestaurantHours(row,zone,checkedAt=new Date()){
 }
 function normalizeSearchQuery(s){return RESTAURANT_TAXONOMY.normalizeRestaurantSearch(s)}
 function classifySearchTerm(s){return RESTAURANT_TAXONOMY.restaurantSearchClassification(s)}
-function providerSearchTerms(s){return RESTAURANT_TAXONOMY.searchAliasesFor(s).slice(0,3)}
+function providerSearchTerms(s){
+ const terms=RESTAURANT_TAXONOMY.searchAliasesFor(s).slice(0,3);
+ const classification=RESTAURANT_TAXONOMY.restaurantSearchClassification(s);
+ if(classification.kind==='category'&&classification.tag==='Burgers'&&!terms.includes('fast food'))terms.push('fast food');
+ return terms.slice(0,4);
+}
 function searchRegexAlternatives(values){return '(?:'+values.map(searchRegex).filter(Boolean).join('|')+')';}
 function searchRegex(value){return normalizeSearchQuery(value).split(' ').filter(Boolean).map(word=>word.split('').map(ch=>escapeOverpassRegex(ch)).join('[^a-z0-9]*')).join('[^a-z0-9]+')}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
