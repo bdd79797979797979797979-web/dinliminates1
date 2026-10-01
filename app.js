@@ -1140,7 +1140,7 @@ function restaurantQuick() {
 }
 function renderLocationSource(){
 const el=$('locationSourceLabel'); if(!el)return;
-const labels={device:'Using your location',last:'Last used location',address:'Using selected address',typed:'Address needs selection',none:'No location selected'};
+const labels={device:'Using your location',ip:'Approximate network location',last:'Last used location',address:'Using selected address',typed:'Address needs selection',none:'No location selected'};
 el.textContent=labels[S.locationSource]||labels.none;
 el.classList.toggle('is-ready',S.locationSource==='device'||S.locationSource==='address');
 renderFindButton();
@@ -1196,6 +1196,32 @@ return new Promise((resolve,reject)=>{
   navigator.geolocation.getCurrentPosition(resolve,reject,options);
 });
 }
+async function requestApproximateNetworkLocation(seq){
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),6500);
+ try{
+  const r=await fetch('/api/restaurant-search?mode=ip-location&fallback='+Date.now(),{cache:'no-store',signal:ctl.signal});
+  const d=await r.json().catch(()=>null);
+  if(seq!==locationRequestSeq)throw Object.assign(new Error('Location request superseded.'),{name:'AbortError'});
+  if(!r.ok||!d?.ok)throw new Error(d?.message||'Network location is unavailable.');
+  const lat=Number(d.lat),lon=Number(d.lon);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon))throw new Error('Network location returned invalid coordinates.');
+  return {lat,lon,label:String(d.display||'Approximate network location'),timezone:String(d.timezone||'')};
+ }finally{clearTimeout(timer)}
+}
+async function useApproximateNetworkLocation(seq){
+ const fallback=await requestApproximateNetworkLocation(seq);
+ if(seq!==locationRequestSeq)return false;
+ S.restaurantTimezone=fallback.timezone||S.restaurantTimezone||'';
+ setLocation(fallback.lat,fallback.lon,fallback.label,'ip');
+ $('status').textContent='Approximate location found. Searching restaurants…';
+ await searchRestaurants();
+ if(seq===locationRequestSeq){
+  $('status').textContent='Using approximate network location.';
+  renderLocationSource();
+  save();
+ }
+ return true;
+}
 function locationMovedMiles(a,b) {
 return milesBetween(a?.lat,a?.lon,b?.lat,b?.lon);
 }
@@ -1214,10 +1240,6 @@ return String(d.display||'Current location');
 finally{clearTimeout(timer);if(reverseLocationController===ctl)reverseLocationController=null;}
 }
 async function useLocation() {
-if (!navigator.geolocation) {
-$('status').textContent='Location is not available in this browser.';
-return;
-}
 if(locationRequestActive)return;
 const seq=++locationRequestSeq;
 locationRequestActive=true;
@@ -1265,11 +1287,17 @@ if(seq===locationRequestSeq && !S.locationFreshAt)S.locationFreshAt=Date.now();
 if(seq===locationRequestSeq && !/^Location updated/.test($('status').textContent))$('status').textContent='Location ready.';
 }catch(err){
 if(seq!==locationRequestSeq)return;
-const code=Number(err?.code);
-if(code===1)$('status').textContent='Location permission was denied. Enter an address instead.';
-else if(code===3)$('status').textContent='Location timed out. Enter an address instead.';
-else if(code===2)$('status').textContent='Location is temporarily unavailable. Enter an address instead.';
-else $('status').textContent=err?.message||'Could not access your location. Enter an address instead.';
+try{
+  await useApproximateNetworkLocation(seq);
+  return;
+}catch(fallbackErr){
+  if(seq!==locationRequestSeq)return;
+  const code=Number(err?.code);
+  if(code===1)$('status').textContent='Location permission was denied, and approximate network location is unavailable.';
+  else if(code===3)$('status').textContent='Location timed out, and approximate network location is unavailable.';
+  else if(code===2)$('status').textContent='Location is temporarily unavailable, and approximate network location is unavailable.';
+  else $('status').textContent=fallbackErr?.message||err?.message||'Could not access your location. Enter an address instead.';
+}
 }finally{
 if(seq===locationRequestSeq){
 locationRequestActive=false;
