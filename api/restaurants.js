@@ -372,7 +372,7 @@ function applyGoogleContactPatches(rows,patches){
  return rows;
 }
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
-const RESTAURANT_NAME_VARIANT_BLOCKERS=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','more','and','at','inside','food','foods','eatery','restaurant','restaurants']);
+const RESTAURANT_NAME_VARIANT_BLOCKERS=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameTokens(value){
   return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
 }
