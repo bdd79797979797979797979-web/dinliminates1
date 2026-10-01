@@ -237,7 +237,7 @@ assert(!/const\s+FOOD_QUICK\s*=\s*\[[^\]]*['"]Greek['"]/.test(app),'Food Quick C
 assert.deepEqual(byId.get('gyro')?.quickCuts,['Healthy']); assert.equal(byId.get('gyro')?.category,'Healthy');
 assert.deepEqual(byId.get('stir-fry')?.quickCuts,['Mexican']); assert.equal(byId.get('stir-fry')?.name,'Fajitas');
 const cp258Cuts={
-'pot-pie':['American','Southern'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Healthy','Southern'],'crab-cakes':['Southern','Healthy'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Snack','Healthy'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
+'pot-pie':['American','Southern'],blt:['American'],reuben:['American'],'hot-dog':['American'],'corn-dog':['American'],nachos:['Mexican','Snack'],'orange-chicken':['Asian'],'chicken-teriyaki':['Asian','Healthy'],sushi:['Asian','Healthy'],pancakes:['Breakfast'],omelet:['Breakfast'],oatmeal:['Breakfast','Healthy'],shrimp:['Seafood','Healthy'],'crab-cakes':['Seafood','Southern'],gumbo:['Southern','Soup/Stew'],'chicken-nuggets':['American'],ramen:['Asian','Soup/Stew'],'pimento-cheese-sandwich':['Southern','American'],'ice-cream':['Snack'],'protein-bar':['Healthy','Snack'],'candy-bar':['Snack'],banana:['Healthy','Snack'],apple:['Healthy','Snack']};
 for(const [id,cuts] of Object.entries(cp258Cuts)) assert.deepEqual(byId.get(id)?.quickCuts,cuts,id+' Quick Cut mapping');
 assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut must remain removed'); assert(!/const FOOD_QUICK\s*=\s*\[[^\]]*['"]Pork['"]/.test(app),'Food Quick Cut list must not reintroduce Pork');
 
@@ -246,8 +246,8 @@ assert(!foodRows.some(x=>x.quickCuts?.includes('Pork')),'Food Pork Quick Cut mus
 const cp259Cuts={
 'turkey-dinner':['Southern','American'],
 'ham-dinner':['Southern','American'],
-'lobster':['Healthy'],
-'crab-legs':['Healthy'],
+'lobster':['Seafood','Healthy'],
+'crab-legs':['Seafood','Healthy'],
 'liver-and-onions':['Southern','Healthy'],
 'duck-dinner':['American'],
 'mexican-burrito':['Mexican'],
@@ -261,9 +261,9 @@ const cp259Cuts={
 'boiled-eggs':['Breakfast','Healthy'],
 'mixed-nuts':['Snack','Healthy'],
 'smoked-brisket-sides':['Southern'],
-'clam-chowder':['Soup/Stew'],
+'clam-chowder':['Soup/Stew','Seafood'],
 'turkey-sandwich-chips':['American'],
-'masala-pasta':['Pasta'],
+'masala-pasta':['Pasta','Asian'],
 'enchiladas':['Mexican'],
 'white-chicken-chili':['Soup/Stew','Mexican'],
 'corn-chowder':['Soup/Stew'],
