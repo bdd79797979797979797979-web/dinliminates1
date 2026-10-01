@@ -802,11 +802,16 @@ return matched ? 'closed' : 'unknown';
 }
 function explicitClosed(row) { return hourStatus(row) === 'closed'; }
 const RESTAURANT_SEARCH_ALIASES = RESTAURANT_TAXONOMY.aliases;
+function restaurantCategorySearchMatches(row,tag){
+ const tags=restaurantCuisineTags(row);
+ if(tag==='Burgers')return tags.includes('Burgers')||tags.includes('Fast Food');
+ return tags.includes(tag);
+}
 function restaurantSearchTermMatches(row,term,hay){
  const normalized=normalizeRestaurantSearch(term);
  if(!normalized)return true;
  const classification=RESTAURANT_TAXONOMY.restaurantSearchClassification(normalized);
- if(classification.kind==='category'&&classification.tag) return restaurantCuisineTags(row).includes(classification.tag);
+ if(classification.kind==='category'&&classification.tag) return restaurantCategorySearchMatches(row,classification.tag);
  const words=normalized.split(' ').filter(Boolean);
  if(words.length===1 && ['restaurant','restaurants','place','places'].includes(words[0]))return true;
  return words.every(word=>hay.includes(word));
@@ -815,7 +820,7 @@ function restaurantMatchesQuery(row){
  const q=String(S.restaurantQuery||'').trim();
  if(!q)return true;
  const classification=RESTAURANT_TAXONOMY.restaurantSearchClassification(q);
- if(classification.kind==='category'&&classification.tag)return restaurantCuisineTags(row).includes(classification.tag);
+ if(classification.kind==='category'&&classification.tag)return restaurantCategorySearchMatches(row,classification.tag);
  const hay=normalizeRestaurantSearch(restaurantSearchText(row));
  return q.split(/\s+/).filter(Boolean).every(term=>restaurantSearchTermMatches(row,term,hay));
 }
