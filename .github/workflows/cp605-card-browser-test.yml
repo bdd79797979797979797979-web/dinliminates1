@@ -1,0 +1,61 @@
+name: CP605 Restaurant Card Browser Test
+
+on:
+  push:
+    branches: [cp605-thirsty-goat-photo-fix]
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - name: Run card image test
+        env:
+          BASE_URL: https://deploy-preview-99--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const { chromium }=require('playwright');
+          const { execSync }=require('child_process');
+          let chrome='';
+          for(const cmd of ['google-chrome','chromium','chromium-browser']){
+            try{chrome=execSync('command -v '+cmd).toString().trim();if(chrome)break}catch{}
+          }
+          if(!chrome)throw new Error('No system Chromium/Chrome found');
+          const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox']});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          await page.goto(process.env.BASE_URL,{waitUntil:'domcontentloaded',timeout:30000});
+          await page.locator('#restStart').click();
+          await page.locator('#address').fill('724 Sango Rd, Clarksville, TN 37043');
+          await page.locator('#find').click();
+          await page.waitForTimeout(5000);
+          const search=page.locator('#restaurantSearch');
+          await search.click();
+          await page.locator('#restaurantQuery').fill("McDonald's");
+          await page.locator('#restaurantQuery').press('Enter');
+          await page.waitForTimeout(7000);
+          const card=page.locator('#restStage img[data-restaurant-photo-key]').first();
+          await card.waitFor({state:'visible',timeout:20000});
+          await page.waitForFunction(()=>{
+            const el=document.querySelector('#restStage img[data-restaurant-photo-key]');
+            return el && el.complete && el.naturalWidth>0;
+          },null,{timeout:20000});
+          const result=await card.evaluate(el=>({
+            src:el.currentSrc||el.src,
+            naturalWidth:el.naturalWidth,
+            naturalHeight:el.naturalHeight,
+            loaded:el.complete,
+            key:el.dataset.restaurantPhotoKey
+          }));
+          const name=await page.locator('#restStage h3').first().textContent().catch(()=>null);
+          console.log(JSON.stringify({name,result}));
+          if(!result.naturalWidth)throw new Error('Restaurant card image has no pixels');
+          await browser.close();
+          NODE
