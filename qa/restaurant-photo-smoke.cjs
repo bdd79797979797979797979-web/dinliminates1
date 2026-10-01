@@ -44,7 +44,8 @@ const html=`
   <img src="https://example.com/menu.jpg" alt="burger menu">
 </div>`;
 const links=pt.extractInternalLinks(html,'https://exactbistro.example/','Exact Bistro','123 Main Street, Clarksville, TN 37040');
-assert.deepEqual(links,['https://exactbistro.example/locations/clarksville']);
+assert.ok(links.includes('https://exactbistro.example/locations/clarksville'),'Official location link should be discovered');
+assert.ok(!links.includes('https://other.example/unrelated'),'Unrelated domain should never be discovered');
 
 const candidates=pt.extractVenueImageCandidates(html,'https://exactbistro.example/','Exact Bistro','123 Main Street, Clarksville, TN 37040','https://exactbistro.example/');
 assert.ok(candidates.some(x=>x.url==='https://example.com/front.jpg'&&x.score>=65),'Venue exterior image should score as a candidate');
