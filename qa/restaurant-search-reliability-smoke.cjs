@@ -7,7 +7,7 @@ assert(app.includes('async function fetchRestaurantEndpoint'),'Restaurant search
 assert(app.includes('attempt<2'),'Retry wrapper should retry once, not loop indefinitely');
 assert(app.includes('[429,500,502,503,504]'),'Retry wrapper should target rate-limit and transient server failures');
 assert(app.includes('const deadline=setTimeout(()=>{timedOut=true;restaurantSearchController.abort()},14500)'),'Client search deadline should be bounded near the server budget');
-assert(app.includes("S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;"),'Client should use the r20 12-second search budget fallback');
+assert(app.includes("S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;"),'Client should use the r22 12-second search budget fallback');
 
 assert(api.includes("const SEARCH_BUDGET_MS=12000"),'API search budget should be reduced to a predictable 12 seconds');
 assert(api.includes("const WIDE_DISCOVERY_RESERVE_MS=4500"),'Wide discovery should reserve a bounded expansion window');
@@ -16,7 +16,7 @@ assert(api.includes("mode!=='search'&&rate(req,mode)"),'Search rate limiting sho
 assert(api.includes("if(rate(req,mode))return res.status(429)"),'Uncached restaurant searches must still be rate limited');
 assert(api.includes('const discoveryPromise=wideSearch||searchTerm'),'Provider-backed expansion should start concurrently with primary providers');
 assert(api.includes('await withinBudget(discoveryPromise'),'Concurrent discovery result should be consumed within the remaining budget');
-assert(api.includes('const API_VERSION=\'r20\''),'Reliability hardening should remain on API r20');
+assert(api.includes('const API_VERSION=\'r22\''),'Reliability hardening should remain on API r22');
 
 const ctx={module:{exports:{}},exports:{},require,process,fetch};
 vm.runInNewContext(api,ctx,{filename:'api/restaurants.js'});
