@@ -1,0 +1,72 @@
+name: CP595 Live Restaurant Photo Test
+
+on:
+  push:
+    branches: [cp595-restaurant-photo-live]
+
+permissions:
+  contents: read
+
+jobs:
+  photo-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test live restaurant photo endpoint and card
+        env:
+          BASE_URL: https://deploy-preview-95--dinliminate112.netlify.app
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const base = process.env.BASE_URL;
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage({ viewport:{width:390,height:844} });
+
+          async function testEndpoint(name,address){
+            const url = base + '/api/restaurant-photo?name=' + encodeURIComponent(name) + '&address=' + encodeURIComponent(address);
+            const res = await page.request.get(url);
+            const type = (res.headers()['content-type'] || '').split(';')[0];
+            const source = res.headers()['x-restaurant-photo-source'] || '';
+            console.log(name, JSON.stringify({status:res.status(),contentType:type,source}));
+            if(res.status()!==200) throw new Error(name+' photo endpoint returned HTTP '+res.status());
+            if(!type.startsWith('image/')) throw new Error(name+' photo endpoint did not return an image');
+            if(!source.includes('venue')) throw new Error(name+' photo endpoint did not use a verified venue source: '+source);
+          }
+
+          await testEndpoint("McDonald's","724 Sango Rd, Clarksville, TN 37043");
+          await testEndpoint("The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37040");
+
+          await page.goto(base, {waitUntil:'domcontentloaded'});
+          await page.locator('#restStart').click();
+          await page.locator('#address').fill('724 Sango Rd, Clarksville, TN 37043');
+          await page.locator('#find').click();
+          await page.locator('#restaurantCard').waitFor({state:'visible',timeout:20000});
+
+          const cardName = await page.locator('#restaurantCard h3').textContent();
+          const img = page.locator('#restaurantCard img[data-restaurant-photo-key]');
+          await page.waitForFunction(() => {
+            const el = document.querySelector('#restaurantCard img[data-restaurant-photo-key]');
+            return el?.dataset.restaurantPhotoLoaded === 'true';
+          }, {timeout:20000});
+
+          const result = await img.evaluate(el => ({
+            loaded: el.dataset.restaurantPhotoLoaded === 'true',
+            srcType: el.src.slice(0,5),
+            naturalWidth: el.naturalWidth,
+            alt: el.alt
+          }));
+          console.log('CARD', JSON.stringify({cardName,result}));
+          if(!result.loaded || !(result.naturalWidth>0)) throw new Error('Restaurant card photo did not load');
+
+          await browser.close();
+          NODE
