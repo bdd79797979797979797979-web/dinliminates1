@@ -206,7 +206,7 @@ async function putPersistentRestaurantPhoto(row,blob,attributions,source){
   const headers=new Headers({'Content-Type':blob.type||'image/jpeg','X-Dinliminate-Cached-At':String(Date.now()),'X-Restaurant-Photo-Source':String(source||'')});
   if(attributions?.length){
    const raw=JSON.stringify(attributions);
-   let encoded=btoa(unescape(encodeURIComponent(raw))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');
+   const bytes=new TextEncoder().encode(raw); let binary=''; for(const byte of bytes)binary+=String.fromCharCode(byte); let encoded=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
    headers.set('X-Restaurant-Photo-Attributions',encoded);
   }
   await cache.put(request,new Response(blob,{status:200,headers}));
@@ -1481,7 +1481,7 @@ S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
 if(!S.restaurantMaybeRound){const ni=restaurantChoiceIndex(rows,S.restaurantIndex,false);if(ni>=0)S.restaurantIndex=ni;else if(rows.some(x=>x._maybe)){S.restaurantMaybeRound=true;S.restaurantIndex=restaurantChoiceIndex(rows,0,true);}}
 const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
-const restaurantFallback = (r) => imageProxyUrl(r?.photo || r?.photoFallback || r?.image || FINAL_RESTAURANT_IMAGE);
+const restaurantFallback = (r) => imageProxyUrl(r?.photo || r?.photoFallback || r?.image || restaurantFallbackImage(r));
 const image = restaurantFallback(row);
 const distanceLabel=Number.isFinite(Number(row.distance)) ? Number(row.distance).toFixed(1)+' mi away' : '';
 const restaurantMaybeBadge=row._maybe?'<span class="maybe-stamp restaurant-maybe-stamp" aria-label="Marked Maybe">MAYBE</span>':'';
@@ -1495,7 +1495,7 @@ const cardDetailsAction = '<button class="restaurant-card-utility restaurant-car
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
 const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="deck-filter-toggle" id="restaurantMaybeDeck" type="button" data-mode="all" aria-label="Viewing all choices. Tap to show Maybe choices." title="Show Maybe choices" aria-pressed="false"><span class="deck-filter-all" aria-hidden="true">A</span></button><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-fallback="'+esc(nextRow?.photoFallback||restaurantFallbackImage(nextRow))+'" data-final-fallback="'+esc(restaurantFallbackImage(nextRow))+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-fallback="'+esc(row.photoFallback||restaurantFallbackImage(row))+'" data-final-fallback="'+esc(restaurantFallbackImage(row))+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="deck-filter-toggle" id="restaurantMaybeDeck" type="button" data-mode="all" aria-label="Viewing all choices. Tap to show Maybe choices." title="Show Maybe choices" aria-pressed="false"><span class="deck-filter-all" aria-hidden="true">A</span></button><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
@@ -1504,7 +1504,7 @@ bindCardButton('restChoose', () => winner(current));
 bindCardButton('restHide', async () => { await restaurantHide(current); });
 bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
-bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
+bindImageFallback('#restStage img',restaurantFallback(row),restaurantFallbackImage(row));
 hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
 if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 }
@@ -1762,7 +1762,7 @@ hydrateRestaurantPhoto(item,'#detailsModal');
 }
 
 function historyImageSource(row){
- const fallback=row?.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE;
+ const fallback=row?.type==='restaurant'?restaurantFallbackImage(row):HUNGRY_IMAGE;
  return imageProxyUrl(row?.image||row?.photoFallback||fallback);
 }
 function recordHistory(item, type) {
@@ -1773,7 +1773,7 @@ date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()
 type,
 name:item.name,
 image:item.image||item.photo||'',
-photoFallback:item.photoFallback||'',
+photoFallback:type==='restaurant'?(item.photoFallback||restaurantFallbackImage(item)):(item.photoFallback||''),
 photoSource:item.photoSource||'',
 googlePlaceId:item.googlePlaceId||'',
 photoIsGeneric:item.photoIsGeneric!==false,
