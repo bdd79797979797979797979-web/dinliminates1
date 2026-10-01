@@ -249,7 +249,7 @@ const KNOWN_RESTAURANT_WEBSITES={
 };
 const officialWebsiteCache=new Map();
 const OFFICIAL_WEBSITE_CACHE_TTL=7*24*60*60*1000;
-const OFFICIAL_WEBSITE_NEGATIVE_TTL=24*60*60*1000;
+const OFFICIAL_WEBSITE_NEGATIVE_TTL=10*60*1000;
 const BLOCKED_WEBSITE_HOSTS=new Set([
  'google.com','www.google.com','bing.com','www.bing.com','yelp.com','www.yelp.com',
  'tripadvisor.com','www.tripadvisor.com','facebook.com','www.facebook.com',
@@ -444,12 +444,12 @@ function directWebsiteDomainCandidates(name,address,brand=''){
  }
  return [...new Set(out)].slice(0,20);
 }
-async function discoverOfficialWebsite(name,address,brand='',phone=''){
+async function discoverOfficialWebsite(name,address,brand='',phone='',force=false){
  const key=normalizeSearchQuery([name,address,brand,phone].filter(Boolean).join('|'));
  if(!key)return {website:'',officialPage:'',source:'none'};
  const cached=officialWebsiteCache.get(key);
  const cacheTtl=cached?.url||cached?.officialPage?OFFICIAL_WEBSITE_CACHE_TTL:OFFICIAL_WEBSITE_NEGATIVE_TTL;
- if(cached&&Date.now()-cached.t<cacheTtl)return {website:cached.url||'',officialPage:cached.officialPage||'',source:cached.source||'cache'};
+ if(!force&&cached&&Date.now()-cached.t<cacheTtl)return {website:cached.url||'',officialPage:cached.officialPage||'',source:cached.source||'cache'};
  if(cached)officialWebsiteCache.delete(key);
  const known=knownRestaurantWebsite({name,brand});
  if(known){
@@ -559,7 +559,7 @@ async function resolveOfficialWebsite(row){
  if(direct)return {website:direct,officialPage:'',source:'provider'};
  const known=knownRestaurantWebsite(row);
  if(known)return {website:known,officialPage:'',source:'known-brand'};
- return discoverOfficialWebsite(row?.name,row?.address,row?.brand,row?.phone);
+ return discoverOfficialWebsite(row?.name,row?.address,row?.brand,row?.phone,!!row?.forceWebsiteRefresh);
 }
 function knownRestaurantWebsite(row){
  const name=norm(row?.name),brand=norm(row?.brand);
@@ -931,9 +931,9 @@ if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(q.get('lat')),lon=n(q.get('lon'));if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
 if(mode==='website'){
- const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80);
+ const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80),force=String(q.get('refresh')||'')==='1';
  if(!name)return res.status(400).json({ok:false,message:'Restaurant name is required.'});
- const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite,phone});
+ const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite,phone,forceWebsiteRefresh:force});
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');
  return res.status(200).json({ok:true,website:result.website||'',officialPage:result.officialPage||'',source:result.source||'none'});
 }
