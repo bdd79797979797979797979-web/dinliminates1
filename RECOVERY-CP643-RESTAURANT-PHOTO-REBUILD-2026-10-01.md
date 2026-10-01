@@ -66,3 +66,14 @@ Deployment status:
 - CP643 Restaurant Photo QA run 19 passed on this commit.
 - CP643 Live Netlify HTTP Certification run 5 passed on this commit; Wendy's exact Clarksville venue still returns an official-venue-page image.
 - This checkpoint supersedes the earlier photo-gate behavior while retaining the CP591-based rebuild and protected recovery branches.
+
+
+## CP648 live failure found and fixed (2026-10-01)
+
+- Live Vercel deployment dpl_GcQjSHorjX6PKJBDNaDwFPJAJcTd was successfully reached through the Vercel deployment fetcher.
+- Exact Wendy's request for 2800 Wilma Rudolph Blvd, Clarksville, TN 37040-5016 returned HTTP 200 with source official-venue-page, but the returned asset was a 135×40 Google Play badge SVG, not a restaurant photograph.
+- Root cause: exact page verification was being treated as sufficient proof that every image candidate on that page was a venue photo. The image candidate's nearby page context could also contain generic location language, causing UI assets to score as venue imagery.
+- CP648 fix: SVG restaurant-photo responses are rejected; app-store/download/payment/social/button assets are blocked; explicitly tiny img assets are rejected; image-tag context was narrowed so unrelated page text contributes less false venue evidence.
+- Added deterministic regression coverage for Google Play/download badges and tiny UI assets while preserving large venue-exterior eligibility.
+- The exact-venue Bing Images fallback from CP647 remains guarded by exact source-page verification and does not use Google API credentials.
+- CP648 is not yet live on Vercel; the available Vercel deployment integration is not currently creating a new deployment for the updated Git branch.
