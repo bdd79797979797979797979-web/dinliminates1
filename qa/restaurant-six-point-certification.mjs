@@ -259,7 +259,7 @@ report["2_search_address"].quickCutAssociationMatrix={cases:associationCases.len
 
 // 3. All seven radius values; verify request forwarding, exact radius contract, result monotonicity, and containment.
 report["3_radius"]={};
-const radii=[1,3,5,10,25,50];
+const radii=[1,3,5,10,25,50,100];
 const radiusRows=[];
 for(const r of radii){
   await page.locator('#radius').selectOption(String(r));
