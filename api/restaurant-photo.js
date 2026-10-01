@@ -377,8 +377,16 @@ module.exports=async function handler(req,res){
 
     // 1) Exact restaurant pages: only use images that look like the venue itself.
     for(const entry of verifiedPages){
+      const pageText=normalizeMatchText(String(entry.html||'').slice(0,700000));
+      const isGalleryPage=/(?:photo gallery|traveler photos|photos|gallery|our photos|location photos)/.test(pageText);
       const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,website)
-        .filter(item=>item.score>=65 && item.score>0 && hasVenueSignal(item));
+        .filter(item=>{
+          if(item.score<65 || item.score<=0)return false;
+          if(hasVenueSignal(item))return true;
+          if(!isGalleryPage)return false;
+          const ctx=String(item.context||'');
+          return item.source!=='meta' && !FOOD_IMAGE_HINTS.test(ctx);
+        });
       for(const candidate of candidates.slice(0,14)){
         try{
           const media=await fetchImage(candidate.url,{'Referer':entry.url},6500);
