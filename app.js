@@ -1474,32 +1474,21 @@ function scheduleRestaurantProviderSearch(){
 function renderRestaurantSearchControl(){
  const btn=$('restaurantSearch');
  if(!btn)return;
- const hasResults=Array.isArray(S.restaurantPool)&&S.restaurantPool.length>0;
- const state=hasResults?'refresh':'search';
- btn.dataset.state=state;
- const label=hasResults?'Search or refresh restaurant results':'Search restaurants by name or cuisine';
+ btn.dataset.state='search';
+ const label='Search restaurants by name or cuisine';
  btn.setAttribute('aria-label',label);
  btn.title=label;
- btn.innerHTML=hasResults
-  ? '<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 8.5V4.8l-2.2 2.2A7.5 7.5 0 1 0 19.2 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 4.8h-3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Search or refresh</span>'
-  : '<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Search</span>';
+ btn.innerHTML='<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Search</span>';
 }
-
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{
-   const btn=$('restaurantSearch');
-   const hasResults=Array.isArray(S.restaurantPool)&&S.restaurantPool.length>0;
-   if(hasResults){
-     clearTimeout(restaurantQueryTimer);
-     searchRestaurants();
-     return;
-   }
    const box=$('restaurantSearchBox');
-   box.classList.toggle('hidden');
+   if(!box)return;
+   box.classList.remove('hidden');
    $('restaurantQuery').value=S.restaurantQuery;
-   renderRestaurantSearchControl();
-   if(!box.classList.contains('hidden'))$('restaurantQuery').focus();
- };
+   if(typeof renderRestaurantSearchControl==='function')renderRestaurantSearchControl();
+   $('restaurantQuery').focus();
+ }
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
