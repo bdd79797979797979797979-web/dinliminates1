@@ -1,7 +1,7 @@
 'use strict';
 
 const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.com','lh3.googleusercontent.com','bing.com','www.bing.com','tse1.mm.bing.net','tse2.mm.bing.net','tse3.mm.bing.net','tse4.mm.bing.net','unsplash.com','images.unsplash.com','pexels.com','images.pexels.com','shutterstock.com','istockphoto.com','gettyimages.com','depositphotos.com','alamy.com','stock.adobe.com']);
-const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark)\b/i;
+const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark|google[ -]?play|play[ -]?store|app[ -]?store|download[ -]?app|download|badge|payment|visa|mastercard|amex|social[ -]?media|facebook|instagram|tiktok|youtube|x[ -]?twitter)\b/i;
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace)\b/i;
 const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;
 
@@ -65,6 +65,7 @@ async function fetchImage(url,headers={},timeout=7000){
     if(!r.ok)throw new Error('Image request failed ('+r.status+').');
     const type=(r.headers.get('content-type')||'image/jpeg').split(';')[0].toLowerCase();
     if(!type.startsWith('image/'))throw new Error('Image response was not an image.');
+    if(type==='image/svg+xml'||type==='image/svg')throw new Error('SVG assets are not restaurant photos.');
     const bytes=Buffer.from(await r.arrayBuffer());
     if(bytes.length<4000)throw new Error('Image response was too small.');
     if(bytes.length>10*1024*1024)throw new Error('Image is too large.');
@@ -104,9 +105,12 @@ function extractImgCandidates(html,pageUrl){
     if(!url||seen.has(url))continue;
     seen.add(url);
     const sourceHtml=String(html||'');
-    const nearby=sourceHtml.slice(Math.max(0,m.index-650),Math.min(sourceHtml.length,m.index+m[0].length+850));
-    const context=[attrs.alt,attrs.title,attrs.class,attrs.id,attrs['data-caption'],attrs['data-alt'],attrs['data-filename'],nearby,url].filter(Boolean).join(' ');
-    candidates.push({url,context,source:'img'});
+    const nearby=sourceHtml.slice(Math.max(0,m.index-220),Math.min(sourceHtml.length,m.index+m[0].length+320));
+    const width=Number.parseInt(attrs.width||'',10),height=Number.parseInt(attrs.height||'',10);
+    const dims=(Number.isFinite(width)?' width '+width:'')+(Number.isFinite(height)?' height '+height:'');
+    if((Number.isFinite(width)&&Number.isFinite(height))&&(width<200||height<120))continue;
+    const context=[attrs.alt,attrs.title,attrs.class,attrs.id,attrs['data-caption'],attrs['data-alt'],attrs['data-filename'],nearby,url,dims].filter(Boolean).join(' ');
+    candidates.push({url,context,source:'img',width,height});
   }
   return candidates;
 }
@@ -118,7 +122,7 @@ function extractStyleImageCandidates(html,pageUrl){
     const url=absoluteHttpsUrl(m[1],pageUrl);
     if(!url||seen.has(url)||isBlockedHost(url)||BLOCKED_IMAGE_HINTS.test(url))continue;
     seen.add(url);
-    const context=String(html||'').slice(Math.max(0,m.index-260),Math.min(String(html||'').length,m.index+420));
+    const context=String(html||'').slice(Math.max(0,m.index-160),Math.min(String(html||'').length,m.index+260));
     candidates.push({url,context,source:'background'});
   }
   return candidates;
