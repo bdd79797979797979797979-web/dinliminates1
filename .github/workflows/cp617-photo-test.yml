@@ -20,7 +20,7 @@ jobs:
           ]){
             const r=await fetch(base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address));
             const type=(r.headers.get('content-type')||'').split(';')[0];
-            const src=r.headers.get('x-restaurant-photo-source')||'';
+            const source=r.headers.get('x-restaurant-photo-source')||'';
             const sourceUrl=r.headers.get('x-restaurant-photo-source-url')||'';
             let body=await r.arrayBuffer();
             console.log(JSON.stringify({name,status:r.status,type,source,sourceUrl,bytes:body.byteLength}));
