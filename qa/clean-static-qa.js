@@ -306,7 +306,7 @@ assert(app.includes("const cats=[...FOOD_QUICK,'Other']"),'Custom Food Other mus
 assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes('const cat=preferred') && app.includes('category:cat,quickCuts'),'Custom Food Quick Cut editor should include Other and persist the selected categories');
 
 // CP261 Vercel image proxy contract.
-const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','www.southernliving.com','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com'];
+const imageProxyHosts=['images.pexels.com','images.unsplash.com','commons.wikimedia.org','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','www.southernliving.com','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com'];
 assert(imageApi.includes('ALLOWED_HOSTS')&&imageApi.includes('MAX_BYTES'),'Vercel image proxy must use an explicit allowlist and response size cap');
 assert(imageApi.includes("u.protocol!=='https:'"),'Vercel image proxy must reject non-HTTPS upstream URLs');
 assert(imageProxyHosts.every(h=>imageApi.includes("'"+h+"'")),'Vercel image proxy allowlist must cover all current food image hosts');
@@ -383,8 +383,8 @@ assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold
 // CP532 meal photo contracts.
 const foodPhotoRows=(()=>{const w={};vm.runInNewContext(foods,{window:w});return w.DINLIMINATE_FOODS||[]})();
 const foodByName=new Map(foodPhotoRows.map(x=>[x.name,x]));
-assert(/shop\.barebells\.com.*salty-peanut.*\.png/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut product image');
-assert(/snapcalorie-webflow-website\.s3\.us-east-2\.amazonaws\.com.*\/blt\.jpg/i.test(foodByName.get('BLT')?.image||''),'BLT must use a bacon-lettuce-tomato sandwich photo');
-assert(/thedailymeal\.com.*the-origins-of-cornbread-and-milk/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the requested glass-and-cornbread pairing');
-assert(/crockncle\.com.*9F3E2B24-452E-4C92-AA30-53A5D519614C\.jpg/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the requested Southern-style plate photo');
-assert(/africanbites\.com.*IMG_9983-2\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed pairing photo');
+assert(/shop\.barebells\.com.*salty-peanut-gallery-0-8491550198\.png/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut bar product image');
+assert(/foodrepublic\.com.*the-history-of-the-sandwich-goes-all-the-way-back-to-the-18th-century\/intro-1730146000\.jpg/i.test(foodByName.get('BLT')?.image||''),'BLT must use the refreshed bacon-lettuce-tomato sandwich photo');
+assert(/ourstate\.s3\.amazonaws\.com.*FEB25-PE_Cornbread-and-Buttermilk__TimRobison-1024x683\.jpg/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the requested glass-and-cornbread pairing');
+assert(/static\.spotapps\.co\/spots\/3f\/5a188538204de1bb6277775d1c474a\/full/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the refreshed Southern-style plate photo');
+assert(/shop\.camelliabrand\.com.*MG_3893_cx_1_2048x\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed Southern pairing photo');
