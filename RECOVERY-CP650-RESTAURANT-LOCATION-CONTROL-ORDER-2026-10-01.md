@@ -17,5 +17,6 @@ Reordered the Restaurant location controls to make the hierarchy visually and fu
 ## Testing
 - Verified the rendered HTML order contains `locate` before `address-wrap` before `find`.
 - Verified CSS explicitly places the controls in columns 1 / 2 / 3 in the intended order, including <=390px and <=340px breakpoints.
+- Added a Playwright PR check that opens the real Netlify preview at a 390×844 viewport and asserts the three controls render left-to-right as Use My Location → address/location window → Refresh.
 - Release metadata marked CP650.
-- Hosted preview verification is required before claiming visual certification.
+- Hosted visual/browser certification is recorded only after that PR check passes.

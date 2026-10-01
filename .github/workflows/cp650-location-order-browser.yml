@@ -1,0 +1,100 @@
+name: Dinliminate CP650 Location Control Browser QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - ".github/workflows/cp650-location-order-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for Netlify preview and test location control order
+        env:
+          PREVIEW_URL: https://deploy-preview-${{ github.event.pull_request.number }}--dinliminate112.netlify.app/
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          const url = process.env.PREVIEW_URL;
+          const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+          (async () => {
+            const browser = await chromium.launch({headless: true});
+            const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+
+            let lastError = null;
+            for (let attempt = 1; attempt <= 12; attempt++) {
+              try {
+                const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+                if (!response || !response.ok()) throw new Error('Preview HTTP status: ' + (response && response.status()));
+
+                await page.getByRole('button', { name: /Find a restaurant/i }).click();
+                await page.locator('#restaurant').waitFor({ state: 'visible', timeout: 5000 });
+
+                const result = await page.evaluate(() => {
+                  const root = document.querySelector('#restaurant');
+                  const locate = root && root.querySelector('#locate');
+                  const addressWrap = root && root.querySelector('.address-wrap');
+                  const find = root && root.querySelector('#find');
+                  if (!locate || !addressWrap || !find) throw new Error('Restaurant location controls missing');
+
+                  const order = [locate, addressWrap, find].map(el => {
+                    const rect = el.getBoundingClientRect();
+                    return { id: el.id || 'address-wrap', left: rect.left, right: rect.right, width: rect.width, top: rect.top };
+                  });
+
+                  const gap1 = order[1].left - order[0].right;
+                  const gap2 = order[2].left - order[1].right;
+                  const sameRow = Math.abs(order[0].top - order[1].top) < 3 && Math.abs(order[1].top - order[2].top) < 3;
+                  const hasGrid = getComputedStyle(root.querySelector('.location-main')).display === 'grid';
+
+                  return { order, gap1, gap2, sameRow, hasGrid, viewport: { width: innerWidth, height: innerHeight } };
+                });
+
+                if (!(result.sameRow && result.hasGrid)) throw new Error('Location controls are not on one grid row');
+                if (!(result.order[0].left < result.order[1].left && result.order[1].left < result.order[2].left)) {
+                  throw new Error('Unexpected control order: ' + JSON.stringify(result.order));
+                }
+
+                await page.screenshot({ path: 'cp650-location-controls.png', fullPage: false });
+                console.log(JSON.stringify({url, ...result}, null, 2));
+                await browser.close();
+                process.exit(0);
+              } catch (e) {
+                lastError = e;
+                console.log('Attempt ' + attempt + ' failed: ' + e.message);
+                await sleep(5000);
+              }
+            }
+
+            await browser.close();
+            throw lastError || new Error('Browser QA failed');
+          })().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
