@@ -206,11 +206,8 @@ async function hydrateRestaurantPhoto(row,scope){
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
   const photoUrl='/api/restaurant-photo?'+params.toString();
 
-  pending=Promise.resolve(photoUrl);
+  pending=Promise.resolve(photoUrl).finally(()=>restaurantPhotoInflight.delete(rowKey));
   restaurantPhotoInflight.set(rowKey,pending);
-  pending.then(url=>{
-   restaurantPhotoCache.set(rowKey,{url,attributions:[],source:'verified-venue-api'});
-  }).finally(()=>restaurantPhotoInflight.delete(rowKey));
  }
  try{
   const photoUrl=await pending;
@@ -221,7 +218,7 @@ async function hydrateRestaurantPhoto(row,scope){
     if(!img.isConnected)return;
     img.dataset.restaurantPhotoLoaded='true';
     setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,[]);
-    restaurantPhotoCache.set(rowKey,{url:photoUrl,attributions:[],source:'verified-venue-api'});
+    restaurantPhotoCache.set(rowKey,{url:photoUrl,attributions:[],source:'verified-venue-api',verified:true});
    };
    img.src=photoUrl;
   });
@@ -1668,7 +1665,7 @@ function detailsSheet(item,type){
  const directionsAction='<a class="detail-icon-button restaurant-detail-action detail-directions-action" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions to '+esc(item.name)+'" title="Directions"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="sr-only">Directions</span></a>';
  const infoCards='<div class="restaurant-luxury-stat-grid"><div class="restaurant-luxury-stat"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+(item.cuisine?'<div class="restaurant-luxury-stat"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+(item.distance!=null?'<div class="restaurant-luxury-stat"><span>Distance</span><strong>'+Number(item.distance).toFixed(1)+' mi</strong></div>':'')+'<div class="restaurant-luxury-stat"><span>Hours</span><strong>'+esc(hoursLabel)+'</strong></div></div>';
  const contactSection='<div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Visit & contact</div><div class="restaurant-luxury-contact-card">'+phoneRow+addressRow+'</div><div class="restaurant-luxury-actions">'+websiteAction+directionsAction+'</div></div>';
- const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||FINAL_RESTAURANT_IMAGE);
+ const detailImage=FINAL_RESTAURANT_IMAGE;
  const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
  const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,FINAL_RESTAURANT_IMAGE);
 hydrateRestaurantPhoto(item,'#detailsModal');
@@ -1676,7 +1673,7 @@ hydrateRestaurantPhoto(item,'#detailsModal');
 
 function historyImageSource(row){
  const fallback=row?.type==='restaurant'?FINAL_RESTAURANT_IMAGE:HUNGRY_IMAGE;
- return imageProxyUrl(row?.image||row?.photoFallback||fallback);
+ return fallback;
 }
 function recordHistory(item, type) {
 const history = readHistory();
