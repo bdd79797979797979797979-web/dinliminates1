@@ -4,6 +4,14 @@ const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.c
 const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark)\b/i;
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace)\b/i;
 const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;
+const KNOWN_CHAIN_NAMES=[
+  "mcdonald's","taco bell","wendy's","burger king","kfc","chick fil a","popeyes","subway","sonic","arby's",
+  "whataburger","five guys","culver's","raising cane's","wingstop","bojangles","cook out","dairy queen",
+  "zaxby's","church's chicken","captain d's","long john silver's","jimmy john's","jersey mike's","firehouse subs",
+  "little caesars","domino's","papa john's","pizza hut","marco's pizza","krystal","steak 'n shake","white castle",
+  "freddy's","panda express","jack in the box","hardee's","del taco","checkers","rally's","chipotle","applebee's",
+  "chili's","olive garden","waffle house"
+];
 
 function json(res,status,payload){
   res.statusCode=status;
@@ -245,7 +253,7 @@ function imageMatchesExactVenue(candidate,name,address){
   const hasAddress=!!addrNumber && (evidence.includes(addrNumber)||url.includes(addrNumber));
   const hasVenueEvidence=VENUE_IMAGE_HINTS.test(evidence);
   const chainName=normalizeMatchText(name);
-  const knownChain=Object.keys(KNOWN_RESTAURANT_WEBSITES).some(k=>{
+  const knownChain=KNOWN_CHAIN_NAMES.some(k=>{
     const ck=normalizeMatchText(k);
     return chainName===ck || chainName.includes(ck);
   });
