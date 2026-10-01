@@ -189,6 +189,42 @@ function extractJsonLdImageCandidates(html,pageUrl){
   return out;
 }
 
+function extractMarkdownImageCandidates(markdown,pageUrl){
+  const out=[],seen=new Set();
+  const re=/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/gi;
+  let m;
+  while((m=re.exec(String(markdown||'')))&&out.length<100){
+    const url=absoluteHttpsUrl(m[2],pageUrl);
+    if(!url||seen.has(url)||isBlockedHost(url)||BLOCKED_IMAGE_HINTS.test(url))continue;
+    seen.add(url);
+    out.push({url,evidence:decodeHtml(m[1]||''),context:(m[1]||'')+' '+url,source:'markdown'});
+  }
+  return out;
+}
+
+function extractMarkdownLinks(markdown){
+  const out=[],re=/\[[^\]]{2,180}\]\((https?:\/\/[^\s)]+)\)/gi;let m;
+  while((m=re.exec(String(markdown||'')))&&out.length<50){
+    const url=absoluteHttpsUrl(m[1]);
+    if(url&&!isBlockedHost(url)&&!out.includes(url))out.push(url);
+  }
+  return out;
+}
+
+function searchReaderUrl(query){
+  return 'https://r.jina.ai/https://www.bing.com/search?'+new URLSearchParams({q:query,mkt:'en-US',first:'1'}).toString();
+}
+
+async function fetchPublicText(url,timeout=6500,maxBytes=2200000){
+  try{
+    return await fetchText(url,{},timeout,maxBytes);
+  }catch{
+    try{
+      return await fetchText('https://r.jina.ai/'+url,{'Accept':'text/plain'},timeout,maxBytes);
+    }catch{return null}
+  }
+}
+
 function extractStyleImageCandidates(html,pageUrl){
   const out=[],seen=new Set(),re=/background-image\s*:\s*url\(\s*['"]?([^'")\s]+)['"]?\s*\)/ig;let m;
   while((m=re.exec(String(html||'')))&&out.length<70){
@@ -274,6 +310,7 @@ function collectPageImages(html,pageUrl,name,address,isOfficial){
     ...extractSourceCandidates(html,pageUrl),
     ...extractStyleImageCandidates(html,pageUrl),
     ...extractJsonLdImageCandidates(html,pageUrl),
+    ...extractMarkdownImageCandidates(html,pageUrl),
     ...extractMetaImages(html,pageUrl).map(url=>({url,evidence:url,context:url+' '+name,source:'meta'}))
   ];
   const seen=new Set();
@@ -369,12 +406,24 @@ async function findExactPages(name,address,website){
   for(let i=0;i<searches.length;i++){
     const result=searches[i];
     if(result.status!=='fulfilled')continue;
-    const found=[...extractBingWebResultUrls(result.value),...extractDuckDuckGoResultUrls(result.value)];
+    const found=[...extractBingWebResultUrls(result.value),...extractDuckDuckGoResultUrls(result.value),...extractMarkdownLinks(result.value)];
     for(const url of found){
       if(!urls.includes(url))urls.push(url);
       if(urls.length>=24)break;
     }
     if(urls.length>=24)break;
+  }
+
+  if(urls.length<10){
+    const readerSearches=await Promise.allSettled(unique.slice(0,5).map(query=>fetchText(searchReaderUrl(query),{},6500,1200000)));
+    for(const result of readerSearches){
+      if(result.status!=='fulfilled')continue;
+      for(const url of extractMarkdownLinks(result.value)){
+        if(!urls.includes(url))urls.push(url);
+        if(urls.length>=24)break;
+      }
+      if(urls.length>=24)break;
+    }
   }
   const pages=await Promise.allSettled(urls.slice(0,18).map(async url=>{
     const html=await verifiedPage(url,name,address);
@@ -395,10 +444,8 @@ async function findExactPages(name,address,website){
 async function verifiedPage(url,name,address){
   const page=absoluteHttpsUrl(url);
   if(!page||isBlockedHost(page))return null;
-  try{
-    const html=await fetchText(page,{},6200,1800000);
-    return pageMatchesRestaurant(html,name,address)?html:null;
-  }catch{return null}
+  const html=await fetchPublicText(page,6500,1800000);
+  return html&&pageMatchesRestaurant(html,name,address)?html:null;
 }
 
 function parseQuery(req){
@@ -461,5 +508,5 @@ module.exports=async function handler(req,res){
 module.exports._test={
   absoluteHttpsUrl,extractImgCandidates,extractSourceCandidates,extractMetaImages,extractJsonLdImageCandidates,
   extractStyleImageCandidates,pageMatchesRestaurant,addressParts,collectPageImages,imageEvidenceScore,extractBingWebResultUrls,
-  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages
+  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages,extractMarkdownImageCandidates,extractMarkdownLinks
 };
