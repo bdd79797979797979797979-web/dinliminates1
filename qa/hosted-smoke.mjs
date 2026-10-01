@@ -5,8 +5,9 @@ const base=String(process.env.BASE_URL||'').replace(/\/$/,'');
 assert(base,'BASE_URL is required for hosted smoke');
 
 const health=await fetch(base+'/api/restaurant-search?mode=health');
-assert.equal(health.ok,true,'Hosted restaurant health endpoint should return HTTP 200');
-const h=await health.json();
+const healthText=await health.text();
+let h=null; try{h=JSON.parse(healthText)}catch{}
+assert.equal(health.ok,true,'Hosted restaurant health endpoint should return HTTP 200 (status '+health.status+', body '+healthText.slice(0,500)+')');
 assert.equal(h.ok,true,'Hosted restaurant health should report ok');
 assert.equal(Number(h.maxRadiusMiles),100,'Hosted restaurant API should expose 100-mile maximum');
 
