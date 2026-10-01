@@ -1359,9 +1359,19 @@ $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
 if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
-const winnerImage=item?.image || item?.photo || item?.photoFallback || HUNGRY_IMAGE;
+const winnerImage=imageProxyUrl(item?.image || item?.photo || item?.photoFallback || HUNGRY_IMAGE);
+const winnerFallback=imageProxyUrl(item?.photoFallback || item?.image || HUNGRY_IMAGE);
 winImg.src = winnerImage;
+winImg.dataset.fallback = winnerFallback;
 winImg.alt = item.name || 'Hungry';
+winImg.referrerPolicy='no-referrer';
+winImg.loading='eager';
+winImg.onerror=function(){
+  const fb=this.dataset.fallback||HUNGRY_IMAGE;
+  const current=this.currentSrc||this.src;
+  if(fb && current!==fb){this.src=fb;return;}
+  if(!String(current||'').startsWith('data:image/svg') && HUNGRY_IMAGE){this.src=HUNGRY_IMAGE;}
+};
 winImg.dataset.googlePhotoId = item?.googlePlaceId && item?.photoSource==='google-places' ? String(item.googlePlaceId) : '';
 if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
