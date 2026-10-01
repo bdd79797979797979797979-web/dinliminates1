@@ -2208,8 +2208,14 @@ $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').
 $('backToStart').onclick = () => home();
 $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
 $('shareApp').onclick = shareAndAddApp;
-$('locate').onclick = useLocation;
-$('find').onclick = searchRestaurants;
+$('locate').onclick = () => {
+  appToast('Location · uses your current device location to find nearby restaurants.');
+  useLocation();
+};
+$('find').onclick = () => {
+  appToast(S.location ? 'Refresh · searches again using this location and radius.' : 'Find · searches the selected location for restaurants.');
+  searchRestaurants();
+};
 $('radius').addEventListener('change', () => {
  const hasLocation=!!S.location || !!$('address')?.value.trim();
  if(!hasLocation){$('status').textContent='Enter an address or use your location.';renderFindButton();return;}
