@@ -1382,3 +1382,17 @@ button,a,select{touch-action:manipulation}
     gap:7px!important;
   }
 }
+
+
+/* CP536 — restore the compact five-button Tinder action row and move Choose beside the menu. */
+.decision-bar{grid-template-columns:42px 1fr auto!important}
+.decision-tools{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:43px}
+.top-choose{width:34px;height:34px;min-width:34px;border-radius:50%;display:grid;place-items:center;padding:0;background:#151515;color:#d7bd7b;border:1px solid #4a4133;box-shadow:0 6px 16px #0007;font-size:17px;font-weight:900;line-height:1}
+.top-choose:active{transform:scale(.93)}
+.top-choose span{transform:translateY(-.5px)}
+.food-swipe-actions,.restaurant .swipe-actions{grid-template-columns:44px 64px 64px 44px 40px!important;gap:13px!important;justify-content:center!important}
+.round-choose{display:none!important}
+@media(max-width:390px){
+  .food-swipe-actions,.restaurant .swipe-actions{grid-template-columns:42px 60px 60px 42px 38px!important;gap:10px!important}
+  .top-choose{width:32px;height:32px;min-width:32px;font-size:16px}
+}
