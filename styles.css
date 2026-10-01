@@ -1761,8 +1761,7 @@ button,a,select{touch-action:manipulation}
   height:16px!important;
   display:block!important;
 }
-#restaurant .radius-search .search-icon,
-#restaurant .radius-search .refresh-icon{display:none!important}
+#restaurant .radius-search .restaurant-search-icon{display:block!important}
 .deck-filter-toggle{
   position:absolute!important;
   left:0!important;
