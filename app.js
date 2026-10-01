@@ -512,7 +512,9 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   const dx=e.clientX-downX;
   if(Math.abs(dx)>8){
    if(e.cancelable)e.preventDefault();
-   card.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+   const snapX=Math.round(dx);
+   const snapRotation=Math.round((dx/22)*10)/10;
+   card.style.transform='translate3d('+snapX+'px,0,0) rotate('+snapRotation+'deg)';
    card.style.opacity=String(Math.max(.76,1-Math.abs(dx)/900));
    card.dataset.swipe=dx<0?'cut':'maybe';
   }
