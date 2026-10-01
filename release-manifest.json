@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 659,
-  "sourceBranch": "cp659-app-entry-fix",
+  "build": 660,
+  "sourceBranch": "cp660-current-location-fallback",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "preview",
-  "checkpoint": "CP659"
+  "checkpoint": "CP660"
 }
