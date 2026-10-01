@@ -845,6 +845,21 @@ function restaurantPoolFiltered(){
 function restaurantHoursFilter(row){
  return S.hoursMode==='all' || restaurantHourState(row)!=='closed';
 }
+function syncRestaurantHoursControl(){
+ const wrap=$('hoursToggle'); if(!wrap)return;
+ const mode=S.hoursMode==='all'?'all':'openUnknown';
+ wrap.querySelectorAll('[data-hours-mode]').forEach(btn=>{
+  const active=btn.dataset.hoursMode===mode;
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
+}
+function setRestaurantHoursMode(mode){
+ S.hoursMode=mode==='all'?'all':'openUnknown';
+ syncRestaurantHoursControl();
+ drawRestaurants();
+ save();
+}
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
  const radius=Math.min(100,Number($('radius')?.value)||10);
@@ -1206,12 +1221,14 @@ row._maybe = false;
 }
 S.winnerItem = null;
 show('restaurant');
+syncRestaurantHoursControl();
 restaurantQuick();
 $('restaurantSearchBox')?.classList.add('hidden');
 $('restaurantQuery').value = '';
 maybeShowSwipeHint();
 }
 function drawRestaurants() {
+syncRestaurantHoursControl();
 const rows = restaurantPoolFiltered();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
@@ -1309,6 +1326,9 @@ function scheduleRestaurantProviderSearch(){
  restaurantQueryTimer=setTimeout(()=>{searchRestaurants();},650);
 }
 function bindRestaurantTools(){
+ const hoursToggle=$('hoursToggle');
+ if(hoursToggle) hoursToggle.querySelectorAll('[data-hours-mode]').forEach(btn=>{btn.onclick=()=>setRestaurantHoursMode(btn.dataset.hoursMode);});
+ syncRestaurantHoursControl();
  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
@@ -1810,12 +1830,12 @@ async function appDiagnosisView(existingModal){
    const radiusOptions=[...($('radius')?.options||[])].map(o=>Number(o.value||o.textContent)).filter(Number.isFinite),radiusContract=[1,3,5,10,25,50,100].every((v,i)=>radiusOptions[i]===v);
    radiusContract&&radiusOptions.length===7?pass('restaurant','Radius controls','1, 3, 5, 10, 25, 50, and 100 miles are available; 100 miles is the cap.','Radius filtering is enforced from the final restaurant distance calculation.'):fail('restaurant','Radius controls','Radius options are out of sync with the current 100-mile model.','The Restaurant UI should expose exactly 1, 3, 5, 10, 25, 50, and 100 miles.');
    const searchControl=$('restaurantSearch'),hoursControl=document.querySelector('#hoursToggle');
-   searchControl&&!hoursControl?pass('restaurant','Search controls','Compact Restaurant Search is beside Radius; the separate hours filter is removed.','Search opens the restaurant name/cuisine field while Find/Refresh remains the location search action.'):fail('restaurant','Search controls','Restaurant Search or hours-control state is inconsistent.','The compact Search control should coexist with Find/Refresh and no hours toggle.');
+   searchControl&&hoursControl?pass('restaurant','Search controls','Compact Restaurant Search and Open/All hours controls are present beside the Restaurant filters.','Search opens the restaurant name/cuisine field while Open shows open/unknown venues and All includes explicitly closed venues.'):fail('restaurant','Search controls','Restaurant Search or hours-control state is inconsistent.','The compact Search control should coexist with Find/Refresh and the Open/All hours control.');
    if((S.restaurantPool||[]).length){
     const keyReady=!!String(S.restaurantSearchKey||'').trim();
     keyReady?pass('restaurant','Search freshness','Current restaurant results are tied to a location/radius/query search key.','Changing the Restaurant query starts a fresh result context instead of carrying the previous query forward.'):warn('restaurant','Search freshness','The current result pool has no stored query-aware search key.','Run a fresh Restaurant search to establish the current search context.');
     const closed=restaurants.filter(x=>restaurantHourState(x)==='closed').length;
-    S.hoursMode==='openUnknown'?pass('restaurant','Hours behavior',closed+' closed venue(s) are excluded by the default Open/Unknown presentation.','There is no user-facing hours filter; closed venues remain out of the decision deck.'):warn('restaurant','Hours behavior','The saved hours mode is not the current default.','Normalize Restaurant hours state to Open/Unknown.');
+    S.hoursMode==='openUnknown'?pass('restaurant','Hours behavior',closed+' closed venue(s) are excluded by the default Open/Unknown presentation.','Open shows open and unknown venues; All can be selected when closed venues should be included.'):pass('restaurant','Hours behavior','All is selected; '+closed+' closed venue(s) are included in the decision deck.','Switch back to Open to exclude explicitly closed venues.');
     const classified=restaurants.map(x=>restaurantCuisineTags(x)).filter(tags=>tags&&tags.length),known=classified.filter(tags=>tags.some(tag=>tag!=='Fast Food')),generic=restaurants.length-known.length;
    known.length>=Math.max(1,restaurants.length*.5)?pass('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have at least one useful cuisine/category tag; '+generic+' remain generic.','Quick Cuts use the shared Restaurant taxonomy plus provider type, name, identity, and menu evidence.'):warn('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have a useful cuisine/category tag; '+generic+' remain generic.','A generic provider record may not contain enough identity/cuisine evidence to classify safely.');
    const withPhone=restaurants.filter(x=>String(x.phone||'').trim()).length,withWebsite=restaurants.filter(x=>String(x.website||'').trim()).length;
@@ -1984,6 +2004,7 @@ if(e.key==='Enter'){
 if(e.key==='Escape'){ e.preventDefault(); invalidateAddressSuggestions(); }
 });
 bindRestaurantTools();
+syncRestaurantHoursControl();
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
 $('restart').onclick = resetRound;
