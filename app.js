@@ -1028,11 +1028,13 @@ let locationRequestSeq = 0;
 function renderFindButton(){
  const btn=$('find');if(!btn)return;
  const state=S.location?'refresh':'find';
+ const label=state==='refresh'?'Refresh restaurant search using this location and radius':'Find restaurants near the selected location';
  btn.dataset.state=state;
+ btn.title=label;
  btn.innerHTML=state==='refresh'
   ? '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 8.5V4.8l-2.2 2.2A7.5 7.5 0 1 0 19.2 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 4.8h-3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Refresh</span>'
   : '<svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21c4.2-4.8 6.4-8.2 6.4-11.3A6.4 6.4 0 0 0 5.6 9.7C5.6 12.8 7.8 16.2 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" fill="currentColor"/></svg><span class="sr-only">Find restaurants nearby</span>';
- btn.setAttribute('aria-label',state==='refresh'?'Refresh restaurant search':'Find restaurants');
+ btn.setAttribute('aria-label',label);
 }
 function setFindBusy(busy) {
 const btn=$('find'); if(!btn)return;
@@ -1040,6 +1042,7 @@ btn.disabled=busy;
 btn.setAttribute('aria-busy',String(busy));
 const state=busy?'busy':(S.location?'refresh':'find');
 btn.dataset.state=state;
+btn.title=busy?'Searching for restaurants…':(state==='refresh'?'Refresh restaurant search using this location and radius':'Find restaurants near the selected location');
 btn.innerHTML=busy
  ? '<span class="find-spinner" aria-hidden="true"></span><span class="sr-only">Searching</span>'
  : (state==='refresh'
@@ -1050,8 +1053,9 @@ function setLocationBusy(busy) {
 const btn=$('locate');if(!btn)return;
 btn.disabled=busy;
 btn.setAttribute('aria-busy',String(busy));
-btn.setAttribute('aria-label',busy?'Getting your location…':'Use My Location');
-btn.title=busy?'Getting your location…':'Use My Location';
+const label=busy?'Getting your current location…':'Use your current location for nearby restaurants';
+btn.setAttribute('aria-label',label);
+btn.title=label;
 }
 function requestBrowserPosition(options={}) {
 return new Promise((resolve,reject)=>{
