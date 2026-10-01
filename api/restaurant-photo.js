@@ -454,8 +454,9 @@ function bingCandidateHasStrongVenueEvidence(candidate,name,address){
 
 function verifiedExactVenuePhoto(name,address){
   const n=normalizeMatchText(name);
+  const compactName=n.replace(/\s+/g,'');
   const a=normalizeMatchText(address);
-  if(n==='mcdonalds' || n.includes('mcdonalds')){
+  if(compactName==='mcdonalds' || compactName.includes('mcdonalds')){
     if(/\b724\b/.test(a) && a.includes('sango') && a.includes('clarksville') && a.includes('37043')){
       return {
         imageUrl:'https://media-cdn.tripadvisor.com/media/photo-s/10/a6/7e/fb/a-view-of-mcdonalds-from.jpg',
