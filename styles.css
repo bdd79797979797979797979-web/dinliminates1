@@ -1110,6 +1110,14 @@
 }
 
 /* CP453 — canonical Restaurant controls after hours-control removal */
+#restaurant .restaurant-hours-control{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:5px;padding:0 2px}
+#restaurant .restaurant-hours-label{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:#756f67}
+#restaurant .restaurant-hours-buttons{display:flex;align-items:center;gap:3px;border:1px solid #3c362d;border-radius:999px;padding:2px;background:#11100f}
+#restaurant .hours-control-btn{height:24px;min-width:52px;padding:0 10px;border-radius:999px;background:transparent;color:#8c877f;border:0;font-size:8px;font-weight:850;letter-spacing:.02em}
+#restaurant .hours-control-btn.active{background:linear-gradient(180deg,#e7dcc4,#c9b68d);color:#181410;box-shadow:0 4px 12px #0007}
+#restaurant .hours-control-btn:active{transform:scale(.98)}
+@media(max-width:390px){#restaurant .restaurant-hours-control{margin-top:4px}#restaurant .restaurant-hours-label{font-size:7px}#restaurant .hours-control-btn{height:23px;min-width:48px;font-size:7px;padding:0 8px}}
+@media(max-width:340px){#restaurant .restaurant-hours-control{gap:5px}#restaurant .hours-control-btn{min-width:45px}}
 #restaurant .location-strip{padding-top:2px}
 #restaurant .location-main{align-items:center}
 #restaurant .location-main .address-wrap{min-width:0}
