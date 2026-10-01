@@ -1592,3 +1592,17 @@ button,a,select{touch-action:manipulation}
 
 /* CP559 — Restaurant swipe feedback is explicitly top-centered; decision buttons stay in the bottom Tinder row. */
 #restaurant .card[data-swipe="cut"]::after,#restaurant .card[data-swipe="maybe"]::after{top:18px!important;left:50%!important;right:auto!important;transform:translateX(-50%) rotate(0deg)!important;}
+
+/* CP560 — give the Restaurant bottom Tinder controls a little more breathing room. */
+#restaurant .swipe-actions{
+  width:min(100%,265px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  justify-content:space-between!important;
+  gap:0!important;
+}
+@media(max-width:390px){
+  #restaurant .swipe-actions{
+    width:min(100%,245px)!important;
+  }
+}
