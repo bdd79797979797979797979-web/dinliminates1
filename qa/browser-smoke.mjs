@@ -169,9 +169,9 @@ const foodActionIds=await page.locator('#food .food-swipe-actions > button').eva
 assert.equal(await page.locator('#food #addFood').evaluate(el=>el.classList.contains('round-add-food')),true,'Add Food should use the compact circular icon style');
 assert.equal(await page.locator('#food #addFood').innerText(),'＋','Add Food should use a plus icon rather than a text button');
 assert.equal(await visible('foodNextCard'),true,'Food should show the next Tinder card behind the current card');
-assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),11,'Food should have 11 Quick Cuts');
-assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
-assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),11,'Every Food Quick Cut should render a photo element');
+assert.equal(await page.locator('#foodQuick [data-food-quick]').count(),12,'Food should have 12 Quick Cuts');
+assert.deepEqual(await page.locator('#foodQuick [data-food-quick]').evaluateAll(els=>els.map(el=>el.innerText.trim())),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack'],'Food Quick Cut order should follow the revised logical order');
+assert.equal(await page.locator('#foodQuick [data-food-quick] .quick-chip-photo').count(),12,'Every Food Quick Cut should render a photo element');
 const requestedFoods=await page.evaluate(()=>Object.fromEntries((window.DINLIMINATE_FOODS||[]).filter(x=>['lasagna','vegetable-lasagna','salisbury-steak','stuffed-peppers','health-shake','cheerios'].includes(x.id)).map(x=>[x.id,{name:x.name,quickCuts:x.quickCuts,image:x.image,detailsReady:!!x.recipe&&!!x.nutrition&&!!x.ingredients?.length}])));
 assert.equal(requestedFoods.cheerios?.name,'Cereal','Cheerios should be renamed Cereal');
 for(const [id,cuts] of Object.entries({lasagna:['Pasta'],'vegetable-lasagna':['Pasta','Healthy'],'salisbury-steak':['Southern','American'],'stuffed-peppers':['Healthy','American'],'health-shake':['Healthy']})){assert.ok(requestedFoods[id],id+' should exist');assert.ok(cuts.every(x=>requestedFoods[id].quickCuts.includes(x)),id+' Quick Cut mapping');assert.equal(String(requestedFoods[id].image||'').startsWith('http'),true,id+' should have an image');assert.equal(requestedFoods[id].detailsReady,true,id+' should have Details content');}
@@ -294,7 +294,7 @@ assert.match(await page.locator('#settingsModal').innerText(),/Food system/i,'Ap
 assert.match(await page.locator('#settingsModal').innerText(),/Restaurant system/i,'App Diagnosis should report Restaurant system health');
 assert.match(await page.locator('#settingsModal').innerText(),/Device & runtime/i,'App Diagnosis should report device/runtime health');
 assert.match(await page.locator('#settingsModal').innerText(),/Build & deployment/i,'App Diagnosis should report build/deployment health');
-assert.match(await page.locator('#settingsModal').innerText(),/Pass Around/i,'App Diagnosis should confirm the removed Pass Around feature');
+assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/Pass Around/i,'App Diagnosis should not mention the removed Pass Around feature');
 assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
 await page.waitForFunction(()=>document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'),'',{timeout:12000});
 await click('#diagnosisRefresh'); assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'true','Run again should visibly enter a selected/running state'); assert.equal(await page.locator('#diagnosisRefresh').isDisabled(),true,'Run again should disable while diagnostics are running'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
@@ -519,7 +519,7 @@ await page.locator('#editFoodFile').setInputFiles({
 });
 await page.waitForFunction(()=>document.querySelector('#editFoodPhoto')?.value.startsWith('data:image/'),'',{timeout:5000});
 assert.ok((await page.locator('#editFoodPhoto').inputValue()).startsWith('data:image/'),'device photo should be converted to a stored image');
-const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,12,'Custom Food editor should render the 11 standard Food Quick Cuts plus Other');
+const editorDiag=await page.evaluate(()=>({count:document.querySelectorAll('input[name="editQuickCut"]').length,values:[...document.querySelectorAll('input[name="editQuickCut"]')].map(x=>x.value),modal:document.querySelector('#foodEditorModal')?.innerHTML.slice(0,3500)||null})); console.log('Custom Food editor Quick Cut runtime:',JSON.stringify(editorDiag)); assert.equal(editorDiag.count,13,'Custom Food editor should render the 12 standard Food Quick Cuts plus Other');
 assert.ok(editorDiag.values.includes('Other'),'Custom Food editor should expose Other as an optional Quick Cut');
 await page.locator('input[name="editQuickCut"][value="Pasta"]').check({force:true});
 await page.locator('input[name="editQuickCut"][value="Other"]').check({force:true});
