@@ -1,0 +1,49 @@
+name: CP607 Direct Photo Card Test
+
+on:
+  push:
+    branches: [cp607-direct-photo-card-fix]
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Test restaurant card photo
+        env:
+          BASE_URL: https://deploy-preview-100--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          await page.goto(process.env.BASE_URL,{waitUntil:'domcontentloaded',timeout:30000});
+          await page.locator('#restStart').click();
+          await page.locator('#address').fill('724 Sango Rd, Clarksville, TN 37043');
+          await page.locator('#find').click();
+          await page.waitForTimeout(5000);
+          await page.locator('#restaurantSearch').click();
+          await page.locator('#restaurantQuery').fill("McDonald's");
+          await page.locator('#restaurantQuery').press('Enter');
+          await page.waitForTimeout(8000);
+          const card=page.locator('#restStage img[data-restaurant-photo-key]').first();
+          await card.waitFor({state:'visible',timeout:20000});
+          const result=await card.evaluate(el=>new Promise(resolve=>{
+            const done=()=>resolve({src:el.currentSrc||el.src,naturalWidth:el.naturalWidth,naturalHeight:el.naturalHeight,loaded:el.complete,key:el.dataset.restaurantPhotoKey});
+            if(el.complete&&el.naturalWidth>0) done();
+            else {el.addEventListener('load',done,{once:true});el.addEventListener('error',()=>resolve({src:el.currentSrc||el.src,naturalWidth:el.naturalWidth,naturalHeight:el.naturalHeight,loaded:el.complete,key:el.dataset.restaurantPhotoKey,error:true}),{once:true});}
+          }));
+          const name=await page.locator('#restStage h3').first().textContent().catch(()=>null);
+          console.log(JSON.stringify({name,result}));
+          if(!result.naturalWidth||/fallback-restaurant\.svg/i.test(result.src)) throw new Error('Restaurant card did not show a real photo');
+          await browser.close();
+          NODE
