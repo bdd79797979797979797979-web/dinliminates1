@@ -29,4 +29,7 @@ A normal restaurant fixture remains eligible.
 - No API credentials were added.
 
 ## Hosted
-Netlify PR preview will be verified before the checkpoint is considered visually certified.
+- Netlify deploy preview 124 for this PR reached READY on the CP652 commit.
+- Netlify `dinliminate112` deploy status is successful for the preview.
+- Direct live endpoint access from this environment was unavailable, so no claim is made of a live query-response inspection.
+- The deterministic regression suite includes the Larson's Enterprise Inc / Food Supplier false-positive case.
