@@ -321,7 +321,7 @@ assert(photoApi.includes("X-Goog-FieldMask':'photos'"),'Restaurant photo endpoin
 assert(photoApi.includes("Cache-Control",'no-store') && photoApi.includes("X-Restaurant-Photo-Attributions"),'Google restaurant photo responses must be non-cacheable and carry attribution metadata.');
 assert(photoApi.includes("photo.name") && photoApi.includes("/media?maxWidthPx=1200"),'Google restaurant photo endpoint must resolve a fresh photo resource and request an appropriately sized image.');
 assert(app.includes('hydrateGoogleRestaurantPhoto') && app.includes('/api/restaurant-photo?placeId='),'Browser must hydrate Google venue photos through the server endpoint without exposing the Places API key.');
-assert(app.includes('photoSource') && app.includes('photoIsGeneric') && app.includes('photoConfidence'),'Restaurant rows must expose photo provenance metadata.');
+assert(app.includes('photoSource') && app.includes('photoIsGeneric'),'Browser Restaurant rows must consume photo provenance metadata.'); assert(api.includes('photoSource') && api.includes('photoIsGeneric') && api.includes('photoConfidence'),'Restaurant API rows must expose photo provenance metadata.');
 assert(api.includes('restaurantPhotoMeta') && api.includes('photoSource') && api.includes('photoFallback'),'Restaurant API must use a unified photo resolver with provenance and fallback metadata.');
 
 assert(!app.includes("openModal('diagnosisModal'") && app.includes("modal.classList.add('diagnosis-modal')"),'App Diagnosis must use only the existing Settings modal shell');
