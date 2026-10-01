@@ -8,14 +8,14 @@ function call(query){
 }
 (async()=>{
  const health=await call({mode:'health'});
- if(health.statusCode!==200||!health.body?.ok||health.body.version!=='r20')throw new Error('health failed: '+JSON.stringify(health.body));
+ if(health.statusCode!==200||!health.body?.ok||health.body.version!=='r22')throw new Error('health failed: '+JSON.stringify(health.body));
  const suggestion=await call({mode:'suggest',q:'37040'});
  if(suggestion.statusCode!==200||!suggestion.body?.ok||!suggestion.body.results?.length)throw new Error('address suggestions failed');
  const resolved=await call({mode:'resolve',q:'Clarksville, TN 37040'});
  if(resolved.statusCode!==200||!resolved.body?.ok)throw new Error('address resolve failed: '+JSON.stringify(resolved.body));
  const search=await call({mode:'search',lat:resolved.body.lat,lon:resolved.body.lon,radius:'10'});
  if(search.statusCode!==200||!search.body?.ok)throw new Error('restaurant search failed: '+JSON.stringify(search.body));
- if(search.body.version!=='r20')throw new Error('search version mismatch: '+search.body.version);
+ if(search.body.version!=='r22')throw new Error('search version mismatch: '+search.body.version);
  if(typeof search.body.timezone!=='string')throw new Error('search timezone field missing');
  const falseFast=(search.body.results||[]).filter(x=>/(ruby tuesday|applebee|chili.?s|olive garden|longhorn|outback|cracker barrel|texas roadhouse|red lobster|panera)/i.test(String(x.name||''))&&x.fastFood);
  if(falseFast.length)throw new Error('full-service chain incorrectly classified as fast food: '+falseFast.map(x=>x.name).join(', '));
@@ -46,11 +46,11 @@ function call(query){
  const radiusCoverage=handler._test?.centers;
  if(typeof radiusCoverage!=='function')throw new Error('radius coverage test hook missing');
  const centers50=radiusCoverage(36.5304,-87.3601,50);
- if(centers50.length!==7)throw new Error('50-mile search should use one central and six overlapping 50-mile coverage circles');
+ if(centers50.length!==1)throw new Error('50-mile search should use the requested 50-mile origin coverage circle');
  if(!centers50.every(p=>Number(p.radius)===50))throw new Error('50-mile coverage circles must each be 50 miles');
  const radiusChecks=[];
  const radiusTotals=[];
- for(const radius of [1,3,5,10,25,50]){
+ for(const radius of [1,3,5,10,25,50,100]){
    const rr=await call({mode:'search',lat:36.5304,lon:-87.3601,radius:String(radius)});
    if(rr.statusCode!==200||!rr.body?.ok||rr.body.radiusMiles!==radius)throw new Error('radius contract failed at '+radius+'mi: '+JSON.stringify(rr.body));
    const outOfRange=(rr.body.results||[]).filter(x=>Number(x.distance)>radius+0.2);
