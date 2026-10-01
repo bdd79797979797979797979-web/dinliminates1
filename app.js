@@ -1957,13 +1957,25 @@ await deleteStoredPhoto(id);
 buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
 }
+function settingsActionButton(id,icon,title,note,extraClass=''){
+ return '<button class="settings-action '+extraClass+'" id="'+id+'" type="button"><span class="settings-action-icon" aria-hidden="true">'+icon+'</span><span class="settings-action-copy"><b>'+title+'</b><small>'+note+'</small></span><span class="settings-action-chevron" aria-hidden="true">›</span></button>';
+}
 function settingsView(){
  removeFoodOverlays();
  const hiddenRestaurants=Object.values(S.hiddenRestaurants);
- const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System Tools</h4><button class="settings-system-action diagnosis-action" id="appDiagnosis" type="button" aria-label="Open App Diagnosis">App Diagnosis</button><p class="status">Live checks for the current build, Restaurant search, 1–100 mile radius, Quick Cuts, dedupe, photos, contact enrichment, hours behavior, storage, and runtime.</p><button class="settings-system-action restore-action" id="systemRestore">System Restore</button><p class="status">Restores built-in defaults, clears hidden meals/restaurants and active decision/search state, and keeps your Custom Meals and History.</p><button class="settings-system-action reset-action" id="resetAppData" type="button">Reset App Data</button><p class="status">Full local reset: removes Custom Meals and their photos, History, hidden choices, saved rounds, location/search state, and device-stored app preferences.</p></div>';
+ const body='<div class="settings-stack"><h4>Hidden Restaurants</h4><div>'+(hiddenRestaurants.length?hiddenRestaurants.map(x=>'<div class="food-row"><span>'+esc(x.name)+'</span><button class="restore" data-setting-rest="'+esc(x.id)+'">Restore</button></div>').join(''):'<p class="status">No hidden restaurants.</p>')+'</div><h4>System Tools</h4><div class="settings-actions">'+
+ settingsActionButton('appDiagnosis','⌁','App Diagnosis','Live checks for the current build and restaurant system.','diagnosis-action')+
+ settingsActionButton('systemRestore','↺','System Restore','Restores built-in defaults while keeping Custom Meals and History.','restore-action')+
+ settingsActionButton('resetAppData','×','Reset App Data','Removes locally stored meals, history, hidden choices, and app preferences.','reset-action')+
+ '</div><h4 class="settings-utility-heading">Your Data</h4><div class="settings-actions settings-actions-utility">'+
+ settingsActionButton('exportPdf','▣','Export PDF','Save or share your Dinliminate history as a polished PDF.','export-action')+
+ '</div></div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
- $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};$('systemRestore').onclick=systemRestoreFlow;$('resetAppData').onclick=resetAppDataFlow;
+ $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};
+ $('systemRestore').onclick=systemRestoreFlow;
+ $('resetAppData').onclick=resetAppDataFlow;
+ $('exportPdf').onclick=()=>exportPdfView();
 }
 function diagnosisMiles(a,b,c,d){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
@@ -2162,6 +2174,42 @@ function aboutView(){
  const date=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
  const body='<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></div>';
  const modal=openModal('aboutModal','About Dinliminate',body);$('privacyFromAbout').onclick=()=>privacyView();return modal;
+}
+function exportHistoryPrint(scope){
+ const all=readHistory();
+ const filtered=scope==='food'?all.filter(x=>x?.type==='food'):scope==='restaurant'?all.filter(x=>x?.type==='restaurant'):all;
+ if(!filtered.length){appToast('No '+(scope==='all'?'history':scope+' history')+' to export yet.');return;}
+ const scopeLabel=scope==='food'?'Food':scope==='restaurant'?'Restaurants':'All History';
+ const dateLabel=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date());
+ const rows=filtered.map(entry=>{
+  const image=String(entry?.image||'').trim();
+  const hasImage=!!image && image!==HUNGRY_IMAGE && image!==FINAL_RESTAURANT_IMAGE && image!=='idb:';
+  const photo=hasImage?imageProxyUrl(image):'';
+  const meta=[entry?.category||entry?.cuisine||'',entry?.type==='restaurant'?(entry?.address||''):''].filter(Boolean).map(esc).join(' · ');
+  const contact=[entry?.phone||'',entry?.website||''].filter(Boolean).map(esc).join(' · ');
+  return '<article class="pdf-entry"><div class="pdf-entry-head"><div><div class="pdf-entry-date">'+esc(entry?.date||'')+'</div><h2>'+esc(entry?.name||'Decision')+'</h2>'+ (meta?'<p>'+meta+'</p>':'')+(contact?'<p class="pdf-contact">'+contact+'</p>':'')+'</div></div>'+(photo?'<img src="'+esc(photo)+'" alt="" loading="eager">':'')+'</article>';
+ }).join('');
+ const w=window.open('','_blank');
+ if(!w){appToast('Allow pop-ups to export the PDF.');return;}
+ const css='@page{size:auto;margin:0.55in}html,body{margin:0;background:#fff;color:#151515;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:28px}.pdf-header{border-bottom:1px solid #ddd;padding-bottom:18px;margin-bottom:18px}.pdf-kicker{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}.pdf-header h1{font-size:28px;letter-spacing:-.04em;margin:7px 0 4px}.pdf-header p{margin:0;color:#666;font-size:12px}.pdf-entry{break-inside:avoid;border-bottom:1px solid #e6e6e6;padding:0 0 18px;margin:0 0 18px}.pdf-entry-date{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#777;margin-bottom:5px}.pdf-entry h2{font-size:21px;letter-spacing:-.03em;margin:0 0 5px}.pdf-entry p{font-size:11px;color:#666;line-height:1.45;margin:3px 0}.pdf-contact{word-break:break-word}.pdf-entry img{display:block;width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:11px}.pdf-footer{margin-top:26px;padding-top:12px;border-top:1px solid #ddd;color:#888;font-size:9px;text-align:center}@media print{body{padding:0}}';
+ w.document.open();
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dinliminate — '+scopeLabel+'</title><style>'+css+'</style></head><body><header class="pdf-header"><div class="pdf-kicker">DINLIMINATE</div><h1>Dining Decisions</h1><p>'+scopeLabel+' · Exported '+dateLabel+'</p></header>'+rows+'<footer class="pdf-footer">Dinner Decisions Simplified · Dinliminate</footer></body></html>');
+ w.document.close();
+ const printWhenReady=()=>{
+  const imgs=[...w.document.images];
+  Promise.all(imgs.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});}))).then(()=>setTimeout(()=>{try{w.focus();w.print();}catch{}},250));
+ };
+ if(w.document.readyState==='complete')printWhenReady(); else w.addEventListener('load',printWhenReady,{once:true});
+}
+function exportPdfView(){
+ const history=readHistory();
+ if(!history.length){appToast('No history to export yet.');return;}
+ const body='<div class="export-pdf-copy"><div class="export-pdf-kicker">SAVE YOUR DECISIONS</div><h4>Export your history</h4><p>Choose what to include. A print-ready PDF opens next, where you can save or share it from your device.</p><div class="export-pdf-options">'+
+ '<button class="settings-action export-choice" data-export-scope="all" type="button"><span class="settings-action-icon">✦</span><span class="settings-action-copy"><b>All History</b><small>'+history.length+' saved decision'+(history.length===1?'':'s')+'</small></span><span class="settings-action-chevron">›</span></button>'+
+ '<button class="settings-action export-choice" data-export-scope="food" type="button"><span class="settings-action-icon">◈</span><span class="settings-action-copy"><b>Food</b><small>'+history.filter(x=>x?.type==='food').length+' saved decision'+(history.filter(x=>x?.type==='food').length===1?'':'s')+'</small></span><span class="settings-action-chevron">›</span></button>'+
+ '<button class="settings-action export-choice" data-export-scope="restaurant" type="button"><span class="settings-action-icon">⌖</span><span class="settings-action-copy"><b>Restaurants</b><small>'+history.filter(x=>x?.type==='restaurant').length+' saved decision'+(history.filter(x=>x?.type==='restaurant').length===1?'':'s')+'</small></span><span class="settings-action-chevron">›</span></button></div></div>';
+ const modal=openModal('exportPdfModal','Export PDF',body);
+ modal.querySelectorAll('[data-export-scope]').forEach(btn=>btn.onclick=()=>{const scope=btn.dataset.exportScope;modal.remove();$('exportPdfModalBg')?.remove();exportHistoryPrint(scope);});
 }
 async function shareAndAddApp() {
  const url=String(location.href||'').split('#')[0];
