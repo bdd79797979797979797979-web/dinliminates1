@@ -429,7 +429,7 @@ function renderMaybeDeckToggle(kind){
  btn.dataset.mode=S.maybeDeck?'maybe':'all';
  btn.disabled=!hasMaybe && !S.maybeDeck;
  const target=S.maybeDeck?'Show all choices':'Show Maybe choices';
- btn.setAttribute('aria-label',target); btn.title=target;
+ btn.setAttribute('aria-label',target); btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false'); btn.title=target;
  btn.classList.toggle('is-maybe',S.maybeDeck);
 }
 function bindMaybeDeckToggle(kind){
