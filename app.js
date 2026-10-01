@@ -1810,7 +1810,7 @@ async function appDiagnosisView(existingModal){
    const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
    const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
    missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<11?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 12 built-in Quick Cuts; the extra Other option appears only when a custom meal uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
-   const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Healthy']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['Healthy','American']],['health-shake',['Healthy']]];
+   const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Italian']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['American','Italian']],['health-shake',['Healthy']]];
    const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
    quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Meals and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Meal Quick Cut mappings match the current catalog.');
    const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
