@@ -358,8 +358,16 @@ module.exports=async function handler(req,res){
   const name=String(q.name||'').trim().slice(0,160);
   const address=String(q.address||'').trim().slice(0,240);
   const website=String(q.website||'').trim().slice(0,700);
+  const osmPhoto=absoluteHttpsUrl(q.osmPhoto||'');
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
+    if(osmPhoto&&!isBlockedHost(osmPhoto)&&!BLOCKED_IMAGE_HINTS.test(osmPhoto)&&!FOOD_IMAGE_HINTS.test(osmPhoto)){
+      try{
+        const media=await fetchImage(osmPhoto,{},6500);
+        return sendMedia(res,{media,source:'openstreetmap-poi-image',sourceUrl:'https://www.openstreetmap.org/',sourceName:'OpenStreetMap'});
+      }catch{}
+    }
+
     const verifiedPages=await findVerifiedRestaurantPages(name,address,website);
 
     // 1) Exact restaurant pages: only use images that look like the venue itself.
