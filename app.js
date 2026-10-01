@@ -2213,11 +2213,9 @@ $('backToStart').onclick = () => home();
 $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
 $('shareApp').onclick = shareAndAddApp;
 $('locate').onclick = () => {
-  appToast('Location · uses your current device location to find nearby restaurants.');
   useLocation();
 };
 $('find').onclick = () => {
-  appToast(S.location ? 'Refresh · searches again using this location and radius.' : 'Find · searches the selected location for restaurants.');
   searchRestaurants();
 };
 $('radius').addEventListener('change', () => {
