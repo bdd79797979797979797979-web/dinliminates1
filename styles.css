@@ -1522,3 +1522,16 @@ button,a,select{touch-action:manipulation}
 @keyframes restaurantFindSpin{
   to{transform:rotate(360deg)}
 }
+
+
+/* CP553 — give Restaurant swipe controls a little more breathing room */
+#restaurant .swipe-actions{
+  grid-template-columns:44px 64px 64px 44px!important;
+  gap:11px!important;
+}
+@media(max-width:390px){
+  #restaurant .swipe-actions{
+    grid-template-columns:44px 60px 60px 44px!important;
+    gap:10px!important;
+  }
+}
