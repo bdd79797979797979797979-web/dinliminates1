@@ -1492,6 +1492,7 @@ function closeRestaurantSearch(){
  restaurantSearchSeq++;
  restaurantSearchController?.abort();
  restaurantSearchController=null;
+ setFindBusy(false);
  const box=$('restaurantSearchBox');
  if(box)box.classList.add('hidden');
  const input=$('restaurantQuery');
