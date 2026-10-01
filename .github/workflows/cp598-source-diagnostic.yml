@@ -1,0 +1,38 @@
+name: CP598 Photo Source Diagnostic
+
+on:
+  push:
+    branches: [cp598-photo-source-diagnostic]
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Source and image fetch
+        run: |
+          node <<'NODE'
+          const cases = [
+            [
+              "McDonald's",
+              "https://usarestaurants.info/explore/united-states/tennessee/montgomery-county/clarksville/mcdonalds-931-358-0259.htm",
+              "https://cdn2.usarestaurants.info/assets/uploads/3b1fcd6ab43aa9520a51e7e29068312a_-united-states-tennessee-montgomery-county-clarksville-mcdonalds-931-358-0259htm.jpg"
+            ],
+            [
+              "The Thirsty Goat",
+              "https://usarestaurants.info/explore/united-states/tennessee/montgomery-county/clarksville/the-thirsty-goat-931-368-9404.htm",
+              "https://cdn2.usarestaurants.info/assets/uploads/10f94bb94bb7388e017f2862981e83c7_-united-states-tennessee-montgomery-county-clarksville-the-thirsty-goat-931-368-9404htm.jpg"
+            ]
+          ];
+          for (const [name,pageUrl,imageUrl] of cases) {
+            const page=await fetch(pageUrl,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0'}});
+            const html=await page.text();
+            const img=await fetch(imageUrl,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0','Referer':pageUrl}});
+            const bytes=(await img.arrayBuffer()).byteLength;
+            const found=html.includes(imageUrl) || html.includes(imageUrl.replace('https://',''));
+            console.log(JSON.stringify({name,pageStatus:page.status,pageBytes:html.length,imageStatus:img.status,imageType:img.headers.get('content-type'),imageBytes:bytes,exactUrlInHtml:found}));
+          }
+          NODE
