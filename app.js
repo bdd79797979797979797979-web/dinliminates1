@@ -618,7 +618,7 @@ function restaurantStreetFamily(value){
  return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
-const RESTAURANT_NAME_VARIANT_BLOCKERS_UI=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','more','and','at','inside','food','foods','eatery','restaurant','restaurants']);
+const RESTAURANT_NAME_VARIANT_BLOCKERS_UI=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameVariantMatchUI(a,b){
  const aa=restaurantNameFamily(a).split(' ').filter(Boolean),bb=restaurantNameFamily(b).split(' ').filter(Boolean);
  if(!aa.length||!bb.length)return false;
