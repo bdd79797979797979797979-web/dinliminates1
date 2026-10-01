@@ -1,0 +1,28 @@
+name: CP615 Final Venue Photo Test
+on:
+  push:
+    branches: [cp615-final-venue-photo]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test exact location photos
+        env:
+          BASE_URL: https://deploy-preview-103--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const base=process.env.BASE_URL;
+          for(const [name,address] of [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043"]
+          ]){
+            const r=await fetch(base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address));
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const source=r.headers.get('x-restaurant-photo-source')||'';
+            const sourceUrl=r.headers.get('x-restaurant-photo-source-url')||'';
+            const body=await r.arrayBuffer();
+            console.log(JSON.stringify({name,status:r.status,type,source,sourceUrl,bytes:body.byteLength}));
+          }
+          NODE
