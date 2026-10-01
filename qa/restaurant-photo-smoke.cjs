@@ -8,6 +8,13 @@ const pt=photoApi._test;
 assert.ok(typeof rt.restaurantPhotoMeta==='function','restaurantPhotoMeta export missing');
 assert.ok(typeof pt.extractInternalLinks==='function','extractInternalLinks export missing');
 assert.ok(typeof pt.extractVenueImageCandidates==='function','extractVenueImageCandidates export missing');
+assert.ok(typeof pt.structuredRestaurantMatches==='function','structuredRestaurantMatches export missing');
+const structured=pt.structuredRestaurantMatches(`
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Structured Bistro","address":{"@type":"PostalAddress","streetAddress":"456 Main Street","addressLocality":"Clarksville","addressRegion":"TN","postalCode":"37040"}}
+</script>`,'Structured Bistro','456 Main Street, Clarksville, TN 37040');
+assert.equal(structured,true,'Structured restaurant/address data should verify an exact venue page');
+
 
 const osm=rt.restaurantPhotoMeta({
   name:'Exact OSM Venue',
@@ -80,7 +87,7 @@ assert.ok(candidates.some(x=>x.url==='https://example.com/menu.jpg'),'Menu image
   }
   console.log(JSON.stringify({
     ok:true,
-    cases:8,
+    cases:9,
     verified:[
       'no generic restaurant photo fallback',
       'provider venue photo metadata',
@@ -89,7 +96,8 @@ assert.ok(candidates.some(x=>x.url==='https://example.com/menu.jpg'),'Menu image
       'venue exterior candidate scoring',
       'food/menu candidate remains rejectable',
       'credential-free OSM photo tier',
-      'restaurant-photo API no Google API dependency'
+      'restaurant-photo API no Google API dependency',
+      'structured exact restaurant/address verification'
     ]
   },null,2));
 })().catch(err=>{console.error(err);process.exitCode=1});
