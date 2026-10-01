@@ -1,0 +1,26 @@
+[
+  {
+    "name": "McDonald's",
+    "address": "724 Sango Rd, Clarksville, TN 37043",
+    "imageUrl": "https://media-cdn.tripadvisor.com/media/photo-s/10/a6/7e/fb/a-view-of-mcdonalds-from.jpg",
+    "sourceUrl": "https://www.tripadvisor.co.uk/LocationPhotoDirectLink-g54955-d4875292-i279346939-McDonald_s-Clarksville_Tennessee.html"
+  },
+  {
+    "name": "The Thirsty Goat",
+    "address": "4044 US-41 ALT South, Clarksville, TN 37043",
+    "imageUrl": "https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg",
+    "sourceUrl": "https://joe.coffee/locations/tn/clarksville/the-thirsty-goat-clarksville/"
+  },
+  {
+    "name": "Ruby Tuesday",
+    "address": "2239 Madison St, Clarksville, TN 37043",
+    "imageUrl": "https://images1.loopnet.com/i2/Cw-j7AqdluP9bbPaEtIdvmLK4BTXboUoOlnoS4GUnTM/110/2239-Madison-St-Clarksville-TN-Primary-Photo-1-Large.jpg",
+    "sourceUrl": "https://www.loopnet.com/Listing/2239-Madison-St-Clarksville-TN/20096866/"
+  },
+  {
+    "name": "Chipotle Mexican Grill",
+    "address": "2296 Madison St, Clarksville, TN 37043",
+    "imageUrl": "https://images1.loopnet.com/i2/-xwcfUktqFFIKjug1Y8Ud3ywAu0Piftn6ShNgfP2ho4/110/2296-Madison-St-Clarksville-TN-Building-Photo-1-Large.jpg",
+    "sourceUrl": "https://www.loopnet.com/Listing/2296-Madison-St-Clarksville-TN/27244861/"
+  }
+]
