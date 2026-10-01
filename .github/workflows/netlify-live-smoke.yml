@@ -1,8 +1,6 @@
 name: Dinliminate Live Netlify Smoke
 
 on:
-  push:
-    branches: [cp487-launch-candidate-full-pass-2026-10-01]
   workflow_dispatch:
 
 permissions:
@@ -19,4 +17,11 @@ jobs:
           node-version: 22
       - run: npm install --no-save playwright@1.55.0
       - run: npx playwright install --with-deps chromium
-      - run: node qa/netlify-preview-smoke.mjs
+      - name: Production smoke
+        if: ${{ vars.NETLIFY_PRODUCTION_URL != '' }}
+        env:
+          BASE_URL: ${{ vars.NETLIFY_PRODUCTION_URL }}
+        run: node qa/hosted-smoke.mjs
+      - name: Production smoke not configured
+        if: ${{ vars.NETLIFY_PRODUCTION_URL == '' }}
+        run: echo 'NETLIFY_PRODUCTION_URL is not configured; production smoke is intentionally skipped.'
