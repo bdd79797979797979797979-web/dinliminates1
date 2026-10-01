@@ -282,60 +282,89 @@ function extractBingWebResultUrls(html){
   return [...new Set(out)];
 }
 
-async function findVerifiedRestaurantPages(name,address,website){
-  const queries=[],safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,'');
-  const websiteHost=hostOf(website);
-  if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
-  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,6);
-  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),{},7000)));
-  const candidates=[];
-  for(const p of pages){
-    if(p.status!=='fulfilled')continue;
-    for(const url of extractBingWebResultUrls(p.value))if(!candidates.includes(url))candidates.push(url);
-  }
-  const verified=[];
-  for(const url of candidates.slice(0,30)){
+async function fetchVerifiedPages(urls,name,address){
+  const results=await Promise.allSettled(urls.map(async url=>{
     const html=await verifiedRestaurantPage(url,name,address);
-    if(html)verified.push({url,html});
-    if(verified.length>=12)break;
-  }
-  return verified;
+    return html?{url,html}:null;
+  }));
+  return results.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value);
 }
-
+function sameHost(a,b){
+  const ah=hostOf(a),bh=hostOf(b);
+  return !!ah&&!!bh&&(ah===bh||ah.endsWith('.'+bh)||bh.endsWith('.'+ah));
+}
+function extractInternalLinks(html,pageUrl,name,address){
+  const out=[],seen=new Set(),re=/<a\b[^>]*href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>([\s\S]*?)<\/a>/ig;
+  const nameTokens=significantNameTokens(name),addressTokens=normalizeMatchText(address).split(' ').filter(t=>t.length>=3).slice(0,10);
+  let m;
+  while((m=re.exec(String(html||'')))&&out.length<80){
+    const raw=m[1]??m[2]??m[3]??'',url=absoluteHttpsUrl(raw,pageUrl);
+    if(!url||isBlockedHost(url)||!sameHost(url,pageUrl)||seen.has(url))continue;
+    const text=String(m[4]||'').replace(/<[^>]+>/g,' ');
+    const context=normalizeMatchText([text,url].join(' '));
+    const locationSignal=/location|locations|find us|store locator|where we are|contact|our restaurant|restaurants?/i.test(context);
+    const photoSignal=/gallery|photo|photos|about|visit|inside|outside|exterior/i.test(context);
+    const nameSignal=nameTokens.filter(t=>context.includes(t)).length>=Math.max(1,Math.ceil(nameTokens.length*0.5));
+    const addressSignal=addressTokens.filter(t=>context.includes(t)).length>=2;
+    const score=(locationSignal?50:0)+(photoSignal?20:0)+(nameSignal?30:0)+(addressSignal?35:0);
+    if(score<=0)continue;
+    seen.add(url);out.push({url,score});
+  }
+  return out.sort((a,b)=>b.score-a.score).slice(0,12).map(x=>x.url);
+}
+async function officialRestaurantPages(name,address,website){
+  const official=absoluteHttpsUrl(website);
+  if(!official||isBlockedHost(official))return [];
+  try{
+    const html=await fetchText(official,{},4500,1800000);
+    const pages=[];
+    const direct=await verifiedRestaurantPage(official,name,address);
+    if(direct)pages.push({url:official,html:direct});
+    const links=extractInternalLinks(html,official,name,address);
+    const internal=await fetchVerifiedPages(links,name,address);
+    for(const item of internal)if(!pages.some(x=>sameHost(x.url,item.url)))pages.push(item);
+    return pages.slice(0,12);
+  }catch{return []}
+}
+async function findVerifiedRestaurantPages(name,address,website){
+  const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
+  const queries=[];
+  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
+  if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
+  const officialPromise=officialRestaurantPages(name,address,website);
+  const searchPages=await Promise.allSettled(queries.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),{},4500,700000)));
+  const candidates=[];
+  for(const page of searchPages){
+    if(page.status!=='fulfilled')continue;
+    for(const url of extractBingWebResultUrls(page.value))if(!candidates.includes(url))candidates.push(url);
+  }
+  const verified=await fetchVerifiedPages(candidates.slice(0,16),name,address);
+  const official=await officialPromise;
+  const officialFromSearch=verified.filter(x=>websiteHost&&sameHost(x.url,websiteHost));
+  const publicPages=verified.filter(x=>!websiteHost||!sameHost(x.url,websiteHost));
+  const officialMerged=[...official,...officialFromSearch].filter((x,i,a)=>a.findIndex(y=>y.url===x.url)===i).slice(0,12);
+  return {official:officialMerged,public:publicPages.slice(0,12)};
+}
 async function bingImages(name,address,website){
-  const queries=[],websiteHost=hostOf(website);
-  const safeName=String(name||'').replace(/"/g,'');
-  const safeAddress=String(address||'').replace(/"/g,'');
-  if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
+  const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,'');
+  const queries=[];
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant exterior photos');
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant storefront');
-  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'" exterior');
-  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'" exterior');
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,7);
-  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},7000)));
+  if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'" exterior');
+  if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'" exterior');
+  if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'" exterior');
+  if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'" exterior');
+  const unique=[...new Set(queries)].slice(0,5);
+  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},4500,700000)));
   const all=[];
   pages.forEach((p,i)=>{
     if(p.status!=='fulfilled')return;
-    for(const item of extractBingImageCandidates(p.value)){
-      item.query=unique[i];
-      item.score=scoreImage(item,safeName,safeAddress,website);
-      all.push(item);
-    }
+    for(const item of extractBingImageCandidates(p.value)){item.query=unique[i];item.score=scoreImage(item,safeName,safeAddress,website);all.push(item)}
   });
   const seen=new Set();
-  return all.sort((a,b)=>b.score-a.score).filter(x=>{
-    const k=x.contentUrl.toLowerCase();
-    if(seen.has(k))return false;
-    seen.add(k);
-    return true;
-  });
+  return all.sort((a,b)=>b.score-a.score).filter(x=>{const k=x.contentUrl.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
 }
 
 function sendMedia(res,found){
@@ -357,46 +386,62 @@ module.exports=async function handler(req,res){
   const name=String(q.name||'').trim().slice(0,160);
   const address=String(q.address||'').trim().slice(0,240);
   const website=String(q.website||'').trim().slice(0,700);
+  const officialWebsite=String(q.officialWebsite||website).trim().slice(0,700);
+  const osmImage=String(q.osmImage||'').trim().slice(0,1200);
+  const osmExact=q.osmExact==='1';
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
-    const verifiedPages=await findVerifiedRestaurantPages(name,address,website);
+    const pages=await findVerifiedRestaurantPages(name,address,officialWebsite);
 
-    // 1) Exact restaurant pages: only use images that look like the venue itself.
-    for(const entry of verifiedPages){
-      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,website)
-        .filter(item=>item.score>=65 && item.score>0 && hasVenueSignal(item));
-      for(const candidate of candidates.slice(0,14)){
-        try{
-          const media=await fetchImage(candidate.url,{'Referer':entry.url},6500);
-          return sendMedia(res,{media,source:'verified-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
-        }catch{}
+    // Tier 1: exact restaurant/location images from the restaurant's own website.
+    for(const entry of pages.official){
+      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,officialWebsite)
+        .filter(item=>item.score>=65&&item.score>0&&hasVenueSignal(item));
+      const attempts=await Promise.allSettled(candidates.slice(0,8).map(async candidate=>{
+        try{return {media:await fetchImage(candidate.url,{'Referer':entry.url},4000)}}catch{return null}
+      }));
+      for(const hit of attempts)if(hit.status==='fulfilled'&&hit.value){
+        return sendMedia(res,{media:hit.value.media,source:'official-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
       }
     }
 
-    // 2) Bing is discovery only; image must point back to a verified exact restaurant page
-    // and carry strong venue/exterior evidence.
-    const bing=await bingImages(name,address,website);
-    for(const candidate of bing.slice(0,40)){
+    // Tier 2: exact-location public restaurant pages.
+    for(const entry of pages.public){
+      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,officialWebsite)
+        .filter(item=>item.score>=65&&item.score>0&&hasVenueSignal(item));
+      const attempts=await Promise.allSettled(candidates.slice(0,8).map(async candidate=>{
+        try{return {media:await fetchImage(candidate.url,{'Referer':entry.url},4000)}}catch{return null}
+      }));
+      for(const hit of attempts)if(hit.status==='fulfilled'&&hit.value){
+        return sendMedia(res,{media:hit.value.media,source:'exact-public-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
+      }
+    }
+
+    // Tier 2b: Bing is discovery only; the image must resolve back to a verified
+    // exact-location public restaurant page before it can be served.
+    const bing=await bingImages(name,address,officialWebsite);
+    for(const candidate of bing.slice(0,24)){
       if(candidate.score<150||!candidate.hostPageUrl)continue;
       const html=await verifiedRestaurantPage(candidate.hostPageUrl,name,address);
       if(!html)continue;
-      const pageCandidates=extractVenueImageCandidates(html,candidate.hostPageUrl,name,address,website);
-      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && hasVenueSignal(item));
+      const pageCandidates=extractVenueImageCandidates(html,candidate.hostPageUrl,name,address,officialWebsite);
+      const best=pageCandidates.find(item=>item.url===candidate.contentUrl&&item.score>=65&&hasVenueSignal(item));
+      if(!best)continue;
       try{
-        if(bestPage){
-          const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},6500);
-          return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
-        }
+        const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},4000);
+        return sendMedia(res,{media,source:'exact-public-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
       }catch{}
-      for(const pageCandidate of pageCandidates.filter(item=>item.score>=65 && hasVenueSignal(item)).slice(0,10)){
-        try{
-          const media=await fetchImage(pageCandidate.url,{'Referer':candidate.hostPageUrl},6500);
-          return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
-        }catch{}
-      }
     }
 
-    return json(res,404,{ok:false,error:'No verified venue photo was found from non-Google sources'});
+    // Tier 3: the image already attached to the exact OSM POI.
+    if(osmExact&&/^https:\/\//i.test(osmImage)&&!isBlockedHost(osmImage)&&!BLOCKED_IMAGE_HINTS.test(osmImage)){
+      try{
+        const media=await fetchImage(osmImage,{'Referer':'https://www.openstreetmap.org/'},4000);
+        return sendMedia(res,{media,source:'osm-exact-poi'});
+      }catch{}
+    }
+
+    return json(res,404,{ok:false,error:'No verified venue photo was found from the allowed non-Google sources'});
   }catch(e){
     console.error('dinliminate-restaurant-photo',e);
     return json(res,502,{ok:false,error:'Could not load the restaurant photo'});
@@ -414,5 +459,7 @@ module.exports._test={
   extractVenueImageCandidates,
   pageMatchesRestaurant,
   venueScore,
-  hasVenueSignal
+  hasVenueSignal,
+  extractInternalLinks,
+  sameHost
 };
