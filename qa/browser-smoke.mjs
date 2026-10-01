@@ -69,6 +69,19 @@ await page.route('**/*', async route => {
       {id:'heads-1',name:"Heads BBQ",category:'BBQ',fastFood:false,cuisine:'bbq',distance:6.3,address:'724 Sango Rd, Clarksville, TN 37043',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'},
       {id:'robert-heads-duplicate',name:'Robert Heads BBQ',category:'BBQ',fastFood:false,cuisine:'bbq',distance:6.3,address:'724 Sango Road, Clarksville, TN 37043',website:'https://example.com',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85'}
     ];
+    // Keep fixture distance and coordinates consistent with the app's final geographic filter.
+    const originLat=36.5298,originLon=-87.3588;
+    allResults.forEach((row,i)=>{
+      const d=Number(row.distance)||0;
+      const angle=((i*41)%360)*Math.PI/180;
+      const latMiles=d/69.0;
+      const lonMiles=d/(69.0*Math.cos(originLat*Math.PI/180));
+      row.lat=originLat+latMiles*Math.cos(angle);
+      row.lon=originLon+lonMiles*Math.sin(angle);
+    });
+    const headsFixture=allResults.find(x=>x.id==='heads-1');
+    const robertFixture=allResults.find(x=>x.id==='robert-heads-duplicate');
+    if(headsFixture&&robertFixture){robertFixture.lat=headsFixture.lat+0.00005;robertFixture.lon=headsFixture.lon+0.00005;}
     const results=allResults.filter(x=>Number(x.distance)<=radius);
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',radiusMiles:radius,total:results.length,fastFoodCount:results.filter(x=>x.fastFood).length,timezone:'America/Chicago',results})});
   }
