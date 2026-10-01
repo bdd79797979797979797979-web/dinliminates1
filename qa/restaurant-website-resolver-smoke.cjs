@@ -12,13 +12,19 @@ const score=test.websitePageScore;
 const verify=test.verifiedWebsiteCandidate;
 const searchVerify=test.verifiedWebsiteSearchHit;
 const resolve=test.resolveOfficialWebsite;
+const domainCandidates=test.directWebsiteDomainCandidates;
 
 for(const [name,fn] of Object.entries({
-  known,blocked,discoveryHost,extractDiscovery,extractWeb,extractLinks,score,verify,searchVerify,resolve
+  known,blocked,discoveryHost,extractDiscovery,extractWeb,extractLinks,score,verify,searchVerify,resolve,domainCandidates
 }))assert.equal(typeof fn,'function',name+' helper should exist');
 
 // There should be no Camacho-specific hardcoded exception.
 assert.equal(known({name:"Camacho's Famous",brand:''}),'','Camacho should be discovered generically, not via a special case.');
+const camachoDomains=domainCandidates("Camacho's Famous","1021 Highway 76, Clarksville, TN 37043, Suite 106");
+assert.ok(camachoDomains.includes('https://camachosfamous.com'),'Name-derived domain candidate should cover Camacho\'s official domain.');
+const chrisDomains=domainCandidates("Chris' Pizza Village - Sango","3383 Highway 41A South, Clarksville, TN 37043");
+assert.ok(chrisDomains.includes('https://chrispizzavillagetn.com'),'Name/state-derived domain candidate should cover Chris\' Pizza Village official domain.');
+
 
 assert.equal(blocked('https://www.facebook.com/camachosfamous'),true,'Facebook is a discovery source, not an accepted website destination.');
 assert.equal(blocked('https://www.yelp.com/biz/camachos-famous-clarksville'),true,'Yelp must never be accepted as an official website.');
