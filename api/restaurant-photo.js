@@ -293,8 +293,9 @@ async function findVerifiedRestaurantPages(name,address,website){
   if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
   if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:joe.coffee/locations "'+safeName+'" "'+safeAddress+'"');
 
-  const unique=[...new Set(queries.filter(Boolean))].slice(0,5);
+  const unique=[...new Set(queries.filter(Boolean))].slice(0,6);
   const pages=await Promise.allSettled(unique.map(q=>fetchText(
     'https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),
     {},4500,1100000
@@ -329,8 +330,9 @@ async function bingImages(name,address,website){
   if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('site:joe.coffee/locations "'+safeName+'" "'+safeAddress+'"');
 
-  const unique=[...new Set(queries)].slice(0,4);
+  const unique=[...new Set(queries)].slice(0,5);
   const pages=await Promise.allSettled(unique.map(q=>fetchText(
     'https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),
     {},4500,1200000
@@ -409,10 +411,12 @@ module.exports=async function handler(req,res){
         });
       for(const candidate of candidates.slice(0,14)){
         try{
-          const media=await fetchImage(candidate.url,{'Referer':entry.url},6500);
+          const media=await fetchImage(candidate.url,{'Referer':entry.url},5500);
           return sendMedia(res,{media,source:'verified-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
         }catch{}
       }
+      const proxyCandidate=candidates.find(Boolean);
+      if(proxyCandidate) return sendPhotoReference(res,{imageUrl:proxyCandidate.url,source:'verified-venue-page-proxy',sourceUrl:entry.url});
     }
 
     // 2) Bing is discovery only; image must point back to a verified exact restaurant page
