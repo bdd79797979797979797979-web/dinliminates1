@@ -47,18 +47,23 @@ async function fetchImage(url,headers,timeout=6500){
 }
 
 module.exports=async function handler(req,res){
+  const photoName=String(req?.query?.photoName||req?.queryStringParameters?.photoName||'').trim();
   const placeId=String(req?.query?.placeId||req?.queryStringParameters?.placeId||'').trim();
   const name=String(req?.query?.name||req?.queryStringParameters?.name||'').trim().slice(0,140);
   const address=String(req?.query?.address||req?.queryStringParameters?.address||'').trim().slice(0,220);
   const lat=Number(req?.query?.lat||req?.queryStringParameters?.lat);
   const lon=Number(req?.query?.lon||req?.queryStringParameters?.lon);
+  const validPhotoName=/^places\/[^/]+\/photos\/[^/]+$/.test(photoName);
   const validPlaceId=/^[A-Za-z0-9_-]{10,300}$/.test(placeId);
   const validCoords=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180;
-  if(!validPlaceId && !name)return json(res,400,{ok:false,error:'Place ID or restaurant name is required'});
+  if(!validPhotoName && !validPlaceId && !name)return json(res,400,{ok:false,error:'Photo reference, Place ID, or restaurant name is required'});
   if(!GOOGLE_KEY)return json(res,503,{ok:false,error:'Google Places photos are not configured'});
   try{
     let photo=null,matchedPlaceId=placeId;
-    if(validPlaceId){
+    if(validPhotoName){
+      photo={name:photoName};
+      matchedPlaceId=String(photoName.split('/')[1]||'').trim();
+    }else if(validPlaceId){
       const details=await fetchJson('https://places.googleapis.com/v1/places/'+encodeURIComponent(placeId),{'X-Goog-Api-Key':GOOGLE_KEY,'X-Goog-FieldMask':'photos'},5500);
       const photos=Array.isArray(details?.photos)?details.photos:[];
       photo=photos.find(x=>x?.name)||null;
@@ -91,8 +96,8 @@ module.exports=async function handler(req,res){
     }
     if(!photo)return json(res,404,{ok:false,error:'No restaurant photo is available'});
     if(!/^places\/[^/]+\/photos\/[^/]+$/.test(String(photo.name||'')))return json(res,502,{ok:false,error:'Google returned an invalid photo reference'});
-    const mediaUrl='https://places.googleapis.com/v1/'+photo.name+'/media?maxWidthPx=1200&key='+encodeURIComponent(GOOGLE_KEY);
-    const media=await fetchImage(mediaUrl,{},6500);
+    const mediaUrl='https://places.googleapis.com/v1/'+photo.name+'/media?maxWidthPx=1200';
+    const media=await fetchImage(mediaUrl,{'X-Goog-Api-Key':GOOGLE_KEY},6500);
     const attributions=normalizeAttributions(photo.authorAttributions);
     res.setHeader?.('Content-Type',media.type);
     res.setHeader?.('Cache-Control','no-store');
