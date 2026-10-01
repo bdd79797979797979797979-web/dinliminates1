@@ -358,21 +358,83 @@ async function fetchBingSearchPage(query){
 function decodeHtmlAttribute(value){
  return String(value||'').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>');
 }
-function extractBingDiscoveryResults(html){
+
+async function fetchPublicSearchPage(base,query){
+ const url=base+'?'+new URLSearchParams({q:String(query||''),mkt:'en-US',first:'1'}).toString();
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),3200);
+ try{
+  const response=await fetch(url,{headers:{
+   Accept:'text/html,application/xhtml+xml',
+   'Accept-Language':'en-US,en;q=0.8',
+   'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-web-presence-resolver)'
+  },signal:ctl.signal});
+  if(!response.ok)return null;
+  const bytes=Buffer.from(await response.arrayBuffer());
+  if(bytes.length>900000)return null;
+  return bytes.toString('utf8');
+ }catch{return null}finally{clearTimeout(timer)}
+}
+async function fetchDuckDuckGoSearchPage(query){
+ return fetchPublicSearchPage('https://html.duckduckgo.com/html/',query);
+}
+async function fetchGoogleWebSearchPage(query){
+ return fetchPublicSearchPage('https://www.google.com/search',query);
+}
+function extractSearchResultUrl(raw,base='https://www.google.com/'){
+ const decoded=decodeHtmlAttribute(raw);
+ try{
+  const absolute=/^https?:\/\//i.test(decoded)?decoded:new URL(decoded,base).toString();
+  const u=new URL(absolute);
+  for(const key of ['q','url','uddg']){
+   const nested=u.searchParams.get(key);
+   if(nested&&/^https?:\/\//i.test(nested))return nested;
+  }
+  return absolute;
+ }catch{return ''}
+}
+function extractGenericSearchResults(html,sourceHost=''){
  const out=[],seen=new Set();
- const re=/<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/ig;
+ const add=(raw,title='')=>{
+  const url=extractSearchResultUrl(raw);
+  if(!url)return;
+  const host=websiteHost(url);if(!host||host===sourceHost||host.includes('google.')||host.includes('bing.')||host.includes('duckduckgo.'))return;
+  const canonical=safeWebsiteUrl(url)||safeDiscoveryUrl(url);
+  if(!canonical||seen.has(canonical))return;
+  seen.add(canonical);
+  const kind=isDiscoveryHost(canonical)?(host.includes('facebook.com')?'facebook':host.includes('instagram.com')?'instagram':'directory'):'website';
+  out.push({url:canonical,title:htmlText(title),kind});
+ };
+ const anchorRe=/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/ig;
  let m;
- while((m=re.exec(String(html||'')))&&out.length<18){
-  const raw=decodeHtmlAttribute(m[1]);
-  let url='';
-  try{url=/^https?:\/\//i.test(raw)?raw:new URL(raw,'https://www.bing.com/').toString()}catch{}
-  if(!url||seen.has(url))continue;
-  const host=websiteHost(url);if(!host)continue;
-  seen.add(url);
-  const title=htmlText(m[2]);
-  out.push({url,title,kind:isDiscoveryHost(url)?(host.includes('facebook.com')?'facebook':host.includes('instagram.com')?'instagram':'directory'):'website'});
- }
+ while((m=anchorRe.exec(String(html||'')))&&out.length<30)add(m[1],m[2]);
+ const urlRe=/(https?:\/\/[^\s"'<>]+)/ig;
+ while((m=urlRe.exec(String(html||'')))&&out.length<40)add(m[1],'');
  return out;
+}
+function directWebsiteDomainCandidates(name,address,brand=''){
+ const nameWords=websiteBusinessTokens(name);
+ const brandWords=websiteBusinessTokens(brand);
+ const compact=(words)=>words.join('');
+ const stripThe=(words)=>words.filter(x=>x!=='the');
+ const addr=normalizeSearchQuery(address).split(' ').filter(Boolean);
+ const city=addr.length?addr.slice(-3).find(x=>x.length>=4&&!/^\d+$/.test(x))||'':'';
+ const state=addr.includes('tn')?'tn':'';
+ const bases=[];
+ for(const words of [stripThe(nameWords),stripThe(brandWords)]){
+  const core=compact(words);
+  if(core&&core.length>=5)bases.push(core);
+  if(core&&city)bases.push(core+city);
+  if(core&&state)bases.push(core+state);
+  if(core&&!core.endsWith('s'))bases.push(core+'s');
+  if(core&&city&&!core.endsWith('s'))bases.push(core+'s'+city);
+ }
+ return [...new Set(bases)]
+  .filter(x=>/^[a-z0-9]+$/.test(x))
+  .slice(0,10)
+  .flatMap(x=>['https://'+x+'.com']);
+}
+function extractBingDiscoveryResults(html){
+ return extractGenericSearchResults(html,'bing.com');
 }
 function extractBingWebsiteResults(html){
  return extractBingDiscoveryResults(html).filter(x=>x.kind==='website').map(({url,title})=>({url,title}));
@@ -510,6 +572,24 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
   officialWebsiteCache.set(key,{t:Date.now(),...result});
   return result;
  }
+
+ // First try cheap, deterministic domain candidates. This avoids depending on
+ // any particular search engine's HTML markup and is still protected by full
+ // restaurant identity/address/phone verification before acceptance.
+ const domainCandidates=directWebsiteDomainCandidates(name,address,brand)
+   .map(url=>({url,title:'domain candidate',kind:'website'}));
+ const candidateChecks=await Promise.allSettled(domainCandidates.map(async candidate=>{
+  const page=await fetchWebPage(candidate.url,2400,900000);
+  const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
+  return verified?{...verified,source:'domain-candidate'}:null;
+ }));
+ const domainVerified=candidateChecks.filter(x=>x.status==='fulfilled'&&x.value).map(x=>x.value).sort((a,b)=>b.score-a.score);
+ if(domainVerified[0]){
+  const result={website:domainVerified[0].url,officialPage:'',source:'domain-candidate'};
+  officialWebsiteCache.set(key,{t:Date.now(),...result});
+  return result;
+ }
+
  const safeName=String(name||'').replace(/["']/g,'').trim();
  const safeAddress=String(address||'').replace(/["']/g,'').trim();
  const addressParts=normalizeSearchQuery(address).split(' ').filter(Boolean);
@@ -523,15 +603,25 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
  if(safeName&&city)queries.push('site:facebook.com "'+safeName+'" "'+city+'"');
  if(safeName&&city)queries.push('site:instagram.com "'+safeName+'" "'+city+'"');
  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" website');
- const pages=await Promise.allSettled(queries.map(q=>fetchBingSearchPage(q)));
+
+ const searchSources=[
+  {base:'https://www.bing.com/search',host:'bing.com'},
+  {base:'https://html.duckduckgo.com/html/',host:'duckduckgo.com'},
+  {base:'https://www.google.com/search',host:'google.com'}
+ ];
+ const searchPages=[];
+ for(const source of searchSources){
+  const settled=await Promise.allSettled(queries.slice(0,4).map(q=>fetchPublicSearchPage(source.base,q)));
+  for(const p of settled)if(p.status==='fulfilled'&&p.value)searchPages.push({source,html:p.value});
+ }
  const results=[];
- for(const p of pages){
-  if(p.status!=='fulfilled'||!p.value)continue;
-  for(const hit of extractBingDiscoveryResults(p.value))if(!results.some(x=>x.url===hit.url))results.push(hit);
+ for(const item of searchPages){
+  const found=extractGenericSearchResults(item.html,item.source.host);
+  for(const hit of found)if(!results.some(x=>x.url===hit.url))results.push(hit);
  }
  const directHits=results.filter(x=>x.kind==='website').sort((a,b)=>websiteSearchHitScore(b,name,address,brand,phone)-websiteSearchHitScore(a,name,address,brand,phone));
- const directChecks=await Promise.allSettled(directHits.slice(0,10).map(async hit=>{
-  const page=await fetchWebPage(hit.url,3500,1400000);
+ const directChecks=await Promise.allSettled(directHits.slice(0,14).map(async hit=>{
+  const page=await fetchWebPage(hit.url,3000,1200000);
   if(page){
    const verified=verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone);
    if(verified)return {...verified,source:'official-search'};
@@ -545,8 +635,8 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
   officialWebsiteCache.set(key,{t:Date.now(),...result});
   return result;
  }
- const discoveryHits=results.filter(x=>x.kind!=='website').sort((a,b)=>websiteSearchHitScore(b,name,address,brand,phone)-websiteSearchHitScore(a,name,address,brand,phone));
- const discoveryPages=await Promise.allSettled(discoveryHits.slice(0,6).map(async hit=>({hit,page:await fetchDiscoveryPage(hit.url)})));
+ const discoveryHits=results.filter(x=>x.kind!=='website').sort((a,b)=>officialPageSearchScore(b,name,address,brand)-officialPageSearchScore(a,name,address,brand));
+ const discoveryPages=await Promise.allSettled(discoveryHits.slice(0,10).map(async hit=>({hit,page:await fetchDiscoveryPage(hit.url)})));
  const outbound=[],officialPages=[];
  for(const result of discoveryPages){
   if(result.status!=='fulfilled'||!result.value.page)continue;
@@ -555,7 +645,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
    const verified=verifiedWebsiteCandidate({url:page.finalUrl,html:page.html},name,address,brand,phone);
    if(verified)outbound.push({...verified,source:hit.kind==='facebook'?'facebook-redirect':'discovery-redirect'});
   }
-  for(const link of extractExternalWebsiteLinks(page.html,page.url).slice(0,12)){
+  for(const link of extractExternalWebsiteLinks(page.html,page.url).slice(0,15)){
    outbound.push({...link,source:hit.kind==='facebook'?'facebook-link':hit.kind==='instagram'?'instagram-link':'directory-link'});
   }
   if(hit.kind==='facebook'||hit.kind==='instagram'){
@@ -563,8 +653,8 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
    if(pageScore>=60)officialPages.push({url:safeDiscoveryUrl(hit.url),score:pageScore,source:'official-page-'+hit.kind});
   }
  }
- const outboundChecks=await Promise.allSettled(outbound.slice(0,18).map(async candidate=>{
-  const page=await fetchWebPage(candidate.url,3500,1400000);
+ const outboundChecks=await Promise.allSettled(outbound.slice(0,22).map(async candidate=>{
+  const page=await fetchWebPage(candidate.url,3000,1200000);
   const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
   return verified?{...verified,source:candidate.source}:null;
  }));
