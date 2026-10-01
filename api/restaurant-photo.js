@@ -262,19 +262,6 @@ function imageMatchesExactVenue(candidate,name,address){
   }
   return exactName || exactUrlName || (hasVenueEvidence && (evidenceMatched>0 || urlMatched>0 || /(?:photo|image|picture|gallery)/.test(evidence+' '+url)));
 }
-  if(!candidate||candidate.source!=='img')return false;
-  const evidence=normalizeMatchText(String(candidate.evidence||''));
-  const url=normalizeMatchText(String(candidate.url||''));
-  if(!evidence && !url)return false;
-  if(FOOD_IMAGE_HINTS.test(evidence))return false;
-  const nameTokens=significantNameTokens(name);
-  const evidenceMatched=nameTokens.filter(t=>evidence.includes(t)).length;
-  const urlMatched=nameTokens.filter(t=>url.includes(t)).length;
-  const exactName=evidenceMatched===nameTokens.length && nameTokens.length>0;
-  const exactUrlName=urlMatched===nameTokens.length && nameTokens.length>0;
-  const venueEvidence=VENUE_IMAGE_HINTS.test(evidence) && (evidenceMatched>0 || urlMatched>0 || /(?:image|photo|picture|gallery)/.test(evidence+' '+url));
-  return exactName || exactUrlName || venueEvidence;
-}
 
 function extractVenueImageCandidates(html,pageUrl,name,address,website){
   const raw=[
