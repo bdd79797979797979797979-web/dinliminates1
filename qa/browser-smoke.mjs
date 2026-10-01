@@ -531,7 +531,7 @@ await click('#openFoodEditor'); await settle();
 assert.equal(await visible('foodEditorModal'),true,'Add Food editor should open');
 assert.equal(await page.locator('.meal-category-editor').count(),1,'Food editor should use one shared Cuisine & Quick Cuts selector');
 assert.equal(await page.locator('#editFoodCat').count(),0,'Food editor should not duplicate the category list in a separate Cuisine field');
-assert.deepEqual(await page.locator('input[name="editQuickCut"]').evaluateAll(els=>els.map(x=>x.value)),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other'],'Shared Cuisine & Quick Cuts selector should expose all categories including Other');
+assert.deepEqual(await page.locator('input[name="editQuickCut"]').evaluateAll(els=>els.map(x=>x.value)),['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack','Other'],'Shared Cuisine & Quick Cuts selector should expose all categories including Other');
 await page.locator('input[name="editQuickCut"][value="Other"]').check({force:true});
 assert.equal(await page.locator('input[name="editQuickCut"][value="Other"]').isChecked(),true,'Other should be selected from the shared Cuisine & Quick Cuts list');
 await page.locator('#editFoodName').fill('QA Special');
