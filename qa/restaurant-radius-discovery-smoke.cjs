@@ -1,7 +1,7 @@
 const assert=require('assert/strict');
 const fs=require('fs'),vm=require('vm');
 const apiSrc=fs.readFileSync('api/restaurants.js','utf8');
-assert(apiSrc.includes("const API_VERSION='r20'"),'Restaurant API should report r20 after radius discovery hardening');
+assert(apiSrc.includes("const API_VERSION='r22'"),'Restaurant API should report r22 after current radius discovery hardening');
 assert(apiSrc.includes('WIDE_DISCOVERY_RESERVE_MS'),'Wide searches must reserve time for geographic discovery');
 assert(apiSrc.includes('WIDE_RADIUS_THRESHOLD=25'),'Wide discovery threshold should remain above 25 miles');
 assert(apiSrc.includes('async function wideRadiusOverpass'),'Wide searches must use the multi-batch Overpass path');
@@ -26,9 +26,10 @@ assert.equal(p25.groups[0][0].radius,25);
 const p50=t.radiusDiscoveryPlan(36.53,-87.34,50);
 assert.equal(p50.mode,'wide');
 assert.equal(p50.reserveMs,4500);
-assert.equal(p50.coveragePoints,7);
+assert.equal(p50.coveragePoints,1);
 assert.equal(p50.groups.length,1);
 assert.equal(p50.groups[0].length,7);
-assert(p50.groups[0].every(x=>x.radius===50),'50-mile discovery batches must use overlapping 50-mile circles');
+assert.equal(p50.groups.length,1); assert.equal(p50.groups[0].length,1); assert.equal(p50.groups[0][0].radius,50);
 
+const p100=t.radiusDiscoveryPlan(36.53,-87.34,100); assert.equal(p100.mode,'wide'); assert.equal(p100.reserveMs,4500); assert.equal(p100.coveragePoints,13); assert.equal(p100.groups.length,4); assert.deepEqual(p100.groups.map(g=>g.length),[4,4,4,1]); assert(p100.groups.flat().every(x=>x.radius===50),'100-mile discovery must use overlapping <=50-mile provider circles');
 console.log('restaurant radius discovery smoke: PASS');
