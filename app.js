@@ -209,7 +209,8 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
    return {
     url:URL.createObjectURL(blob),
     attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions')),
-    placeId:String(res.headers.get('X-Restaurant-Photo-Place-ID')||'').trim()
+    placeId:String(res.headers.get('X-Restaurant-Photo-Place-ID')||'').trim(),
+    source:String(res.headers.get('X-Restaurant-Photo-Source')||'').trim()
    };
   }).then(data=>{
    restaurantGooglePhotoCache.set(rowKey,data);
