@@ -22,10 +22,12 @@ function normalizeAttributions(rows){
   }).filter(Boolean).slice(0,5);
 }
 
-async function fetchJson(url,headers,timeout=5500){
+async function fetchJson(url,headers={},timeout=5500,method='GET',body=null){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{...headers,Accept:'application/json'},signal:ctl.signal});
+    const request={method,headers:{...headers,Accept:'application/json'},signal:ctl.signal};
+    if(body!=null)request.body=body;
+    const r=await fetch(url,request);
     if(!r.ok)throw new Error('Google Places request failed ('+r.status+').');
     return await r.json();
   }finally{clearTimeout(timer)}
@@ -69,7 +71,7 @@ module.exports=async function handler(req,res){
       };
       const body={textQuery,pageSize:5,regionCode:'US'};
       if(validCoords)body.locationBias={circle:{center:{latitude:lat,longitude:lon},radius:5000}};
-      const data=await fetchJson('https://places.googleapis.com/v1/places:searchText',headers,5500);
+      const data=await fetchJson('https://places.googleapis.com/v1/places:searchText',headers,5500,'POST',JSON.stringify(body));
       const target=name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
       const candidates=(Array.isArray(data?.places)?data.places:[]).map(place=>{
         const placeName=String(place?.displayName?.text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
