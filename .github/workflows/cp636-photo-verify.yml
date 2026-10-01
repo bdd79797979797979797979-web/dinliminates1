@@ -33,6 +33,19 @@ jobs:
           if(!p.isBlockedHost('https://images.unsplash.com/example.jpg')) throw new Error('Stock host was not blocked');
           console.log('Pure matcher checks: PASS');
           NODE
+      - name: Diagnose Thirsty Goat discovery
+        run: |
+          node <<'NODE'
+          const p=require('./api/restaurant-photo.js')._test;
+          (async()=>{
+            const pages=await p.findExactPages("The Thirsty Goat","4044 US-41 ALT, Clarksville, TN 37043","https://www.thirstygoatsango.com/");
+            console.log("Discovered exact pages:",pages.map(x=>x.url));
+            for(const page of pages.slice(0,5)){
+              const candidates=p.collectPageImages(page.html,page.url,"The Thirsty Goat","4044 US-41 ALT, Clarksville, TN 37043",page.isOfficial);
+              console.log("PAGE",page.url,"official",page.isOfficial,"candidates",candidates.slice(0,10).map(x=>({score:x.score,source:x.source,url:x.url,evidence:x.evidence})));
+            }
+          })().catch(err=>{console.error(err);process.exit(1)});
+          NODE
       - name: Live exact-venue smoke test
         run: |
           node <<'NODE'
