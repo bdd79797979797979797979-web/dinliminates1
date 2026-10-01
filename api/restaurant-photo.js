@@ -354,6 +354,24 @@ async function bingImages(name,address,website){
   }).slice(0,24);
 }
 
+function photoProxyUrl(raw){
+  const src=absoluteHttpsUrl(raw);
+  if(!src)return '';
+  return 'https://wsrv.nl/?url='+encodeURIComponent(src)+'&w=1200&h=800&fit=cover&q=85&output=webp&maxage=30d';
+}
+
+function sendPhotoReference(res,found){
+  const url=photoProxyUrl(found?.imageUrl||'');
+  if(!url)return json(res,404,{ok:false,error:'No usable venue photo URL was found'});
+  res.setHeader?.('Content-Type','application/json; charset=utf-8');
+  res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
+  res.setHeader?.('X-Restaurant-Photo-Source',found.source||'verified-venue-page');
+  if(found.sourceUrl)res.setHeader?.('X-Restaurant-Photo-Source-URL',found.sourceUrl);
+  res.statusCode=200;
+  res.end?.(JSON.stringify({ok:true,url,source:found.source||'verified-venue-page',sourceUrl:found.sourceUrl||''}));
+  return res;
+}
+
 function sendMedia(res,found){
   res.setHeader?.('Content-Type',found.media.type);
   res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
@@ -414,12 +432,15 @@ module.exports=async function handler(req,res){
           return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
         }
       }catch{}
-      for(const pageCandidate of pageCandidates.filter(item=>item.score>=65 && hasVenueSignal(item)).slice(0,10)){
+      const proxyCandidates=pageCandidates.filter(item=>item.score>=65 && !FOOD_IMAGE_HINTS.test(String(item.context||'')) && (hasVenueSignal(item)||isGalleryPage||item.source==='meta')).slice(0,10);
+      for(const pageCandidate of proxyCandidates){
         try{
-          const media=await fetchImage(pageCandidate.url,{'Referer':candidate.hostPageUrl},6500);
+          const media=await fetchImage(pageCandidate.url,{'Referer':candidate.hostPageUrl},5500);
           return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
         }catch{}
       }
+      const proxyCandidate=proxyCandidates[0];
+      if(proxyCandidate) return sendPhotoReference(res,{imageUrl:proxyCandidate.url,source:'verified-venue-image-proxy',sourceUrl:candidate.hostPageUrl});
     }
 
     return json(res,404,{ok:false,error:'No verified venue photo was found from non-Google sources'});
