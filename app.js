@@ -1673,8 +1673,9 @@ $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
 if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
-const winnerImage=imageProxyUrl(item?.image || item?.photo || item?.photoFallback || HUNGRY_IMAGE);
-const winnerFallback=imageProxyUrl(item?.photoFallback || item?.image || HUNGRY_IMAGE);
+const winnerBaseFallback=S.winnerType==='restaurant'?restaurantFallbackImage(item):HUNGRY_IMAGE;
+const winnerImage=imageProxyUrl(item?.image || item?.photo || item?.photoFallback || winnerBaseFallback);
+const winnerFallback=imageProxyUrl(item?.photoFallback || item?.image || winnerBaseFallback);
 winImg.src = winnerImage;
 winImg.dataset.fallback = winnerFallback;
 winImg.alt = item.name || 'Hungry';
@@ -1729,7 +1730,7 @@ return modal;
 }
 function detailsSheet(item,type){
  if(item?.category==='Hungry')return;
- const image=imageProxyUrl(item.image||item.photo||item.photoFallback||HUNGRY_IMAGE),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
+ const image=imageProxyUrl(item.image||item.photo||item.photoFallback||(type==='restaurant'?restaurantFallbackImage(item):HUNGRY_IMAGE)),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
  const nutrition=type==='food'&&item.nutrition?'<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid"><div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div><div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div><div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div><div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div><div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>':'';
  const ingredients=type==='food'&&Array.isArray(item.ingredients)&&item.ingredients.length?'<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>':'';
  const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
@@ -1755,9 +1756,9 @@ function detailsSheet(item,type){
  const directionsAction='<a class="detail-icon-button restaurant-detail-action detail-directions-action" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions to '+esc(item.name)+'" title="Directions"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="sr-only">Directions</span></a>';
  const infoCards='<div class="restaurant-luxury-stat-grid"><div class="restaurant-luxury-stat"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+(item.cuisine?'<div class="restaurant-luxury-stat"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+(item.distance!=null?'<div class="restaurant-luxury-stat"><span>Distance</span><strong>'+Number(item.distance).toFixed(1)+' mi</strong></div>':'')+'<div class="restaurant-luxury-stat"><span>Hours</span><strong>'+esc(hoursLabel)+'</strong></div></div>';
  const contactSection='<div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Visit & contact</div><div class="restaurant-luxury-contact-card">'+phoneRow+addressRow+'</div><div class="restaurant-luxury-actions">'+websiteAction+directionsAction+'</div></div>';
- const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||FINAL_RESTAURANT_IMAGE);
- const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
- const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,FINAL_RESTAURANT_IMAGE);
+ const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||restaurantFallbackImage(item));
+ const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
+ const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,restaurantFallbackImage(item));
 hydrateRestaurantPhoto(item,'#detailsModal');
 }
 
