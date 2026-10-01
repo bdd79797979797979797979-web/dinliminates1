@@ -279,9 +279,37 @@ function collectPageImages(html,pageUrl,name,address,isOfficial){
 }
 
 function extractBingWebResultUrls(html){
-  const out=[],re=/<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["']/gi;let m;
-  while((m=re.exec(String(html||'')))&&out.length<24){
-    const url=absoluteHttpsUrl(String(m[1]||'').replace(/&amp;/g,'&'));
+  const out=[],source=String(html||'');
+  const patterns=[
+    /<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["']/gi,
+    /<h2[^>]*>\s*<a[^>]+href=["'](https?:\/\/[^"']+)["']/gi,
+    /<a[^>]+href=["'](https?:\/\/[^"']+)["'][^>]*>[^<]{2,160}<\/a>/gi
+  ];
+  for(const re of patterns){
+    let m;
+    while((m=re.exec(source))&&out.length<30){
+      const raw=decodeHtml(String(m[1]||'')).replace(/&amp;/g,'&');
+      const url=absoluteHttpsUrl(raw);
+      if(!url||isBlockedHost(url)||url.includes('bing.com/ck/'))continue;
+      if(!out.includes(url))out.push(url);
+    }
+    if(out.length>=30)break;
+  }
+  return out;
+}
+
+function extractDuckDuckGoResultUrls(html){
+  const out=[],source=String(html||'');
+  const re=/<a[^>]+class=["'][^"']*result__a[^"']*["'][^>]+href=["']([^"']+)["']/gi;
+  let m;
+  while((m=re.exec(source))&&out.length<30){
+    let raw=decodeHtml(String(m[1]||'')).replace(/&amp;/g,'&');
+    try{
+      const u=new URL(raw,'https://html.duckduckgo.com');
+      const redirected=u.searchParams.get('uddg');
+      raw=redirected||raw;
+    }catch{}
+    const url=absoluteHttpsUrl(raw);
     if(url&&!isBlockedHost(url)&&!out.includes(url))out.push(url);
   }
   return out;
@@ -308,18 +336,20 @@ async function findExactPages(name,address,website){
     queries.push('site:yelp.com "'+safeName+'" "'+safeAddress+'"');
   }
   const unique=[...new Set(queries)].filter(Boolean).slice(0,7);
-  const searches=await Promise.allSettled(unique.map(q=>fetchText(
-    'https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),
-    {},4800,1000000
-  )));
+  const searches=await Promise.allSettled(unique.flatMap(query=>[
+    fetchText('https://www.bing.com/search?'+new URLSearchParams({q:query,mkt:'en-US',first:'1'}).toString(),{},4800,1000000),
+    fetchText('https://html.duckduckgo.com/html/?'+new URLSearchParams({q:query,t:'dinliminate'}).toString(),{},4800,1000000)
+  ]));
   const urls=[];
-  for(const result of searches){
+  for(let i=0;i<searches.length;i++){
+    const result=searches[i];
     if(result.status!=='fulfilled')continue;
-    for(const url of extractBingWebResultUrls(result.value)){
+    const found=[...extractBingWebResultUrls(result.value),...extractDuckDuckGoResultUrls(result.value)];
+    for(const url of found){
       if(!urls.includes(url))urls.push(url);
-      if(urls.length>=18)break;
+      if(urls.length>=24)break;
     }
-    if(urls.length>=18)break;
+    if(urls.length>=24)break;
   }
   const pages=await Promise.allSettled(urls.slice(0,18).map(async url=>{
     const html=await verifiedPage(url,name,address);
@@ -406,5 +436,5 @@ module.exports=async function handler(req,res){
 module.exports._test={
   absoluteHttpsUrl,extractImgCandidates,extractSourceCandidates,extractMetaImages,extractJsonLdImageCandidates,
   extractStyleImageCandidates,pageMatchesRestaurant,addressParts,collectPageImages,imageEvidenceScore,extractBingWebResultUrls,
-  isBlockedHost
+  isBlockedHost,extractDuckDuckGoResultUrls
 };
