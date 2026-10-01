@@ -20,8 +20,8 @@
 @media(max-width:390px){.heading{grid-template-columns:64px 1fr auto}.food-head-tools{gap:4px}}
 .card{will-change:transform,opacity;transition:box-shadow .18s ease,transform .12s ease;box-shadow:0 18px 55px #0008}
 .card[data-swipe="cut"]::after,.card[data-swipe="maybe"]::after{position:absolute;top:18px;padding:7px 10px;border:2px solid currentColor;border-radius:11px;font-size:12px;letter-spacing:.12em;font-weight:900;z-index:4;background:#090909cc;text-transform:uppercase}
-.card[data-swipe="cut"]::after{content:"CUT";left:18px;color:#c6a46a;transform:rotate(-10deg)}
-.card[data-swipe="maybe"]::after{content:"MAYBE";right:18px;color:#f2ebe3;transform:rotate(10deg)}
+.card[data-swipe="cut"]::after{content:"CUT";left:50%;right:auto;color:#c6a46a;transform:translateX(-50%) rotate(0deg)}
+.card[data-swipe="maybe"]::after{content:"MAYBE";left:50%;right:auto;color:#f2ebe3;transform:translateX(-50%) rotate(0deg)}
 /* CP547 — directional drag tint + slow-swipe sharpness protection. */
 .card{--swipe-tint-alpha:0}
 .card::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:var(--swipe-tint-alpha)}
