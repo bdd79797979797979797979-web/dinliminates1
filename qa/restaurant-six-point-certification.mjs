@@ -192,8 +192,10 @@ report["2_search_address"].directEnter=true;
 // a complete-looking street address should resolve the typed value directly.
 assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron'),false);
 assert.equal(await page.evaluate(v=>window.__DINLIMINATE_TEST__.addressLooksComplete(v),'801 Iron Workers Rd, Clarksville, TN 37043'),true);
-assert.equal(await page.evaluate((a,b)=>window.__DINLIMINATE_TEST__.locationMovedMiles(a,b),
- {lat:36.5304,lon:-87.3601},{lat:36.5304,lon:-87.3601}),0);
+assert.equal(await page.evaluate(({a,b})=>window.__DINLIMINATE_TEST__.locationMovedMiles(a,b),{
+ a:{lat:36.5304,lon:-87.3601},
+ b:{lat:36.5304,lon:-87.3601}
+}),0);
 
 await page.locator('#address').fill('801 Iron');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
