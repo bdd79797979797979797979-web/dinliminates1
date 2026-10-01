@@ -383,8 +383,8 @@ assert(css.includes('--orange:#c6a46a'),'Primary app accent should be satin gold
 // CP532 meal photo contracts.
 const foodPhotoRows=(()=>{const w={};vm.runInNewContext(foods,{window:w});return w.DINLIMINATE_FOODS||[]})();
 const foodByName=new Map(foodPhotoRows.map(x=>[x.name,x]));
-assert(/a\.fsimg\.co\.nz.*5325818/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut product image');
-assert(/static\.wixstatic\.com.*4f271e/i.test(foodByName.get('BLT')?.image||''),'BLT must use a bacon-lettuce-tomato sandwich photo');
-assert(/ourstate\.s3\.amazonaws\.com.*Cornbread-and-Buttermilk/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the buttermilk/cornbread pairing');
-assert(/static\.spotapps\.co.*85\/e7cfa642cc4ff4a3673f7dbcc3bfd8\/full/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the Southern-style plate photo');
-assert(/whitneybond\.com.*pinto-beans-13/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed pairing photo');
+assert(/shop\.barebells\.com.*salty-peanut.*\.png/i.test(foodByName.get('Protein Bar')?.image||''),'Protein Bar must use the Barebells Salty Peanut product image');
+assert(/snapcalorie-webflow-website\.s3\.us-east-2\.amazonaws\.com.*\/blt\.jpg/i.test(foodByName.get('BLT')?.image||''),'BLT must use a bacon-lettuce-tomato sandwich photo');
+assert(/thedailymeal\.com.*the-origins-of-cornbread-and-milk/i.test(foodByName.get('Buttermilk & Cornbread')?.image||''),'Buttermilk & Cornbread must use the requested glass-and-cornbread pairing');
+assert(/crockncle\.com.*9F3E2B24-452E-4C92-AA30-53A5D519614C\.jpg/i.test(foodByName.get('Meatloaf & Mashed Potatoes')?.image||''),'Meatloaf & Mashed Potatoes must use the requested Southern-style plate photo');
+assert(/africanbites\.com.*IMG_9983-2\.jpg/i.test(foodByName.get('Pinto Beans & Cornbread')?.image||''),'Pinto Beans & Cornbread must use the refreshed pairing photo');
