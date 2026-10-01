@@ -310,9 +310,9 @@ const cardSummary=await page.evaluate(()=>({
   scrollWidth:document.documentElement.scrollWidth
 }));
 assert.equal(cardSummary.cardDetailLines,0,'Restaurant card should not contain directory-style detail blocks.');
-assert.equal(cardSummary.utilities,3,'Restaurant card should contain Details, Phone, and Website utilities.');
+assert.equal(cardSummary.utilities,2,'Restaurant card should contain Details and Website utilities.');
 assert.equal(await page.locator('#restDetails').count(),1,'Restaurant Details utility must exist.');
-assert.equal(await page.locator('#restaurantCard .restaurant-card-utility[href^="tel:"]').count(),1,'Restaurant card must keep direct phone access when available.');
+assert.equal(await page.locator('#restaurantCard .restaurant-card-utility[href^="tel:"]').count(),0,'Restaurant card should keep phone access in Details rather than as a separate card utility.');
 assert.ok(await page.locator('#restaurantCard .restaurant-card-utility[target="_blank"]').count()>=1,'Restaurant card must keep an external Website/lookup utility.');
 report["4_search_restaurants"].cardHierarchy=cardSummary;
 
@@ -410,8 +410,18 @@ assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantHour
 report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
 
 // 5. Restaurant hours control is intentionally absent; default presentation remains Open/Unknown.
-report["5_open_all"]={controlRemoved:true,defaultOpenUnknown:true};
-assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should not be rendered');
+report["5_open_all"]={controlPresent:true,defaultOpenUnknown:true};
+assert.equal(await page.locator('#hoursToggle').count(),1,'Restaurant hours filter control should be rendered');
+assert.deepEqual(await page.locator('#hoursToggle [data-hours-mode]').evaluateAll(btns=>btns.map(x=>x.textContent.trim())),['Open','All']);
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true');
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'false');
+await page.locator('#hoursToggle [data-hours-mode="all"]').click(); await page.waitForTimeout(80);
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'true');
+const allSnap=await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
+assert.ok(allSnap.restaurantPool.includes('closed'),'All hours mode should include explicitly closed restaurants');
+await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click(); await page.waitForTimeout(80);
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true');
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'false');
 await page.locator('#restDetails').click(); await page.waitForTimeout(120); assert.equal(await page.locator('#detailsModal').count(),1,'Restaurant Details should open for hours verification');
 const detailsHoursText=await page.locator('#detailsModal').innerText();
 assert(detailsHoursText.includes('Open now')||detailsHoursText.includes('Closed now')||detailsHoursText.includes('Hours unknown'),'Restaurant Details should show the normalized hours state');
