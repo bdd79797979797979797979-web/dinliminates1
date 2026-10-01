@@ -196,6 +196,14 @@ async function hydrateRestaurantPhoto(row,scope){
   if(row.address)params.set('address',String(row.address));
   const website=safeExternalUrl(row.website);
   if(website)params.set('website',website);
+  const officialWebsite=website||safeExternalUrl(knownRestaurantWebsite(row));
+  if(officialWebsite)params.set('officialWebsite',officialWebsite);
+  const source=String(row.source||'');
+  const osmPhoto=safeExternalUrl(row.photo);
+  if(source.startsWith('OpenStreetMap')&&osmPhoto){
+    params.set('osmExact','1');
+    params.set('osmImage',osmPhoto);
+  }
   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
   pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
