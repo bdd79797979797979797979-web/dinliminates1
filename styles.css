@@ -1782,3 +1782,37 @@ button,a,select{touch-action:manipulation}
     min-height:60px!important;
   }
 }
+
+
+/* CP573 — requested single-symbol blue deck filter: A for All, black heart for Maybe. */
+.deck-filter-toggle{
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  border-radius:50%!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  background:linear-gradient(180deg,#71aecb,#4e839f)!important;
+  border:1px solid #8dc5e0!important;
+  color:#050607!important;
+  box-shadow:0 6px 16px #0007,inset 0 1px 0 #ffffff35!important;
+  font-size:17px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  transition:transform .14s ease,filter .14s ease,box-shadow .16s ease!important;
+}
+.deck-filter-toggle span{display:grid!important;place-items:center!important;width:100%;height:100%;line-height:1!important;color:#050607!important}
+.deck-filter-toggle .deck-filter-heart{font-size:17px!important;transform:translateY(1px)}
+.deck-filter-toggle .deck-filter-all{font-size:16px!important;font-weight:950!important}
+.deck-filter-toggle:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 7px 18px #0008,inset 0 1px 0 #ffffff45!important}
+.deck-filter-toggle:active:not(:disabled){transform:scale(.94)!important}
+.deck-filter-toggle:disabled{opacity:.35!important;cursor:not-allowed!important}
+@media(max-width:390px){
+ .deck-filter-toggle{flex-basis:34px!important;width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important}
+ .deck-filter-toggle .deck-filter-heart{font-size:16px!important}
+ .deck-filter-toggle .deck-filter-all{font-size:15px!important}
+}
