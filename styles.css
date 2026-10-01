@@ -1733,3 +1733,17 @@ button,a,select{touch-action:manipulation}
   #restaurant .swipe-actions .round-maybe{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}
   .food-swipe-actions .round-add-food{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
 }
+
+
+/* CP569 — lock Restaurant Tinder stack interaction to the active card. */
+#restaurant .restaurant-card-stack{isolation:isolate!important;position:relative!important}
+#restaurant .restaurant-card-stack>#restaurantNextCard{
+  z-index:1!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  touch-action:none!important;
+}
+#restaurant .restaurant-card-stack>#restaurantCard{
+  z-index:2!important;
+  pointer-events:auto!important;
+}
