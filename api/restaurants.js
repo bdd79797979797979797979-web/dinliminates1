@@ -306,6 +306,22 @@ function digitsOnly(value){return String(value||'').replace(/\D/g,'');}
 function htmlText(value){
  return String(value||'').replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s+/g,' ').trim();
 }
+async function fetchReaderPage(url,timeout=6500,maxBytes=1200000){
+ const page=safeWebsiteUrl(url);if(!page)return null;
+ const readerUrl='https://r.jina.ai/'+page;
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
+ try{
+  const response=await fetch(readerUrl,{headers:{
+   Accept:'text/markdown,text/plain,*/*',
+   'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-web-presence-resolver)'
+  },signal:ctl.signal});
+  if(!response.ok)return null;
+  const bytes=Buffer.from(await response.arrayBuffer());
+  if(bytes.length>maxBytes)return null;
+  return {url:page,finalUrl:page,html:bytes.toString('utf8'),reader:true};
+ }catch{return null}finally{clearTimeout(timer)}
+}
+
 async function fetchWebPage(url,timeout=3500,maxBytes=1200000){
  const page=safeWebsiteUrl(url);if(!page)return null;
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
@@ -461,10 +477,19 @@ async function discoverOfficialWebsite(name,address,brand='',phone='',force=fals
  // First try cheap, deterministic domain candidates. This avoids depending on
  // any particular search engine's HTML markup and is still protected by full
  // restaurant identity/address/phone verification before acceptance.
+  let readerAttempts=0;
+  const fetchVerifiedPage=async(url)=>{
+   const direct=await fetchWebPage(url,2600,900000);
+   if(direct)return direct;
+   if(readerAttempts>=6)return null;
+   readerAttempts++;
+   return fetchReaderPage(url,6500,1200000);
+  };
+
  const domainCandidates=directWebsiteDomainCandidates(name,address,brand)
    .map(url=>({url,title:'domain candidate',kind:'website'}));
  const candidateChecks=await Promise.allSettled(domainCandidates.map(async candidate=>{
-  const page=await fetchWebPage(candidate.url,2600,900000);
+  const page=await fetchVerifiedPage(candidate.url);
   const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
   return verified?{...verified,source:'domain-candidate'}:null;
  }));
@@ -506,7 +531,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone='',force=fals
  }
  const directHits=results.filter(x=>x.kind==='website').sort((a,b)=>websiteSearchHitScore(b,name,address,brand,phone)-websiteSearchHitScore(a,name,address,brand,phone));
  const directChecks=await Promise.allSettled(directHits.slice(0,14).map(async hit=>{
-  const page=await fetchWebPage(hit.url,3000,1200000);
+  const page=await fetchVerifiedPage(hit.url);
   if(page){
    const verified=verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone);
    if(verified)return {...verified,source:'official-search'};
@@ -539,7 +564,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone='',force=fals
   }
  }
  const outboundChecks=await Promise.allSettled(outbound.slice(0,22).map(async candidate=>{
-  const page=await fetchWebPage(candidate.url,3000,1200000);
+  const page=await fetchVerifiedPage(candidate.url);
   const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
   return verified?{...verified,source:candidate.source}:null;
  }));
