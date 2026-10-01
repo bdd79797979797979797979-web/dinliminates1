@@ -28,7 +28,7 @@ module.exports=async function handler(req,res){
     const timer=setTimeout(()=>ctl.abort(),8000);
     let r;
     try{
-      r=await fetch(u.href,{signal:ctl.signal,headers:{Accept:'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'}});
+      r=await fetch(u.href,{signal:ctl.signal,headers:{Accept:'image/webp,image/jpeg,image/png,image/apng,image/svg+xml,image/*;q=0.8,*/*;q=0.5'}});
     }finally{clearTimeout(timer);}
     if(!r.ok)return res.status(502).json({ok:false,error:'Upstream image unavailable'});
     const type=(r.headers.get('content-type')||'').split(';')[0].toLowerCase();
