@@ -7,7 +7,7 @@ on:
       - "api/restaurants.js"
       - "app.js"
       - "qa/restaurant-website-resolver-smoke.cjs"
-      - ".github/workflows/cp654-website-qa.yml"
+      - ".github/workflows/cp655-website-qa.yml"
   workflow_dispatch:
 
 permissions:
