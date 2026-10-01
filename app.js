@@ -1486,16 +1486,36 @@ function renderRestaurantSearchControl(){
   ? '<svg class="restaurant-search-icon restaurant-search-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Close restaurant search</span>'
   : '<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Open restaurant search</span>';
 }
+function closeRestaurantSearch(){
+ clearTimeout(restaurantQueryTimer);
+ restaurantQueryTimer=0;
+ restaurantSearchSeq++;
+ restaurantSearchController?.abort();
+ restaurantSearchController=null;
+ const box=$('restaurantSearchBox');
+ if(box)box.classList.add('hidden');
+ const input=$('restaurantQuery');
+ if(input)input.value='';
+ S.restaurantQuery='';
+ S.restaurantIndex=0;
+ renderRestaurantSearchControl();
+ drawRestaurants();
+ save();
+}
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{
    const box=$('restaurantSearchBox');
    if(!box)return;
    const willOpen=box.classList.contains('hidden');
+   if(!willOpen){
+     closeRestaurantSearch();
+     return;
+   }
    clearTimeout(restaurantQueryTimer);
-   box.classList.toggle('hidden',!willOpen);
+   box.classList.remove('hidden');
    $('restaurantQuery').value=S.restaurantQuery;
-   if(typeof renderRestaurantSearchControl==='function')renderRestaurantSearchControl();
-   if(willOpen)$('restaurantQuery').focus();
+   renderRestaurantSearchControl();
+   $('restaurantQuery').focus();
  }
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
