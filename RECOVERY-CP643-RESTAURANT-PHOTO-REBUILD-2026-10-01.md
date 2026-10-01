@@ -55,3 +55,14 @@ Deployment status:
 - Unknown restaurant test: HTTP 404; no generic photo returned.
 - Netlify preview SSO requirement was disabled for non-production/deploy-preview access; production access was not changed.
 - Vercel remains un-deployed for CP643 because the account is currently rate-limited for 24 hours.
+
+
+## CP644 follow-up — photo gate correction (2026-10-01)
+- Parent: e05f76f845a70c0cdcf77b0f68a7752bd5b5f962
+- Commit: e05f76f845a70c0cdcf77b0f68a7752bd5b5f962
+- Cause found: the image gate in `api/restaurant-photo.js` was rejecting legitimate restaurant-page hero/venue images because it required venue words to appear in the image tag's nearby HTML and rejected ordinary pages containing multiple food/menu references.
+- Fix: verified exact-location pages may accept page-level `og:image` / JSON-LD images after the page itself passes exact restaurant/location verification; raw image candidates now require venue evidence with a proportional food-signal check.
+- No Google photo API added. Generic restaurant/cuisine fallbacks remain disabled.
+- CP643 Restaurant Photo QA run 19 passed on this commit.
+- CP643 Live Netlify HTTP Certification run 5 passed on this commit; Wendy's exact Clarksville venue still returns an official-venue-page image.
+- This checkpoint supersedes the earlier photo-gate behavior while retaining the CP591-based rebuild and protected recovery branches.
