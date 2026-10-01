@@ -383,8 +383,6 @@ async function findVerifiedRestaurantPages(name,address,website){
   const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
   const queries=[];
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
-  // Search the official host itself for an exact-location page. This catches
-  // JavaScript-heavy location finders whose links are not present in raw HTML.
   if(websiteHost&&safeName&&safeAddress)queries.push('site:'+websiteHost+' "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
@@ -403,6 +401,43 @@ async function findVerifiedRestaurantPages(name,address,website){
   const publicPages=verified.filter(x=>!websiteHost||!sameHost(x.url,websiteHost));
   const officialMerged=[...official,...officialFromSearch].filter((x,i,a)=>a.findIndex(y=>y.url===x.url)===i).slice(0,12);
   return {official:officialMerged,public:publicPages.slice(0,12)};
+}
+
+async function bingExactImageCandidates(name,address,website){
+  const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
+  if(!safeName||!safeAddress)return [];
+  const queries=['"'+safeName+'" "'+safeAddress+'" restaurant exterior'];
+  if(websiteHost)queries.push('site:'+websiteHost+' "'+safeName+'" "'+safeAddress+'"');
+  const pages=await Promise.allSettled(queries.map(q=>fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:q,form:'HDRSC2'}).toString(),{},5000,1200000)));
+  const raw=[];
+  for(const page of pages){
+    if(page.status!=='fulfilled')continue;
+    for(const item of extractBingImageCandidates(page.value))raw.push({...item,query:safeName+' '+safeAddress});
+  }
+  const seen=new Set();
+  const candidates=raw.filter(x=>{
+    if(seen.has(x.contentUrl))return false;
+    seen.add(x.contentUrl);
+    return !!x.contentUrl;
+  }).map(x=>({...x,score:scoreImage(x,name,address,website)})).filter(x=>x.score>=55);
+  return candidates.sort((a,b)=>b.score-a.score).slice(0,20);
+}
+
+async function exactImageFromBing(name,address,website){
+  const candidates=await bingExactImageCandidates(name,address,website);
+  const checks=await Promise.allSettled(candidates.slice(0,10).map(async candidate=>{
+    const hostPage=candidate.hostPageUrl;
+    if(hostPage){
+      const verified=await verifiedRestaurantPage(hostPage,name,address);
+      if(!verified)return null;
+    }
+    try{
+      const media=await fetchImage(candidate.contentUrl,{'Referer':hostPage||undefined},4000);
+      return {media,source:'exact-public-venue-image',sourceUrl:hostPage||candidate.contentUrl,sourceName:hostOf(hostPage||candidate.contentUrl)};
+    }catch{return null}
+  }));
+  for(const result of checks)if(result.status==='fulfilled'&&result.value)return result.value;
+  return null;
 }
 function sendMedia(res,found){
   res.setHeader?.('Content-Type',found.media.type);
@@ -454,7 +489,12 @@ module.exports=async function handler(req,res){
       }
     }
 
-    // Tier 3: the image already attached to the exact OSM POI.
+    // Tier 3: exact-location image discovered by Bing Images, but only when
+    // the image's host page verifies this exact restaurant and address.
+    const bingImage=await exactImageFromBing(name,address,officialWebsite);
+    if(bingImage)return sendMedia(res,bingImage);
+
+    // Tier 4: the image already attached to the exact OSM POI.
     if(osmExact&&/^https:\/\//i.test(osmImage)&&!isBlockedHost(osmImage)&&!BLOCKED_IMAGE_HINTS.test(osmImage)){
       try{
         const media=await fetchImage(osmImage,{'Referer':'https://www.openstreetmap.org/'},4000);
