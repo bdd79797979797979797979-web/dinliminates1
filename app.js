@@ -1484,10 +1484,12 @@ function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{
    const box=$('restaurantSearchBox');
    if(!box)return;
-   box.classList.remove('hidden');
+   const willOpen=box.classList.contains('hidden');
+   clearTimeout(restaurantQueryTimer);
+   box.classList.toggle('hidden',!willOpen);
    $('restaurantQuery').value=S.restaurantQuery;
    if(typeof renderRestaurantSearchControl==='function')renderRestaurantSearchControl();
-   $('restaurantQuery').focus();
+   if(willOpen)$('restaurantQuery').focus();
  }
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
