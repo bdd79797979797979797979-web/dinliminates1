@@ -58,6 +58,14 @@ const candidates=pt.extractVenueImageCandidates(html,'https://exactbistro.exampl
 assert.ok(candidates.some(x=>x.url==='https://example.com/front.jpg'&&x.score>=65),'Venue exterior image should score as a candidate');
 assert.ok(candidates.some(x=>x.url==='https://example.com/menu.jpg'),'Menu image should be detectable for rejection');
 
+const assetGate=pt.extractImgCandidates(`
+<img src="https://cdn.example.com/google-play-badge.svg" width="135" height="40" alt="Get it on Google Play">
+<img src="https://cdn.example.com/download-app-badge.png" width="180" height="60" alt="Download the app">
+<img src="https://cdn.example.com/wendys-location-exterior.jpg" width="900" height="600" alt="Wendy's restaurant exterior">
+`,'https://example.com/location');
+assert.equal(assetGate.some(x=>/google-play-badge|download-app-badge/i.test(x.url)),false,'App-store/download badges must not be treated as restaurant photos');
+assert.equal(assetGate.some(x=>/wendys-location-exterior/i.test(x.url)),true,'A large venue exterior image must remain eligible');
+
 (async()=>{
   const originalFetch=global.fetch;
   const osmUrl='https://example.com/osm-venue.jpg';
@@ -87,7 +95,7 @@ assert.ok(candidates.some(x=>x.url==='https://example.com/menu.jpg'),'Menu image
   }
   console.log(JSON.stringify({
     ok:true,
-    cases:9,
+    cases:10,
     verified:[
       'no generic restaurant photo fallback',
       'provider venue photo metadata',
@@ -97,7 +105,8 @@ assert.ok(candidates.some(x=>x.url==='https://example.com/menu.jpg'),'Menu image
       'food/menu candidate remains rejectable',
       'credential-free OSM photo tier',
       'restaurant-photo API no Google API dependency',
-      'structured exact restaurant/address verification'
+      'structured exact restaurant/address verification',
+      'non-photo badge and tiny-asset rejection'
     ]
   },null,2));
 })().catch(err=>{console.error(err);process.exitCode=1});
