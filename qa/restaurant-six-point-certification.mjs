@@ -114,24 +114,15 @@ const settle=()=>page.waitForTimeout(180);
 const snap=()=>page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
 async function waitForRestaurant(expectedQuery=''){
  const wanted=String(expectedQuery||'').trim().toLowerCase();
- await page.waitForFunction(()=>true,{timeout:50}).catch(()=>{});
- await page.waitForFunction(()=>{
-  const t=document.querySelector('#status')?.textContent||'';
-  const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';
-  const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';
-  const searchBusy=/Searching restaurants|Finding your location|Refreshing restaurants|Location found/.test(t);
-  return !locBusy&&!findBusy&&!searchBusy;
- },{timeout:30000});
- await page.waitForFunction((wanted)=>{
-  if(!wanted)return true;
-  const snap=window.__DINLIMINATE_QA__?.snapshot?.();
-  const currentQuery=String(snap?.restaurantSearchQuery||'').trim().toLowerCase();
-  return currentQuery.includes(wanted) || String(document.querySelector('#restaurantQuery')?.value||'').trim().toLowerCase().includes(wanted);
- },wanted,{timeout:30000}).catch(async()=>{
-   if(wanted){
-     await page.waitForFunction(()=>!document.querySelector('#find')?.getAttribute('aria-busy')&&!document.querySelector('#locate')?.getAttribute('aria-busy'),{timeout:5000});
-   }
- });
+ const requestBaseline=requests.length;
+ await page.waitForFunction((baseline)=>window.__DINLIMINATE_QA__?.snapshot?.()||document.querySelector('#status'),{timeout:50},requestBaseline).catch(()=>{});
+ const requestDeadline=Date.now()+15000;
+ while(requests.length<=requestBaseline&&Date.now()<requestDeadline) await new Promise(resolve=>setTimeout(resolve,100));
+ if(requests.length<=requestBaseline) throw new Error('Restaurant search request did not start.');
+ await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';const searchBusy=/Searching restaurants|Refreshing restaurants|Location found/.test(t);return !findBusy&&!searchBusy;},{timeout:30000});
+ if(wanted){
+   await page.waitForFunction((wanted)=>{const snap=window.__DINLIMINATE_QA__?.snapshot?.();const currentQuery=String(snap?.restaurantSearchQuery||'').trim().toLowerCase();return currentQuery.includes(wanted);},{timeout:30000},wanted);
+ }
  await settle();
 }
 async function openRestaurantScreen(){await page.locator('#restStart').click();await settle();}
