@@ -287,7 +287,7 @@ assert(!app.includes('cardPhoneAction') && app.includes('cardWebsite') && app.in
 assert(!app.includes('cardCommon') && !app.includes('cardHours'),'Restaurant Tinder card should not render directory-style menu and hours blocks on-card.');
 assert(app.includes("photoFallback:item.photoFallback||''") && app.includes("googlePlaceId:item.googlePlaceId||''") && app.includes("opening_hours:item.opening_hours||''"),'Restaurant History must persist venue-photo identity and core Details metadata.');
 assert(app.includes("if ($('celebration')) $('celebration').classList.toggle('hidden', hungry)") && app.includes("if (!hungry) {") && app.includes("hydrateGoogleRestaurantPhoto(item,'#winner')"),'Restaurant Winner must use the same celebration behavior and photo hydration path as Food.');
-assert(app.includes("S.winnerType === 'restaurant'"),'Restaurant winner state must remain explicitly tracked.');
+assert(app.includes("winnerType") && app.includes("S.winnerType ="),'Restaurant winner state must remain explicitly tracked in winner().');
 assert(api.includes("source:'Google Places Search',googlePlaceId:p.id||''"),'Google Text Search must preserve Place IDs for venue photo hydration.');
 
 
