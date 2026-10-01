@@ -282,11 +282,37 @@ function extractBingWebResultUrls(html){
   return [...new Set(out)];
 }
 
+function slugPart(value){
+  return normalizeMatchText(String(value||''))
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,90);
+}
+
+function directJoeCoffeeCandidate(name,address){
+  const m=String(address||'').match(/,\s*([^,]+),\s*([A-Za-z]{2})\s+\d{5}(?:-\d{4})?/);
+  if(!m)return '';
+  const city=slugPart(m[1]);
+  const state=String(m[2]||'').toLowerCase();
+  const rest=slugPart(name);
+  if(!city||!state||!rest)return '';
+  return 'https://joe.coffee/locations/'+state+'/'+city+'/'+rest+'-'+city+'/';
+}
+
 async function findVerifiedRestaurantPages(name,address,website){
   const queries=[];
+  const directPages=[];
   const safeName=String(name||'').replace(/"/g,'');
   const safeAddress=String(address||'').replace(/"/g,'');
   const websiteHost=hostOf(website);
+  const directJoe=directJoeCoffeeCandidate(name,address);
+
+  if(directJoe&&!isBlockedHost(directJoe)){
+    try{
+      const html=await verifiedRestaurantPage(directJoe,name,address);
+      if(html)directPages.push({url:directJoe,html});
+    }catch{}
+  }
 
   if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos');
@@ -314,10 +340,10 @@ async function findVerifiedRestaurantPages(name,address,website){
   const checks=await Promise.allSettled(
     candidates.slice(0,12).map(async url=>({url,html:await verifiedRestaurantPage(url,name,address)}))
   );
-  return checks
+  const searched=checks
     .filter(x=>x.status==='fulfilled'&&x.value.html)
-    .map(x=>x.value)
-    .slice(0,6);
+    .map(x=>x.value);
+  return [...directPages,...searched].slice(0,6);
 }
 
 async function bingImages(name,address,website){
