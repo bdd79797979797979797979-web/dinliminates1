@@ -1,0 +1,21 @@
+name: CP643 Live Netlify HTTP Certification
+
+on:
+  push:
+    branches:
+      - cp643-restaurant-photo-rebuild
+
+permissions:
+  contents: read
+
+jobs:
+  live-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Live preview HTTP certification
+        env:
+          BASE_URL: https://deploy-preview-117--dinliminate112.netlify.app
+        run: node qa/cp643-live-http-certification.mjs
