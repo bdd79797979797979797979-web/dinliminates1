@@ -151,13 +151,13 @@ assert(app.includes('Contact coverage')&&app.includes('Photo coverage')&&app.inc
 
 assert(html.includes('<div class="location-sub">') && html.includes('class="restaurant-tool radius-search" id="restaurantSearch"'),'Restaurant Search must sit in the same Radius row');
 assert(!html.includes('<div class="restaurant-tools"'),'Restaurant Search must not consume a separate full-width row');
-assert(!html.includes('id="hoursToggle"'),'Restaurant hours filter control should be removed from the UI');
+assert(html.includes('id="hoursToggle"') && html.includes('data-hours-mode="openUnknown"') && html.includes('data-hours-mode="all"'),'Restaurant hours filter must expose Open and All controls');
 assert(app.includes("'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg"),'Restaurant Asian Quick Cut must have a concrete photo source');
-assert(app.includes("S.hoursMode = 'openUnknown';"),'Persisted Restaurant hours state must normalize to Open/Unknown now that the filter control is removed');
+assert(app.includes("S.hoursMode = 'openUnknown';") && app.includes("function setRestaurantHoursMode(mode)"),'Restaurant hours state must default to Open/Unknown and be user-switchable to All');
 
 assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
 assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must remain available internally');
-for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Breakfast','Potato','Snack']) {
+for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
 }
