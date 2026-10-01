@@ -302,7 +302,7 @@ assert(app.includes('restaurant-card-meta-row') && app.includes('id="restDetails
 assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#restaurant .restaurant-card-details-utility'),'Restaurant Details utility should retain dedicated premium styling');
 assert(css.includes('.settings-system-action.diagnosis-action{background:linear-gradient(180deg,#19757b,#125258)'),'App Diagnosis should use the teal system action treatment');
 assert(css.includes('#restaurant .restaurant-card-utility') && css.includes('#restaurant .restaurant-card-details-utility'),'Restaurant Details utility should sit in the Restaurant card utility row');
-assert(app.includes("const quickCats=cats") && app.includes("cats=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Potato','Snack','Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
+assert(app.includes("const cats=[...FOOD_QUICK,'Other']"),'Custom Food Other must be a selectable cuisine/category and Quick Cut');
 assert(app.includes('name="editQuickCut"') && app.includes("value=\"'+esc(x)+'\"") && app.includes("if(!quickCuts.includes(cat)) quickCuts.unshift(cat)"),'Custom Food Quick Cut editor should include Other and persist the selected category as a Quick Cut');
 
 // CP261 Vercel image proxy contract.
