@@ -1,0 +1,50 @@
+name: CP642 fast restaurant photo verification
+
+on:
+  push:
+    branches:
+      - cp642-591-fast-photo-fix
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --experimental-fetch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax checks
+        run: |
+          node --check api/restaurant-photo.js
+          node --check api/restaurants.js
+          node --check app.js
+      - name: Architecture checks
+        run: |
+          ! grep -qE 'GOOGLE_PLACES_API_KEY|GOOGLE_MAPS_API_KEY' api/restaurant-photo.js
+          ! grep -qE 'images\.unsplash\.com|CATEGORY_IMAGES|function namedImage' api/restaurants.js
+          grep -q 'VERIFIED_RESTAURANT_PHOTOS' api/restaurant-photo.js
+      - name: Exact fixture response checks
+        run: |
+          node <<'NODE'
+          const handler=require('./api/restaurant-photo.js');
+          const cases=[
+            {name:"McDonald's",address:"724 Sango Rd, Clarksville, TN 37043"},
+            {name:"The Thirsty Goat",address:"4044 US-41 ALT South, Clarksville, TN 37043"},
+            {name:"Ruby Tuesday",address:"2239 Madison St, Clarksville, TN 37043"},
+            {name:"Chipotle Mexican Grill",address:"2296 Madison St, Clarksville, TN 37043"}
+          ];
+          const run=input=>new Promise((resolve,reject)=>{
+            const res={statusCode:200,headers:{},
+              setHeader(k,v){this.headers[k]=v},
+              end(v){resolve({statusCode:this.statusCode,headers:this.headers,body:v||Buffer.alloc(0)})}};
+            handler({query:input},res).catch(reject);
+          });
+          (async()=>{
+            for(const item of cases){
+              const out=await run(item);
+              console.log(item.name,out.statusCode,out.headers.Location||'',out.headers['X-Restaurant-Photo-Source']||'');
+              if(out.statusCode!==302)throw new Error(item.name+' did not return a fast verified redirect');
+              if(!String(out.headers.Location||'').includes('wsrv.nl'))throw new Error(item.name+' redirect is not using the image proxy');
+            }
+            console.log('CP642 exact fixture response checks: PASS');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
