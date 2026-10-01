@@ -1,0 +1,28 @@
+name: CP610 Exact Photo Source Test
+on:
+  push:
+    branches: [cp610-exact-image-evidence]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test exact venue photo endpoints
+        env:
+          BASE_URL: https://deploy-preview-101--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const base=process.env.BASE_URL;
+          for(const [name,address] of [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043"]
+          ]){
+            const u=base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address);
+            const r=await fetch(u);
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const src=r.headers.get('x-restaurant-photo-source')||'';
+            const body=await r.text();
+            console.log(JSON.stringify({name,status:r.status,type,source:src,bytes:body.length,head:body.slice(0,120)}));
+          }
+          NODE
