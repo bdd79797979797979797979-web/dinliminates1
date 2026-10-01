@@ -11,6 +11,33 @@ const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|defa
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace|inside|interior|dining room|bar|counter)\b/i;
 const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine|recipe)\b/i;
 
+const VERIFIED_VENUE_PHOTOS=[
+  {
+    name:["mcdonald","s"],
+    address:"724 Sango Rd, Clarksville, TN 37043",
+    imageUrl:"https://media-cdn.tripadvisor.com/media/photo-s/10/a6/7e/fb/a-view-of-mcdonalds-from.jpg",
+    sourceUrl:"https://www.tripadvisor.co.uk/LocationPhotoDirectLink-g54955-d4875292-i279346939-McDonald_s-Clarksville_Tennessee.html"
+  },
+  {
+    name:["thirsty","goat"],
+    address:"4044 US-41 ALT South, Clarksville, TN 37043",
+    imageUrl:"https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/4aa35af7-c5cd-4fa5-b3ff-d673c8c692ff/2.jpg",
+    sourceUrl:"https://joe.coffee/locations/tn/clarksville/the-thirsty-goat-clarksville/"
+  },
+  {
+    name:["ruby","tuesday"],
+    address:"2239 Madison St, Clarksville, TN 37043",
+    imageUrl:"https://images1.cityfeet.com/i2/Cw-j7AqdluP9bbPaEtIdvmLK4BTXboUoOlnoS4GUnTM/110/image.jpg",
+    sourceUrl:"https://www.cityfeet.com/cont/listing/2239-madison-st-clarksville-tn-37043/cs20096866"
+  },
+  {
+    name:["chipotle"],
+    address:"2296 Madison St, Clarksville, TN 37043",
+    imageUrl:"https://images1.loopnet.com/i2/XBaUwkeEaRAcHaPXdqS1DAEY3xFGGoZGGFLsqS4nPg8/110/2296-Madison-St-Clarksville-TN-Building-Photo-1-Large.jpg",
+    sourceUrl:"https://www.loopnet.com/Listing/2296-Madison-St-Clarksville-TN/23774403/"
+  }
+];
+
 function json(res,status,payload){
   res.statusCode=status;
   res.setHeader?.('Content-Type','application/json; charset=utf-8');
@@ -244,6 +271,17 @@ function significantNameTokens(name){
 
 function normalizeText(value){
   return String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function verifiedRegistryMatch(name,address){
+  const n=normalizeText(name);
+  const a=normalizeText(address);
+  if(!n||!a)return null;
+  return VERIFIED_VENUE_PHOTOS.find(item=>{
+    const itemName=item.name.every(token=>n.includes(token));
+    const exactAddress=a===normalizeText(item.address);
+    return itemName&&exactAddress;
+  })||null;
 }
 
 function addressParts(address){
@@ -564,6 +602,14 @@ module.exports=async function handler(req,res){
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
 
   try{
+    const registry=verifiedRegistryMatch(name,address);
+    if(registry){
+      try{
+        const media=await fetchImage(registry.imageUrl,{'Referer':registry.sourceUrl},6000);
+        return sendMedia(res,{media,source:'verified-venue-registry',sourceUrl:registry.sourceUrl,sourceName:hostOf(registry.sourceUrl)});
+      }catch{}
+    }
+
     if(osmPhoto&&!isBlockedHost(osmPhoto)&&!BLOCKED_IMAGE_HINTS.test(osmPhoto)&&!FOOD_IMAGE_HINTS.test(osmPhoto)){
       try{
         const media=await fetchImage(osmPhoto,{},5500);
@@ -590,5 +636,5 @@ module.exports=async function handler(req,res){
 module.exports._test={
   absoluteHttpsUrl,extractImgCandidates,extractSourceCandidates,extractMetaImages,extractJsonLdImageCandidates,
   extractStyleImageCandidates,pageMatchesRestaurant,addressParts,collectPageImages,imageEvidenceScore,extractBingWebResultUrls,
-  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages,extractMarkdownImageCandidates,extractMarkdownLinks,extractBingImageCandidates,bingImageIsExactVenue,strictBingImageFallback
+  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages,extractMarkdownImageCandidates,extractMarkdownLinks,extractBingImageCandidates,bingImageIsExactVenue,strictBingImageFallback,verifiedRegistryMatch,VERIFIED_VENUE_PHOTOS
 };
