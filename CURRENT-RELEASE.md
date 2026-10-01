@@ -1,3 +1,24 @@
+# CURRENT RELEASE — BUILD 197 / CP487–CP488
+
+Date: 2026-10-01
+
+Current candidate branch: `cp487-launch-candidate-full-pass-2026-10-01`
+Recovery baseline: `recovery-cp487-build197-pre-launch-pass-2026-09-30`
+Recorded release source branch: `cp466-restaurant-identity-final-2026-09-30`
+Hosted Netlify preview: https://deploy-preview-92--diliminate.netlify.app
+Restaurant API: r22
+Restaurant radius tiers: 1, 3, 5, 10, 25, 50, 100 miles
+
+CP488 verified repair:
+- Restored Smoothie; built-in meal catalog is 116 unique meals.
+- Synchronized stale QA contracts to Build 197 / r22 / 100-mile behavior.
+- Refreshed hosted Netlify smoke for the current preview.
+- Aligned current food-image hosts across client proxy, server proxy, service worker, and QA.
+
+The candidate is not promoted to production. Physical iPhone Safari/PWA certification remains a device-only gate.
+
+---
+
 # CURRENT RELEASE — LAUNCH CANDIDATE
 
 **Build 197 / CP487–CP488 — 2026-10-01**
