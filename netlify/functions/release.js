@@ -1,4 +1,4 @@
-const release = require('../../release.json');
+const release = require('../../app-release.json');
 
 exports.handler = async function(event){
   const body = {
