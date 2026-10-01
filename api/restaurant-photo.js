@@ -203,7 +203,8 @@ async function verifiedRestaurantPage(url,name,address){
 }
 
 function venueScore(candidate,name,address,website){
-  const context=String(candidate?.context||'')+' '+String(candidate?.url||'');
+  const evidence=String(candidate?.source==='img' ? (candidate?.evidence||'') : (candidate?.context||''));
+  const context=evidence+' '+String(candidate?.url||'');
   const hay=normalizeMatchText(context);
   const nameTokens=significantNameTokens(name);
   const matchedName=nameTokens.filter(t=>hay.includes(t)).length;
