@@ -311,8 +311,8 @@ assert.match(await page.locator('#settingsModal').innerText(),/Restaurant system
 assert.match(await page.locator('#settingsModal').innerText(),/Device & runtime/i,'App Diagnosis should report device/runtime health');
 assert.match(await page.locator('#settingsModal').innerText(),/Build & deployment/i,'App Diagnosis should report build/deployment health');
 assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/Pass Around/i,'App Diagnosis should not mention the removed Pass Around feature');
-assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should start unselected');
 await page.waitForFunction(()=>document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'),'',{timeout:12000});
+assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'false','Run again should be unselected after the initial diagnosis completes');
 await click('#diagnosisRefresh'); assert.equal(await page.locator('#diagnosisRefresh').getAttribute('aria-pressed'),'true','Run again should visibly enter a selected/running state'); assert.equal(await page.locator('#diagnosisRefresh').isDisabled(),true,'Run again should disable while diagnostics are running'); await page.waitForFunction(()=>document.querySelector('#diagnosisRefresh')?.getAttribute('aria-pressed')==='false' && document.querySelector('#diagnosisRunStatus')?.textContent.includes('complete'));
 assert.equal(await visible('settingsModal'),true,'App Diagnosis should remain open after Run again');
 assert.ok((await page.locator('#diagnosisRunStatus').innerText()).includes('complete'),'Diagnosis should show which run just completed');
