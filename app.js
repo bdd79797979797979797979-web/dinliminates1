@@ -1977,10 +1977,7 @@ function aboutView(){
  const body='<div class="info-copy"><h4>Dinliminate</h4><p>Cut the dinner choices until one survives.</p><button class="secondary" id="privacyFromAbout" style="width:100%;min-height:42px;border-radius:12px;margin:10px 0 4px">Privacy & Data</button><p class="about-test">CURRENT BUILD</p><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(date)+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></div>';
  const modal=openModal('aboutModal','About Dinliminate',body);$('privacyFromAbout').onclick=()=>privacyView();return modal;
 }
-function iphoneHelp() {
-openModal('iphoneModal','Add to iPhone','<div class="iphone-guide"><div class="iphone-guide-intro"><span class="iphone-guide-kicker">ADD TO HOME SCREEN</span><h4>One tap away.</h4><p>Use Safari on your iPhone, then follow these three steps.</p></div><div class="iphone-guide-steps"><div class="iphone-guide-step"><span>1</span><div><b>Open Dinliminate in Safari</b></div></div><div class="iphone-guide-step"><span>2</span><div><b>Tap Share</b></div></div><div class="iphone-guide-step"><span>3</span><div><b>Tap Add to Home Screen</b></div></div></div></div>');
-}
-async function shareApp() {
+async function shareAndAddApp() {
  const url=String(location.href||'').split('#')[0];
  const shareData={
   title:'Dinliminate — Dinner Decisions Simplified',
@@ -1993,10 +1990,11 @@ async function shareApp() {
  if(navigator.clipboard){
   try{await navigator.clipboard.writeText(url);appToast('App link copied.');return;}catch{}
  }
- openModal('shareAppModal','Share Dinliminate','<div class="share-app-fallback"><span class="share-app-kicker">SHARE DINLIMINATE</span><h4>Pass it along.</h4><p>Copy the link below and send it to anyone who needs help deciding dinner.</p><input class="share-app-url" type="text" readonly value="'+esc(url)+'" onclick="this.select()"><button class="detail-web-action share-app-copy" id="shareAppCopy" type="button">Copy link</button></div>');
+ openModal('shareAppModal','Share & Add to iPhone','<div class="share-app-fallback"><span class="share-app-kicker">SHARE & ADD</span><h4>Pass it along.</h4><p>On iPhone, choose <b>Add to Home Screen</b> from the Share Sheet. You can also copy the link below to share Dinliminate.</p><input class="share-app-url" type="text" readonly value="'+esc(url)+'" onclick="this.select()"><button class="detail-web-action share-app-copy" id="shareAppCopy" type="button">Copy link</button></div>');
  const copy=$('shareAppCopy');
  if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(url);appToast('App link copied.');}catch{const field=document.querySelector('.share-app-url');field?.focus();field?.select();}};
 }
+
 function shareWinner() {
 if (!S.winnerItem)return;
 const text='Tonight: '+S.winnerItem.name;
@@ -2053,8 +2051,7 @@ $('settings').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg
 $('about').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); aboutView(); };
 $('backToStart').onclick = () => home();
 $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
-$('iphoneHelp').onclick = iphoneHelp;
-$('shareApp').onclick = shareApp;
+$('shareApp').onclick = shareAndAddApp;
 $('locate').onclick = useLocation;
 $('find').onclick = searchRestaurants;
 $('radius').addEventListener('change', () => {
