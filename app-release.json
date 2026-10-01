@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 650,
-  "sourceBranch": "cp650-restaurant-location-control-order",
-  "checkpoint": "CP650"
+  "build": 651,
+  "sourceBranch": "cp651-restaurant-photo-cache-fallback",
+  "checkpoint": "CP651"
 }
