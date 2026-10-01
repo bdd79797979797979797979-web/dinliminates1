@@ -18,3 +18,25 @@ The Thirsty Goat: https://www.thirstygoatsango.com/
 Chris' Pizza Village - Sango: https://chrispizzavillagetn.com/
 
 No restaurant-specific runtime mapping is intended.
+
+## CP657 final implementation
+- broadened deterministic domain candidates to include common local-name variants and location/state suffix patterns;
+- reduced negative website cache duration from 24 hours to 10 minutes so transient misses recover quickly;
+- added a one-time forced client retry after a 900ms delay when the resolver returns neither a website nor an official social page;
+- added a `refresh=1` API option that bypasses a cached miss for the retry;
+- retained multi-source public discovery and exact verification;
+- bumped client/service-worker cache markers to CP657.
+
+## Verification references
+Public web search confirms the exact current sites:
+- Camacho's Famous: https://www.camachosfamous.com/
+- The Thirsty Goat: https://www.thirstygoatsango.com/
+- Chris' Pizza Village - Sango: https://chrispizzavillagetn.com/
+
+No restaurant-specific runtime mapping was added.
+
+## Hosted validation target
+Expected preview:
+https://deploy-preview-129--dinliminate112.netlify.app
+
+Hosted runtime API access is not available from this execution environment, so live website-return results are not claimed until the deployment status and external runtime test are available.
