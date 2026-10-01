@@ -1,0 +1,38 @@
+name: CP595 Live Restaurant Photo HTTP Test
+
+on:
+  push:
+    branches: [cp595-restaurant-photo-live]
+
+permissions:
+  contents: read
+
+jobs:
+  http-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Live photo endpoint test
+        env:
+          BASE_URL: https://deploy-preview-95--dinliminate112.netlify.app
+        run: |
+          node <<'NODE'
+          const base = process.env.BASE_URL;
+          const cases = [
+            ["McDonald's", "724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat", "4044 US-41 ALT South, Clarksville, TN 37040"]
+          ];
+          for (const [name,address] of cases) {
+            const url = base + '/api/restaurant-photo?name=' + encodeURIComponent(name) + '&address=' + encodeURIComponent(address);
+            const res = await fetch(url);
+            const type = (res.headers.get('content-type') || '').split(';')[0];
+            const source = res.headers.get('x-restaurant-photo-source') || '';
+            const bytes = new Uint8Array(await res.arrayBuffer()).byteLength;
+            console.log(JSON.stringify({name,status:res.status,type,source,bytes}));
+            if (res.status !== 200) throw new Error(name + ' returned HTTP ' + res.status);
+            if (!type.startsWith('image/')) throw new Error(name + ' did not return an image');
+            if (!source.includes('venue')) throw new Error(name + ' did not use verified venue source');
+            if (bytes < 4000) throw new Error(name + ' image body is too small');
+          }
+          console.log('LIVE RESTAURANT PHOTO HTTP TEST PASSED');
+          NODE
