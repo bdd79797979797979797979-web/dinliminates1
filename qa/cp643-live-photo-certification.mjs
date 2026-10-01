@@ -11,19 +11,20 @@ const errors=[];
 page.on('pageerror',e=>errors.push('pageerror: '+String(e)));
 page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});
 
-const release=await page.request.get(base+'/api/release',{cache:'no-store'});
-assert.equal(release.status(),200,'Release endpoint must be HTTP 200');
+const release=await page.request.get(base+'/app-release.json',{cache:'no-store'});
+assert.equal(release.status(),200,'Static release metadata must be HTTP 200');
 const releaseJson=await release.json();
 assert.equal(String(releaseJson.build),'643');
 assert.equal(String(releaseJson.checkpoint),'CP643');
 
+const response=await page.goto(base+'/?cp643-live=1',{waitUntil:'domcontentloaded',timeout:30000});
+assert(response&&response.ok(),'Hosted app root must load successfully');
 const health=await page.request.get(base+'/api/restaurant-search?mode=health');
-assert.equal(health.status(),200);
+assert.notEqual(health.status(),401,'Restaurant health endpoint must not require deploy-preview authentication');
+assert.equal(health.status(),200,'Restaurant health endpoint must be HTTP 200');
 const healthJson=await health.json();
 assert.equal(healthJson.ok,true);
 assert.equal(Number(healthJson.maxRadiusMiles),100);
-
-const response=await page.goto(base+'/?cp643-live=1',{waitUntil:'domcontentloaded',timeout:30000});
 assert(response&&response.ok(),'Hosted app must load');
 assert.match(await page.title(),/Dinner Decisions Simplified|Dinliminate/);
 assert.equal(await page.locator('#foodStart').isVisible(),true);
