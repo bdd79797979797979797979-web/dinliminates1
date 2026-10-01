@@ -1396,3 +1396,13 @@ button,a,select{touch-action:manipulation}
   .food-swipe-actions,.restaurant .swipe-actions{grid-template-columns:42px 60px 60px 42px 38px!important;gap:10px!important}
   .top-choose{width:32px;height:32px;min-width:32px;font-size:16px}
 }
+
+
+/* CP537 — Choose is a compact card-level icon beside Details; bottom action layout stays restored. */
+.card-header-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.card-header-actions .card-details-action,.card-header-actions .choose-card-action{margin:0!important}
+.choose-card-action{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;padding:0!important;border-radius:50%!important;display:inline-grid!important;place-items:center!important;background:#151515!important;color:#d7bd7b!important;border:1px solid #4a4133!important;box-shadow:0 6px 14px #0007!important;font-size:15px!important;font-weight:900!important;line-height:1!important}
+.choose-card-action:active{transform:scale(.93)!important}
+.restaurant-card-utilities .choose-card-action{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}
+.decision-tools{display:none!important}
+@media(max-width:390px){.choose-card-action,.restaurant-card-utilities .choose-card-action{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;font-size:14px!important}}
