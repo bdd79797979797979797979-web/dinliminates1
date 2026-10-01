@@ -83,11 +83,16 @@ try{
 
   await page.locator('#restStart').click();
   await page.locator('#restaurant').waitFor({state:'visible',timeout:5000});
-  for(const id of ['#address','#locate','#find','#radius','#restaurantSearch','#restQuick','#restaurantMenu','#restaurantBackTop']){
+  for(const id of ['#address','#locate','#find','#radius','#restaurantSearch','#hoursToggle','#restQuick','#restaurantMenu','#restaurantBackTop']){
     assert.equal(await page.locator(id).count(),1,`Missing Restaurant control ${id}`);
   }
   assert.equal(await page.locator('#radius option').count(),7,'Restaurant radius selector should expose seven tiers');
   assert.deepEqual(await page.locator('#radius option').allTextContents(),['1','3','5','10','25','50','100']);
+  assert.deepEqual(await page.locator('#hoursToggle [data-hours-mode]').allTextContents(),['Open','All']);
+  await page.locator('#hoursToggle [data-hours-mode="all"]').click();
+  assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'true');
+  await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click();
+  assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true');
 
   await page.locator('#radius').selectOption('1');
   await page.locator('#locate').click();
