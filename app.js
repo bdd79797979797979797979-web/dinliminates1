@@ -107,6 +107,7 @@ function knownRestaurantWebsite(row){
 }
 const restaurantWebsiteCache=new Map();
 const restaurantWebsiteInflight=new Map();
+const restaurantWebsiteCache=new Map();
 const RESTAURANT_WEBSITE_CACHE_KEY='dinliminate.restaurant.websites.v1';
 const RESTAURANT_WEBSITE_CACHE_TTL=14*24*60*60*1000;
 function restaurantWebsiteRowKey(row){
@@ -117,7 +118,7 @@ function loadRestaurantWebsiteStore(){
   const raw=JSON.parse(localStorage.getItem(RESTAURANT_WEBSITE_CACHE_KEY)||'{}');
   const now=Date.now();
   for(const [key,value] of Object.entries(raw||{})){
-   if(value&&now-Number(value.t||0)<RESTAURANT_WEBSITE_CACHE_TTL&&typeof value.url==='string'){
+   if(value&&now-Number(value.t||0)<RESTAURANT_WEBSITE_CACHE_TTL&&(typeof value.url==='string'||typeof value.officialPage==='string')){
     restaurantWebsiteCache.set(key,value);
    }
   }
@@ -125,7 +126,7 @@ function loadRestaurantWebsiteStore(){
 }
 function saveRestaurantWebsiteStore(){
  try{
-  const out={}; const now=Date.now();
+  const out={},now=Date.now();
   for(const [key,value] of restaurantWebsiteCache){
    if(value&&now-Number(value.t||0)<RESTAURANT_WEBSITE_CACHE_TTL)out[key]=value;
   }
@@ -133,15 +134,27 @@ function saveRestaurantWebsiteStore(){
  }catch{}
 }
 loadRestaurantWebsiteStore();
-function cachedRestaurantWebsite(row){
+function cachedRestaurantWebsiteEntry(row){
  const key=restaurantWebsiteRowKey(row),value=restaurantWebsiteCache.get(key);
- return value?.url||'';
+ return value||null;
+}
+function cachedRestaurantWebsite(row){
+ return cachedRestaurantWebsiteEntry(row)?.url||'';
+}
+function cachedRestaurantOfficialPage(row){
+ return cachedRestaurantWebsiteEntry(row)?.officialPage||'';
+}
+function storeRestaurantWebsitePresence(row,presence){
+ const key=restaurantWebsiteRowKey(row);
+ if(!key||!presence)return;
+ const url=safeExternalUrl(presence.website||'');
+ const officialPage=safeExternalUrl(presence.officialPage||'')||String(presence.officialPage||'');
+ if(!url&&!officialPage)return;
+ restaurantWebsiteCache.set(key,{url,officialPage,t:Date.now(),source:String(presence.source||'')});
+ saveRestaurantWebsiteStore();
 }
 function storeRestaurantWebsite(row,url,source=''){
- const key=restaurantWebsiteRowKey(row);
- if(!key||!url)return;
- restaurantWebsiteCache.set(key,{url,t:Date.now(),source});
- saveRestaurantWebsiteStore();
+ storeRestaurantWebsitePresence(row,{website:url,source});
 }
 function restaurantWebsiteDirect(row){
  const direct=safeExternalUrl(row?.website);
@@ -150,61 +163,93 @@ function restaurantWebsiteDirect(row){
  if(known)return known;
  return cachedRestaurantWebsite(row);
 }
+function restaurantOfficialPageDirect(row){
+ const page=cachedRestaurantOfficialPage(row);
+ if(!page)return '';
+ try{
+  const u=new URL(page);
+  const h=u.hostname.toLowerCase().replace(/^www\\./,'');
+  return ['facebook.com','instagram.com'].some(x=>h===x||h.endsWith('.'+x))?page:'';
+ }catch{return ''}
+}
+function restaurantWebsitePresentation(row){
+ const website=restaurantWebsiteDirect(row);
+ if(website)return{url:website,kind:'website',source:'website'};
+ const page=restaurantOfficialPageDirect(row);
+ if(page)return{url:page,kind:'official-page',source:'official-page'};
+ const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
+ return{url:'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website'),kind:'search',source:'search'};
+}
 function restaurantWebsiteUrl(row){
-const direct=restaurantWebsiteDirect(row);
-if(direct)return direct;
-const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
-return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
-}async function hydrateRestaurantWebsite(row,scope){
+ return restaurantWebsitePresentation(row).url;
+}
+async function hydrateRestaurantWebsite(row,scope){
  if(!row)return;
  const key=restaurantWebsiteRowKey(row);
  if(!key)return;
- const apply=(url,source='')=>{
-  document.querySelectorAll((scope||'')+' [data-restaurant-website-key]').forEach(link=>{ if(link.dataset.restaurantWebsiteKey!==key)return;
-   const direct=!!url;
-   const href=direct?url:(()=>{
-    const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
-    return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
-   })();
-   link.href=href;
+ const apply=(presence)=>{
+  const data=presence||{};
+  const website=safeExternalUrl(data.website||'');
+  const page=safeExternalUrl(data.officialPage||'')||String(data.officialPage||'');
+  const chosen=website?{url:website,kind:'website'}:(page?{url:page,kind:'official-page'}:{url:restaurantWebsitePresentation(row).url,kind:'search'});
+  document.querySelectorAll((scope||'')+' [data-restaurant-website-key]').forEach(link=>{
+   if(link.dataset.restaurantWebsiteKey!==key)return;
+   link.href=chosen.url;
    link.target='_blank';
    link.rel='noopener noreferrer';
-   link.title=direct?'Website':'Website search';
-   link.setAttribute('aria-label',direct?'Open '+String(row.name||'restaurant')+' website':'Search '+String(row.name||'restaurant')+' website on Google');
-   if(source)link.dataset.restaurantWebsiteSource=source;
+   const label=chosen.kind==='website'?'Website':(chosen.kind==='official-page'?'Official Page':'Search Website');
+   link.title=label;
+   link.dataset.restaurantWebsiteSource=String(data.source||chosen.kind);
+   link.setAttribute('aria-label',chosen.kind==='website'?'Open '+String(row.name||'restaurant')+' website':chosen.kind==='official-page'?'Open the official Facebook or Instagram page for '+String(row.name||'restaurant'):'Search '+String(row.name||'restaurant')+' website');
   });
  };
  const direct=restaurantWebsiteDirect(row);
  if(direct){
-  if(!safeExternalUrl(row.website)&&direct!==knownRestaurantWebsite(row))storeRestaurantWebsite(row,direct,'direct');
-  apply(direct,'direct');
+  storeRestaurantWebsite(row,direct,'direct');
+  apply({website:direct,source:'direct'});
   return direct;
  }
  const cached=cachedRestaurantWebsite(row);
- if(cached){row.website=cached;apply(cached,'cached');return cached;}
+ if(cached){
+  row.website=cached;
+  apply({website:cached,source:'cached'});
+  return cached;
+ }
+ const cachedPage=restaurantOfficialPageDirect(row);
+ if(cachedPage){
+  apply({officialPage:cachedPage,source:'cached-official-page'});
+  return cachedPage;
+ }
  let pending=restaurantWebsiteInflight.get(key);
  if(!pending){
-  const params=new URLSearchParams({mode:'website',name:String(row.name||''),address:String(row.address||''),brand:String(row.brand||''),website:String(row.website||'')});
+  const params=new URLSearchParams({
+   mode:'website',
+   name:String(row.name||''),
+   address:String(row.address||''),
+   brand:String(row.brand||''),
+   website:String(row.website||''),
+   phone:String(row.phone||row.nationalPhoneNumber||row['contact:phone']||'')
+  });
   pending=(async()=>{
    const response=await fetch('/api/restaurants?'+params.toString(),{cache:'no-store'});
    if(!response.ok)throw new Error('Website resolver unavailable');
    const data=await response.json();
-   const url=safeExternalUrl(data?.website);
-   if(url){
-    row.website=url;
-    storeRestaurantWebsite(row,url,String(data?.source||'official-search'));
-    return url;
+   const website=safeExternalUrl(data?.website);
+   const officialPage=safeExternalUrl(data?.officialPage);
+   if(website||officialPage){
+    row.website=website||row.website||'';
+    storeRestaurantWebsitePresence(row,{website,officialPage,source:String(data?.source||'official-search')});
    }
-   return '';
+   return{website,officialPage,source:String(data?.source||'official-search')};
   })().finally(()=>restaurantWebsiteInflight.delete(key));
   restaurantWebsiteInflight.set(key,pending);
  }
  try{
-  const url=await pending;
-  apply(url,url?'official-search':'');
-  return url;
+  const presence=await pending;
+  apply(presence);
+  return presence.website||presence.officialPage||'';
  }catch{
-  apply('');
+  apply({});
   return '';
  }
 }
