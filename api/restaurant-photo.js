@@ -105,8 +105,9 @@ function extractImgCandidates(html,pageUrl){
     seen.add(url);
     const sourceHtml=String(html||'');
     const nearby=sourceHtml.slice(Math.max(0,m.index-650),Math.min(sourceHtml.length,m.index+m[0].length+850));
-    const context=[attrs.alt,attrs.title,attrs.class,attrs.id,attrs['data-caption'],attrs['data-alt'],attrs['data-filename'],nearby,url].filter(Boolean).join(' ');
-    candidates.push({url,context,source:'img'});
+    const evidence=[attrs.alt,attrs.title,attrs['data-caption'],attrs['data-alt'],attrs['data-filename']].filter(Boolean).join(' ');
+    const context=[evidence,attrs.class,attrs.id,nearby,url].filter(Boolean).join(' ');
+    candidates.push({url,context,evidence,source:'img'});
   }
   return candidates;
 }
@@ -119,7 +120,7 @@ function extractStyleImageCandidates(html,pageUrl){
     if(!url||seen.has(url)||isBlockedHost(url)||BLOCKED_IMAGE_HINTS.test(url))continue;
     seen.add(url);
     const context=String(html||'').slice(Math.max(0,m.index-260),Math.min(String(html||'').length,m.index+420));
-    candidates.push({url,context,source:'background'});
+    candidates.push({url,context,evidence:context,source:'background'});
   }
   return candidates;
 }
@@ -143,7 +144,7 @@ function extractJsonLdImageCandidates(html,pageUrl){
     const url=absoluteHttpsUrl(raw,pageUrl);
     if(!url||seen.has(url)||isBlockedHost(url)||BLOCKED_IMAGE_HINTS.test(url))return;
     seen.add(url);
-    out.push({url,context:context+' '+url,source:'jsonld'});
+    out.push({url,context:context+' '+url,evidence:context,source:'jsonld'});
   };
   const walk=(value,context='')=>{
     if(value==null||out.length>=100)return;
@@ -229,16 +230,18 @@ function hasVenueSignal(candidate){
 }
 
 function imageMatchesExactVenue(candidate,name,address){
-  if(!candidate)return false;
-  const context=normalizeMatchText(String(candidate.context||''));
+  if(!candidate||candidate.source!=='img')return false;
+  const evidence=normalizeMatchText(String(candidate.evidence||''));
   const url=normalizeMatchText(String(candidate.url||''));
-  if(FOOD_IMAGE_HINTS.test(context))return false;
+  if(!evidence && !url)return false;
+  if(FOOD_IMAGE_HINTS.test(evidence))return false;
   const nameTokens=significantNameTokens(name);
-  const matchedName=nameTokens.filter(t=>context.includes(t)||url.includes(t)).length;
-  const exactName=nameTokens.length>0 && matchedName===nameTokens.length;
-  const venueSignal=hasVenueSignal(candidate);
-  const imageWord=/(?:photo|image|picture|gallery|exterior|outside|entrance|front|building|location|patio|drive|parking|storefront)/.test(context+' '+url);
-  return venueSignal || exactName || imageWord && matchedName>0;
+  const evidenceMatched=nameTokens.filter(t=>evidence.includes(t)).length;
+  const urlMatched=nameTokens.filter(t=>url.includes(t)).length;
+  const exactName=evidenceMatched===nameTokens.length && nameTokens.length>0;
+  const exactUrlName=urlMatched===nameTokens.length && nameTokens.length>0;
+  const venueEvidence=VENUE_IMAGE_HINTS.test(evidence) && (evidenceMatched>0 || urlMatched>0 || /(?:image|photo|picture|gallery)/.test(evidence+' '+url));
+  return exactName || exactUrlName || venueEvidence;
 }
 
 function extractVenueImageCandidates(html,pageUrl,name,address,website){
