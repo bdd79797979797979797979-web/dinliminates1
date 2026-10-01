@@ -202,7 +202,7 @@ assert.deepEqual(liver?.quickCuts,['Southern','Healthy'],'Liver & Onions should 
 assert.deepEqual(requestedCatalog['pork-chops'].quickCuts,['Southern'],'Pork Chops should be associated with Southern');
 assert.deepEqual(requestedCatalog['pork-tenderloin'].quickCuts,['Southern'],'Pork Tenderloin should be associated with Southern');
 assert.deepEqual(requestedCatalog['white-fish'].quickCuts,['Healthy'],'White Fish should be associated with Healthy');
-assert.deepEqual(requestedCatalog['biscuits-gravy'].quickCuts,['Breakfast'],'Biscuits & Gravy should be Breakfast');
+assert.deepEqual(requestedCatalog['biscuits-gravy'].quickCuts,['Breakfast','Southern'],'Biscuits & Gravy should be Breakfast + Southern');
 assert.deepEqual(requestedCatalog['stuffed-peppers'].category,'American');
 assert.equal(requestedCatalog['mashed-potatoes'].name,'Mashed Potatoes','Mashed Potatoes should not include gravy in its title');
 assert.equal(Object.values(requestedCatalog).some(x=>x.quickCuts.includes('Pork')),false,'No Food Quick Cut should include Pork');
