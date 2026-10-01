@@ -160,7 +160,7 @@ return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+'
  const key=restaurantWebsiteRowKey(row);
  if(!key)return;
  const apply=(url,source='')=>{
-  document.querySelectorAll((scope||'')+' [data-restaurant-website-key="'+CSS.escape(key)+'"]').forEach(link=>{
+  document.querySelectorAll((scope||'')+' [data-restaurant-website-key]').forEach(link=>{ if(link.dataset.restaurantWebsiteKey!==key)return;
    const direct=!!url;
    const href=direct?url:(()=>{
     const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
@@ -1584,9 +1584,9 @@ const restaurantMaybeBadge=row._maybe?'<span class="maybe-stamp restaurant-maybe
 const nextRow = rows[S.restaurantIndex + 1];
 const nextImage = restaurantFallback(nextRow);
 const cardLocation = row.address ? '<div class="restaurant-card-location" title="'+esc(row.address)+'">⌖ '+esc(String(row.address).split(',').slice(0,2).join(', '))+'</div>' : '';
-const directWebsite=!!safeExternalUrl(row.website)||!!safeExternalUrl(knownRestaurantWebsite(row));
+const directWebsite=!!restaurantWebsiteDirect(row);
 const websiteUrl=restaurantWebsiteUrl(row);
-const cardWebsite = '<a class="restaurant-card-utility restaurant-card-website-utility" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open '+esc(row.name)+' website':'Search '+esc(row.name)+' website on Google')+'" title="'+(directWebsite?'Website':'Website search')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></a>';
+const cardWebsite = '<a class="restaurant-card-utility restaurant-card-website-utility" data-restaurant-website-key="'+esc(restaurantWebsiteRowKey(row))+'" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open '+esc(row.name)+' website':'Search '+esc(row.name)+' website on Google')+'" title="'+(directWebsite?'Website':'Website search')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></a>';
 const cardDetailsAction = '<button class="restaurant-card-utility restaurant-card-details-utility" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
 const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
@@ -1602,6 +1602,7 @@ bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
 bindImageFallback('#restStage img',restaurantFallback(row),restaurantFallbackImage(row));
 hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
+hydrateRestaurantWebsite(row,'#restStage #restaurantCard');
 if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 }
 function restaurantCut(row){
@@ -1848,7 +1849,7 @@ function detailsSheet(item,type){
  const hoursSchedule=hours ? '<div class="detail-section restaurant-hours-schedule"><div class="detail-section-title">Hours</div><p class="detail-body-copy">'+esc(hours)+'</p></div>' : '';
  const websiteDirect=!!safeExternalUrl(item.website);
  const websiteHref=restaurantWebsiteUrl(item);
- const websiteAction='<a class="detail-icon-button detail-website-action" href="'+esc(websiteHref)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(websiteDirect?'Open '+esc(item.name)+' website':'Search '+esc(item.name)+' website on Google')+'" title="'+(websiteDirect?'Website':'Google Search')+'"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="sr-only">'+(websiteDirect?'Website':'Google Search')+'</span></a>';
+ const websiteAction='<a class="detail-icon-button detail-website-action" data-restaurant-website-key="'+esc(restaurantWebsiteRowKey(item))+'" href="'+esc(websiteHref)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(websiteDirect?'Open '+esc(item.name)+' website':'Search '+esc(item.name)+' website on Google')+'" title="'+(websiteDirect?'Website':'Google Search')+'"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="sr-only">'+(websiteDirect?'Website':'Google Search')+'</span></a>';
  const directionsAction='<a class="detail-icon-button restaurant-detail-action detail-directions-action" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions to '+esc(item.name)+'" title="Directions"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="sr-only">Directions</span></a>';
  const infoCards='<div class="restaurant-luxury-stat-grid"><div class="restaurant-luxury-stat"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+(item.cuisine?'<div class="restaurant-luxury-stat"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+(item.distance!=null?'<div class="restaurant-luxury-stat"><span>Distance</span><strong>'+Number(item.distance).toFixed(1)+' mi</strong></div>':'')+'<div class="restaurant-luxury-stat"><span>Hours</span><strong>'+esc(hoursLabel)+'</strong></div></div>';
  const contactSection='<div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Visit & contact</div><div class="restaurant-luxury-contact-card">'+phoneRow+addressRow+'</div><div class="restaurant-luxury-actions">'+websiteAction+directionsAction+'</div></div>';
@@ -1856,6 +1857,7 @@ function detailsSheet(item,type){
  const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
  const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,restaurantFallbackImage(item));
 hydrateRestaurantPhoto(item,'#detailsModal');
+hydrateRestaurantWebsite(item,'#detailsModal');
 }
 
 function historyImageSource(row){
