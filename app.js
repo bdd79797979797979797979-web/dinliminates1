@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '643';
+let APP_BUILD = '646';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -2193,7 +2193,7 @@ function exportHistoryPrint(scope){
  if(!w){appToast('Allow pop-ups to export the PDF.');return;}
  const css='@page{size:auto;margin:0.55in}html,body{margin:0;background:#fff;color:#151515;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:28px}.pdf-header{border-bottom:1px solid #ddd;padding-bottom:18px;margin-bottom:18px}.pdf-kicker{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}.pdf-header h1{font-size:28px;letter-spacing:-.04em;margin:7px 0 4px}.pdf-header p{margin:0;color:#666;font-size:12px}.pdf-entry{break-inside:avoid;border-bottom:1px solid #e6e6e6;padding:0 0 18px;margin:0 0 18px}.pdf-entry-date{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#777;margin-bottom:5px}.pdf-entry h2{font-size:21px;letter-spacing:-.03em;margin:0 0 5px}.pdf-entry p{font-size:11px;color:#666;line-height:1.45;margin:3px 0}.pdf-contact{word-break:break-word}.pdf-entry img{display:block;width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:11px}.pdf-footer{margin-top:26px;padding-top:12px;border-top:1px solid #ddd;color:#888;font-size:9px;text-align:center}@media print{body{padding:0}}';
  w.document.open();
- w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dinliminate — '+scopeLabel+'</title><style>'+css+'</style></head><body><header class="pdf-header"><div class="pdf-kicker">DINLIMINATE</div><h1>Dining Decisions</h1><p>'+scopeLabel+' · Exported '+dateLabel+'</p></header>'+rows+'<footer class="pdf-footer">Dinner Decisions Simplified · Dinliminate</footer></body></html>');
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dinliminate — '+scopeLabel+'</title><style>'+css+'</style></head><body><header class="pdf-header"><div class="pdf-kicker">DINLIMINATE</div><h1>Dinner Decisions Simplified</h1><p>'+scopeLabel+' · Exported '+dateLabel+'</p></header>'+rows+'<footer class="pdf-footer">Dinner Decisions Simplified · Dinliminate</footer></body></html>');
  w.document.close();
  const printWhenReady=()=>{
   const imgs=[...w.document.images];
