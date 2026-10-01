@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Test exact venue photo API
         env:
-          BASE_URL: https://deploy-preview-104--dinliminate22.netlify.app
+          BASE_URL: https://deploy-preview-104--dinliminate.netlify.app
         run: |
           node <<'NODE'
           const base=process.env.BASE_URL;
