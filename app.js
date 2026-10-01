@@ -1031,7 +1031,7 @@ function renderFindButton(){
  btn.dataset.state=state;
  btn.innerHTML=state==='refresh'
   ? '<svg class="find-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 8.5V4.8l-2.2 2.2A7.5 7.5 0 1 0 19.2 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 4.8h-3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Refresh</span>'
-  : '<svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr-only">Find restaurants nearby</span>';
+  : '<svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21c4.2-4.8 6.4-8.2 6.4-11.3A6.4 6.4 0 0 0 5.6 9.7C5.6 12.8 7.8 16.2 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" fill="currentColor"/></svg><span class="sr-only">Find restaurants nearby</span>';
  btn.setAttribute('aria-label',state==='refresh'?'Refresh restaurant search':'Find restaurants');
 }
 function setFindBusy(busy) {
