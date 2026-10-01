@@ -157,13 +157,92 @@ function bindHomeImageFallbacks(){
 }
 const restaurantPhotoInflight=new Map();
 const restaurantPhotoCache=new Map();
+const RESTAURANT_PHOTO_CACHE_NAME='dinliminate.restaurant.photos.v1';
+const RESTAURANT_PHOTO_CACHE_MAX_AGE=30*24*60*60*1000;
+let restaurantPhotoStoragePromise=null;
+function restaurantPhotoCacheRequest(row){
+ const identity=normKey([row?.name,row?.address].filter(Boolean).join('|'))||String(row?.id||row?.canonicalId||'unknown');
+ let hash=2166136261;
+ for(let i=0;i<identity.length;i++){hash^=identity.charCodeAt(i);hash=Math.imul(hash,16777619);}
+ return new Request('/__dinliminate_restaurant_photo_cache__/'+(hash>>>0).toString(36));
+}
+async function openRestaurantPhotoCache(){
+ if(!('caches' in window))return null;
+ if(restaurantPhotoStoragePromise)return restaurantPhotoStoragePromise;
+ restaurantPhotoStoragePromise=caches.open(RESTAURANT_PHOTO_CACHE_NAME).catch(()=>null);
+ return restaurantPhotoStoragePromise;
+}
+function restaurantPhotoDataFromCachedResponse(response){
+ if(!response)return null;
+ const cachedAt=Number(response.headers.get('X-Dinliminate-Cached-At')||0);
+ if(cachedAt && Date.now()-cachedAt>RESTAURANT_PHOTO_CACHE_MAX_AGE)return null;
+ return response.blob().then(blob=>{
+  if(!blob.type.startsWith('image/'))return null;
+  return {
+   url:URL.createObjectURL(blob),
+   attributions:decodePhotoAttributions(response.headers.get('X-Restaurant-Photo-Attributions')),
+   source:String(response.headers.get('X-Restaurant-Photo-Source')||'').trim()
+  };
+ }).catch(()=>null);
+}
+async function getPersistentRestaurantPhoto(row){
+ try{
+  const cache=await openRestaurantPhotoCache();
+  if(!cache)return null;
+  const request=restaurantPhotoCacheRequest(row);
+  const cached=await cache.match(request);
+  if(!cached)return null;
+  const data=await restaurantPhotoDataFromCachedResponse(cached);
+  if(data)return data;
+  await cache.delete(request);
+ }catch{}
+ return null;
+}
+async function putPersistentRestaurantPhoto(row,blob,attributions,source){
+ try{
+  const cache=await openRestaurantPhotoCache();
+  if(!cache)return;
+  const request=restaurantPhotoCacheRequest(row);
+  const headers=new Headers({'Content-Type':blob.type||'image/jpeg','X-Dinliminate-Cached-At':String(Date.now()),'X-Restaurant-Photo-Source':String(source||'')});
+  if(attributions?.length){
+   const raw=JSON.stringify(attributions);
+   let encoded=btoa(unescape(encodeURIComponent(raw))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');
+   headers.set('X-Restaurant-Photo-Attributions',encoded);
+  }
+  await cache.put(request,new Response(blob,{status:200,headers}));
+ }catch{}
+}
+function restaurantFallbackImage(row){
+ const labels=[row?.category,row?.cuisine,...(Array.isArray(row?.quickCutTags)?row.quickCutTags:[]),...((typeof restaurantCuisineTags==='function')?restaurantCuisineTags(row):[])].filter(Boolean);
+ const foodMap={
+  'Fast Food':QUICK_IMAGES.American,
+  Burgers:QUICK_IMAGES.American,
+  Pizza:QUICK_IMAGES.Italian,
+  Mexican:QUICK_IMAGES.Mexican,
+  American:QUICK_IMAGES.American,
+  Italian:QUICK_IMAGES.Italian,
+  Asian:QUICK_IMAGES.Asian,
+  BBQ:QUICK_IMAGES.Southern,
+  Seafood:QUICK_IMAGES.Seafood,
+  Breakfast:QUICK_IMAGES.Breakfast,
+  Southern:QUICK_IMAGES.Southern,
+  Healthy:QUICK_IMAGES.Healthy
+ };
+ for(const label of labels){
+  if(foodMap[label])return imageProxyUrl(foodMap[label]);
+  const normalized=String(label).trim().toLowerCase();
+  const found=Object.keys(foodMap).find(key=>key.toLowerCase()===normalized);
+  if(found)return imageProxyUrl(foodMap[found]);
+ }
+ return imageProxyUrl(QUICK_IMAGES.American);
+}
 function decodePhotoAttributions(raw){
  const value=String(raw||'').trim();if(!value)return[];
  try{
   let b64=value.replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';
   const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
   const data=JSON.parse(new TextDecoder().decode(bytes));
-  return Array.isArray(data)?data.filter(x=>x&&x.displayName&&x.uri).slice(0,5):[];
+  return Array.isArray(data)?data.filter(x=>x&&x.displayName&&x.uri).slice(0,5):[]
  }catch{return[]}
 }
 function setRestaurantPhotoCredit(card,attributions){
@@ -206,16 +285,19 @@ async function hydrateRestaurantPhoto(row,scope){
   }
   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
-  pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
+  const requestUrl='/api/restaurant-photo?'+params.toString();
+  pending=(async()=>{
+   const stored=await getPersistentRestaurantPhoto(row);
+   if(stored)return stored;
+   const res=await fetch(requestUrl,{cache:'no-store'});
    if(!res.ok)throw new Error('Restaurant photo unavailable');
    const blob=await res.blob();
    if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
-   return {
-    url:URL.createObjectURL(blob),
-    attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions')),
-    source:String(res.headers.get('X-Restaurant-Photo-Source')||'').trim()
-   };
-  }).then(data=>{
+   const attributions=decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions'));
+   const sourceName=String(res.headers.get('X-Restaurant-Photo-Source')||'').trim();
+   await putPersistentRestaurantPhoto(row,blob,attributions,sourceName);
+   return {url:URL.createObjectURL(blob),attributions,source:sourceName};
+  })().then(data=>{
    restaurantPhotoCache.set(rowKey,data);
    if(data.source)row.photoSource=data.source;
    return data;
