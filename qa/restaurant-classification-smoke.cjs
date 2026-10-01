@@ -1,10 +1,12 @@
 const assert=require('assert/strict');
 const handler=require('../api/restaurants');
-const isFast=handler._test?.isFastFoodName; const dedupe=handler._test?.dedupe; const isNonDining=handler._test?.isClearlyNonDiningBusiness; const filterNonDining=handler._test?.filterNonDiningRows;
+const isFast=handler._test?.isFastFoodName; const dedupe=handler._test?.dedupe; const isNonDining=handler._test?.isClearlyNonDiningBusiness; const filterNonDining=handler._test?.filterNonDiningRows; const knownWebsite=handler._test?.knownRestaurantWebsite;
 assert.equal(typeof isFast,'function','fast-food classifier test hook should exist');
 assert.equal(typeof dedupe,'function','restaurant dedupe test hook should exist');
 assert.equal(typeof isNonDining,'function','non-dining business filter test hook should exist');
 assert.equal(typeof filterNonDining,'function','non-dining row filter test hook should exist');
+assert.equal(typeof knownWebsite,'function','known restaurant website test hook should exist');
+assert.equal(knownWebsite({name:"Camacho's Famous"}),'https://www.camachosfamous.com','Camacho\'s Famous must use its official website');
 for(const name of ["McDonald's","Wendy's","Burger King","KFC","Taco Bell","Chick-fil-A","Chipotle"]) assert.equal(isFast(name),true,name+' should classify as Fast Food');
 for(const name of ["Applebee's","Ruby Tuesday","Olive Garden","Texas Roadhouse","Outback Steakhouse","Cracker Barrel","O'Charley's","Red Lobster","Panera Bread","The Thirsty Goat"]) assert.equal(isFast(name),false,name+' should not classify as Fast Food');
 const classify=handler._test.classifyRestaurant;
