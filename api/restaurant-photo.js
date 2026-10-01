@@ -448,6 +448,85 @@ async function verifiedPage(url,name,address){
   return html&&pageMatchesRestaurant(html,name,address)?html:null;
 }
 
+function extractBingImageCandidates(html){
+  const out=[],re=/\bm="([^"]+)"/gi;
+  let m;
+  while((m=re.exec(String(html||'')))&&out.length<80){
+    try{
+      const raw=JSON.parse(decodeHtml(m[1]));
+      const contentUrl=absoluteHttpsUrl(raw?.murl||raw?.contentUrl||'');
+      const hostPageUrl=absoluteHttpsUrl(raw?.purl||raw?.hostPageUrl||'');
+      if(!contentUrl||!hostPageUrl||isBlockedHost(contentUrl)||BLOCKED_IMAGE_HINTS.test(contentUrl))continue;
+      out.push({
+        contentUrl,
+        hostPageUrl,
+        title:String(raw?.t||raw?.name||'').trim(),
+        description:String(raw?.desc||'').trim()
+      });
+    }catch{}
+  }
+  return out;
+}
+
+function trustedVenuePageHost(host,officialWebsite){
+  const h=String(host||'').toLowerCase().replace(/^www\./,'');
+  if(!h)return false;
+  const officialHost=hostOf(officialWebsite).replace(/^www\./,'');
+  if(officialHost&&(h===officialHost||h.endsWith('.'+officialHost)))return true;
+  return [
+    'restaurantji.com','usarestaurants.info','tripadvisor.com','tripadvisor.co.uk',
+    'tripadvisor.ca','tripadvisor.es','bringfido.com','wanderlog.com','waze.com'
+  ].some(domain=>h===domain||h.endsWith('.'+domain));
+}
+
+function bingImageIsExactVenue(candidate,name,address,officialWebsite){
+  if(!candidate||!trustedVenuePageHost(hostOf(candidate.hostPageUrl),officialWebsite))return false;
+  const evidence=normalizeText([candidate.title,candidate.description,candidate.hostPageUrl].join(' '));
+  const tokens=significantNameTokens(name);
+  const nameOk=tokens.length>0&&tokens.every(t=>evidence.includes(t));
+  if(!nameOk||FOOD_IMAGE_HINTS.test(evidence)||BLOCKED_IMAGE_HINTS.test(evidence))return false;
+  const a=addressParts(address);
+  const numberOk=!a.number||evidence.includes(a.number);
+  const cityOk=!a.city||evidence.includes(a.city);
+  const zipOk=!a.zip||evidence.includes(a.zip);
+  if(!(numberOk&&cityOk&&(zipOk||a.number)))return false;
+  return VENUE_IMAGE_HINTS.test(evidence)||/(?:restaurant|cafe|coffee|bar|pizza|dining)/.test(evidence);
+}
+
+async function strictBingImageFallback(name,address,website){
+  const safeName=String(name||'').replace(/"/g,'');
+  const safeAddress=String(address||'').replace(/"/g,'');
+  const host=hostOf(website);
+  const queries=[
+    '"'+safeName+'" "'+safeAddress+'" exterior',
+    'site:restaurantji.com "'+safeName+'" "'+safeAddress+'"',
+    'site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"',
+    'site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"',
+    'site:bringfido.com "'+safeName+'" "'+safeAddress+'"'
+  ];
+  if(host)queries.push('site:'+host+' "'+safeName+'" "'+safeAddress+'"');
+  const searches=await Promise.allSettled([...new Set(queries)].slice(0,6).map(q=>
+    fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},5000,1200000)
+  ));
+  const candidates=[];
+  for(const result of searches){
+    if(result.status!=='fulfilled')continue;
+    candidates.push(...extractBingImageCandidates(result.value));
+  }
+  const seen=new Set();
+  for(const candidate of candidates){
+    const key=String(candidate.contentUrl||'').toLowerCase();
+    if(!key||seen.has(key))continue;
+    seen.add(key);
+    if(!bingImageIsExactVenue(candidate,name,address,website))continue;
+    try{
+      const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},6000);
+      return{media,source:'strict-public-image-search',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)};
+    }catch{}
+  }
+  return null;
+}
+
 function parseQuery(req){
   return req?.query&&typeof req.query==='object'?req.query:(req?.queryStringParameters&&typeof req.queryStringParameters==='object'?req.queryStringParameters:{});
 }
@@ -498,6 +577,9 @@ module.exports=async function handler(req,res){
       if(found)return sendMedia(res,found);
     }
 
+    const strictSearch=await strictBingImageFallback(name,address,website);
+    if(strictSearch)return sendMedia(res,strictSearch);
+
     return json(res,404,{ok:false,error:'No verified venue photo was found'});
   }catch(e){
     console.error('dinliminate-restaurant-photo',e);
@@ -508,5 +590,5 @@ module.exports=async function handler(req,res){
 module.exports._test={
   absoluteHttpsUrl,extractImgCandidates,extractSourceCandidates,extractMetaImages,extractJsonLdImageCandidates,
   extractStyleImageCandidates,pageMatchesRestaurant,addressParts,collectPageImages,imageEvidenceScore,extractBingWebResultUrls,
-  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages,extractMarkdownImageCandidates,extractMarkdownLinks
+  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages,extractMarkdownImageCandidates,extractMarkdownLinks,extractBingImageCandidates,bingImageIsExactVenue,strictBingImageFallback
 };
