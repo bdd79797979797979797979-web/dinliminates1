@@ -105,7 +105,6 @@ function knownRestaurantWebsite(row){
  }
  return '';
 }
-const restaurantWebsiteCache=new Map();
 const restaurantWebsiteInflight=new Map();
 const restaurantWebsiteCache=new Map();
 const RESTAURANT_WEBSITE_CACHE_KEY='dinliminate.restaurant.websites.v1';
