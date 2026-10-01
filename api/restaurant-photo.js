@@ -188,7 +188,7 @@ function structuredRestaurantMatches(html,name,address){
   const zip=(String(address||'').match(/\b\d{5}(?:-\d{4})?\b/)||[])[0];
   const city=(addrNorm.split(' ').findIndex(x=>x==='clarksville')>=0)?'clarksville':'';
   const blocks=[];
-  const re=/<script[^>]+type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/ig;
+  const re=/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/ig;
   let m;
   while((m=re.exec(String(html||''))))blocks.push(m[1]);
   const inspect=(value)=>{
