@@ -95,7 +95,7 @@ for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMA
 return imageProxyUrl(QUICK_IMAGES.American);
 }
 const KNOWN_RESTAURANT_WEBSITES={
-  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com',"camacho's famous":'https://www.camachosfamous.com'
+  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
 };
 function knownRestaurantWebsite(row){
  const name=normKey(row?.name),brand=normKey(row?.brand);
@@ -105,14 +105,110 @@ function knownRestaurantWebsite(row){
  }
  return '';
 }
+const restaurantWebsiteCache=new Map();
+const restaurantWebsiteInflight=new Map();
+const RESTAURANT_WEBSITE_CACHE_KEY='dinliminate.restaurant.websites.v1';
+const RESTAURANT_WEBSITE_CACHE_TTL=14*24*60*60*1000;
+function restaurantWebsiteRowKey(row){
+ return normKey([row?.name,row?.address,row?.brand].filter(Boolean).join('|'));
+}
+function loadRestaurantWebsiteStore(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(RESTAURANT_WEBSITE_CACHE_KEY)||'{}');
+  const now=Date.now();
+  for(const [key,value] of Object.entries(raw||{})){
+   if(value&&now-Number(value.t||0)<RESTAURANT_WEBSITE_CACHE_TTL&&typeof value.url==='string'){
+    restaurantWebsiteCache.set(key,value);
+   }
+  }
+ }catch{}
+}
+function saveRestaurantWebsiteStore(){
+ try{
+  const out={}; const now=Date.now();
+  for(const [key,value] of restaurantWebsiteCache){
+   if(value&&now-Number(value.t||0)<RESTAURANT_WEBSITE_CACHE_TTL)out[key]=value;
+  }
+  localStorage.setItem(RESTAURANT_WEBSITE_CACHE_KEY,JSON.stringify(out));
+ }catch{}
+}
+loadRestaurantWebsiteStore();
+function cachedRestaurantWebsite(row){
+ const key=restaurantWebsiteRowKey(row),value=restaurantWebsiteCache.get(key);
+ return value?.url||'';
+}
+function storeRestaurantWebsite(row,url,source=''){
+ const key=restaurantWebsiteRowKey(row);
+ if(!key||!url)return;
+ restaurantWebsiteCache.set(key,{url,t:Date.now(),source});
+ saveRestaurantWebsiteStore();
+}
+function restaurantWebsiteDirect(row){
+ const direct=safeExternalUrl(row?.website);
+ if(direct)return direct;
+ const known=knownRestaurantWebsite(row);
+ if(known)return known;
+ return cachedRestaurantWebsite(row);
+}
 function restaurantWebsiteUrl(row){
-const direct=safeExternalUrl(row?.website);
+const direct=restaurantWebsiteDirect(row);
 if(direct)return direct;
-const known=knownRestaurantWebsite(row);
-if(known)return known;
 const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
 return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
+}async function hydrateRestaurantWebsite(row,scope){
+ if(!row)return;
+ const key=restaurantWebsiteRowKey(row);
+ if(!key)return;
+ const apply=(url,source='')=>{
+  document.querySelectorAll((scope||'')+' [data-restaurant-website-key="'+CSS.escape(key)+'"]').forEach(link=>{
+   const direct=!!url;
+   const href=direct?url:(()=>{
+    const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
+    return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' restaurant website');
+   })();
+   link.href=href;
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   link.title=direct?'Website':'Website search';
+   link.setAttribute('aria-label',direct?'Open '+String(row.name||'restaurant')+' website':'Search '+String(row.name||'restaurant')+' website on Google');
+   if(source)link.dataset.restaurantWebsiteSource=source;
+  });
+ };
+ const direct=restaurantWebsiteDirect(row);
+ if(direct){
+  if(!safeExternalUrl(row.website)&&direct!==knownRestaurantWebsite(row))storeRestaurantWebsite(row,direct,'direct');
+  apply(direct,'direct');
+  return direct;
+ }
+ const cached=cachedRestaurantWebsite(row);
+ if(cached){row.website=cached;apply(cached,'cached');return cached;}
+ let pending=restaurantWebsiteInflight.get(key);
+ if(!pending){
+  const params=new URLSearchParams({mode:'website',name:String(row.name||''),address:String(row.address||''),brand:String(row.brand||''),website:String(row.website||'')});
+  pending=(async()=>{
+   const response=await fetch('/api/restaurants?'+params.toString(),{cache:'no-store'});
+   if(!response.ok)throw new Error('Website resolver unavailable');
+   const data=await response.json();
+   const url=safeExternalUrl(data?.website);
+   if(url){
+    row.website=url;
+    storeRestaurantWebsite(row,url,String(data?.source||'official-search'));
+    return url;
+   }
+   return '';
+  })().finally(()=>restaurantWebsiteInflight.delete(key));
+  restaurantWebsiteInflight.set(key,pending);
+ }
+ try{
+  const url=await pending;
+  apply(url,url?'official-search':'');
+  return url;
+ }catch{
+  apply('');
+  return '';
+ }
 }
+
 function restaurantPhoneSearchUrl(row){
  const q=[row?.name,row?.address].filter(Boolean).join(' ').trim();
  return 'https://www.google.com/search?q='+encodeURIComponent((q||'restaurant')+' phone number');
