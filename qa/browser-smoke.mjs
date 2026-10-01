@@ -367,7 +367,13 @@ assert.doesNotMatch(await page.locator('#settingsModal').innerText(),/miles is n
 await page.locator('#settingsModal [data-close]').click(); await settle();
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should remove the single modal cleanly');
 assert.equal(await page.locator('#settingsModal').count(),0,'Closing Restaurant App Diagnosis should not leave a stale Settings modal');
-assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant hours filter control should no longer be shown');
+assert.equal(await page.locator('#hoursToggle').count(),1,'Restaurant Open/All hours filter should be shown');
+assert.deepEqual(await page.locator('#hoursToggle [data-hours-mode]').allTextContents(),['Open','All'],'Restaurant hours control should expose Open and All');
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true','Open should be the default hours mode');
+await page.locator('#hoursToggle [data-hours-mode="all"]').click(); await settle();
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="all"]').getAttribute('aria-pressed'),'true','All should activate when tapped');
+await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').click(); await settle();
+assert.equal(await page.locator('#hoursToggle [data-hours-mode="openUnknown"]').getAttribute('aria-pressed'),'true','Open should reactivate when tapped');
 assert.equal(await page.locator('.restaurant .location-sub #restaurantSearch').count(),1,'Restaurant Search must share the Radius row.');
 assert.equal(await page.locator('.restaurant .restaurant-tools').count(),0,'Restaurant Search must not render in a separate tools row.');
 
@@ -419,16 +425,15 @@ await settle(); s=await qa(); assert.deepEqual(s.restaurantPool,['ital-1'],'Ital
 await page.locator('#restaurantQuery').fill(''); await settle();
 
 const currentRestaurantImg=await page.locator('#restaurantCard img').getAttribute('src');
-assert.ok(await page.locator('#restaurantCard .card-phone').count()>0,'Restaurant card should show phone number when supplied');
-assert.equal(await page.locator('#restaurantCard .card-phone').getAttribute('href'),'tel:+19315550101','Restaurant phone should be a tappable tel link');
-assert.equal(await page.locator('#restaurantCard .card-card-action[href^="https://mcdonalds.com"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
+assert.equal(await page.locator('#restaurantCard .card-phone').count(),0,'Restaurant card should keep phone access inside Details rather than a separate card utility');
+assert.equal(await page.locator('#restaurantCard .restaurant-card-website-utility[target="_blank"]').count(),1,'Restaurant card should expose the supplied restaurant website directly');
 assert.equal(await page.locator('#restaurantCard #restDetails').count(),1,'Restaurant card should expose a labeled Details action');
-const cuisineBoxSummary=await page.locator('#restaurantCard .cuisine-line').boundingBox(); const detailsBoxSummary=await page.locator('#restaurantCard #restDetails').boundingBox(); assert.ok(cuisineBoxSummary&&detailsBoxSummary&&detailsBoxSummary.x>=cuisineBoxSummary.x+cuisineBoxSummary.width-2,'Restaurant Details icon should sit to the right of cuisine');  assert.ok(detailsBoxSummary&&detailsBoxSummary.width<=30&&detailsBoxSummary.height<=30,'Restaurant Details icon should stay compact and clear of card text'); assert.ok(await page.locator('#restaurantCard #restDetails .details-icon').evaluate(el=>getComputedStyle(el).width)==='14px','Details icon should use the crisp compact glyph size');
-assert.ok(await page.locator('#restaurantCard .card-card-action').count()>=1,'Restaurant card should show card actions');
+const cuisineBoxSummary=await page.locator('#restaurantCard .restaurant-card-meta').boundingBox(); const detailsBoxSummary=await page.locator('#restaurantCard #restDetails').boundingBox(); assert.ok(cuisineBoxSummary&&detailsBoxSummary&&detailsBoxSummary.x>=cuisineBoxSummary.x+cuisineBoxSummary.width-2,'Restaurant Details icon should sit to the right of cuisine');  assert.ok(detailsBoxSummary&&detailsBoxSummary.width<=30&&detailsBoxSummary.height<=30,'Restaurant Details icon should stay compact and clear of card text'); assert.ok(await page.locator('#restaurantCard #restDetails .details-icon').evaluate(el=>getComputedStyle(el).width)==='14px','Details icon should use the crisp compact glyph size');
+assert.equal(await page.locator('#restaurantCard .restaurant-card-utility').count(),2,'Restaurant card should show Details and Website utilities');
 assert.equal(await page.locator('#restaurantCard').getByText(/Directions|Google Maps/i).count(),0,'Restaurant card must not show Directions; it belongs inside Details');
-assert.equal(await page.locator('#restaurantCard .card-card-action').filter({hasText:'↗'}).count(),1,'Restaurant Website action should use a symbol');
+assert.equal(await page.locator('#restaurantCard .restaurant-card-website-utility svg').count(),1,'Restaurant Website action should use a symbol');
 assert.equal(await page.locator('#restDetails').getAttribute('aria-label'),'Details','Restaurant Details should use an accessible icon label'); assert.equal(await page.locator('#restDetails .details-icon').count(),1,'Restaurant Details should render the crisp icon');
-const cuisineBox=await page.locator('#restaurantCard .card-cuisine-row .cuisine-line').boundingBox(); const detailsInlineBox=await page.locator('#restaurantCard #restDetails').boundingBox();
+const cuisineBox=await page.locator('#restaurantCard .restaurant-card-meta').boundingBox(); const detailsInlineBox=await page.locator('#restaurantCard #restDetails').boundingBox();
 assert.ok(cuisineBox&&detailsInlineBox&&detailsInlineBox.x>=cuisineBox.x+cuisineBox.width-1,'Restaurant Details icon should sit to the right of the cuisine text');
 assert.ok(cuisineBox&&detailsInlineBox&&Math.abs(detailsInlineBox.y-cuisineBox.y)<=8,'Restaurant Details icon should stay aligned with the cuisine row');
 
