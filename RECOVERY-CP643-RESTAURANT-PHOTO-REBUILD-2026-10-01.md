@@ -66,3 +66,15 @@ Deployment status:
 - CP643 Restaurant Photo QA run 19 passed on this commit.
 - CP643 Live Netlify HTTP Certification run 5 passed on this commit; Wendy's exact Clarksville venue still returns an official-venue-page image.
 - This checkpoint supersedes the earlier photo-gate behavior while retaining the CP591-based rebuild and protected recovery branches.
+
+
+## CP645 — exact venue discovery hardening (2026-10-01)
+- Commits: `0e7c902e4a04b4fa5f57b41dc5db279f0011692a` then syntax correction `b6868ad8267733c0cff43da8285b8c942f2ee0bf`.
+- The client already had a per-row photo cache and in-flight request de-duplication in `app.js`; no duplicate cache layer was added.
+- The API still returns verified image bytes (not JSON), so no client-side `res.json()` contract was introduced.
+- Added structured-data venue verification for Schema.org Restaurant/FoodEstablishment/LocalBusiness records, matching restaurant name plus exact address evidence.
+- Re-added an official-host-specific Bing search query so JavaScript-heavy restaurant sites can expose exact location pages even when raw homepage links omit them.
+- The generic/random Picsum fallback and AllOrigins proxy were not added.
+- Commit `b6868ad...` passes direct JS syntax compilation and CP643 Restaurant Photo QA run 23 passed.
+- CP643 Live Netlify HTTP Certification run 9 failed only because the existing Netlify preview had not advanced to the new commit; it did not certify the new code.
+- Vercel created a READY deployment for the pre-syntax-fix commit `0e7c902...`; that URL is not being presented as the certified build.
