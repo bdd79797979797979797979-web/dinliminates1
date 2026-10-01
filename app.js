@@ -1466,7 +1466,20 @@ function renderRestaurantSearchControl(){
 }
 
 function bindRestaurantTools(){
- $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;renderRestaurantSearchControl();if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
+ $('restaurantSearch').onclick=()=>{
+   const btn=$('restaurantSearch');
+   const hasResults=Array.isArray(S.restaurantPool)&&S.restaurantPool.length>0;
+   if(hasResults){
+     clearTimeout(restaurantQueryTimer);
+     searchRestaurants();
+     return;
+   }
+   const box=$('restaurantSearchBox');
+   box.classList.toggle('hidden');
+   $('restaurantQuery').value=S.restaurantQuery;
+   renderRestaurantSearchControl();
+   if(!box.classList.contains('hidden'))$('restaurantQuery').focus();
+ };
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
