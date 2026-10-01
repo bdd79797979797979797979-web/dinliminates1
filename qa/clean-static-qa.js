@@ -228,7 +228,7 @@ assert(app.includes('Viewport overflow'),'App Diagnosis must report actual viewp
 assert(app.includes('Browser certification'),'App Diagnosis must distinguish browser certification from code-level feature wiring');
 assert(new RegExp("APP_BUILD\\s*=\\s*['\\\"]"+String(release.build)+"['\\\"]").test(app),'Current release build should match release.json');
 assert(css.includes('.card-card-action.icon-action{width:28px')&&css.includes('.details-icon{width:14px!important'),'CP250 Details styling should be present');
-assert(foods.includes('14179985')&&foods.includes('31673757')&&foods.includes('2397401')&&foods.includes('6525832')&&foods.includes('29653177')&&foods.includes('goodnes.com')&&foods.includes('20234576')&&foods.includes('7974814')&&foods.includes('14542171')&&foods.includes('7181419')&&foods.includes('7813574')&&foods.includes('792027')&&foods.includes('36378584'),'CP257 food photo mappings should be present');
+assert.equal(foodRows.length,116,'Built-in food catalog should contain 116 meals'); assert(foodRows.every(x=>/^https:\/\//.test(String(x.image||''))),'Every built-in meal should have an HTTPS image URL'); assert.equal(new Set(foodRows.map(x=>x.image)).size,foodRows.length,'Built-in meal image URLs should remain unique');
 
 // CP258 food catalog expansion and Quick Cut contracts.
 const byId=new Map(foodRows.map(x=>[x.id,x]));
