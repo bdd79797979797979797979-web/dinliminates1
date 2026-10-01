@@ -491,7 +491,7 @@ const detailActionMetrics=await page.locator('#detailsModal .restaurant-luxury-a
 assert.equal(detailActionMetrics.length,2,'Website and Directions should share the same compact action row');
 assert.equal(new Set(detailActionMetrics.map(x=>x.w+"x"+x.h)).size,1,'Website and Directions should use the same button dimensions');
 await page.locator('#detailsModal .detail-website-action').click(); await settle(); await page.locator('#detailsModal [data-close]').click(); await settle();
-const directWebsite=await page.locator('#restaurantCard .restaurant-card-website-utility[aria-label="Open restaurant website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
+const directWebsite=await page.locator('#restaurantCard .restaurant-card-website-utility[aria-label^="Open "][aria-label$=" website"]').getAttribute('href'); assert.match(directWebsite||'',/^https:\/\/mcdonalds\.com/,'Restaurant Website action should use the provider website when supplied');
 if(!(await page.locator('#restaurantQuery').isVisible())) { await page.locator('#restaurantSearch').click(); await settle(); }
 await page.locator('#restaurantQuery').fill('Asian Garden'); await settle(); const fallbackHref=await page.locator('#restaurantCard .restaurant-card-website-utility').getAttribute('href'); assert.match(fallbackHref||'',/google\.com\/search\?q=/,'Restaurant Website action should fall back to Google search when no website is supplied');
 await page.locator('#restaurantQuery').fill(''); await settle();
