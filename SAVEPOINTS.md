@@ -1,3 +1,22 @@
+# CURRENT SAVEPOINT — Build 197 / CP487–CP488
+
+Date: 2026-10-01
+
+Working branch: `cp487-launch-candidate-full-pass-2026-10-01`
+Hosted test target: https://deploy-preview-92--diliminate.netlify.app
+Exact Build 197 baseline: `97ce05a158520462e7e546f1dadd3e9b81913403`
+Recovery baseline: `recovery-cp487-build197-pre-launch-pass-2026-09-30`
+
+Verified:
+- 116 unique built-in meals, including restored Smoothie.
+- Restaurant API r22 with 1/3/5/10/25/50/100-mile tiers.
+- QA and hosted smoke synchronized to the current candidate.
+- Current food-image hosts aligned across client/server/service-worker layers.
+
+Do not delete the recovery branches listed in CHECKPOINT.md.
+
+---
+
 # Dinliminate Clean Rebuild — Save Points
 
 ## CP1 — Foundation
