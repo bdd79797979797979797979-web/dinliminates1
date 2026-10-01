@@ -2,6 +2,7 @@ const ALLOWED_HOSTS=new Set([
   'images.pexels.com',
   'images.unsplash.com',
   'commons.wikimedia.org',
+  'upload.wikimedia.org',
   'static.spotapps.co',
   'www.goodnes.com',
   'hips.hearstapps.com',
