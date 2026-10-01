@@ -241,20 +241,24 @@ function pageMatchesRestaurant(html,name,address){
 
 function imageEvidenceScore(candidate,name,address,pageUrl,isOfficial){
   const context=String(candidate?.context||'');
+  const evidence=String(candidate?.evidence||'');
   const url=String(candidate?.url||'');
-  const hay=normalizeText(context+' '+url);
+  const proof=normalizeText(evidence+' '+url);
+  const venueContext=normalizeText(context+' '+evidence+' '+url);
   const nameTokens=significantNameTokens(name);
-  const nameHits=nameTokens.filter(t=>hay.includes(t)).length;
+  const nameHits=nameTokens.filter(t=>proof.includes(t)).length;
   const a=addressParts(address);
   let score=0;
   if(nameTokens.length&&nameHits===nameTokens.length)score+=70;
   else score+=Math.min(45,nameHits*16);
-  if(a.number&&hay.includes(a.number))score+=30;
-  if(a.city&&hay.includes(a.city))score+=20;
-  if(a.zip&&hay.includes(a.zip))score+=30;
-  if(VENUE_IMAGE_HINTS.test(context))score+=55;
-  if(FOOD_IMAGE_HINTS.test(context))score-=85;
-  if(BLOCKED_IMAGE_HINTS.test(context+' '+url))score-=180;
+  if(a.number&&proof.includes(a.number))score+=30;
+  if(a.city&&proof.includes(a.city))score+=20;
+  if(a.zip&&proof.includes(a.zip))score+=30;
+  if(VENUE_IMAGE_HINTS.test(evidence+' '+url))score+=65;
+  // Food/menu wording in the surrounding page is not evidence that this image is food.
+  if(FOOD_IMAGE_HINTS.test(evidence+' '+url))score-=105;
+  if(BLOCKED_IMAGE_HINTS.test(evidence+' '+url))score-=200;
+  if(VENUE_IMAGE_HINTS.test(context))score+=12;
   if(candidate.source==='img')score+=15;
   if(candidate.source==='source')score+=8;
   if(candidate.source==='jsonld')score+=5;
@@ -436,5 +440,5 @@ module.exports=async function handler(req,res){
 module.exports._test={
   absoluteHttpsUrl,extractImgCandidates,extractSourceCandidates,extractMetaImages,extractJsonLdImageCandidates,
   extractStyleImageCandidates,pageMatchesRestaurant,addressParts,collectPageImages,imageEvidenceScore,extractBingWebResultUrls,
-  isBlockedHost,extractDuckDuckGoResultUrls
+  isBlockedHost,extractDuckDuckGoResultUrls,findExactPages,collectPageImages
 };
