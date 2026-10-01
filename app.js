@@ -430,11 +430,11 @@ function foodQuick() {
  });
 }
 function maybeShowSwipeHint(){
-try{if(localStorage.getItem('dinliminate.swipeHint.v1'))return;localStorage.setItem('dinliminate.swipeHint.v1','1');}catch{}
+try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;localStorage.setItem('dinliminate.swipeHint.v2','1');}catch{}
 document.querySelector('#swipeHint')?.remove();
-const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.textContent='Swipe left to Cut · right to Keep';
+const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
 document.body.appendChild(el);
-setTimeout(()=>el.remove(),2600);
+setTimeout(()=>el.remove(),2800);
 }
 function startFood() {
 S.foodActions = [];
@@ -462,7 +462,8 @@ function drawFood(){
  const item=S.pool[S.index],img=$('foodImg');if(!img)return;
  img.src=foodPhoto(item);img.dataset.fallback=foodPhotoFallback(item);img.dataset.finalFallback=FINAL_FOOD_IMAGE;img.alt=item.name;img.referrerPolicy='no-referrer';img.loading='eager';
  img.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
- $('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('foodCount').textContent=S.pool.length+(S.pool.length===1?' choice':' choices');
+ const foodCard=$('foodCard');if(foodCard){foodCard.querySelector('.maybe-stamp')?.remove();if(S.maybe.has(item.id)){const stamp=document.createElement('span');stamp.className='maybe-stamp';stamp.setAttribute('aria-label','Marked Maybe');stamp.textContent='MAYBE';foodCard.appendChild(stamp);}}
+$('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('foodCount').textContent=S.pool.length+(S.pool.length===1?' choice':' choices');
  const nextCard=$('foodNextCard');
  if(nextCard){
   let ni=S.pool.length>1?(S.foodMaybeRound?foodChoiceIndex(S.pool,(S.index+1)%S.pool.length,true):foodChoiceIndex(S.pool,(S.index+1)%S.pool.length,false)):-1;
@@ -682,6 +683,18 @@ function restaurantNameVariantMatchUI(a,b){
  const longer=aa.length>=bb.length?aa:bb,shorterSet=aa.length>=bb.length?bs:as,extras=longer.filter(t=>!shorterSet.has(t));
  return !extras.some(t=>RESTAURANT_NAME_VARIANT_BLOCKERS_UI.has(t));
 }
+function restaurantPhotoQualityScore(row){
+ const confidence=Number(row?.photoConfidence);
+ if(Number.isFinite(confidence))return confidence;
+ const source=String(row?.photoSource||'').toLowerCase();
+ if(source==='google-places')return 0.95;
+ if(source==='provider')return 0.85;
+ if(source==='known-entity')return 0.55;
+ if(source==='cuisine-fallback')return 0.4;
+ if(source==='generic-fallback')return 0.2;
+ return /^https:\/\//i.test(String(row?.photo||''))?0.8:0;
+}
+
 function dedupeRestaurantPool(rows){
  const out=[];
  for(const row of (rows||[])){
@@ -720,6 +733,14 @@ function dedupeRestaurantPool(rows){
   }
   match.fastFood=match.fastFood||row.fastFood;
   if(typeof row.openNow==='boolean' && typeof match.openNow!=='boolean')match.openNow=row.openNow;
+  if(restaurantPhotoQualityScore(row)>restaurantPhotoQualityScore(match)){
+    if(row.photo)match.photo=row.photo;
+    if(row.photoFallback)match.photoFallback=row.photoFallback;
+    if(row.photoSource)match.photoSource=row.photoSource;
+    if(Number.isFinite(Number(row.photoConfidence)))match.photoConfidence=Number(row.photoConfidence);
+    if(typeof row.photoIsGeneric==='boolean')match.photoIsGeneric=row.photoIsGeneric;
+    if(row.googlePlaceId)match.googlePlaceId=row.googlePlaceId;
+  }
   for(const key of ['address','phone','website','opening_hours','photo','cuisine','brand','operator'])if(!match[key]&&row[key])match[key]=row[key];
   match.menuItems=[...new Set([...(Array.isArray(match.menuItems)?match.menuItems:[]),...(Array.isArray(row.menuItems)?row.menuItems:[])])].slice(0,10);
   match.quickCutTags=[...new Set([...(match.quickCutTags||[]),...(row.quickCutTags||[]),...RESTAURANT_TAXONOMY.classifyRestaurant({...match,...row}).tags])];
@@ -1064,6 +1085,31 @@ renderLocationSource();
 }
 }
 }
+let autoRestaurantRefreshActive=false;
+async function maybeAutoRefreshRestaurantLocation(){
+ if(autoRestaurantRefreshActive||S.screen!=='restaurant'||S.locationSource!=='device'||!S.location)return false;
+ const age=Date.now()-Number(S.locationFreshAt||0);
+ if(age<10*60*1000)return false;
+ autoRestaurantRefreshActive=true;
+ try{
+  const pos=await requestBrowserPosition({enableHighAccuracy:false,timeout:2500,maximumAge:120000});
+  const fresh={lat:Number(pos.coords.latitude),lon:Number(pos.coords.longitude)};
+  if(!Number.isFinite(fresh.lat)||!Number.isFinite(fresh.lon))return false;
+  const moved=locationMovedMiles(S.location,fresh);
+  S.locationFreshAt=Date.now();
+  if(Number.isFinite(moved)&&moved>=0.15){
+   setLocation(fresh.lat,fresh.lon,'Current location','device');
+   if(S.screen==='restaurant'){
+    $('status').textContent='Location updated. Refreshing restaurants…';
+    await searchRestaurants().catch(()=>{});
+   }
+   return true;
+  }
+  save();
+ }catch{}
+ finally{autoRestaurantRefreshActive=false;}
+ return false;
+}
 let suggestTimer = 0;
 let suggestSeq = 0;
 let suggestionIndex = -1;
@@ -1288,6 +1334,8 @@ const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
 const restaurantFallback = (r) => imageProxyUrl(r?.photo || r?.photoFallback || r?.image || FINAL_RESTAURANT_IMAGE);
 const image = restaurantFallback(row);
+const distanceLabel=Number.isFinite(Number(row.distance)) ? Number(row.distance).toFixed(1)+' mi away' : '';
+const restaurantMaybeBadge=row._maybe?'<span class="maybe-stamp restaurant-maybe-stamp" aria-label="Marked Maybe">MAYBE</span>':'';
 const nextRow = rows[S.restaurantIndex + 1];
 const nextImage = restaurantFallback(nextRow);
 const cardLocation = row.address ? '<div class="restaurant-card-location" title="'+esc(row.address)+'">⌖ '+esc(String(row.address).split(',').slice(0,2).join(', '))+'</div>' : '';
@@ -1296,10 +1344,9 @@ const websiteUrl=restaurantWebsiteUrl(row);
 const cardWebsite = '<a class="restaurant-card-utility restaurant-card-website-utility" href="'+esc(websiteUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+(directWebsite?'Open '+esc(row.name)+' website':'Search '+esc(row.name)+' website on Google')+'" title="'+(directWebsite?'Website':'Website search')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></a>';
 const cardDetailsAction = '<button class="restaurant-card-utility restaurant-card-details-utility" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
-const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+(row.distance != null ? ' · '+Number(row.distance).toFixed(1)+' mi' : '')+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
+const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+'</div></div></article></div>'+
-'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+restaurantMaybeBadge+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
@@ -1423,6 +1470,17 @@ el.appendChild(burst);
 el.classList.remove('hidden');
 window.setTimeout(()=>el.classList.add('hidden'),2400);
 }
+function triggerWinnerMoment(hungry=false){
+ const el=$('winner');if(!el)return;
+ el.classList.remove('winner-reveal');
+ void el.offsetWidth;
+ if(!hungry){
+  el.classList.add('winner-reveal');
+  triggerSwipeHaptic();
+  window.setTimeout(()=>el.classList.remove('winner-reveal'),1800);
+ }
+}
+
 function winner(item) {
 S.winnerItem = item;
 S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
@@ -1450,7 +1508,7 @@ winImg.onerror=function(){
 };
 winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||item?.googlePlaceId||'');
 winImg.dataset.googlePhotoId = item?.googlePlaceId ? String(item.googlePlaceId) : '';
-if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
+if ($('celebration')) $('celebration').classList.toggle('hidden', hungry); triggerWinnerMoment(hungry);
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
  if (!hungry) {
    triggerCelebration();
@@ -2126,6 +2184,8 @@ $('restart').onclick = resetRound;
 const updateOffline = () => $('offlineIndicator')?.classList.toggle('hidden', navigator.onLine !== false);
 window.addEventListener('online', updateOffline);
 window.addEventListener('offline', updateOffline);
+window.addEventListener('online',()=>{if(S.screen==='restaurant')maybeAutoRefreshRestaurantLocation();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen==='restaurant')maybeAutoRefreshRestaurantLocation();});
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
