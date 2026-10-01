@@ -319,7 +319,7 @@ const contactResolution=await page.evaluate(()=>{const t=window.__DINLIMINATE_TE
   mcd:t?.knownRestaurantWebsite({name:"McDonald's"}),
   mcdBrand:t?.knownRestaurantWebsite({name:'Local Store',brand:"McDonald's"}),
   google:t?.restaurantWebsiteUrl({name:'Local Restaurant',address:'100 Main St, Clarksville, TN',website:''}),
-  rejectedApp:t?.restaurantWebsiteUrl({name:"McDonald's",address:'100 Main St, Clarksville, TN',website:location.origin}),
+  rejectedApp:t?.restaurantWebsiteUrl({name:'Local Restaurant',address:'100 Main St, Clarksville, TN',website:location.origin}),
   phoneSearch:t?.restaurantPhoneSearchUrl({name:"McDonald's",address:'1265 Rossview Rd, Clarksville, TN 37043'})
 };});
 assert.equal(contactResolution.mcd,'https://www.mcdonalds.com',"McDonald's must resolve to its official website");
