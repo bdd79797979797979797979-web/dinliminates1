@@ -225,7 +225,18 @@ function venueScore(candidate,name,address,website){
 
 function hasVenueSignal(candidate){
   const context=String(candidate?.context||'');
-  return VENUE_IMAGE_HINTS.test(context) && !/^.*(?:menu|food|dish|meal).*(?:menu|food|dish|meal).*$/i.test(context);
+  if(!context.trim())return false;
+  // The page itself has already been verified as the exact restaurant/location.
+  // For page-level image metadata (og:image / JSON-LD), that verification is
+  // sufficient; forcing venue words into the image tag context rejects many
+  // legitimate restaurant hero photos.
+  if(candidate?.source==='meta'||candidate?.source==='jsonld')return true;
+  const hay=normalizeMatchText(context);
+  const venueHits=(hay.match(/exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|sign|signage|location|drive thru|parking lot|parking|street view|patio|terrace/g)||[]).length;
+  const foodHits=(hay.match(/menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine/g)||[]).length;
+  // Require venue evidence, but allow normal restaurant-page copy around a
+  // real venue photo instead of rejecting it because the page mentions food.
+  return venueHits>=1 && foodHits <= (venueHits*3+4);
 }
 
 function extractVenueImageCandidates(html,pageUrl,name,address,website){
