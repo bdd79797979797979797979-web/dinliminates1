@@ -1,0 +1,52 @@
+name: CP648 Photo Live Test
+on:
+  push:
+    branches:
+      - cp648-photo-quality-gate
+  workflow_dispatch:
+jobs:
+  photo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax
+        run: node --check api/restaurant-photo.js && node --check app.js && node --check api/restaurants.js
+      - name: Smoke
+        run: node qa/restaurant-photo-smoke.cjs
+      - name: Live exact venue test
+        run: |
+          node <<'NODE'
+          const photoApi = require('./api/restaurant-photo.js');
+          async function call(query){
+            const headers={}; let status=0; let body=Buffer.alloc(0);
+            await photoApi(
+              {query},
+              {
+                setHeader(k,v){headers[k]=String(v)},
+                get statusCode(){return status},
+                set statusCode(v){status=v},
+                end(v){body=Buffer.isBuffer(v)?v:Buffer.from(String(v??''))}
+              }
+            );
+            return {status,headers,bytes:body.length,body:body.toString('utf8').slice(0,220)};
+          }
+          (async()=>{
+            const w=await call({
+              name:"Wendy's",
+              address:"2800 Wilma Rudolph Blvd, Clarksville, TN 37040-5016",
+              officialWebsite:"https://locations.wendys.com/united-states/tn/clarksville/2800-wilma-rudolph-blvd"
+            });
+            console.log("WENDY",JSON.stringify({status:w.status,source:w.headers['X-Restaurant-Photo-Source'],sourceUrl:w.headers['X-Restaurant-Photo-Source-URL'],type:w.headers['Content-Type'],bytes:w.bytes,head:w.body},null,2));
+            if(w.status!==200) throw new Error("Wendy exact venue photo did not return HTTP 200");
+            if(!/^image\\/(?:jpeg|png|webp|avif)$/i.test(w.headers['Content-Type']||'')) throw new Error("Wendy returned a non-photo content type: "+w.headers['Content-Type']);
+            if(w.bytes<4000) throw new Error("Wendy returned a tiny asset: "+w.bytes);
+            if(w.headers['X-Restaurant-Photo-Source']==='official-venue-page' && /svg/i.test(w.headers['Content-Type']||'')) throw new Error("Wendy returned SVG as venue photo");
+            const f=await call({name:"Dinliminate Completely Fake Restaurant 918273",address:"918273 No Such Street, Clarksville, TN 37040"});
+            console.log("FAKE",JSON.stringify({status:f.status,source:f.headers['X-Restaurant-Photo-Source'],type:f.headers['Content-Type'],bytes:f.bytes,head:f.body},null,2));
+            if(f.status===200) throw new Error("Fake restaurant received a photo");
+          })().catch(err=>{console.error(err);process.exit(1)});
+          NODE
