@@ -1233,6 +1233,7 @@ if(searchSeq===restaurantSearchSeq) setFindBusy(false);
 }
 }
 function openRestaurant() {
+renderRestaurantSearchControl();
 S.screen = 'restaurant';
 S.restaurantActions = [];
 S.restaurantMaybeRound = false;
@@ -1251,6 +1252,7 @@ maybeShowSwipeHint();
 }
 function drawRestaurants() {
 const rows = restaurantPoolFiltered();
+renderRestaurantSearchControl();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
 if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
@@ -1348,8 +1350,20 @@ function scheduleRestaurantProviderSearch(){
  if(q.length<2)return;
  restaurantQueryTimer=setTimeout(()=>{searchRestaurants();},650);
 }
+function renderRestaurantSearchControl(){
+ const btn=$('restaurantSearch');
+ if(!btn)return;
+ const hasResults=Array.isArray(S.restaurantPool)&&S.restaurantPool.length>0;
+ btn.dataset.state=hasResults?'refresh':'search';
+ const label=hasResults?'Search or refresh restaurant results':'Search restaurants by name or cuisine';
+ btn.setAttribute('aria-label',label);
+ btn.title=label;
+ const sr=btn.querySelector('.sr-only');
+ if(sr)sr.textContent=hasResults?'Search or refresh':'Search';
+}
+
 function bindRestaurantTools(){
- $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
+ $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;renderRestaurantSearchControl();if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
