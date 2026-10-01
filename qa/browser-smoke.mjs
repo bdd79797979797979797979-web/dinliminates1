@@ -24,7 +24,7 @@ const context = await browser.newContext({viewport:{width:393,height:852},device
 await context.grantPermissions(['geolocation'],{origin:'http://127.0.0.1:4173'}); await context.setGeolocation({latitude:36.5304,longitude:-87.3601});
 const page = await context.newPage();
 
-let forceReverseFailure=false;
+let forceReverseFailure=false; let restaurantSearchRequestBaseline=0;
 const png1x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
 const pageErrors=[]; const consoleErrors=[]; const dataResponses=[]; const requestFailures=[]; const badResponses=[]; let lastRestaurantSearchRequestAt=0;
 fs.mkdirSync(path.join(root,'qa-artifacts'),{recursive:true});
@@ -82,9 +82,9 @@ await page.route('**/*', async route => {
 
 function qa(){ return page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot()); }
 async function visible(id){return page.locator('#'+id).isVisible();}
-async function click(sel){await page.locator(sel).click();}
+async function click(sel){restaurantSearchRequestBaseline=requests.length;await page.locator(sel).click();}
 async function settle(){await page.waitForTimeout(150);}
-async function waitForRestaurantSearch(){const calledAt=Date.now();const deadline=Date.now()+10000;while(lastRestaurantSearchRequestAt<calledAt-1000&&Date.now()<deadline)await new Promise(r=>setTimeout(r,50));if(lastRestaurantSearchRequestAt<calledAt-1000)throw new Error('Restaurant search request did not start after the triggering action.');await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy},{timeout:30000});await settle();}
+async function waitForRestaurantSearch(){const deadline=Date.now()+10000;while(requests.length<=restaurantSearchRequestBaseline&&Date.now()<deadline)await new Promise(r=>setTimeout(r,50));if(requests.length<=restaurantSearchRequestBaseline)throw new Error('Restaurant search request did not start after the triggering action.');await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy},{timeout:30000});await settle();}
 
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
@@ -346,7 +346,7 @@ assert.equal(s.allRestaurantIds.includes('heads-1')&&s.allRestaurantIds.includes
 assert.equal(await page.locator('#find').innerText(),'Refresh','Find should act as Refresh after a location is selected');
 const searchRequests=[];
 page.on('request',req=>{if(req.url().includes('/api/restaurant-search?mode=search'))searchRequests.push(req.url());});
-const requestsBeforeRadius=searchRequests.length;
+const requestsBeforeRadius=searchRequests.length; restaurantSearchRequestBaseline=requests.length;
 await page.locator('#radius').selectOption('5');
 await page.waitForFunction(()=>document.querySelector('#restaurantCount')?.innerText.includes('5 choices')||document.querySelector('#status')?.textContent.includes('5 restaurants'));
 await settle();
@@ -354,6 +354,7 @@ assert.ok(searchRequests.length>requestsBeforeRadius,'Changing radius should aut
 assert.equal(await page.locator('#radius').inputValue(),'5','Radius control should retain the selected value');
 assert.equal((await qa()).allRestaurantIds.length,5,'Five-mile search should return only the five unique mocked venues within five miles');
 assert.equal((await qa()).restaurantPool.length,5,'Five-mile radius should filter the active choice pool to five venues');
+restaurantSearchRequestBaseline=requests.length;
 await page.locator('#radius').selectOption('10');
 await waitForRestaurantSearch(); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
 assert.equal((await qa()).allRestaurantIds.length,9,'Returning to ten miles should restore the full unique radius result set');
