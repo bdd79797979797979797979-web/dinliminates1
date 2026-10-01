@@ -1,4 +1,34 @@
-# Dinliminate Current Release
+# CURRENT RELEASE — LAUNCH CANDIDATE
+
+**Build 197 / CP487–CP488 — 2026-10-01**
+
+## Source of truth
+- Launch-candidate branch: `cp487-launch-candidate-full-pass-2026-10-01`
+- Recovery baseline: `recovery-cp487-build197-pre-launch-pass-2026-09-30`
+- Release source branch: `cp466-restaurant-identity-final-2026-09-30`
+- Current app release: Version 1.0 / **Build 197** / **CP487**
+- Restaurant API: **r22**
+- Restaurant radius tiers: **1 / 3 / 5 / 10 / 25 / 50 / 100 miles**
+- Hosted test target: **https://deploy-preview-92--diliminate.netlify.app**
+- Netlify is the current hosted iPhone-testing target; Vercel production deployment is currently account-rate-limited.
+- The candidate remains unpromoted until hosted identity and physical iPhone Safari/PWA checks are complete.
+
+## CP487–CP488 launch-pass changes
+- Restored the missing **Smoothie** entry; the built-in catalog is again **116 unique foods**.
+- Synchronized stale Restaurant QA contracts from r20/50-mile assumptions to r22/100-mile behavior.
+- Extended API smoke to exercise 100-mile radius behavior.
+- Rebuilt the hosted Netlify smoke to verify Build 197, PWA shell, Home, Meal Tinder controls, Restaurant controls, and mobile overflow.
+- Aligned the client image proxy, server image proxy, service worker, and static QA for all current food-photo hosts.
+- Preserved recovery branches at each significant stage.
+
+## Remaining launch gates
+- Automated CI against the launch-candidate branch/PR
+- Hosted Netlify runtime verification
+- Physical iPhone Safari/PWA install and GPS test
+- Final third-party photo/source rights review
+- Vercel production deployment after its account deployment limit clears
+
+---
 
 ## Source of truth
 - Runtime target: Vercel
