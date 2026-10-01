@@ -221,7 +221,7 @@ report["2_search_address"].enterBehavior='Partial/ambiguous-looking input select
 const thirstyGoat=allResults.find(x=>x.id==='thirsty-goat');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),thirstyGoat),'Pizza');
 const waffleHouse=allResults.find(x=>x.id==='waffle');
-assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),waffleHouse),'American');
+assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantCategory(row),waffleHouse),'Breakfast');
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Breakfast'),waffleHouse),true);
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Pizza'),thirstyGoat),true);
 assert.equal(await page.evaluate(row=>window.__DINLIMINATE_TEST__.restaurantQuickMatches(row,'Fast Food'),thirstyGoat),false);
