@@ -1,0 +1,29 @@
+name: CP621 Photo Test
+on:
+  push:
+    branches: [cp621-final-dinliminate-photo]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test final public photo resolver
+        env:
+          BASE_URL: https://deploy-preview-106--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const base=process.env.BASE_URL;
+          for(const [name,address] of [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043"]
+          ]){
+            const r=await fetch(base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address));
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const source=r.headers.get('x-restaurant-photo-source')||'';
+            const sourceUrl=r.headers.get('x-restaurant-photo-source-url')||'';
+            const size=(await r.arrayBuffer()).byteLength;
+            console.log(JSON.stringify({name,status:r.status,type,source,sourceUrl,size}));
+            if(r.status!==200||!type.startsWith('image/'))throw new Error(name+' photo resolver failed');
+          }
+          NODE
