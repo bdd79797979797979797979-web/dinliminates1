@@ -22,6 +22,12 @@
 .card[data-swipe="cut"]::after,.card[data-swipe="maybe"]::after{position:absolute;top:18px;padding:7px 10px;border:2px solid currentColor;border-radius:11px;font-size:12px;letter-spacing:.12em;font-weight:900;z-index:4;background:#090909cc;text-transform:uppercase}
 .card[data-swipe="cut"]::after{content:"CUT";left:18px;color:#c6a46a;transform:rotate(-10deg)}
 .card[data-swipe="maybe"]::after{content:"MAYBE";right:18px;color:#f2ebe3;transform:rotate(10deg)}
+/* CP547 — directional drag tint + slow-swipe sharpness protection. */
+.card{--swipe-tint-alpha:0}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:var(--swipe-tint-alpha)}
+.card[data-swipe="cut"]::before{background:linear-gradient(90deg,rgba(196,62,56,1) 0%,rgba(196,62,56,.48) 24%,rgba(196,62,56,0) 58%)}
+.card[data-swipe="maybe"]::before{background:linear-gradient(270deg,rgba(72,176,112,1) 0%,rgba(72,176,112,.48) 24%,rgba(72,176,112,0) 58%)}
+.card .card-copy{z-index:3}
 .card:active{cursor:grabbing}
 
 /* CP98 — stable restaurant search geometry */
