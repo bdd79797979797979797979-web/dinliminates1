@@ -60,7 +60,6 @@ restaurantCuts:new Set(),
 restaurantActions:[],
 restaurantMaybeRound:false,
 restaurantQuery:'',
-hoursMode:'openUnknown',
 location:null,
 locationSource:'none',
 restaurantSearchLatencyMs:0,
@@ -289,7 +288,7 @@ cutCats:[...S.cutCats], foodCuts:[...S.foodCuts], maybe:[...S.maybe],
 pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
-restaurantQuery:S.restaurantQuery, hoursMode:S.hoursMode, location:S.location, locationSource:S.locationSource,
+restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION,
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
@@ -329,7 +328,6 @@ S.foodCuts = new Set(d.foodCuts || []);
 S.maybe = new Set(d.maybe || []);
 S.foodMaybeRound = !!d.foodMaybeRound;
 S.restaurantCuts = new Set(d.restaurantCuts || []);
-S.hoursMode = 'openUnknown';
 S.foodActions = Array.isArray(d.foodActions) ? d.foodActions : [];
 S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions : [];
 S.restaurantMaybeRound = !!d.restaurantMaybeRound;
@@ -844,42 +842,18 @@ function restaurantPoolBase(){
  });
 }
 function restaurantPoolFiltered(){
- return restaurantPoolBase().filter(row=>restaurantHoursFilter(row));
-}
-function restaurantHoursFilter(row){
- return S.hoursMode==='all' || restaurantHourState(row)!=='closed';
-}
-function syncRestaurantHoursControl(){
- const wrap=$('hoursToggle'); if(!wrap)return;
- const mode=S.hoursMode==='all'?'all':'openUnknown';
- wrap.querySelectorAll('[data-hours-mode]').forEach(btn=>{
-  const active=btn.dataset.hoursMode===mode;
-  btn.classList.toggle('active',active);
-  btn.setAttribute('aria-pressed',String(active));
- });
-}
-function setRestaurantHoursMode(mode){
- S.hoursMode=mode==='all'?'all':'openUnknown';
- syncRestaurantHoursControl();
- drawRestaurants();
- save();
+ return restaurantPoolBase();
 }
 function updateRestaurantStatus(){
  const el=$('status'); if(!el)return;
  const radius=Math.min(100,Number($('radius')?.value)||10);
  const base=restaurantPoolBase();
- const states={open:0,unknown:0,closed:0};
- for(const row of base){const state=restaurantHourState(row);states[state]=(states[state]||0)+1;}
  const total=base.length,degraded=S.restaurantSearchDegraded;
  if(!total){
   el.textContent=degraded?'Restaurant sources are unavailable. Try again.':'No restaurants match the current filters.';
       return;
  }
- if(S.hoursMode==='all'){
-  el.textContent=states.open+' open · '+states.unknown+' unknown · '+states.closed+' closed · '+total+' total · '+radius+' mi';
- }else{
-  el.textContent=(states.open+states.unknown)+' open/unknown · '+states.closed+' closed hidden · '+total+' total · '+radius+' mi';
- }
+ el.textContent=total+' restaurant'+(total===1?'':'s')+' · '+radius+' mi';
 }
 
 function restaurantQuick() {
@@ -1225,14 +1199,12 @@ row._maybe = false;
 }
 S.winnerItem = null;
 show('restaurant');
-syncRestaurantHoursControl();
 restaurantQuick();
 $('restaurantSearchBox')?.classList.add('hidden');
 $('restaurantQuery').value = '';
 maybeShowSwipeHint();
 }
 function drawRestaurants() {
-syncRestaurantHoursControl();
 const rows = restaurantPoolFiltered();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
@@ -1334,8 +1306,7 @@ function scheduleRestaurantProviderSearch(){
 function bindRestaurantTools(){
  const hoursToggle=$('hoursToggle');
  if(hoursToggle) hoursToggle.querySelectorAll('[data-hours-mode]').forEach(btn=>{btn.onclick=()=>setRestaurantHoursMode(btn.dataset.hoursMode);});
- syncRestaurantHoursControl();
- $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
+  $('restaurantSearch').onclick=()=>{const box=$('restaurantSearchBox');box.classList.toggle('hidden');$('restaurantQuery').value=S.restaurantQuery;if(!box.classList.contains('hidden'))$('restaurantQuery').focus();};
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
@@ -1836,13 +1807,11 @@ async function appDiagnosisView(existingModal){
    S.restaurantSearchDegraded?warn('restaurant','Search quality state','The last restaurant search was marked degraded.','Run a fresh search; if it repeats, inspect the search service/provider path.'):info('restaurant','Search quality state','No degraded-search flag is currently set.');
    const radiusOptions=[...($('radius')?.options||[])].map(o=>Number(o.value||o.textContent)).filter(Number.isFinite),radiusContract=[1,3,5,10,25,50,100].every((v,i)=>radiusOptions[i]===v);
    radiusContract&&radiusOptions.length===7?pass('restaurant','Radius controls','1, 3, 5, 10, 25, 50, and 100 miles are available; 100 miles is the cap.','Radius filtering is enforced from the final restaurant distance calculation.'):fail('restaurant','Radius controls','Radius options are out of sync with the current 100-mile model.','The Restaurant UI should expose exactly 1, 3, 5, 10, 25, 50, and 100 miles.');
-   const searchControl=$('restaurantSearch'),hoursControl=document.querySelector('#hoursToggle');
-   searchControl&&hoursControl?pass('restaurant','Search controls','Compact Restaurant Search and Open/All hours controls are present beside the Restaurant filters.','Search opens the restaurant name/cuisine field while Open shows open/unknown venues and All includes explicitly closed venues.'):fail('restaurant','Search controls','Restaurant Search or hours-control state is inconsistent.','The compact Search control should coexist with Find/Refresh and the Open/All hours control.');
+   const searchControl=$('restaurantSearch');
+   searchControl?pass('restaurant','Search controls','Compact Restaurant Search is present beside the Restaurant filters.','Search opens the restaurant name/cuisine field while Find/Refresh and Radius continue to control the result context.'):fail('restaurant','Search controls','Restaurant Search control is missing.','The compact Search control should coexist with Find/Refresh and Radius.');
    if((S.restaurantPool||[]).length){
     const keyReady=!!String(S.restaurantSearchKey||'').trim();
     keyReady?pass('restaurant','Search freshness','Current restaurant results are tied to a location/radius/query search key.','Changing the Restaurant query starts a fresh result context instead of carrying the previous query forward.'):warn('restaurant','Search freshness','The current result pool has no stored query-aware search key.','Run a fresh Restaurant search to establish the current search context.');
-    const closed=restaurants.filter(x=>restaurantHourState(x)==='closed').length;
-    S.hoursMode==='openUnknown'?pass('restaurant','Hours behavior',closed+' closed venue(s) are excluded by the default Open/Unknown presentation.','Open shows open and unknown venues; All can be selected when closed venues should be included.'):pass('restaurant','Hours behavior','All is selected; '+closed+' closed venue(s) are included in the decision deck.','Switch back to Open to exclude explicitly closed venues.');
     const classified=restaurants.map(x=>restaurantCuisineTags(x)).filter(tags=>tags&&tags.length),known=classified.filter(tags=>tags.some(tag=>tag!=='Fast Food')),generic=restaurants.length-known.length;
    known.length>=Math.max(1,restaurants.length*.5)?pass('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have at least one useful cuisine/category tag; '+generic+' remain generic.','Quick Cuts use the shared Restaurant taxonomy plus provider type, name, identity, and menu evidence.'):warn('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have a useful cuisine/category tag; '+generic+' remain generic.','A generic provider record may not contain enough identity/cuisine evidence to classify safely.');
    const withPhone=restaurants.filter(x=>String(x.phone||'').trim()).length,withWebsite=restaurants.filter(x=>String(x.website||'').trim()).length;
@@ -2013,7 +1982,6 @@ if(e.key==='Enter'){
 if(e.key==='Escape'){ e.preventDefault(); invalidateAddressSuggestions(); }
 });
 bindRestaurantTools();
-syncRestaurantHoursControl();
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
 $('restart').onclick = resetRound;
@@ -2023,7 +1991,7 @@ window.addEventListener('offline', updateOffline);
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,restaurantHoursFilter,dedupeRestaurantPool,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
