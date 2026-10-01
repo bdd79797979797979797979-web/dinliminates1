@@ -39,10 +39,10 @@ function isClearlyNonDiningBusiness(row){
   Array.isArray(row?.amenity)?row.amenity.join(' '):row?.amenity
  ].filter(Boolean).join(' '));
  if(!hay)return false;
- const nonDiningPattern=/\\b(?:food supplier|food suppliers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\\b/i;
+ const nonDiningPattern=/\b(?:food supplier|food suppliers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\b/i;
  if(nonDiningPattern.test(hay))return true;
- const strongNonDiningType=/\\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\\b/i;
- const diningType=/\\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food court|food hall)\\b/i;
+ const strongNonDiningType=/\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\b/i;
+ const diningType=/\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food court|food hall)\b/i;
  return strongNonDiningType.test(hay)&&!diningType.test(hay);
 }
 function filterNonDiningRows(rows){return (rows||[]).filter(row=>!isClearlyNonDiningBusiness(row))}
@@ -668,7 +668,7 @@ if(mode==='search'){
    }else osmOut.errors.push('Search budget reached before restaurant discovery expansion.');
  }
  let contactOut={rows:[],errors:[]};
- const contactCandidates=dedupe([...preliminary,...osmOut.rows]);
+ const contactCandidates=filterNonDiningRows(dedupe([...preliminary,...osmOut.rows]));
  const contactAllowed=!wideSearch;
  const missingContactNames=contactCandidates
    .filter(r=>!r.phone)
@@ -691,7 +691,7 @@ if(mode==='search'){
  }
  const zone=await timezonePromise;
  const checkedAt=new Date();
- const rows=dedupe([...contactCandidates,...contactOut.rows]).map(r=>{
+ const rows=filterNonDiningRows(dedupe([...contactCandidates,...contactOut.rows])).map(r=>{
    const distance=miles(lat,lon,n(r.lat),n(r.lon));
    return {...r,distance};
  }).filter(r=>Number.isFinite(r.distance)&&r.distance<=radius+0.001).map(r=>{
