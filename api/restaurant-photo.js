@@ -325,6 +325,27 @@ async function findExactPages(name,address,website){
   const queries=[];
   const direct=[];
   const websiteUrl=absoluteHttpsUrl(website);
+
+  // Restaurantji has a stable state/city/name path and a dedicated exact-venue photo gallery.
+  // Try this deterministic public source before search-engine discovery.
+  const a=addressParts(address);
+  const slug=normalizeText(name).replace(/\\b(the)\\b/g,'the').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const citySlug=a.city.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const stateSlug=(a.state.match(/\\b[a-z]{2}\\b/)||[])[0]||'';
+  if(stateSlug&&citySlug&&slug){
+    const directRestaurantji=[
+      'https://www.restaurantji.com/'+stateSlug+'/'+citySlug+'/'+slug+'-/photos/',
+      'https://www.restaurantji.com/'+stateSlug+'/'+citySlug+'/'+slug+'/photos/',
+      'https://www.restaurantji.com/'+stateSlug+'/'+citySlug+'/'+slug+'-/'
+    ];
+    for(const candidateUrl of directRestaurantji){
+      try{
+        const html=await verifiedPage(candidateUrl,name,address);
+        if(html)direct.push({url:candidateUrl,html,isOfficial:false,source:'Restaurantji'});
+      }catch{}
+      if(direct.length>=2)break;
+    }
+  }
   if(websiteUrl){
     const html=await verifiedPage(websiteUrl,name,address);
     if(html)direct.push({url:websiteUrl,html,isOfficial:true});
