@@ -1436,3 +1436,23 @@ button,a,select{touch-action:manipulation}
   .quick{padding-bottom:2px}
   .swipe-actions{margin-top:4px!important}
 }
+
+
+/* CP543 — fill the iPhone viewport cleanly without a bottom dead zone.
+   The app owns the viewport height; safe-area space is reserved inside the
+   content controls rather than creating an extra band below the app. */
+@media(max-width:600px){
+  html,body{height:100%;min-height:100%;background:#090909}
+  .app{
+    height:100dvh!important;
+    min-height:100dvh!important;
+    padding-bottom:0!important;
+  }
+  .decision-screen{
+    height:100%!important;
+    min-height:0!important;
+  }
+  .swipe-actions{
+    margin-bottom:max(4px,env(safe-area-inset-bottom))!important;
+  }
+}
