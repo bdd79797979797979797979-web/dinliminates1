@@ -1575,8 +1575,7 @@ winImg.onerror=function(){
   if(fb && current!==fb){this.src=fb;return;}
   if(!String(current||'').startsWith('data:image/svg') && HUNGRY_IMAGE){this.src=HUNGRY_IMAGE;}
 };
-winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||item?.googlePlaceId||'');
-winImg.dataset.googlePhotoId = item?.googlePlaceId ? String(item.googlePlaceId) : '';
+winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||'');
 if ($('celebration')) $('celebration').classList.toggle('hidden', hungry); triggerWinnerMoment(hungry);
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
  if (!hungry) {
@@ -2065,9 +2064,9 @@ async function appDiagnosisView(existingModal){
     const classified=restaurants.map(x=>restaurantCuisineTags(x)).filter(tags=>tags&&tags.length),known=classified.filter(tags=>tags.some(tag=>tag!=='Fast Food')),generic=restaurants.length-known.length;
    known.length>=Math.max(1,restaurants.length*.5)?pass('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have at least one useful cuisine/category tag; '+generic+' remain generic.','Quick Cuts use the shared Restaurant taxonomy plus provider type, name, identity, and menu evidence.'):warn('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have a useful cuisine/category tag; '+generic+' remain generic.','A generic provider record may not contain enough identity/cuisine evidence to classify safely.');
    const withPhone=restaurants.filter(x=>String(x.phone||'').trim()).length,withWebsite=restaurants.filter(x=>String(x.website||'').trim()).length;
-    info('restaurant','Contact coverage',withPhone+' of '+restaurants.length+' result(s) have a phone and '+withWebsite+' have a website in the current data.','Missing contacts use targeted provider enrichment and Google fallback search where available.');
+    info('restaurant','Contact coverage',withPhone+' of '+restaurants.length+' result(s) have a phone and '+withWebsite+' have a website in the current data.','Missing contacts use targeted provider enrichment and a web-search fallback.');
     const venuePhotos=restaurants.filter(x=>x.photoSource==='google-places'||x.photoSource==='provider'||x.photoSource==='known-entity').length;
-    info('restaurant','Photo coverage',venuePhotos+' of '+restaurants.length+' current result(s) have a named/provider photo source.','Verified Google Place photography is preferred when a Place ID exists, with provider/cuisine fallbacks protecting the card.');
+    info('restaurant','Photo coverage',venuePhotos+' of '+restaurants.length+' current result(s) have a named/provider photo source.','Real provider/web photography is loaded when available, with cuisine fallbacks protecting the card.');
    }else{
     info('restaurant','Search freshness','No Restaurant pool is loaded, so the query-aware search key is not yet active on this screen.','Run a Restaurant search to verify the current search context.');
    }
