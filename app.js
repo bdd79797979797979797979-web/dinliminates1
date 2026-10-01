@@ -1384,9 +1384,9 @@ if(!S.restaurantMaybeRound){const ni=restaurantChoiceIndex(rows,S.restaurantInde
 const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
 const restaurantFallback = (r) => {
- const photo=String(r?.photo||'');
- const providerPhoto=/^https:\/\//i.test(photo) && r?.photoIsGeneric!==true && String(r?.photoSource||'').toLowerCase()!=='generic-fallback' && String(r?.photoSource||'').toLowerCase()!=='cuisine-fallback' && String(r?.photoSource||'').toLowerCase()!=='known-entity';
- return providerPhoto ? imageProxyUrl(photo) : FINAL_RESTAURANT_IMAGE;
+ const rowKey=String(r?.id||r?.canonicalId||'').trim();
+ const verified=restaurantPhotoCache.get(rowKey);
+ return verified?.url ? verified.url : FINAL_RESTAURANT_IMAGE;
 };
 const image = restaurantFallback(row);
 const distanceLabel=Number.isFinite(Number(row.distance)) ? Number(row.distance).toFixed(1)+' mi away' : '';
