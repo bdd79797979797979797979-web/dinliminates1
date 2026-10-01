@@ -958,11 +958,11 @@ if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(q.get('lat')),lon=n(q.get('lon'));if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
 if(mode==='website'){
- const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700);
+ const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80);
  if(!name)return res.status(400).json({ok:false,message:'Restaurant name is required.'});
- const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite});
+ const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite,phone});
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');
- return res.status(200).json({ok:true,website:result.website||'',source:result.source});
+ return res.status(200).json({ok:true,website:result.website||'',officialPage:result.officialPage||'',source:result.source||'none'});
 }
 if(mode==='search'){
  const startedAt=Date.now();
