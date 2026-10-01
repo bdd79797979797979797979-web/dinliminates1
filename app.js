@@ -470,7 +470,7 @@ function drawFood(){
   const next=ni>=0?S.pool[ni]:null;nextCard.classList.toggle('hidden',!next);nextCard.style.display=next?'block':'none';
   if(next){const nimg=$('foodNextImg');nimg.src=foodPhoto(next);nimg.dataset.fallback=foodPhotoFallback(next);nimg.dataset.finalFallback=FINAL_FOOD_IMAGE;nimg.alt=next.name;nimg.referrerPolicy='no-referrer';nimg.loading='eager';nimg.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};nextCard.style.transform='scale(.96)';}
  }
- bindFoodSwipe();$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);
+ bindFoodSwipe();$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);if($('foodCardCut'))$('foodCardCut').onclick=()=>foodCut();if($('foodCardMaybe'))$('foodCardMaybe').onclick=()=>foodMaybe();
 }
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
@@ -1886,7 +1886,7 @@ async function appDiagnosisView(existingModal){
    quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Meals and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Meal Quick Cut mappings match the current catalog.');
    const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
    staleNames.length?fail('food','Removed choices','Stouffer/frozen-dinner data is still present.','Remove the legacy choice from the catalog.'):pass('food','Removed choices','Legacy Stouffer/frozen-dinner choice is absent.');
-   const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCut','foodChoose','foodMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
+   const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCardCut','foodChoose','foodCardMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
    foodVisible&&foodControls<6?fail('food','Meal decision controls',foodControls+'/6 required controls are present.','Cut, Choose, Maybe, Back, Hide, and Details should all be available.'):pass('food','Meal decision controls','Cut, Choose, Maybe, Back, Hide, and Details are wired.');
    const visibleImgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=visibleImgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=visibleImgs.filter(i=>i.dataset.imageFallback==='true');
    broken.length?fail('runtime','Visible images',broken.length+' visible image(s) have failed to decode.','Check the affected photo source or fallback mapping.'):fallbacked.length?warn('runtime','Visible images',fallbacked.length+' visible image(s) are currently using a fallback image.','The app is protected from broken images, but the original source should be reviewed.'):info('runtime','Visible images',visibleImgs.length+' visible image(s) are available to inspect on this screen.');
@@ -1929,7 +1929,7 @@ async function appDiagnosisView(existingModal){
    sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
    const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
    ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
-   const requiredIds=['foodQuick','foodCut','foodChoose','foodMaybe','foodBack','foodHide','foodDetails'];
+   const requiredIds=['foodQuick','foodCardCut','foodChoose','foodCardMaybe','foodBack','foodHide','foodDetails'];
    const missingUi=requiredIds.filter(id=>!$(id));
    const missingRestUi=restVisible?['restQuick','restCut','restMaybe','restBack','restHide','restChoose','restDetails'].filter(id=>!$(id)):[];
    const allMissing=missingUi.concat(missingRestUi);

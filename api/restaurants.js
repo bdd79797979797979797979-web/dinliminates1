@@ -650,7 +650,7 @@ if(mode==='search'){
  const wideSearch=radius>WIDE_RADIUS_THRESHOLD;
  const discoveryPlan=radiusDiscoveryPlan(lat,lon,radius);
  const primaryBudget=Math.max(9000,SEARCH_BUDGET_MS-(wideSearch?discoveryPlan.reserveMs:0));
- const discoveryPromise=wideSearch||searchTerm ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
+ const discoveryPromise=wideSearch||searchTerm||photoDiscoveryNeeded ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
  const primaryPromise=Promise.allSettled([photonPlaces(lat,lon,radius,searchTerm),arcgisPlaces(lat,lon,radius,searchTerm),searchTerm?googleSearchPlaces(lat,lon,radius,searchTerm):googlePlaces(lat,lon,radius)]);
  let primaryBatch,parallelWide=null;
  if(wideSearch){
@@ -669,6 +669,8 @@ if(mode==='search'){
  const googleOut=googleResult.status==='fulfilled'?googleResult.value:{rows:[],errors:[String(googleResult.reason?.message||googleResult.reason||'Google Places unavailable')]};
  const preliminary=dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
+ const preliminaryRawPhotoCount=preliminary.filter(r=>/^https:\/\//i.test(String(r.photo||'').trim())).length;
+ const photoDiscoveryNeeded=preliminaryRawPhotoCount<3;
  let osmOut={rows:[],errors:[]};
  const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
  if(discoveryPromise){
