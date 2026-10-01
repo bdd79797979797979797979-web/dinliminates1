@@ -103,10 +103,9 @@ function extractImgCandidates(html,pageUrl){
     const url=rawSrcs.map(v=>absoluteHttpsUrl(v,pageUrl)).find(v=>v&&!isBlockedHost(v)&&!BLOCKED_IMAGE_HINTS.test(v));
     if(!url||seen.has(url))continue;
     seen.add(url);
-    const sourceHtml=String(html||'');
-    const nearby=sourceHtml.slice(Math.max(0,m.index-650),Math.min(sourceHtml.length,m.index+m[0].length+850));
-    const context=[attrs.alt,attrs.title,attrs.class,attrs.id,attrs['data-caption'],attrs['data-alt'],attrs['data-filename'],nearby,url].filter(Boolean).join(' ');
-    candidates.push({url,context,source:'img'});
+    const evidence=[attrs.alt,attrs.title,attrs['data-caption'],attrs['data-alt'],attrs['data-filename']].filter(Boolean).join(' ');
+    const context=[evidence,attrs.class,attrs.id,url].filter(Boolean).join(' ');
+    candidates.push({url,context,evidence,source:'img'});
   }
   return candidates;
 }
@@ -202,8 +201,9 @@ async function verifiedRestaurantPage(url,name,address){
 }
 
 function venueScore(candidate,name,address,website){
-  const context=String(candidate?.context||'')+' '+String(candidate?.url||'');
-  const hay=normalizeMatchText(context);
+  const evidence=String(candidate?.evidence||'');
+  const context=evidence+' '+String(candidate?.context||'')+' '+String(candidate?.url||'');
+  const hay=normalizeMatchText(evidence+' '+String(candidate?.url||''));
   const nameTokens=significantNameTokens(name);
   const matchedName=nameTokens.filter(t=>hay.includes(t)).length;
   const addrNumber=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
@@ -213,8 +213,9 @@ function venueScore(candidate,name,address,website){
   score+=matchedName*24;
   if(nameTokens.length&&matchedName===nameTokens.length)score+=70;
   if(addrNumber&&hay.includes(normalizeMatchText(addrNumber)))score+=34;
-  if(VENUE_IMAGE_HINTS.test(context))score+=Math.min(90,venueHits*22);
-  if(FOOD_IMAGE_HINTS.test(context))score-=Math.min(120,foodHits*24);
+  if(VENUE_IMAGE_HINTS.test(evidence+' '+String(candidate?.url||'')))score+=Math.min(110,venueHits*25);
+  if(FOOD_IMAGE_HINTS.test(evidence+' '+String(candidate?.url||'')))score-=Math.min(150,foodHits*30);
+  if(BLOCKED_IMAGE_HINTS.test(evidence+' '+String(candidate?.url||'')))score-=180;
   if(candidate.source==='img')score+=8;
   if(candidate.source==='background')score+=3;
   const websiteHost=hostOf(website);
