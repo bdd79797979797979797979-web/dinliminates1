@@ -419,7 +419,14 @@ function setMaybeDeck(kind, enabled){
  renderMaybeDeckToggle(kind); save();
 }
 function maybeDeckCount(kind){
- if(kind==='food') return foodPool().filter(item=>S.maybe.has(item.id)).length;
+ if(kind==='food'){
+  return allFoods().filter(item=>{
+   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
+   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
+   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
+   return S.maybe.has(item.id);
+  }).length;
+ }
  return restaurantPoolBase().filter(row=>row._maybe).length;
 }
 function renderMaybeDeckToggle(kind){
@@ -429,8 +436,14 @@ function renderMaybeDeckToggle(kind){
  btn.dataset.mode=S.maybeDeck?'maybe':'all';
  btn.disabled=!hasMaybe && !S.maybeDeck;
  const target=S.maybeDeck?'Show all choices':'Show Maybe choices';
- btn.setAttribute('aria-label',target); btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false'); btn.title=target;
+ btn.setAttribute('aria-label',S.maybeDeck?'Viewing Maybe choices. Tap to show all choices.':'Viewing all choices. Tap to show Maybe choices.');
+ btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
+ btn.title=target;
+ btn.innerHTML=S.maybeDeck
+  ? '<span class="deck-filter-heart" aria-hidden="true">♥</span>'
+  : '<span class="deck-filter-all" aria-hidden="true">A</span>';
  btn.classList.toggle('is-maybe',S.maybeDeck);
+ btn.classList.toggle('is-all',!S.maybeDeck);
 }
 function bindMaybeDeckToggle(kind){
  const id=kind==='food'?'foodMaybeDeck':'restaurantMaybeDeck';
@@ -1383,7 +1396,7 @@ const cardDetailsAction = '<button class="restaurant-card-utility restaurant-car
 const cardChooseAction = '<button class="restaurant-card-utility restaurant-card-choose-utility choose-card-action" id="restChoose" type="button" aria-label="Choose this restaurant" title="Choose this restaurant"><span aria-hidden="true">✓</span></button>';
 const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardChooseAction+cardWebsite+'</div></div>';
 $('restStage').innerHTML =
-'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="deck-filter-toggle" id="restaurantMaybeDeck" type="button" data-mode="all"><span>All</span><span class="deck-filter-slash">/</span><span>Maybe</span></button><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
+'<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-google-photo-id="'+esc(nextRow?.googlePlaceId||'')+'" data-fallback="'+esc(nextRow?.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-google-photo-id="'+esc(row.googlePlaceId||'')+'" data-fallback="'+esc(row.photoFallback||FINAL_RESTAURANT_IMAGE)+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+(distanceLabel?'<div class="restaurant-card-distance">'+esc(distanceLabel)+'</div>':'')+'</div></div></article></div>'+'<div class="swipe-actions" aria-label="Restaurant decision controls"><button class="deck-filter-toggle" id="restaurantMaybeDeck" type="button" data-mode="all" aria-label="Viewing all choices. Tap to show Maybe choices." title="Show Maybe choices" aria-pressed="false"><span class="deck-filter-all" aria-hidden="true">A</span></button><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-hide secondary" id="restHide" aria-label="Hide"><span>⌁</span></button></div>';
 const current = rows[S.restaurantIndex];
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
