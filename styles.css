@@ -1269,3 +1269,46 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .meal-nutrition-editor-grid input:invalid{box-shadow:none}
 .meal-editor-text-label textarea:focus,
 .meal-nutrition-editor-grid input:focus{border-color:#bfa16b;outline:none;box-shadow:0 0 0 2px #bfa16b22}
+
+
+/* CP526 — iPhone-first interaction safety
+   Keep the premium compact layout, but prevent Safari input zoom and undersized touch targets. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button,a,select{touch-action:manipulation}
+@media(max-width:430px){
+  .location-main input,
+  .location-sub select,
+  .restaurant-search-box input,
+  .meal-editor-section input,
+  .meal-editor-section select,
+  .meal-editor-text-label textarea,
+  .add input,
+  .add select,
+  .loc-row input,
+  .loc-row select{font-size:16px!important}
+  .location-main input{height:36px!important}
+  .location-btn{width:36px!important;height:36px!important}
+  .location-main .find{height:36px!important}
+  .location-sub select{height:32px!important}
+  #restaurant .radius-search{width:40px!important;height:36px!important}
+  .home-foot #iphoneHelp{min-height:44px;padding:8px 6px!important;display:inline-flex;align-items:center}
+  .food-swipe-actions .round-back,
+  .food-swipe-actions .round-hide,
+  .food-swipe-actions .round-add-food,
+  #restaurant .swipe-actions .round-back,
+  #restaurant .swipe-actions .round-hide{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+  .food-swipe-actions .round-cut,
+  .food-swipe-actions .round-maybe,
+  #restaurant .swipe-actions .round-cut,
+  #restaurant .swipe-actions .round-maybe{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important}
+  .food-swipe-actions,#restaurant .swipe-actions{grid-template-columns:44px 64px 64px 44px;gap:9px!important}
+  #restaurant .restaurant-hours-control{min-height:40px;margin-top:3px}
+  #restaurant .hours-control-btn{min-height:36px;height:36px!important;min-width:56px;font-size:9px!important}
+  #restaurant .restaurant-hours-buttons{min-height:40px}
+}
+@media(max-width:340px){
+  #restaurant .restaurant-hours-control{gap:4px}
+  #restaurant .hours-control-btn{min-width:52px}
+  .food-swipe-actions,#restaurant .swipe-actions{grid-template-columns:44px 60px 60px 44px;gap:7px!important}
+}
