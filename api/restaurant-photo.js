@@ -1,25 +1,13 @@
 'use strict';
 
-const GOOGLE_KEY=String(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY||'').trim();
+const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.com','lh3.googleusercontent.com','bing.com','www.bing.com','tse1.mm.bing.net','tse2.mm.bing.net','tse3.mm.bing.net','tse4.mm.bing.net','unsplash.com','images.unsplash.com','pexels.com','images.pexels.com','shutterstock.com','istockphoto.com','gettyimages.com','depositphotos.com','alamy.com']);
+const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image)\b/i;
 
 function json(res,status,payload){
   res.statusCode=status;
   res.setHeader?.('Content-Type','application/json; charset=utf-8');
   res.end?.(JSON.stringify(payload));
   return res;
-}
-
-function decodeGoogleAttributions(value){
-  try{return JSON.parse(Buffer.from(String(value||''),'base64url').toString('utf8'));}catch{return[]}
-}
-
-function normalizeAttributions(rows){
-  return (Array.isArray(rows)?rows:[]).map(x=>{
-    const displayName=String(x?.displayName||'').trim();
-    const rawUri=String(x?.uri||'').trim();
-    const uri=rawUri.startsWith('//')?'https:'+rawUri:rawUri;
-    return displayName&&/^https?:\/\//i.test(uri)?{displayName,uri}:null;
-  }).filter(Boolean).slice(0,5);
 }
 
 function absoluteHttpsUrl(raw,base=''){
@@ -33,21 +21,15 @@ function absoluteHttpsUrl(raw,base=''){
   }catch{return ''}
 }
 
-async function fetchJson(url,headers={},timeout=5500,method='GET',body=null){
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
-  try{
-    const request={method,headers:{...headers,Accept:'application/json'},signal:ctl.signal};
-    if(body!=null)request.body=body;
-    const r=await fetch(url,request);
-    if(!r.ok)throw new Error('Request failed ('+r.status+').');
-    return await r.json();
-  }finally{clearTimeout(timer)}
-}
+function hostOf(raw){try{return new URL(raw).hostname.toLowerCase()}catch{return ''}}
+function isBlockedHost(raw){const host=hostOf(raw);if(!host)return true;for(const blocked of NO_PHOTO_HOSTS)if(host===blocked||host.endsWith('.'+blocked))return true;return false}
 
-async function fetchText(url,headers={},timeout=6000,maxBytes=1500000){
+function decodeHtml(raw){return String(raw||'').replace(/&quot;/g,'"').replace(/&#34;/g,'"').replace(/&#39;|&#x27;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')}
+
+async function fetchText(url,headers={},timeout=7000,maxBytes=2200000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{...headers,Accept:'text/html,application/xhtml+xml'},signal:ctl.signal});
+    const r=await fetch(url,{headers:{'Accept':'text/html,application/xhtml+xml','Accept-Language':'en-US,en;q=0.8','User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; restaurant-photo)',...headers},signal:ctl.signal});
     if(!r.ok)throw new Error('Page request failed ('+r.status+').');
     const data=Buffer.from(await r.arrayBuffer());
     if(data.length>maxBytes)throw new Error('Page too large.');
@@ -55,165 +37,143 @@ async function fetchText(url,headers={},timeout=6000,maxBytes=1500000){
   }finally{clearTimeout(timer)}
 }
 
-async function fetchImage(url,headers={},timeout=6500){
+async function fetchImage(url,headers={},timeout=7000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{...headers,Accept:'image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*;q=0.8'},signal:ctl.signal});
+    const r=await fetch(url,{headers:{'Accept':'image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*;q=0.8','User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; restaurant-photo)',...headers},redirect:'follow',signal:ctl.signal});
     if(!r.ok)throw new Error('Image request failed ('+r.status+').');
     const type=(r.headers.get('content-type')||'image/jpeg').split(';')[0].toLowerCase();
     if(!type.startsWith('image/'))throw new Error('Image response was not an image.');
     const bytes=Buffer.from(await r.arrayBuffer());
-    if(bytes.length>8*1024*1024)throw new Error('Image is too large.');
+    if(bytes.length<4000)throw new Error('Image response was too small.');
+    if(bytes.length>10*1024*1024)throw new Error('Image is too large.');
     return {type,bytes};
   }finally{clearTimeout(timer)}
 }
 
-function extractMetaImage(html,pageUrl){
-  const srcs=[];
+function extractMetaImages(html,pageUrl){
+  const urls=[];
   const patterns=[
     /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["'][^>]*>/ig,
     /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["'][^>]*>/ig,
     /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["'][^>]*>/ig,
     /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["'][^>]*>/ig
   ];
-  for(const re of patterns){
-    let m;
-    while((m=re.exec(html))&&srcs.length<8)srcs.push(m[1]);
-  }
-  for(const raw of srcs){
-    const url=absoluteHttpsUrl(String(raw||'').replace(/&amp;/g,'&'),pageUrl);
-    if(url)return url;
-  }
-  return '';
+  for(const re of patterns){let m;while((m=re.exec(html))&&urls.length<10)urls.push(m[1]);}
+  return urls.map(raw=>absoluteHttpsUrl(String(raw||'').replace(/&amp;/g,'&'),pageUrl)).filter(Boolean).filter(url=>!BLOCKED_IMAGE_HINTS.test(url));
 }
 
-async function websiteOgImage(website){
+function extractBingImageCandidates(html){
+  const candidates=[],re=/\bm="([^"]+)"/gi;
+  let match;
+  while((match=re.exec(html))&&candidates.length<40){
+    try{
+      const raw=JSON.parse(decodeHtml(match[1]));
+      const contentUrl=absoluteHttpsUrl(raw?.murl||raw?.contentUrl||'');
+      const hostPageUrl=absoluteHttpsUrl(raw?.purl||raw?.hostPageUrl||'');
+      if(!contentUrl||isBlockedHost(contentUrl)||BLOCKED_IMAGE_HINTS.test(contentUrl))continue;
+      candidates.push({contentUrl,hostPageUrl,title:String(raw?.t||raw?.name||'').trim(),description:String(raw?.desc||'').trim(),host:hostOf(hostPageUrl||contentUrl)});
+    }catch{}
+  }
+  return candidates;
+}
+
+function queryTokens(text){return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').map(x=>x.trim()).filter(x=>x.length>=3&&!new Set(['the','and','restaurant','restaurants','road','rd','street','st','avenue','ave','drive','dr','highway','hwy']).has(x))}
+
+function scoreImage(candidate,name,address,website){
+  const nameTokens=queryTokens(name),addrTokens=queryTokens(address);
+  const hay=(candidate.title+' '+candidate.description+' '+candidate.host+' '+candidate.hostPageUrl).toLowerCase();
+  let score=0;
+  const matchedName=nameTokens.filter(t=>hay.includes(t)).length;
+  score+=matchedName*16;
+  if(nameTokens.length&&matchedName===nameTokens.length)score+=55;
+  const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
+  if(number&&hay.includes(number))score+=30;
+  const websiteHost=hostOf(website);
+  if(websiteHost&&(candidate.host===websiteHost||candidate.host.endsWith('.'+websiteHost)||websiteHost.endsWith('.'+candidate.host)))score+=80;
+  if(/(?:facebook|instagram|tiktok|pinterest|youtube)\./i.test(candidate.host))score-=40;
+  if(addrTokens.some(t=>hay.includes(t)))score+=Math.min(24,addrTokens.filter(t=>hay.includes(t)).length*4);
+  return score;
+}
+
+async function bingImages(name,address,website){
+  const queries=[],websiteHost=hostOf(website);
+  if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+name.replace(/"/g,'')+'"');
+  if(name)queries.push('"'+name.replace(/"/g,'')+'" "'+address.replace(/"/g,'')+'" restaurant');
+  if(name)queries.push('"'+name.replace(/"/g,'')+'" '+String(address||'').replace(/,/g,' ')+' photos');
+  const unique=[...new Set(queries.filter(Boolean))].slice(0,3);
+  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/images/search?'+new URLSearchParams({q:q,mkt:'en-US',safeSearch:'Strict',first:'1'}).toString(),{},7000)));
+  const all=[];
+  pages.forEach((p,i)=>{if(p.status!=='fulfilled')return;for(const c of extractBingImageCandidates(p.value)){c.query=unique[i];c.score=scoreImage(c,name,address,website);all.push(c)}});
+  const seen=new Set();
+  return all.sort((a,b)=>b.score-a.score).filter(x=>{const k=x.contentUrl.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
+}
+
+async function tryWebsiteImage(website){
   const page=absoluteHttpsUrl(website);
-  if(!page)return null;
+  if(!page||isBlockedHost(page))return null;
   try{
-    const html=await fetchText(page,{'User-Agent':'Dinliminate/1.0 restaurant photo lookup'});
-    const imageUrl=extractMetaImage(html,page);
-    if(!imageUrl)return null;
-    return await fetchImage(imageUrl,{},6500);
-  }catch{return null}
+    const html=await fetchText(page,{},6500,1800000);
+    for(const imageUrl of extractMetaImages(html,page)){
+      try{return {media:await fetchImage(imageUrl,{'Referer':page},6500),source:'restaurant-website',sourceUrl:page,sourceName:hostOf(page)}}catch{}
+    }
+  }catch{}
+  return null;
 }
 
-async function wikimediaImage(name,address){
+async function tryWikimedia(name,address){
+  if(!name)return null;
   const q=[name,address].filter(Boolean).join(' ').trim();
-  if(!q)return null;
   try{
-    const endpoint='https://commons.wikimedia.org/w/api.php?'+new URLSearchParams({
-      action:'query',
-      generator:'search',
-      gsrsearch:q+' restaurant',
-      gsrnamespace:'6',
-      gsrlimit:'6',
-      prop:'imageinfo',
-      iiprop:'url',
-      iiurlwidth:'1200',
-      format:'json',
-      origin:'*'
-    }).toString();
-    const data=await fetchJson(endpoint,{},6500);
+    const endpoint='https://commons.wikimedia.org/w/api.php?'+new URLSearchParams({action:'query',generator:'search',gsrsearch:'"'+q+'" restaurant',gsrnamespace:'6',gsrlimit:'10',prop:'imageinfo',iiprop:'url',iiurlwidth:'1400',format:'json',origin:'*'}).toString();
+    const r=await fetch(endpoint,{headers:{Accept:'application/json','User-Agent':'Dinliminate/1.0 restaurant photo lookup'}});
+    if(!r.ok)return null;
+    const data=await r.json();
     const pages=Object.values(data?.query?.pages||{});
-    const imageUrl=pages.map(p=>String(p?.imageinfo?.[0]?.thumburl||p?.imageinfo?.[0]?.url||'')).map(x=>absoluteHttpsUrl(x)).find(Boolean);
-    if(!imageUrl)return null;
-    return await fetchImage(imageUrl,{},6500);
-  }catch{return null}
+    for(const page of pages){
+      const imageUrl=absoluteHttpsUrl(page?.imageinfo?.[0]?.thumburl||page?.imageinfo?.[0]?.url||'');
+      if(!imageUrl||BLOCKED_IMAGE_HINTS.test(imageUrl))continue;
+      try{
+        const media=await fetchImage(imageUrl,{},6500);
+        const title=String(page?.title||'').replace(/^File:/,'');
+        return {media,source:'wikimedia',sourceUrl:'https://commons.wikimedia.org/wiki/'+encodeURIComponent(title),sourceName:'Wikimedia Commons'};
+      }catch{}
+    }
+  }catch{}
+  return null;
+}
+
+function sendMedia(res,found){
+  res.setHeader?.('Content-Type',found.media.type);
+  res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
+  res.setHeader?.('X-Content-Type-Options','nosniff');
+  res.setHeader?.('X-Restaurant-Photo-Source',found.source);
+  if(found.sourceUrl)res.setHeader?.('X-Restaurant-Photo-Source-URL',found.sourceUrl);
+  if(found.sourceName&&found.sourceUrl){res.setHeader?.('X-Restaurant-Photo-Attributions',Buffer.from(JSON.stringify([{displayName:found.sourceName,uri:found.sourceUrl}])).toString('base64url'));}
+  res.statusCode=200;res.end?.(found.media.bytes);return res;
 }
 
 module.exports=async function handler(req,res){
-  const photoName=String(req?.query?.photoName||req?.queryStringParameters?.photoName||'').trim();
-  const placeId=String(req?.query?.placeId||req?.queryStringParameters?.placeId||'').trim();
-  const name=String(req?.query?.name||req?.queryStringParameters?.name||'').trim().slice(0,140);
-  const address=String(req?.query?.address||req?.queryStringParameters?.address||'').trim().slice(0,220);
-  const website=String(req?.query?.website||req?.queryStringParameters?.website||'').trim().slice(0,500);
-  const lat=Number(req?.query?.lat||req?.queryStringParameters?.lat);
-  const lon=Number(req?.query?.lon||req?.queryStringParameters?.lon);
-  const validPhotoName=/^places\/[^/]+\/photos\/[^/]+$/.test(photoName);
-  const validPlaceId=/^[A-Za-z0-9_-]{10,300}$/.test(placeId);
-  const validCoords=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180;
-  if(!validPhotoName && !validPlaceId && !name)return json(res,400,{ok:false,error:'Restaurant name, photo reference, or Place ID is required'});
-
-  // Google remains optional. With no key, try no-key sources instead.
-  if(!GOOGLE_KEY){
-    const websiteMedia=await websiteOgImage(website);
-    if(websiteMedia){
-      res.setHeader?.('Content-Type',websiteMedia.type);
-      res.setHeader?.('Cache-Control','no-store');
-      res.setHeader?.('X-Content-Type-Options','nosniff');
-      res.setHeader?.('X-Restaurant-Photo-Source','website');
-      res.statusCode=200;
-      res.end?.(websiteMedia.bytes);
-      return res;
-    }
-    const wikiMedia=await wikimediaImage(name,address);
-    if(wikiMedia){
-      res.setHeader?.('Content-Type',wikiMedia.type);
-      res.setHeader?.('Cache-Control','no-store');
-      res.setHeader?.('X-Content-Type-Options','nosniff');
-      res.setHeader?.('X-Restaurant-Photo-Source','wikimedia');
-      res.statusCode=200;
-      res.end?.(wikiMedia.bytes);
-      return res;
-    }
-    return json(res,404,{ok:false,error:'No no-key restaurant photo is available'});
-  }
-
+  const q=req?.query&&typeof req.query==='object'?req.query:(req?.queryStringParameters||{});
+  const name=String(q.name||'').trim().slice(0,160),address=String(q.address||'').trim().slice(0,240),website=String(q.website||'').trim().slice(0,700);
+  if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
-    let photo=null,matchedPlaceId=placeId;
-    if(validPhotoName){
-      photo={name:photoName};
-      matchedPlaceId=String(photoName.split('/')[1]||'').trim();
-    }else if(validPlaceId){
-      const details=await fetchJson('https://places.googleapis.com/v1/places/'+encodeURIComponent(placeId),{'X-Goog-Api-Key':GOOGLE_KEY,'X-Goog-FieldMask':'photos'},5500);
-      const photos=Array.isArray(details?.photos)?details.photos:[];
-      photo=photos.find(x=>x?.name)||null;
-    }else{
-      const textQuery=[name,address].filter(Boolean).join(', ')+' restaurant';
-      const headers={
-        'Content-Type':'application/json',
-        'X-Goog-Api-Key':GOOGLE_KEY,
-        'X-Goog-FieldMask':'places.id,places.displayName,places.location,places.formattedAddress,places.photos'
-      };
-      const body={textQuery,pageSize:5,regionCode:'US'};
-      if(validCoords)body.locationBias={circle:{center:{latitude:lat,longitude:lon},radius:5000}};
-      const data=await fetchJson('https://places.googleapis.com/v1/places:searchText',headers,5500,'POST',JSON.stringify(body));
-      const target=name.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-      const candidates=(Array.isArray(data?.places)?data.places:[]).map(place=>{
-        const placeName=String(place?.displayName?.text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-        const loc=place?.location||{};
-        const plat=Number(loc.latitude),plon=Number(loc.longitude);
-        const exact=placeName===target;
-        const contains=placeName.includes(target)||target.includes(placeName);
-        const distance=validCoords&&Number.isFinite(plat)&&Number.isFinite(plon)?Math.sqrt(Math.pow((plat-lat)*69,2)+Math.pow((plon-lon)*54.6,2)):Infinity;
-        const score=(exact?100:contains?45:0)+(validCoords&&distance<0.5?35:validCoords&&distance<1.5?20:0)+((Array.isArray(place?.photos)&&place.photos.length)?12:0);
-        return {...place,score,distance};
-      }).filter(place=>place.score>=57 || (!validCoords && place.score>=45)).sort((a,b)=>b.score-a.score);
-      const best=candidates[0];
-      if(best){
-        matchedPlaceId=String(best.id||'').trim();
-        photo=Array.isArray(best.photos)?best.photos.find(x=>x?.name)||null:null;
-      }
+    const bing=await bingImages(name,address,website);
+    for(const candidate of bing.slice(0,12)){
+      try{return sendMedia(res,{media:await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl||''},6500),source:'bing-images',sourceUrl:candidate.hostPageUrl||candidate.contentUrl,sourceName:hostOf(candidate.hostPageUrl||candidate.contentUrl)||'Image source'})}catch{}
+      try{
+        if(candidate.hostPageUrl){
+          const html=await fetchText(candidate.hostPageUrl,{},5500,1000000);
+          for(const imageUrl of extractMetaImages(html,candidate.hostPageUrl).slice(0,3)){
+            try{return sendMedia(res,{media:await fetchImage(imageUrl,{'Referer':candidate.hostPageUrl},6500),source:'restaurant-page',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)})}catch{}
+          }
+        }
+      }catch{}
     }
-    if(!photo)return json(res,404,{ok:false,error:'No restaurant photo is available'});
-    if(!/^places\/[^/]+\/photos\/[^/]+$/.test(String(photo.name||'')))return json(res,502,{ok:false,error:'Google returned an invalid photo reference'});
-    const mediaUrl='https://places.googleapis.com/v1/'+photo.name+'/media?maxWidthPx=1200';
-    const media=await fetchImage(mediaUrl,{'X-Goog-Api-Key':GOOGLE_KEY},6500);
-    const attributions=normalizeAttributions(photo.authorAttributions);
-    res.setHeader?.('Content-Type',media.type);
-    res.setHeader?.('Cache-Control','no-store');
-    res.setHeader?.('X-Content-Type-Options','nosniff');
-    res.setHeader?.('X-Restaurant-Photo-Source','google-places');
-    if(matchedPlaceId)res.setHeader?.('X-Restaurant-Photo-Place-ID',matchedPlaceId);
-    res.setHeader?.('X-Restaurant-Photo-Attributions',Buffer.from(JSON.stringify(attributions)).toString('base64url'));
-    res.statusCode=200;
-    res.end?.(media.bytes);
-    return res;
-  }catch(e){
-    console.error('dinliminate-google-photo',e);
-    return json(res,502,{ok:false,error:'Could not load the restaurant photo'});
-  }
+    const websiteFound=await tryWebsiteImage(website);if(websiteFound)return sendMedia(res,websiteFound);
+    const wiki=await tryWikimedia(name,address);if(wiki)return sendMedia(res,wiki);
+    return json(res,404,{ok:false,error:'No real restaurant photo was found from non-Google sources'});
+  }catch(e){console.error('dinliminate-restaurant-photo',e);return json(res,502,{ok:false,error:'Could not load the restaurant photo'});}
 };
 
-module.exports._test={normalizeAttributions,decodeGoogleAttributions,absoluteHttpsUrl,extractMetaImage};
+module.exports._test={absoluteHttpsUrl,extractMetaImages,extractBingImageCandidates,scoreImage};
