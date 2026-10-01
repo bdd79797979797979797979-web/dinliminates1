@@ -1,0 +1,15 @@
+name: CP619 Module Load
+on:
+  push:
+    branches: [cp619-verified-photo-module]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node --input-type=module -e "try{const m=await import('./api/restaurant-photo.js'); console.log('MODULE_OK',!!m)}catch(e){console.error(e.stack||e);process.exit(1)}"
