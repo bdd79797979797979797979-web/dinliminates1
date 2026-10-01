@@ -1667,3 +1667,69 @@ button,a,select{touch-action:manipulation}
 @keyframes winnerNameReveal{0%{opacity:0;transform:translateY(9px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes winnerActionsReveal{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.winner-reveal #winImg,.winner-reveal #winName,.winner-reveal .winner-actions{animation:none}}
+
+
+/* CP568 — seamless All/Maybe deck filter; keeps the large Cut/Maybe touch targets. */
+.deck-filter-toggle{
+  flex:0 0 50px!important;
+  width:50px!important;
+  min-width:50px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 4px!important;
+  border-radius:999px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+  background:linear-gradient(180deg,#15191c,#101214)!important;
+  border:1px solid #28506a!important;
+  color:#7d8388!important;
+  box-shadow:0 5px 14px #0006,inset 0 1px 0 #ffffff09!important;
+  font-size:8px!important;
+  font-weight:750!important;
+  letter-spacing:.01em!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  transition:border-color .16s ease,box-shadow .16s ease,transform .14s ease!important;
+}
+.deck-filter-toggle span{display:inline-block;line-height:1!important}
+.deck-filter-toggle .deck-filter-slash{color:#565d62!important;font-weight:500!important}
+.deck-filter-toggle[data-mode="all"] span:first-child,
+.deck-filter-toggle[data-mode="maybe"] span:last-child{color:#7fd5ff!important;font-weight:950!important}
+.deck-filter-toggle:hover:not(:disabled){border-color:#3d789d!important;box-shadow:0 6px 16px #0007,inset 0 1px 0 #ffffff0d!important}
+.deck-filter-toggle:active:not(:disabled){transform:scale(.95)!important}
+.deck-filter-toggle:disabled{opacity:.38!important;cursor:not-allowed!important}
+.food-swipe-actions,#restaurant .swipe-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:0!important;
+  width:min(100%,320px)!important;
+  max-width:calc(100% - 10px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+.food-swipe-actions .round-back,
+.food-swipe-actions .round-hide,
+.food-swipe-actions .round-add-food,
+#restaurant .swipe-actions .round-back,
+#restaurant .swipe-actions .round-hide{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
+.food-swipe-actions .round-cut,
+.food-swipe-actions .round-maybe,
+#restaurant .swipe-actions .round-cut,
+#restaurant .swipe-actions .round-maybe{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important}
+.food-swipe-actions .round-add-food{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+@media(max-width:390px){
+  .deck-filter-toggle{flex-basis:48px!important;width:48px!important;min-width:48px!important;height:32px!important;min-height:32px!important;font-size:7.5px!important}
+  .food-swipe-actions,#restaurant .swipe-actions{width:min(100%,305px)!important;max-width:calc(100% - 8px)!important}
+  .food-swipe-actions .round-back,
+  .food-swipe-actions .round-hide,
+  #restaurant .swipe-actions .round-back,
+  #restaurant .swipe-actions .round-hide{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+  .food-swipe-actions .round-cut,
+  .food-swipe-actions .round-maybe,
+  #restaurant .swipe-actions .round-cut,
+  #restaurant .swipe-actions .round-maybe{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}
+  .food-swipe-actions .round-add-food{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important}
+}
