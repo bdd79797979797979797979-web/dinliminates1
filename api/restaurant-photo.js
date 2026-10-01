@@ -123,6 +123,60 @@ async function verifiedRestaurantPage(url,name,address){
   }catch{return null}
 }
 
+function extractBingWebResultUrls(html){
+  const out=[];
+  const re=/<li[^>]+class=["'][^"']*b_algo[^"']*["'][^>]*>[\s\S]*?<h2[^>]*>\s*<a[^>]+href=["']([^"']+)["']/gi;
+  let m;
+  while((m=re.exec(String(html||'')))&&out.length<15){
+    const url=absoluteHttpsUrl(String(m[1]||'').replace(/&amp;/g,'&'));
+    if(url&&!isBlockedHost(url))out.push(url);
+  }
+  return [...new Set(out)];
+}
+function extractJsonLdImages(html,pageUrl){
+  const urls=[];
+  const re=/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/ig;
+  let m;
+  while((m=re.exec(String(html||'')))&&urls.length<20){
+    try{
+      const data=JSON.parse(m[1]);
+      const rows=Array.isArray(data)?data:[data];
+      const walk=value=>{
+        if(value==null||urls.length>=20)return;
+        if(typeof value==='string'&&/^(?:https?:)?\/\//i.test(value)){const u=absoluteHttpsUrl(value,pageUrl);if(u&&!isBlockedHost(u)&&!BLOCKED_IMAGE_HINTS.test(u))urls.push(u);return}
+        if(Array.isArray(value)){value.forEach(walk);return}
+        if(typeof value==='object'){for(const key of ['image','photo','contentUrl','thumbnailUrl'])if(value[key])walk(value[key])}
+      };
+      rows.forEach(walk);
+    }catch{}
+  }
+  return [...new Set(urls)];
+}
+function extractPageImageCandidates(html,pageUrl){
+  const urls=[...extractMetaImages(html,pageUrl),...extractJsonLdImages(html,pageUrl)];
+  return [...new Set(urls)].filter(url=>!BLOCKED_IMAGE_HINTS.test(url));
+}
+async function findVerifiedRestaurantPages(name,address,website){
+  const queries=[],safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,'');
+  const websiteHost=hostOf(website);
+  if(websiteHost&&!isBlockedHost(website))queries.push('site:'+websiteHost+' "'+safeName+'"');
+  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos');
+  if(safeName)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
+  if(safeName)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
+  const unique=[...new Set(queries.filter(Boolean))].slice(0,6);
+  const pages=await Promise.allSettled(unique.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),{},7000)));
+  const candidates=[];
+  pages.forEach(p=>{if(p.status!=='fulfilled')return;for(const url of extractBingWebResultUrls(p.value))if(!candidates.includes(url))candidates.push(url)});
+  const verified=[];
+  for(const url of candidates.slice(0,25)){
+    const html=await verifiedRestaurantPage(url,name,address);
+    if(html)verified.push({url,html});
+    if(verified.length>=10)break;
+  }
+  return verified;
+}
 async function bingImages(name,address,website){
   const queries=[],websiteHost=hostOf(website);
   const safeName=String(name||'').replace(/"/g,'');
@@ -203,6 +257,16 @@ module.exports=async function handler(req,res){
   const name=String(q.name||'').trim().slice(0,160),address=String(q.address||'').trim().slice(0,240),website=String(q.website||'').trim().slice(0,700);
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
+    // First: find and verify the exact restaurant page, then use that page's own photo.
+    const verifiedPages=await findVerifiedRestaurantPages(name,address,website);
+    for(const entry of verifiedPages){
+      for(const imageUrl of extractPageImageCandidates(entry.html,entry.url).slice(0,12)){
+        try{
+          const media=await fetchImage(imageUrl,{'Referer':entry.url},6500);
+          return sendMedia(res,{media,source:'verified-restaurant-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
+        }catch{}
+      }
+    }
     const bing=await bingImages(name,address,website);
     for(const candidate of bing.slice(0,30)){
       if(candidate.score<110||!candidate.hostPageUrl)continue;
@@ -235,4 +299,4 @@ module.exports=async function handler(req,res){
   }catch(e){console.error('dinliminate-restaurant-photo',e);return json(res,502,{ok:false,error:'Could not load the restaurant photo'});}
 };
 
-module.exports._test={absoluteHttpsUrl,extractMetaImages,extractBingImageCandidates,scoreImage};
+module.exports._test={absoluteHttpsUrl,extractMetaImages,extractBingImageCandidates,scoreImage,extractBingWebResultUrls,extractJsonLdImages,pageMatchesRestaurant};
