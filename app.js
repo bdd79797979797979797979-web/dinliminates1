@@ -197,6 +197,8 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
   else{
    if(row.name)params.set('name',String(row.name));
    if(row.address)params.set('address',String(row.address));
+   const website=safeExternalUrl(row.website)||safeExternalUrl(knownRestaurantWebsite(row));
+   if(website)params.set('website',website);
    if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
    if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
   }
@@ -212,7 +214,8 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
   }).then(data=>{
    restaurantGooglePhotoCache.set(rowKey,data);
    if(data.placeId)row.googlePlaceId=data.placeId;
-   if(data.placeId)row.photoSource='google-places';
+   if(data.source)row.photoSource=data.source;
+   if(data.placeId&&!data.source)row.photoSource='google-places';
    return data;
   }).finally(()=>restaurantGooglePhotoInflight.delete(rowKey));
   restaurantGooglePhotoInflight.set(rowKey,pending);
