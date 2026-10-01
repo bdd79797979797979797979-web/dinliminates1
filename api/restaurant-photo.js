@@ -241,6 +241,29 @@ function imageMatchesExactVenue(candidate,name,address){
   const urlMatched=nameTokens.filter(t=>url.includes(t)).length;
   const exactName=evidenceMatched===nameTokens.length && nameTokens.length>0;
   const exactUrlName=urlMatched===nameTokens.length && nameTokens.length>0;
+  const addrNumber=normalizeMatchText((String(address||'').match(/\b\d{1,6}\b/)||[])[0]||'');
+  const hasAddress=!!addrNumber && (evidence.includes(addrNumber)||url.includes(addrNumber));
+  const hasVenueEvidence=VENUE_IMAGE_HINTS.test(evidence);
+  const chainName=normalizeMatchText(name);
+  const knownChain=Object.keys(KNOWN_RESTAURANT_WEBSITES).some(k=>{
+    const ck=normalizeMatchText(k);
+    return chainName===ck || chainName.includes(ck);
+  });
+  if(knownChain){
+    return (exactName||exactUrlName||evidenceMatched>0) && (hasAddress||hasVenueEvidence);
+  }
+  return exactName || exactUrlName || (hasVenueEvidence && (evidenceMatched>0 || urlMatched>0 || /(?:photo|image|picture|gallery)/.test(evidence+' '+url)));
+}
+  if(!candidate||candidate.source!=='img')return false;
+  const evidence=normalizeMatchText(String(candidate.evidence||''));
+  const url=normalizeMatchText(String(candidate.url||''));
+  if(!evidence && !url)return false;
+  if(FOOD_IMAGE_HINTS.test(evidence))return false;
+  const nameTokens=significantNameTokens(name);
+  const evidenceMatched=nameTokens.filter(t=>evidence.includes(t)).length;
+  const urlMatched=nameTokens.filter(t=>url.includes(t)).length;
+  const exactName=evidenceMatched===nameTokens.length && nameTokens.length>0;
+  const exactUrlName=urlMatched===nameTokens.length && nameTokens.length>0;
   const venueEvidence=VENUE_IMAGE_HINTS.test(evidence) && (evidenceMatched>0 || urlMatched>0 || /(?:image|photo|picture|gallery)/.test(evidence+' '+url));
   return exactName || exactUrlName || venueEvidence;
 }
