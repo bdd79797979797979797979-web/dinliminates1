@@ -1,0 +1,25 @@
+name: Deploy Dinliminate to Netlify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Netlify production
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "::error::NETLIFY_AUTH_TOKEN is not configured for this repository."
+            exit 1
+          fi
+          npx --yes netlify-cli@latest deploy --prod --dir=. --site=cedce70a-6c47-437f-8e89-9a2caf5f3f43 --auth="$NETLIFY_AUTH_TOKEN"
