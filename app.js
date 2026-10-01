@@ -132,7 +132,6 @@ function saveRestaurantWebsiteStore(){
   localStorage.setItem(RESTAURANT_WEBSITE_CACHE_KEY,JSON.stringify(out));
  }catch{}
 }
-loadRestaurantWebsiteStore();
 function cachedRestaurantWebsiteEntry(row){
  const key=restaurantWebsiteRowKey(row),value=restaurantWebsiteCache.get(key);
  return value||null;
@@ -252,8 +251,11 @@ async function hydrateRestaurantWebsite(row,scope){
    })().finally(()=>restaurantWebsiteInflight.delete(key));
    restaurantWebsiteInflight.set(key,pending);
   }
-  await cache.put(request,new Response(blob,{status:200,headers}));
- }catch{}
+  try{
+   const presence=await pending;
+   apply(presence);
+   return presence.website||presence.officialPage||restaurantWebsitePresentation(row).url;
+  }catch{}
 }
 function restaurantFallbackImage(row){
  const labels=[row?.category,row?.cuisine,...(Array.isArray(row?.quickCutTags)?row.quickCutTags:[]),...((typeof restaurantCuisineTags==='function')?restaurantCuisineTags(row):[])].filter(Boolean);
@@ -376,6 +378,7 @@ function safeExternalUrl(raw){
  }catch{return '';}
 }
 const normKey=(v)=>String(v??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+loadRestaurantWebsiteStore();
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
 const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
