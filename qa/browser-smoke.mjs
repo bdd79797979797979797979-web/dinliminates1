@@ -38,7 +38,7 @@ await page.route('**/*', async route => {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Dinliminate',version:'1.0',build:String(releaseMeta.build),sourceBranch:releaseMeta.sourceBranch,commit:null,branch:releaseMeta.sourceBranch,environment:'test',expectedBranch:releaseMeta.sourceBranch})});
   }
   if (u.includes('/api/restaurant-search?mode=health')) {
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:50,providers:['qa']})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'qa',maxRadiusMiles:100,providers:['qa']})});
   }
   if (u.includes('/api/restaurant-search?mode=suggest')) {
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,results:[
@@ -84,6 +84,7 @@ function qa(){ return page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot()); 
 async function visible(id){return page.locator('#'+id).isVisible();}
 async function click(sel){await page.locator(sel).click();}
 async function settle(){await page.waitForTimeout(150);}
+async function waitForRestaurantSearch(){await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return /Searching restaurants/.test(t)||locBusy||findBusy},{timeout:5000});await page.waitForFunction(()=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy},{timeout:30000});await settle();}
 
 await page.goto('http://127.0.0.1:4173/?qa=1');
 await page.waitForLoadState('domcontentloaded');
@@ -331,14 +332,14 @@ await click('#restStart'); await settle();
 await page.screenshot({path:path.join(root,'qa-artifacts','restaurant-start-393.png'),fullPage:true});
 await page.locator('#address').fill('123');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:first-child'); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
+await click('#suggestionsBox button:first-child'); await waitForRestaurantSearch(); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9); assert.equal((await page.locator('#locationSourceLabel').innerText()).toLowerCase(),'using selected address','Selected address should expose its location source');
 assert.equal(await page.locator('#address').inputValue(),'123 Main St, Clarksville, TN 37040','address suggestion should populate the selected address');
 let locState=await qa(); assert.equal(locState.location?.lat,36.5298,'selected suggestion should set exact coordinates');
 await page.locator('#address').fill('456');
 await page.waitForSelector('#suggestionsBox button',{state:'visible'});
-await click('#suggestionsBox button:nth-child(2)'); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
+await click('#suggestionsBox button:nth-child(2)'); await waitForRestaurantSearch(); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
 locState=await qa(); assert.equal(locState.location?.lat,36.5304,'a later address selection should replace the previous location');
-await click('#find'); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
+await click('#find'); await waitForRestaurantSearch(); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
 s=await qa(); assert.equal(s.allRestaurantIds.length,9,'combined restaurant pool should contain unique restaurant + fast food choices');
 assert.equal(s.allRestaurantIds.includes('heads-1')&&s.allRestaurantIds.includes('robert-heads-duplicate'),false,'Provider duplicate Heads BBQ records must collapse to one visible restaurant');
 
@@ -354,7 +355,7 @@ assert.equal(await page.locator('#radius').inputValue(),'5','Radius control shou
 assert.equal((await qa()).allRestaurantIds.length,5,'Five-mile search should return only the five unique mocked venues within five miles');
 assert.equal((await qa()).restaurantPool.length,5,'Five-mile radius should filter the active choice pool to five venues');
 await page.locator('#radius').selectOption('10');
-await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
+await waitForRestaurantSearch(); await page.waitForFunction(()=>window.__DINLIMINATE_QA__?.snapshot()?.allRestaurantIds?.length===9);
 assert.equal((await qa()).allRestaurantIds.length,9,'Returning to ten miles should restore the full unique radius result set');
 
 await click('#restaurantMenu'); await settle();
