@@ -16,9 +16,9 @@ if(requireRelease){
   const release=await fetch(base+'/api/release',{cache:'no-store'});
   assert.equal(release.ok,true,'Hosted release endpoint should return HTTP 200');
   rel=await release.json();
-  assert.equal(String(rel.build),'117','Hosted build should be Build 117');
+  assert.equal(String(rel.build),'197','Hosted build should be Build 197');
   assert.equal(String(rel.version),'1.0','Hosted version should be 1.0');
-  assert.equal(String(rel.sourceBranch),'release-hardening-2026-09-29','Hosted source branch should identify the release branch');
+  assert.equal(String(rel.sourceBranch),'cp466-restaurant-identity-final-2026-09-30','Hosted source branch should identify the Build 197 candidate');
 }
 
 const browser=await chromium.launch({headless:true});
