@@ -4,6 +4,8 @@ const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.c
 const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark|badge|badge-logo)\b/i;
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace)\b/i;
 const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;
+const VERIFIED_RESTAURANT_PHOTOS=require('../data/verified-restaurant-photos.json');
+
 
 function json(res,status,payload){
   res.statusCode=status;
@@ -172,6 +174,13 @@ function extractJsonLdImageCandidates(html,pageUrl){
 
 function normalizeMatchText(text){
   return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function verifiedRestaurantPhoto(name,address){
+  const n=normalizeMatchText(name),a=normalizeMatchText(address);
+  if(!n||!a)return null;
+  return (Array.isArray(VERIFIED_RESTAURANT_PHOTOS)?VERIFIED_RESTAURANT_PHOTOS:[]).find(x=>{
+    return normalizeMatchText(x.name)===n&&normalizeMatchText(x.address)===a;
+  })||null;
 }
 
 function significantNameTokens(name){
@@ -395,6 +404,12 @@ module.exports=async function handler(req,res){
   const osmPhoto=absoluteHttpsUrl(q.osmPhoto||'');
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
+    const verified=verifiedRestaurantPhoto(name,address);
+    if(verified){
+      const media=await fetchImage(verified.imageUrl,{},6500);
+      return sendMedia(res,{media,source:'verified-exact-public-photo',sourceUrl:verified.sourceUrl,sourceName:hostOf(verified.sourceUrl)});
+    }
+
     if(osmPhoto&&!isBlockedHost(osmPhoto)&&!BLOCKED_IMAGE_HINTS.test(osmPhoto)&&!FOOD_IMAGE_HINTS.test(osmPhoto)){
       try{
         const media=await fetchImage(osmPhoto,{},6500);
@@ -462,5 +477,5 @@ module.exports._test={
   extractVenueImageCandidates,
   pageMatchesRestaurant,
   venueScore,
-  hasVenueSignal,matchesVerifiedPageFixture,VERIFIED_VENUE_PAGES
+  hasVenueSignal,matchesVerifiedPageFixture,VERIFIED_VENUE_PAGES,verifiedRestaurantPhoto,VERIFIED_RESTAURANT_PHOTOS
 };
