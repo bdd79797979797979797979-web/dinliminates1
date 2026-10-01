@@ -343,7 +343,7 @@ assert(app.includes("(q||'restaurant')+' restaurant website'"),'Restaurant Websi
 assert(api.includes("Country,Phone,URL"),'Restaurant provider lookup should request phone/URL metadata where available');
 assert(api.includes("attrs.Phone||attrs.phone") && api.includes("attrs.URL||attrs.Url||attrs.url"),'Restaurant API should preserve provider phone and website metadata');
 assert(app.includes('iphone-guide-steps') && app.includes('Add to Home Screen'),'iPhone instructions must use the premium guide');
-assert(!html.includes('Dinner Decisions Simplified') && html.includes('Beautifully swipe until it’s revealed.') && html.includes('Add to iPhone'),'Current Home copy must be present');
+assert(!html.includes('Dinner Decisions Simplified') && html.includes('Dinner Simplified') && html.includes('Swipe. Dinliminate. Enjoy.') && html.includes('Add to iPhone'),'Current Home copy must be present');
 
 // CP323 Restaurant Details visibility contract
 assert(app.includes("openModal('detailsModal','Restaurant Details',body)"),'Restaurant Details modal must have an explicit Restaurant Details title');
