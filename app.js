@@ -1473,12 +1473,16 @@ function scheduleRestaurantProviderSearch(){
 }
 function renderRestaurantSearchControl(){
  const btn=$('restaurantSearch');
- if(!btn)return;
- btn.dataset.state='search';
- const label='Search restaurants by name or cuisine';
+ const box=$('restaurantSearchBox');
+ if(!btn||!box)return;
+ const isOpen=!box.classList.contains('hidden');
+ const label=isOpen?'Close restaurant search':'Open restaurant search';
+ btn.dataset.state=isOpen?'close':'open';
  btn.setAttribute('aria-label',label);
  btn.title=label;
- btn.innerHTML='<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Search</span>';
+ btn.innerHTML=isOpen
+  ? '<svg class="restaurant-search-icon restaurant-search-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Close restaurant search</span>'
+  : '<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Open restaurant search</span>';
 }
 function bindRestaurantTools(){
  $('restaurantSearch').onclick=()=>{
