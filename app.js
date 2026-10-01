@@ -155,8 +155,8 @@ function bindHomeImageFallbacks(){
   img.onerror=function(){const current=this.currentSrc||this.src;if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  });
 }
-const restaurantGooglePhotoInflight=new Map();
-const restaurantGooglePhotoCache=new Map();
+const restaurantPhotoInflight=new Map();
+const restaurantPhotoCache=new Map();
 function decodePhotoAttributions(raw){
  const value=String(raw||'').trim();if(!value)return[];
  try{
@@ -173,35 +173,31 @@ function setRestaurantPhotoCredit(card,attributions){
  credit.innerHTML='Photo by '+safe.map(x=>'<a href="'+esc(x.uri)+'" target="_blank" rel="noopener noreferrer">'+esc(x.name)+'</a>').join(', ');
  credit.classList.add('is-visible');
 }
-async function hydrateGoogleRestaurantPhoto(row,scope){
+async function hydrateRestaurantPhoto(row,scope){
  if(!row)return;
- const rowKey=String(row.id||row.canonicalId||row.googlePlaceId||'').trim();
+ const rowKey=String(row.id||row.canonicalId||'').trim();
  if(!rowKey)return;
  const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
  if(!imgs.length)return;
- const cacheHit=restaurantGooglePhotoCache.get(rowKey);
+ const cacheHit=restaurantPhotoCache.get(rowKey);
  if(cacheHit?.url){
   imgs.forEach(img=>{
    if(!img.isConnected)return;
    img.src=cacheHit.url;
-   img.dataset.googlePhotoLoaded='true';
+   img.dataset.restaurantPhotoLoaded='true';
    setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions);
   });
   return;
  }
- let pending=restaurantGooglePhotoInflight.get(rowKey);
+ let pending=restaurantPhotoInflight.get(rowKey);
  if(!pending){
   const params=new URLSearchParams();
-  if(row.googlePhotoName)params.set('photoName',String(row.googlePhotoName));
-  else if(row.googlePlaceId)params.set('placeId',String(row.googlePlaceId));
-  else{
-   if(row.name)params.set('name',String(row.name));
-   if(row.address)params.set('address',String(row.address));
-   const website=safeExternalUrl(row.website)||safeExternalUrl(knownRestaurantWebsite(row));
-   if(website)params.set('website',website);
-   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
-   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
-  }
+  if(row.name)params.set('name',String(row.name));
+  if(row.address)params.set('address',String(row.address));
+  const website=safeExternalUrl(row.website);
+  if(website)params.set('website',website);
+  if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
+  if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
   pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
    if(!res.ok)throw new Error('Restaurant photo unavailable');
    const blob=await res.blob();
@@ -209,24 +205,21 @@ async function hydrateGoogleRestaurantPhoto(row,scope){
    return {
     url:URL.createObjectURL(blob),
     attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions')),
-    placeId:String(res.headers.get('X-Restaurant-Photo-Place-ID')||'').trim(),
     source:String(res.headers.get('X-Restaurant-Photo-Source')||'').trim()
    };
   }).then(data=>{
-   restaurantGooglePhotoCache.set(rowKey,data);
-   if(data.placeId)row.googlePlaceId=data.placeId;
+   restaurantPhotoCache.set(rowKey,data);
    if(data.source)row.photoSource=data.source;
-   if(data.placeId&&!data.source)row.photoSource='google-places';
    return data;
-  }).finally(()=>restaurantGooglePhotoInflight.delete(rowKey));
-  restaurantGooglePhotoInflight.set(rowKey,pending);
+  }).finally(()=>restaurantPhotoInflight.delete(rowKey));
+  restaurantPhotoInflight.set(rowKey,pending);
  }
  try{
   const data=await pending;
   imgs.forEach(img=>{
    if(!img.isConnected)return;
    img.src=data.url;
-   img.dataset.googlePhotoLoaded='true';
+   img.dataset.restaurantPhotoLoaded='true';
    setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
   });
  }catch{}
@@ -1422,8 +1415,8 @@ bindCardButton('restHide', async () => { await restaurantHide(current); });
 bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
 bindImageFallback('#restStage img',restaurantFallback(row),FINAL_RESTAURANT_IMAGE);
-hydrateGoogleRestaurantPhoto(row,'#restStage #restaurantCard');
-if(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places')hydrateGoogleRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
+hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
+if(nextRow?.googlePlaceId&&nextRow?.photoSource==='google-places')hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 }
 function restaurantCut(row){
  if(!row)return;
@@ -1588,7 +1581,7 @@ if ($('celebration')) $('celebration').classList.toggle('hidden', hungry); trigg
  const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
  if (!hungry) {
    triggerCelebration();
-   hydrateGoogleRestaurantPhoto(item,'#winner');
+   hydrateRestaurantPhoto(item,'#winner');
  }
 save();
 }
@@ -1655,7 +1648,7 @@ function detailsSheet(item,type){
  const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||FINAL_RESTAURANT_IMAGE);
  const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-google-photo-id="'+esc(item.googlePlaceId||'')+'" data-final-fallback="'+FINAL_RESTAURANT_IMAGE+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+'</div>';
  const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,FINAL_RESTAURANT_IMAGE);
-hydrateGoogleRestaurantPhoto(item,'#detailsModal');
+hydrateRestaurantPhoto(item,'#detailsModal');
 }
 
 function historyImageSource(row){
@@ -1724,7 +1717,7 @@ body += history.length ? '<div class="history-toolbar"><span class="status">'+hi
 body += '</div>';
 const modal = openModal('historyModal','History',body);
 bindImageFallback('#historyModal img',FINAL_RESTAURANT_IMAGE,FINAL_RESTAURANT_IMAGE);
-for(const row of history.slice(0,30)) if(row?.googlePlaceId&&row?.photoSource==='google-places') hydrateGoogleRestaurantPhoto(row,'#historyModal');
+for(const row of history.slice(0,30)) if(row?.googlePlaceId&&row?.photoSource==='google-places') hydrateRestaurantPhoto(row,'#historyModal');
 $('calPrev').onclick = () => { cursor = new Date(y,m-1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 $('calNext').onclick = () => { cursor = new Date(y,m+1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 modal.querySelectorAll('[data-history-id]').forEach(btn => btn.onclick = () => {
