@@ -180,8 +180,50 @@ function significantNameTokens(name){
   return normalizeMatchText(name).split(' ').filter(t=>t.length>=3&&!stop.has(t));
 }
 
+function structuredRestaurantMatches(html,name,address){
+  const tokens=significantNameTokens(name);
+  if(!tokens.length)return false;
+  const addrNorm=normalizeMatchText(address);
+  const addrNumber=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
+  const zip=(String(address||'').match(/\b\d{5}(?:-\d{4})?\b/)||[])[0];
+  const city=(addrNorm.split(' ').findIndex(x=>x==='clarksville')>=0)?'clarksville':'';
+  const blocks=[];
+  const re=/<script[^>]+type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/ig;
+  let m;
+  while((m=re.exec(String(html||''))))blocks.push(m[1]);
+  const inspect=(value)=>{
+    if(value==null)return false;
+    if(Array.isArray(value))return value.some(inspect);
+    if(typeof value!=='object')return false;
+    const type=Array.isArray(value['@type'])?value['@type'].join(' '):String(value['@type']||'');
+    const business=/restaurant|foodestablishment|localbusiness/i.test(type);
+    const itemName=normalizeMatchText(value.name||'');
+    const nameHits=tokens.filter(t=>itemName.includes(t)).length;
+    if(business&&nameHits/tokens.length>=0.8){
+      const a=value.address;
+      const addressText=normalizeMatchText(typeof a==='string'?a:[a?.streetAddress,a?.addressLocality,a?.addressRegion,a?.postalCode].filter(Boolean).join(' '));
+      const numberOk=!!addrNumber&&addressText.includes(normalizeMatchText(addrNumber));
+      const zipOk=!!zip&&addressText.includes(normalizeMatchText(zip));
+      const cityOk=!!city&&addressText.includes(city);
+      const locParts=addrNorm.split(' ').filter(t=>t.length>=3).slice(-5);
+      const locHits=locParts.filter(t=>addressText.includes(t)).length;
+      if(numberOk||zipOk||(cityOk&&locHits>=2)||locHits>=3)return true;
+    }
+    for(const key of ['mainEntity','about','subject','item','itemListElement','address','location']){
+      if(value[key]&&inspect(value[key]))return true;
+    }
+    return false;
+  };
+  for(const raw of blocks){
+    try{if(inspect(JSON.parse(raw)))return true;}catch{}
+  }
+  return false;
+}
+
 function pageMatchesRestaurant(html,name,address){
-  const hay=normalizeMatchText(String(html||'').slice(0,1400000));
+  const source=String(html||'');
+  if(structuredRestaurantMatches(source,name,address))return true;
+  const hay=normalizeMatchText(source.slice(0,1400000));
   const tokens=significantNameTokens(name);
   if(!tokens.length)return false;
   const hits=tokens.filter(t=>hay.includes(t)).length;
@@ -341,6 +383,9 @@ async function findVerifiedRestaurantPages(name,address,website){
   const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
   const queries=[];
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
+  // Search the official host itself for an exact-location page. This catches
+  // JavaScript-heavy location finders whose links are not present in raw HTML.
+  if(websiteHost&&safeName&&safeAddress)queries.push('site:'+websiteHost+' "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
@@ -435,5 +480,6 @@ module.exports._test={
   venueScore,
   hasVenueSignal,
   extractInternalLinks,
-  sameHost
+  sameHost,
+  structuredRestaurantMatches
 };
