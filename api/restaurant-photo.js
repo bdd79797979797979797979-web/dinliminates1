@@ -228,6 +228,19 @@ function hasVenueSignal(candidate){
   return VENUE_IMAGE_HINTS.test(context) && !/^.*(?:menu|food|dish|meal).*(?:menu|food|dish|meal).*$/i.test(context);
 }
 
+function imageMatchesExactVenue(candidate,name,address){
+  if(!candidate)return false;
+  const context=normalizeMatchText(String(candidate.context||''));
+  const url=normalizeMatchText(String(candidate.url||''));
+  if(FOOD_IMAGE_HINTS.test(context))return false;
+  const nameTokens=significantNameTokens(name);
+  const matchedName=nameTokens.filter(t=>context.includes(t)||url.includes(t)).length;
+  const exactName=nameTokens.length>0 && matchedName===nameTokens.length;
+  const venueSignal=hasVenueSignal(candidate);
+  const imageWord=/(?:photo|image|picture|gallery|exterior|outside|entrance|front|building|location|patio|drive|parking|storefront)/.test(context+' '+url);
+  return venueSignal || exactName || imageWord && matchedName>0;
+}
+
 function extractVenueImageCandidates(html,pageUrl,name,address,website){
   const raw=[
     ...extractImgCandidates(html,pageUrl),
@@ -426,14 +439,11 @@ module.exports=async function handler(req,res){
     // 1) Exact restaurant pages: only use images that look like the venue itself.
     for(const entry of verifiedPages){
       const pageText=normalizeMatchText(String(entry.html||'').slice(0,700000));
-      const isGalleryPage=/(?:photo gallery|traveler photos|photos|gallery|our photos|location photos)/.test(pageText);
       const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,website)
         .filter(item=>{
           if(item.score<65 || item.score<=0)return false;
-          if(hasVenueSignal(item))return true;
-          if(!isGalleryPage)return false;
-          const ctx=String(item.context||'');
-          return item.source!=='meta' && !FOOD_IMAGE_HINTS.test(ctx);
+          if(item.source==='meta')return false;
+          return imageMatchesExactVenue(item,name,address);
         });
       for(const candidate of candidates.slice(0,14)){
         try{
@@ -452,17 +462,15 @@ module.exports=async function handler(req,res){
       if(candidate.score<115||!candidate.hostPageUrl)continue;
       const html=await verifiedRestaurantPage(candidate.hostPageUrl,name,address);
       if(!html)continue;
-      const pageText=normalizeMatchText(String(html||'').slice(0,700000));
-      const isGalleryPage=/(?:photo gallery|traveler photos|photos of|location photos|our photos|photos|gallery)/.test(pageText);
       const pageCandidates=extractVenueImageCandidates(html,candidate.hostPageUrl,name,address,website);
-      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && !FOOD_IMAGE_HINTS.test(String(item.context||'')) && (hasVenueSignal(item)||isGalleryPage||item.source==='meta'));
+      const bestPage=pageCandidates.find(item=>item.url===candidate.contentUrl && item.score>=65 && item.source!=='meta' && imageMatchesExactVenue(item,name,address));
       try{
         if(bestPage){
           const media=await fetchImage(candidate.contentUrl,{'Referer':candidate.hostPageUrl},6500);
           return sendMedia(res,{media,source:'verified-venue-image',sourceUrl:candidate.hostPageUrl,sourceName:hostOf(candidate.hostPageUrl)});
         }
       }catch{}
-      const proxyCandidates=pageCandidates.filter(item=>item.score>=65 && !FOOD_IMAGE_HINTS.test(String(item.context||'')) && (hasVenueSignal(item)||isGalleryPage||item.source==='meta')).slice(0,10);
+      const proxyCandidates=pageCandidates.filter(item=>item.score>=65 && item.source!=='meta' && imageMatchesExactVenue(item,name,address)).slice(0,10);
       for(const pageCandidate of proxyCandidates){
         try{
           const media=await fetchImage(pageCandidate.url,{'Referer':candidate.hostPageUrl},5500);
