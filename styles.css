@@ -1312,3 +1312,20 @@ button,a,select{touch-action:manipulation}
   #restaurant .hours-control-btn{min-width:52px}
   .food-swipe-actions,#restaurant .swipe-actions{grid-template-columns:44px 60px 60px 44px;gap:7px!important}
 }
+
+
+/* CP528 — preserve compact Details visuals while expanding the iPhone hit area. */
+.card-details-action,
+#restaurant .restaurant-card-details-utility{position:relative}
+.card-details-action::after,
+#restaurant .restaurant-card-details-utility::after{
+  content:'';
+  position:absolute;
+  inset:-7px;
+  border-radius:16px;
+  background:transparent;
+}
+@media(max-width:430px){
+  .card-details-action::after,
+  #restaurant .restaurant-card-details-utility::after{inset:-9px}
+}
