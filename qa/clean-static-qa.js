@@ -155,8 +155,7 @@ assert(!html.includes('id="hoursToggle"') && !html.includes('data-hours-mode="op
 assert(app.includes("'https://images.pexels.com/photos/32845321/pexels-photo-32845321.jpeg"),'Restaurant Asian Quick Cut must have a concrete photo source');
 assert(!app.includes('hoursMode') && !app.includes('setRestaurantHoursMode') && !app.includes('restaurantHoursFilter'),'Restaurant hours must not participate in restaurant filtering');
 
-assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must be normalized to open/closed/unknown');
-assert(app.includes("function restaurantHoursFilter(row)"),'Restaurant hours filtering must remain available internally');
+assert(app.includes("function restaurantHourState(row)"),'Restaurant hour state must remain available for informational restaurant Details');
 for(const label of ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack']) {
   const key = label.includes(' ') || label.includes('/') ? "'"+label+"':" : label+':';
   assert(app.includes(key),'Food Quick Cut photo mapping must include '+label);
