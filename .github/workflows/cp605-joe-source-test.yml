@@ -1,0 +1,25 @@
+name: CP605 Joe Coffee Source Test
+
+on:
+  push:
+    branches: [cp605-thirsty-goat-photo-fix]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test exact Joe Coffee venue page
+        run: |
+          node <<'NODE'
+          const pageUrl='https://joe.coffee/locations/tn/clarksville/the-thirsty-goat-clarksville/';
+          const r=await fetch(pageUrl,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0'}});
+          const html=await r.text();
+          const urls=[...html.matchAll(/https?:\/\/[^"'\s<>()]+\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s<>()]*)?/gi)].map(m=>m[0]);
+          console.log(JSON.stringify({status:r.status,bytes:html.length,imageCandidates:[...new Set(urls)].slice(0,20)}));
+          if(r.status!==200)throw new Error('Joe page HTTP '+r.status);
+          if(!/thirsty goat/i.test(html))throw new Error('Joe page does not contain Thirsty Goat');
+          if(!/4044[^<]{0,120}US-41|4044[^<]{0,120}ALT|4044[^<]{0,120}Clarksville/i.test(html))throw new Error('Joe page does not contain exact address');
+          NODE
