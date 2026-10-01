@@ -179,16 +179,19 @@ async function hydrateRestaurantPhoto(row,scope){
  if(!rowKey)return;
  const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
  if(!imgs.length)return;
+
  const cacheHit=restaurantPhotoCache.get(rowKey);
  if(cacheHit?.url){
   imgs.forEach(img=>{
    if(!img.isConnected)return;
+   img.dataset.restaurantPhotoLoaded='pending';
+   img.onload=()=>{img.dataset.restaurantPhotoLoaded='true';};
    img.src=cacheHit.url;
-   img.dataset.restaurantPhotoLoaded='true';
-   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions);
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions||[]);
   });
   return;
  }
+
  let pending=restaurantPhotoInflight.get(rowKey);
  if(!pending){
   const params=new URLSearchParams();
@@ -196,31 +199,31 @@ async function hydrateRestaurantPhoto(row,scope){
   if(row.address)params.set('address',String(row.address));
   const website=safeExternalUrl(row.website);
   if(website)params.set('website',website);
+  if(String(row.photoSource||'').toLowerCase().includes('openstreetmap')&&/^https:\/\//i.test(String(row.photo||''))){
+   params.set('osmPhoto',String(row.photo));
+  }
   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
-  pending=fetch('/api/restaurant-photo?'+params.toString(),{cache:'no-store'}).then(async res=>{
-   if(!res.ok)throw new Error('Restaurant photo unavailable');
-   const blob=await res.blob();
-   if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
-   return {
-    url:URL.createObjectURL(blob),
-    attributions:decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions')),
-    source:String(res.headers.get('X-Restaurant-Photo-Source')||'').trim()
-   };
-  }).then(data=>{
-   restaurantPhotoCache.set(rowKey,data);
-   if(data.source)row.photoSource=data.source;
-   return data;
-  }).finally(()=>restaurantPhotoInflight.delete(rowKey));
+  const photoUrl='/api/restaurant-photo?'+params.toString();
+
+  pending=Promise.resolve(photoUrl);
   restaurantPhotoInflight.set(rowKey,pending);
+  pending.then(url=>{
+   restaurantPhotoCache.set(rowKey,{url,attributions:[],source:'verified-venue-api'});
+  }).finally(()=>restaurantPhotoInflight.delete(rowKey));
  }
  try{
-  const data=await pending;
+  const photoUrl=await pending;
   imgs.forEach(img=>{
    if(!img.isConnected)return;
-   img.src=data.url;
-   img.dataset.restaurantPhotoLoaded='true';
-   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
+   img.dataset.restaurantPhotoLoaded='pending';
+   img.onload=()=>{
+    if(!img.isConnected)return;
+    img.dataset.restaurantPhotoLoaded='true';
+    setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,[]);
+    restaurantPhotoCache.set(rowKey,{url:photoUrl,attributions:[],source:'verified-venue-api'});
+   };
+   img.src=photoUrl;
   });
  }catch{}
 }
@@ -1391,7 +1394,7 @@ S.restaurantIndex = Math.max(0, Math.min(S.restaurantIndex, rows.length - 1));
 if(!S.restaurantMaybeRound){const ni=restaurantChoiceIndex(rows,S.restaurantIndex,false);if(ni>=0)S.restaurantIndex=ni;else if(rows.some(x=>x._maybe)){S.restaurantMaybeRound=true;S.restaurantIndex=restaurantChoiceIndex(rows,0,true);}}
 const row = rows[S.restaurantIndex];
 const category = restaurantCategory(row);
-const restaurantFallback = (r) => imageProxyUrl(r?.photo || r?.photoFallback || r?.image || FINAL_RESTAURANT_IMAGE);
+const restaurantFallback = () => FINAL_RESTAURANT_IMAGE;
 const image = restaurantFallback(row);
 const distanceLabel=Number.isFinite(Number(row.distance)) ? Number(row.distance).toFixed(1)+' mi away' : '';
 const restaurantMaybeBadge=row._maybe?'<span class="maybe-stamp restaurant-maybe-stamp" aria-label="Marked Maybe">MAYBE</span>':'';
