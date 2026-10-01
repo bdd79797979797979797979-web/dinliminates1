@@ -31,6 +31,21 @@ async function timezone(lat,lon){
  return '';
 }
 function isFastFoodName(name,brand='',operator=''){return FAST.test(String(name||'')+' '+String(brand||'')+' '+String(operator||''))}
+function isClearlyNonDiningBusiness(row){
+ const hay=norm([
+  row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+  row?.providerType,row?.primaryType,
+  Array.isArray(row?.types)?row.types.join(' '):row?.types,
+  Array.isArray(row?.amenity)?row.amenity.join(' '):row?.amenity
+ ].filter(Boolean).join(' '));
+ if(!hay)return false;
+ const nonDiningPattern=/\\b(?:food supplier|food suppliers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\\b/i;
+ if(nonDiningPattern.test(hay))return true;
+ const strongNonDiningType=/\\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\\b/i;
+ const diningType=/\\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food court|food hall)\\b/i;
+ return strongNonDiningType.test(hay)&&!diningType.test(hay);
+}
+function filterNonDiningRows(rows){return (rows||[]).filter(row=>!isClearlyNonDiningBusiness(row))}
 function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
 function serverLocalClock(zone,now=new Date()){
  const opts={timeZone:zone||undefined,hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'};
@@ -152,7 +167,7 @@ async function photonPlaces(lat,lon,radius,searchTerm=''){
    base.push(new URLSearchParams({q:qTerm||'fast food',osm_tag:'amenity:fast_food',bbox,limit,lang:'en',countrycode:'US',dedupe:'1',lat:String(lat),lon:String(lon),zoom:'12'}));
  }
  const rows=[],errors=[];
- const consume=(result)=>{if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));return}for(const feature of result.value?.features||[]){const pv=feature?.properties||{},ov=String(pv.osm_value||'').toLowerCase(),ok=String(pv.osm_key||'').toLowerCase();if(ok==='amenity'&&!DINING_AMENITIES.split('|').includes(ov)&&!FAST.test(String(pv.name||pv.brand||pv.operator||'')))continue;const row=photonRow(feature,{lat,lon});if(row&&row.distance<=radius)rows.push(row)}};
+ const consume=(result)=>{if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason));return}for(const feature of result.value?.features||[]){const pv=feature?.properties||{},ov=String(pv.osm_value||'').toLowerCase(),ok=String(pv.osm_key||'').toLowerCase();if(ok==='amenity'&&!DINING_AMENITIES.split('|').includes(ov)&&!FAST.test(String(pv.name||pv.brand||pv.operator||'')))continue;const row=photonRow(feature,{lat,lon});if(row&&row.distance<=radius&&!isClearlyNonDiningBusiness(row))rows.push(row)}};
  for(const result of await Promise.allSettled(base.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},6500))))consume(result);
  const primaryFastCount=rows.filter(r=>r.fastFood).length;
  const missingKnown=!term && radius<=25 && primaryFastCount<3 ? TARGETED_FAST.filter(name=>!rows.some(r=>norm(r.name)===norm(name)||norm(r.name).includes(norm(name)))).slice(0,4) : [];
@@ -181,7 +196,7 @@ async function arcgisPlaces(lat,lon,radius,searchTerm=''){
      if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
      const fast=category==='Fast Food'||isFastFoodName(name,String(attrs.Type||''));
      const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',providerType:String(attrs.Type||''),address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS POI'};
-     if(row.distance<=r)rows.push(row);
+     if(row.distance<=r&&!isClearlyNonDiningBusiness(row))rows.push(row);
    }
  }
  return {rows,errors};
@@ -626,7 +641,7 @@ if(mode==='search'){
  const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};
  const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};
  const googleOut=googleResult.status==='fulfilled'?googleResult.value:{rows:[],errors:[String(googleResult.reason?.message||googleResult.reason||'Google Places unavailable')]};
- const preliminary=dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]);
+ const preliminary=filterNonDiningRows(dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]));
  const preliminaryFast=preliminary.filter(r=>r.fastFood).length;
  let osmOut={rows:[],errors:[]};
  const needsOverpass=!!searchTerm||radius>WIDE_RADIUS_THRESHOLD||!preliminary.length||preliminaryFast===0;
