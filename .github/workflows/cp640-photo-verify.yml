@@ -36,7 +36,7 @@ jobs:
           const fake={name:"McDonald's",source:"Google Places Search",photo:"",category:"Fast Food"};
           const meta=r.restaurantPhotoMeta(fake);
           if(meta.photo)throw new Error('Generic/known-brand fallback still exists');
-          if(!p.verifiedRestaurantPhoto("McDonald's","2285 Trenton Rd, Clarksville, TN 37040")) throw new Error('Unexpected fixture match for wrong address');
+          if(p.verifiedRestaurantPhoto("McDonald's","2285 Trenton Rd, Clarksville, TN 37040")) throw new Error('Unexpected fixture match for wrong address');
           console.log('Pure checks: PASS');
           NODE
       - name: Live resolver smoke test
