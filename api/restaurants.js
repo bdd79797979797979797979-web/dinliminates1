@@ -42,8 +42,12 @@ function isClearlyNonDiningBusiness(row){
  const nonDiningPattern=/\b(?:food supplier|food suppliers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\b/i;
  if(nonDiningPattern.test(hay))return true;
  const strongNonDiningType=/\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\b/i;
+ const diningHay=norm([
+  row?.name,row?.brand,row?.operator,row?.cuisine,row?.providerType,row?.primaryType,
+  Array.isArray(row?.types)?row.types.join(' '):row?.types
+ ].filter(Boolean).join(' '));
  const diningType=/\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food court|food hall)\b/i;
- return strongNonDiningType.test(hay)&&!diningType.test(hay);
+ return strongNonDiningType.test(hay)&&!diningType.test(diningHay);
 }
 function filterNonDiningRows(rows){return (rows||[]).filter(row=>!isClearlyNonDiningBusiness(row))}
 function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}
