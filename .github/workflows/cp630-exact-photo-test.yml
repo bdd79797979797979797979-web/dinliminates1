@@ -1,0 +1,24 @@
+name: CP630 Exact Photo Validation
+on:
+  push:
+    branches: [cp630-exact-photo-validation]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Validate module and exact image
+        run: |
+          node --input-type=module -e "const m=await import('./api/restaurant-photo.js'); console.log('MODULE_OK',!!m)"
+          node <<'NODE'
+          const u='https://media-cdn.tripadvisor.com/media/photo-s/10/a6/7e/fb/a-view-of-mcdonalds-from.jpg';
+          const r=await fetch(u,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0'}});
+          const b=await r.arrayBuffer();
+          console.log(JSON.stringify({status:r.status,type:r.headers.get('content-type'),bytes:b.byteLength}));
+          if(r.status!==200 || !(r.headers.get('content-type')||'').startsWith('image/') || b.byteLength<10000)process.exit(1);
+          NODE
