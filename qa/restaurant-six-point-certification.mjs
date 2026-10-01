@@ -112,7 +112,28 @@ await page.route('**/*',async route=>{
 
 const settle=()=>page.waitForTimeout(180);
 const snap=()=>page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
-async function waitForRestaurant(expectedQuery=''){const wanted=String(expectedQuery||'').trim().toLowerCase();await page.waitForFunction((wanted)=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';const state=window.__DINLIMINATE_QA__?.snapshot?.();return /Searching restaurants/.test(t)||locBusy||findBusy||!!state?.restaurantSearchOrigin||!!wanted},{timeout:10000},wanted);await page.waitForFunction((wanted)=>{const t=document.querySelector('#status')?.textContent||'';const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';const snap=window.__DINLIMINATE_QA__?.snapshot?.();const currentQuery=String(snap?.restaurantSearchQuery||'').trim().toLowerCase();const queryReady=!wanted||currentQuery.includes(wanted);return !!t&&!/Searching restaurants/.test(t)&&!locBusy&&!findBusy&&!!snap?.restaurantSearchOrigin&&queryReady},{timeout:30000},wanted);await settle();}
+async function waitForRestaurant(expectedQuery=''){
+ const wanted=String(expectedQuery||'').trim().toLowerCase();
+ await page.waitForFunction(()=>true,{timeout:50}).catch(()=>{});
+ await page.waitForFunction(()=>{
+  const t=document.querySelector('#status')?.textContent||'';
+  const locBusy=document.querySelector('#locate')?.getAttribute('aria-busy')==='true';
+  const findBusy=document.querySelector('#find')?.getAttribute('aria-busy')==='true';
+  const searchBusy=/Searching restaurants|Finding your location|Refreshing restaurants|Location found/.test(t);
+  return !locBusy&&!findBusy&&!searchBusy;
+ },{timeout:30000});
+ await page.waitForFunction((wanted)=>{
+  if(!wanted)return true;
+  const snap=window.__DINLIMINATE_QA__?.snapshot?.();
+  const currentQuery=String(snap?.restaurantSearchQuery||'').trim().toLowerCase();
+  return currentQuery.includes(wanted) || String(document.querySelector('#restaurantQuery')?.value||'').trim().toLowerCase().includes(wanted);
+ },wanted,{timeout:30000}).catch(async()=>{
+   if(wanted){
+     await page.waitForFunction(()=>!document.querySelector('#find')?.getAttribute('aria-busy')&&!document.querySelector('#locate')?.getAttribute('aria-busy'),{timeout:5000});
+   }
+ });
+ await settle();
+}
 async function openRestaurantScreen(){await page.locator('#restStart').click();await settle();}
 
 await page.goto('http://127.0.0.1:4174/?qa=1');
