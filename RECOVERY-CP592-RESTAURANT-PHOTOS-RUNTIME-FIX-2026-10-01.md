@@ -19,3 +19,12 @@ Test findings:
 Latest code commits:
 - app.js runtime/photo renderer fix: a94dcb7b71b17200caad6ed6795d5b7644d527ad
 - restaurant-photo runtime fix: 88179fc77532e65991a93915327c3e2cd35c9e20
+
+
+## Retest — 2026-10-01 13:18 CDT
+
+Live deployment test:
+- The newest Vercel production deployment currently visible for project dinliminates1 is still commit 98027d447a07eff4dbffdbdf6ac14c137617c4c9, titled CP584: carry Google restaurant photo references.
+- A direct request to its /api/restaurant-photo endpoint for McDonald's at 724 Sango Rd, Clarksville, TN returned HTTP 503 with: "Google Places photos are not configured".
+- Therefore the deployed backend is not CP592. The current GitHub main source contains the CP592 fixes, but they are not yet the deployed server function.
+- The correct next verification is to publish the current main build, then call /api/restaurant-photo again and require an actual image response before declaring restaurant photos fixed.
