@@ -1,0 +1,32 @@
+name: CP610 Candidate Image Audit
+on:
+  push:
+    branches: [cp610-exact-image-evidence]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Audit exact restaurant image candidates
+        run: |
+          node <<'NODE'
+          const mod=await import('./api/restaurant-photo.js');
+          const t=mod.default?mod.default._test:mod._test;
+          async function audit(name,address,pageUrl){
+            const r=await fetch(pageUrl,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0'}});
+            const html=await r.text();
+            const c=t.extractVenueImageCandidates(html,pageUrl,name,address,'');
+            console.log('\n### '+name+' @ '+pageUrl+' status='+r.status+' bytes='+html.length);
+            for(const x of c.filter(v=>v.source!=='meta').slice(0,20)){
+              console.log(JSON.stringify({score:x.score,source:x.source,url:x.url,context:String(x.context||'').slice(0,500)}));
+            }
+          }
+          await audit("McDonald's","724 Sango Rd, Clarksville, TN 37043","https://usarestaurants.info/explore/united-states/tennessee/montgomery-county/clarksville/mcdonalds-931-358-0259.htm");
+          await audit("McDonald's","724 Sango Rd, Clarksville, TN 37043","https://www.tripadvisor.com/Restaurant_Review-g54955-d4875292-Reviews-McDonald_s-Clarksville_Tennessee.html");
+          await audit("The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043","https://joe.coffee/locations/tn/clarksville/the-thirsty-goat-clarksville/");
+          NODE
