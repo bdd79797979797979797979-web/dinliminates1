@@ -2666,7 +2666,27 @@ button,a,select{touch-action:manipulation}
 }
 
 
-/* CP689 — canonical shared Meal/Restaurant card geometry.
+/* CP690 — smooth direct swipe motion.
+   Keep both card stacks compositor-friendly and remove the card transition only
+   while the user's finger is actively dragging. */
+#food .swipe-card-stack>.card,
+#restaurant .restaurant-card-stack>.card{
+  -webkit-backface-visibility:hidden!important;
+  backface-visibility:hidden!important;
+}
+#food .swipe-card-stack>.card.swipe-active,
+#restaurant .restaurant-card-stack>.card.swipe-active{
+  transition:none!important;
+  will-change:transform!important;
+  -webkit-backface-visibility:hidden!important;
+  backface-visibility:hidden!important;
+}
+#food .swipe-card-stack>.card.swipe-active img,
+#restaurant .restaurant-card-stack>.card.swipe-active img{
+  -webkit-backface-visibility:hidden!important;
+  backface-visibility:hidden!important;
+}
+
    Restaurant keeps its address/distance and Website as content extras, but its
    card frame, vertical geometry, title scale, utility spacing, and stack sizing
    now use the same system as Meals. */
