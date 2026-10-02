@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 693,
-  "sourceBranch": "cp693-premium-navigation",
+  "build": 694,
+  "sourceBranch": "cp694-note-controls",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP693"
+  "checkpoint": "CP694"
 }
