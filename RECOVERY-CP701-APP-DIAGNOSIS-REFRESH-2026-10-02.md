@@ -16,3 +16,8 @@
 
 ## Status
 - Candidate branch; not production.
+
+Final source review:
+- Removed all runtime references to the old source-text audit variable.
+- App Diagnosis now uses live function/DOM contracts instead of inspecting an unavailable source string.
+- Added a direct Choose-this placement check.
