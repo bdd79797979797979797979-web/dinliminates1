@@ -1,7 +1,7 @@
 # Dinliminate image-source governance
 
 ## Current release
-Build 707 · cp707-audit-fixes-except-hidden-restaurant-controls
+Build 708 · cp708-stunning-home-food-photos
 
 ## Policy
 Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved image CDNs used by the release. The app also inventories every third-party food-image host so usage can be reviewed before public launch.
@@ -33,6 +33,10 @@ Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved
 ## Launch status
 The automated inventory is complete. The legal/usage verification of the non-approved third-party assets is not something the runtime can establish automatically; those assets should be replaced with approved local/CDN assets or individually cleared before public distribution.
 
+
+## CP708 Home hero photography
+- Dine In: Pexels photo 30736865 — elegant overhead gourmet table setting. citeturn309149search0
+- Dine Out: Pexels photo 27643020 — grilled steak with fresh vegetables, 6000×4000 landscape image. citeturn121582search3
 
 ## CP250 photo refresh
 - Tacos: Pexels photo 14179985.
