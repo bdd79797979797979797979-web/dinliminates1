@@ -1,0 +1,36 @@
+name: CP626 McDonalds Source Audit
+on:
+  push:
+    branches: [cp625-no-unverified-restaurant-photos]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Audit candidate sources
+        run: |
+          node <<'NODE'
+          const m=await import('./api/restaurant-photo.js');
+          const t=m.default?m.default._test:m._test;
+          const cases=[
+            ['Restaurantji','https://www.restaurantji.com/tn/clarksville/mcdonalds/'],
+            ['YellowPages','https://www.yellowpages.com/clarksville-tn/mip/mcdonalds-8449374?lid=8449374'],
+            ['Wanderlog','https://wanderlog.com/place/details/1368265/mcdonalds'],
+            ['WeDeliver','https://www.wedeliverinc.com/order/restaurant/329']
+          ];
+          for(const [label,url] of cases){
+            try{
+              const r=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 Dinliminate/1.0'}});
+              const html=await r.text();
+              const c=t.extractVenueImageCandidates(html,url,"McDonald's","724 Sango Rd, Clarksville, TN 37043",'');
+              console.log('\n### '+label+' '+r.status+' '+html.length);
+              for(const x of c.filter(v=>v.source!=='meta').slice(0,15))
+                console.log(JSON.stringify({score:x.score,source:x.source,url:x.url,evidence:x.evidence||'',context:String(x.context||'').slice(0,250)}));
+            }catch(e){console.log(label,'ERR',e.message)}
+          }
+          NODE
