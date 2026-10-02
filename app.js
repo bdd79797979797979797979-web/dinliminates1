@@ -299,6 +299,7 @@ const restaurantPhotoInflight=new Map();
 const restaurantPhotoCache=new Map();
 const RESTAURANT_PHOTO_CACHE_NAME='dinliminate.restaurant.photos.v1';
 const RESTAURANT_PHOTO_CACHE_MAX_AGE=30*24*60*60*1000;
+const RESTAURANT_PHOTO_PREFETCH_COUNT=2;
 let restaurantPhotoStoragePromise=null;
 function restaurantPhotoCacheRequest(row){
  const identity=normKey([row?.name,row?.address].filter(Boolean).join('|'))||String(row?.id||row?.canonicalId||'unknown');
@@ -386,7 +387,6 @@ async function hydrateRestaurantPhoto(row,scope){
  const rowKey=String(row.id||row.canonicalId||'').trim();
  if(!rowKey)return;
  const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
- if(!imgs.length)return;
  const cacheHit=restaurantPhotoCache.get(rowKey);
  if(cacheHit?.url){
   imgs.forEach(img=>{
@@ -418,7 +418,7 @@ async function hydrateRestaurantPhoto(row,scope){
   pending=(async()=>{
    const stored=await getPersistentRestaurantPhoto(row);
    if(stored)return stored;
-   const res=await fetch(requestUrl,{cache:'no-store'});
+   const res=await fetch(requestUrl,{cache:'force-cache'});
    if(!res.ok)throw new Error('Restaurant photo unavailable');
    const blob=await res.blob();
    if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
@@ -442,6 +442,20 @@ async function hydrateRestaurantPhoto(row,scope){
    setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
   });
  }catch{}
+}
+
+function prefetchRestaurantPhotos(rows,startIndex,count=RESTAURANT_PHOTO_PREFETCH_COUNT){
+ const pool=Array.isArray(rows)?rows:[];
+ if(navigator.onLine===false)return;
+ const targets=[];
+ for(let offset=1;offset<=count;offset++){
+  const row=pool[startIndex+offset];
+  if(row)targets.push(row);
+ }
+ if(!targets.length)return;
+ const run=()=>targets.forEach(row=>{hydrateRestaurantPhoto(row,'#restStage').catch(()=>{});});
+ if(typeof window.requestIdleCallback==='function')window.requestIdleCallback(run,{timeout:1200});
+ else window.setTimeout(run,350);
 }
 
 function phoneHref(raw){
@@ -1688,6 +1702,7 @@ bindImageFallback('#restStage img',restaurantFallback(row),restaurantFallbackIma
 hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
 hydrateRestaurantWebsite(row,'#restStage #restaurantCard');
 if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
+prefetchRestaurantPhotos(rows,S.restaurantIndex,RESTAURANT_PHOTO_PREFETCH_COUNT);
 }
 function restaurantCut(row){
  if(!row)return;
