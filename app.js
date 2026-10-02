@@ -2482,7 +2482,7 @@ const nutrition=nutritionValues;
 const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const photoInput=$('editFoodPhoto').value.trim();
-let photo=photoInput||(isEdit&&item?.image?item.image:'');
+let photo=photoInput||(isEdit&&item?.image&&!String(item.image).startsWith('idb:')?item.image:'');
 if(!photo && !isEdit){
   const saveButton=document.querySelector('#foodEditorForm button.cut');
   if(saveButton){saveButton.disabled=true;saveButton.dataset.originalLabel=saveButton.textContent;saveButton.textContent='Finding photo…';}
