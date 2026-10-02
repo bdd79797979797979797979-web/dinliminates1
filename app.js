@@ -1568,7 +1568,7 @@ try{
  S.locationFreshAt=Date.now();
  S.locationSource='device';
  renderLocationSource();
- $('status').textContent=S.restaurantPool.length?'Location ready.':'Location found, but no restaurants were returned.';
+ if(!S.restaurantSearchDegraded) $('status').textContent=S.restaurantPool.length?'Location ready.':'Location found, but no restaurants were returned.';
  save();
  return true;
 }catch(err){
@@ -2846,20 +2846,35 @@ $('foodCut').onclick = () => foodCut();
 $('foodMaybe').onclick = () => foodMaybe();
 $('foodBack').onclick = foodBack;
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
-const openDrawer = () => { $('drawer').classList.remove('hidden'); $('drawerBg').classList.remove('hidden'); };
-const appMenu = $('menu'); if (appMenu) appMenu.onclick = openDrawer;
-const foodMenu = $('foodMenu'); if (foodMenu) foodMenu.onclick = openDrawer;
-const restaurantMenu = $('restaurantMenu'); if (restaurantMenu) restaurantMenu.onclick = openDrawer;
+let drawerCloseTimer=0;
+const closeDrawer=()=>{
+ clearTimeout(drawerCloseTimer);
+ const drawer=$('drawer'),bg=$('drawerBg');
+ drawer?.classList.remove('is-open');
+ bg?.classList.remove('is-open');
+ ['#menu','#foodMenu','#restaurantMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','false'));
+ drawerCloseTimer=setTimeout(()=>{drawer?.classList.add('hidden');bg?.classList.add('hidden');},180);
+};
+const openDrawer=()=>{
+ clearTimeout(drawerCloseTimer);
+ const drawer=$('drawer'),bg=$('drawerBg');
+ drawer?.classList.remove('hidden');
+ bg?.classList.remove('hidden');
+ requestAnimationFrame(()=>{drawer?.classList.add('is-open');bg?.classList.add('is-open');});
+ ['#menu','#foodMenu','#restaurantMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','true'));
+};
+const appMenu = $('menu'); if (appMenu) {appMenu.setAttribute('aria-expanded','false');appMenu.onclick = openDrawer;}
+const foodMenu = $('foodMenu'); if (foodMenu) {foodMenu.setAttribute('aria-expanded','false');foodMenu.onclick = openDrawer;}
+const restaurantMenu = $('restaurantMenu'); if (restaurantMenu) {restaurantMenu.setAttribute('aria-expanded','false');restaurantMenu.onclick = openDrawer;}
 const foodBackTop = $('foodBackTop'); if (foodBackTop) foodBackTop.onclick = home;
 const restaurantBackTop = $('restaurantBackTop'); if (restaurantBackTop) restaurantBackTop.onclick = home;
-$('drawerClose').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
-$('drawerBg').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); };
-$('manage').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); manageFoodsView(); };
-$('settings').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); settingsView(); };
+$('drawerClose').onclick = closeDrawer;
+$('drawerBg').onclick = closeDrawer;
+$('manage').onclick = () => { closeDrawer(); window.setTimeout(()=>manageFoodsView(),190); };
+$('settings').onclick = () => { closeDrawer(); window.setTimeout(()=>settingsView(),190); };
+$('backToStart').onclick = () => { closeDrawer(); window.setTimeout(()=>home(),190); };
+$('history').onclick = () => { closeDrawer(); window.setTimeout(()=>historyView(),190); };
 
-$('backToStart').onclick = () => home();
-$('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
-$('shareApp').onclick = shareAndAddApp;
 $('locate').onclick = () => {
   useLocation();
 };
