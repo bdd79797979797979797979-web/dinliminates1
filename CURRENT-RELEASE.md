@@ -1,3 +1,21 @@
+# CURRENT RELEASE — BUILD 753 / CP753
+
+Date: 2026-10-02
+
+Current candidate branch: `cp753-swipe-hint-fix`
+Recovery baseline: `cp752-home-cinematic`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP753 Swipe hint repair
+- Fixed the first-use Cut / Swipe / Maybe coach mark so it can receive taps.
+- Replaced the non-interactive overlay behavior with a real touch/click target.
+- Added a visible **×** dismissal affordance.
+- Positioned the hint at the bottom-right so it does not cover the central card.
+- Uses a new local-storage key so users who previously saw the broken v2 hint can see the repaired hint once.
+- Preserved Meal and Restaurant swipe behavior.
+- Bumped the service-worker shell cache and build metadata to 753.
+
 # CURRENT RELEASE — BUILD 752 / CP752
 
 Date: 2026-10-02
