@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 703,
-  "sourceBranch": "cp703-dine-in-out-copy",
+  "build": 704,
+  "sourceBranch": "cp704-hero-food-photos",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP703"
+  "checkpoint": "CP704"
 }
