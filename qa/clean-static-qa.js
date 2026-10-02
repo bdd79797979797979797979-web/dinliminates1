@@ -13,9 +13,9 @@ const sw=fs.readFileSync('sw.js','utf8');
 
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
-assert.equal(release.build,707,'Current release must be Build 708');
+assert.equal(release.build,708,'Current release must be Build 708');
 assert.equal(release.checkpoint,'CP708','Current release checkpoint must be CP708');
-assert.equal(manifest.build,707,'Release manifest build must be 707');
+assert.equal(manifest.build,708,'Release manifest build must be 708');
 assert.equal(manifest.checkpoint,'CP708','Release manifest checkpoint must be CP708');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
@@ -24,12 +24,12 @@ assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.j
 assert.ok(html.includes('Dinner Decisions Simplified'),'Home title must remain current');
 assert.ok(html.includes('Beautifully swipe until it’s revealed.'),'Selected Home tagline must be current');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
-assert.ok(html.includes('app.js?v=674'),'App cache-busting query must be current');
+assert.ok(html.includes('app.js?v=675'),'App cache-busting query must be current');
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(!css.includes('#iphoneHelp'),'Obsolete #iphoneHelp CSS selector must remain removed');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 
-assert.ok(app.includes("let APP_BUILD = '707'"),'Offline release fallback must be current');
+assert.ok(app.includes("let APP_BUILD = '708'"),'Offline release fallback must be current');
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
