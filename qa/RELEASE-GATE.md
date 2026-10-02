@@ -15,7 +15,7 @@ Date: 2026-10-02
 ## Completed hardening
 - Vercel release endpoint now reads `app-release.json`.
 - App Diagnosis validates current release metadata dynamically.
-- Service-worker shell cache advanced to v674.
+- Service-worker shell cache advanced to v676.
 - Home tagline restored to “Beautifully swipe until it’s revealed.”
 - History calendar supports individual entry deletion.
 - Restaurant card utilities use 44px touch targets.
