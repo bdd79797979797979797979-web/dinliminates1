@@ -1,9 +1,12 @@
-name: Dinliminate Hosted Netlify Preview Smoke
+name: Dinliminate Hosted Netlify Smoke
 
 on:
-  push:
-    branches: [cp487-launch-candidate-full-pass-2026-10-01, 'cp*-launch-hardening']
   workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Hosted Netlify URL"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -25,6 +28,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Hosted smoke
         env:
-          BASE_URL: https://deploy-preview-94--diliminate.netlify.app
-          REQUIRE_RELEASE: 'false'
+          BASE_URL: ${{ inputs.base_url }}
         run: node qa/hosted-smoke.mjs
