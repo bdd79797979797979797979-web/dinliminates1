@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 757,
-  "sourceBranch":"cp757-home-reference-refine",
-  "checkpoint":"CP757",
-  "deploymentTrigger":"CP757-home-reference-refine-2026-10-02"
+  "build": 758,
+  "sourceBranch":"cp758-all-maybe-placement",
+  "checkpoint":"CP758",
+  "deploymentTrigger":"CP758-all-maybe-placement-2026-10-02"
 }
