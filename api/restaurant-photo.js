@@ -254,7 +254,8 @@ function structuredRestaurantMatches(html,name,address){
   return false;
 }
 
-function strictPageMatchesRestaurant(html,name,address){\n  const source=String(html||'');\n  if(structuredRestaurantMatches(source,name,address))return true;\n  const hay=normalizeMatchText(source.slice(0,1400000));\n  const tokens=significantNameTokens(name);\n  if(!tokens.length)return false;\n  const nameHitCount=tokens.filter(t=>hay.includes(t)).length;\n  if(nameHitCount/tokens.length<0.9)return false;\n  const rawAddress=String(address||'');\n  const normAddress=normalizeMatchText(rawAddress);\n  const number=(rawAddress.match(/\\b\\d{1,6}\\b/)||[])[0];\n  const zip=(rawAddress.match(/\\b\\d{5}(?:-\\d{4})?\\b/)||[])[0];\n  const cityTokens=normAddress.split(' ').filter(t=>t.length>=4&&!/^\\d+$/.test(t)).slice(-5);\n  const numberOk=!!number&&hay.includes(normalizeMatchText(number));\n  const zipOk=!!zip&&hay.includes(normalizeMatchText(zip));\n  const cityHits=cityTokens.filter(t=>hay.includes(t)).length;\n  if(number&&zip)return numberOk&&zipOk;\n  if(number)return numberOk&&cityHits>=1;\n  return cityHits>=2;\n}\n\nfunction pageMatchesRestaurant(html,name,address){
+function strictPageMatchesRestaurant(html,name,address){
+  const source=String(html||'');\n  if(structuredRestaurantMatches(source,name,address))return true;\n  const hay=normalizeMatchText(source.slice(0,1400000));\n  const tokens=significantNameTokens(name);\n  if(!tokens.length)return false;\n  const nameHitCount=tokens.filter(t=>hay.includes(t)).length;\n  if(nameHitCount/tokens.length<0.9)return false;\n  const rawAddress=String(address||'');\n  const normAddress=normalizeMatchText(rawAddress);\n  const number=(rawAddress.match(/\\b\\d{1,6}\\b/)||[])[0];\n  const zip=(rawAddress.match(/\\b\\d{5}(?:-\\d{4})?\\b/)||[])[0];\n  const cityTokens=normAddress.split(' ').filter(t=>t.length>=4&&!/^\\d+$/.test(t)).slice(-5);\n  const numberOk=!!number&&hay.includes(normalizeMatchText(number));\n  const zipOk=!!zip&&hay.includes(normalizeMatchText(zip));\n  const cityHits=cityTokens.filter(t=>hay.includes(t)).length;\n  if(number&&zip)return numberOk&&zipOk;\n  if(number)return numberOk&&cityHits>=1;\n  return cityHits>=2;\n}\n\nfunction pageMatchesRestaurant(html,name,address){
   const source=String(html||'');
   if(structuredRestaurantMatches(source,name,address))return true;
   const hay=normalizeMatchText(source.slice(0,1400000));
@@ -273,7 +274,7 @@ async function verifiedRestaurantPage(url,name,address){
   if(!page||isBlockedHost(page))return null;
   try{
     const html=await fetchText(page,{},6000,1800000);
-    return pageMatchesRestaurant(html,name,address)?html:null;
+    return strictPageMatchesRestaurant(html,name,address)?html:null;
   }catch{return null}
 }
 
