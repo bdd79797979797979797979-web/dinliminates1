@@ -2,22 +2,22 @@
 Date: 2026-10-02
 
 ## Branch
-`cp692-restaurant-meal-details`
+`cp693-premium-navigation`
 
 ## Parent
-CP691 swipe-stability recovery point:
-`02f41eecf6930f90f27f9e0c00cd11ec11647822`
+CP692 restaurant + meal details recovery point:
+`000b81f87f268d86c18407ebd10caf9c39ba9f76`
 
 ## Scope
-CP692 is a presentation and local-data pass for Details and Add Meal. It intentionally does not alter restaurant or meal swipe mechanics.
+CP693 is a premium navigation and utility-surface pass built on CP692. It intentionally does not alter restaurant or meal swipe mechanics.
 
-### Details
-- Meal and Restaurant Details use the same visual hierarchy and spacing.
-- Meal Details: About (when available), Details, Typical nutrition, Notes, Hide Meal.
-- Restaurant Details: About (when available), Details, Hours, Contact, Notes, Website / Call / Directions, Hide Restaurant.
-- Heavy restaurant-specific card nesting was removed from the new Details markup in favor of calmer section separators.
+### Navigation
+- Removed Restaurants from the top-level hamburger menu.
+- Combined Settings and About into one Settings surface.
+- Kept Hidden Foods under Manage Meals.
+- Redesigned the hamburger drawer, History, Settings, and Back to Start treatment with one shared premium visual language.
 
-### Notes
+### Details and Notes
 - Notes are keyed to the individual meal or restaurant and saved locally in `localStorage` under `dinliminate.item.notes.v1`.
 - Maximum note length is 1,200 characters.
 - Notes survive normal round reset and System Restore.
@@ -35,7 +35,7 @@ CP692 is a presentation and local-data pass for Details and Add Meal. It intenti
 - `app-release.json` and `release-manifest.json`: build 692 / CP692.
 
 ## Preview target
-User-requested preview target: `dinliminate112`.
+User-requested preview target: `dinliminate22`.
 
 ## Verification gate
 Before promotion, verify on the hosted preview:
