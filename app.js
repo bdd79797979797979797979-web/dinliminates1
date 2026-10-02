@@ -920,43 +920,63 @@ function milesBetween(lat1,lon1,lat2,lon2){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
  return 2*R*Math.asin(Math.sqrt(z));
 }
-function restaurantNameFamily(value){
- return normKey(String(value||'').replace(/[’']s\b/gi,'s'));
+function restaurantNameTokensUI(value){
+ const text=normKey(String(value||'').replace(/[’']s\b/gi,'s'))
+   .replace(/\bbar\s+b\s+q\b/g,'bbq')
+   .replace(/\bbarbecue\b/g,'bbq')
+   .replace(/\bb\s+q\b/g,'bbq');
+ return text.split(' ').filter(Boolean);
 }
-function restaurantAddressFamily(value){
- const replacements={
-  street:'st',road:'rd',avenue:'ave',boulevard:'blvd',drive:'dr',lane:'ln',parkway:'pkwy',highway:'hwy',route:'rte',
-  circle:'cir',court:'ct',place:'pl',trail:'trl',terrace:'ter',north:'n',south:'s',east:'e',west:'w',
-  alabama:'al',alaska:'ak',arizona:'az',arkansas:'ar',california:'ca',colorado:'co',connecticut:'ct',delaware:'de',
-  florida:'fl',georgia:'ga',hawaii:'hi',idaho:'id',illinois:'il',indiana:'in',iowa:'ia',kansas:'ks',kentucky:'ky',
-  louisiana:'la',maine:'me',maryland:'md',massachusetts:'ma',michigan:'mi',minnesota:'mn',mississippi:'ms',
-  missouri:'mo',montana:'mt',nebraska:'ne',nevada:'nv','new-hampshire':'nh',newhampshire:'nh','new-jersey':'nj',
-  newjersey:'nj','new-mexico':'nm',newmexico:'nm','new-york':'ny',newyork:'ny',northcarolina:'nc',
-  'north-carolina':'nc','north-dakota':'nd',northdakota:'nd',ohio:'oh',oklahoma:'ok',oregon:'or',
-  pennsylvania:'pa',rhodeisland:'ri','rhode-island':'ri',southcarolina:'sc','south-carolina':'sc',
-  'south-dakota':'sd',southdakota:'sd',tennessee:'tn',tn:'tn',texas:'tx',utah:'ut',vermont:'vt',virginia:'va',
-  washington:'wa',westvirginia:'wv','west-virginia':'wv',wisconsin:'wi',wyoming:'wy',
-  'district-of-columbia':'dc',districtcolumbia:'dc',dc:'dc'
- };
- return normKey(value).split(' ').map(x=>replacements[x]||x).join(' ').replace(/\b(?:usa|united states)\b/g,'').replace(/\s+/g,' ').trim();
+function restaurantNameFamily(value){return restaurantNameTokensUI(value).join(' ');}
+function restaurantNameSimilarityUI(a,b){
+ const aa=restaurantNameTokensUI(a),bb=restaurantNameTokensUI(b);
+ if(!aa.length||!bb.length)return 0;
+ const as=new Set(aa),bs=new Set(bb);
+ const shared=[...as].filter(t=>bs.has(t)).length;
+ const shorter=Math.min(as.size,bs.size),union=new Set([...as,...bs]).size;
+ if(!shared||!shorter||!union)return 0;
+ const coverage=shared/shorter,jaccard=shared/union;
+ return coverage>=0.75&&jaccard>=0.60?Math.max(coverage,jaccard):0;
 }
-
+function restaurantAddressKeyUI(value){
+ const raw=restaurantAddressFamily(value);
+ if(!raw)return '';
+ const tokens=raw.split(' ').filter(Boolean);
+ const number=(tokens[0]||'').match(/^\d+[a-z]?$/i)?.[0]||'';
+ const streetTokens=[];
+ const suffixes=new Set(['st','rd','ave','blvd','dr','ln','pkwy','hwy','rte','cir','ct','pl','trl','ter','way']);
+ const begin=number?1:0;
+ for(let i=begin;i<tokens.length&&streetTokens.length<6;i++){
+   streetTokens.push(tokens[i]);
+   if(suffixes.has(tokens[i]))break;
+ }
+ return number&&streetTokens.length ? number+'|'+streetTokens.join(' ') : streetTokens.join(' ');
+}
+function restaurantAddressSimilarityUI(a,b){
+ const ax=restaurantAddressFamily(a),bx=restaurantAddressFamily(b);
+ if(!ax||!bx)return 0;
+ if(ax===bx)return 1;
+ const ka=restaurantAddressKeyUI(a),kb=restaurantAddressKeyUI(b);
+ if(ka&&kb&&ka===kb)return 0.90;
+ const sa=restaurantStreetFamily(a),sb=restaurantStreetFamily(b);
+ if(sa&&sb&&sa===sb)return 0.72;
+ const at=ax.split(' '),bt=bx.split(' '),shared=at.filter(t=>bt.includes(t)).length;
+ const coverage=shared/Math.min(at.length,bt.length);
+ return coverage>=0.80?0.80:0;
+}
 function restaurantStreetFamily(value){
  const raw=restaurantAddressFamily(value);
  if(!raw)return '';
  const first=raw.split(',')[0].trim();
- return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
+ const tokens=first.split(' ').filter(Boolean);
+ const start=/^\d+[a-z]?$/i.test(tokens[0]||'')?1:0;
+ return tokens.slice(start,start+5).join(' ').trim();
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
-const RESTAURANT_NAME_VARIANT_BLOCKERS_UI=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
+const RESTAURANT_NAME_VARIANT_BLOCKERS_UI=new Set(['express','grill','kitchen','cafe','coffee','bar','deli','bakery','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameVariantMatchUI(a,b){
- const aa=restaurantNameFamily(a).split(' ').filter(Boolean),bb=restaurantNameFamily(b).split(' ').filter(Boolean);
- if(!aa.length||!bb.length)return false;
- const as=new Set(aa),bs=new Set(bb),shared=aa.filter(t=>bs.has(t)).length,shorter=Math.min(as.size,bs.size),union=new Set([...aa,...bb]).size;
- if(as.size===bs.size&&shared===as.size)return true;
- if(shared!==shorter||shared/union<0.6)return false;
- const longer=aa.length>=bb.length?aa:bb,shorterSet=aa.length>=bb.length?bs:as,extras=longer.filter(t=>!shorterSet.has(t));
- return !extras.some(t=>RESTAURANT_NAME_VARIANT_BLOCKERS_UI.has(t));
+ const score=restaurantNameSimilarityUI(a,b);
+ return score>=0.60;
 }
 function restaurantPhotoQualityScore(row){
  const confidence=Number(row?.photoConfidence);
@@ -982,25 +1002,24 @@ function dedupeRestaurantPool(rows){
    const xp=String(x.phone||'').replace(/\D/g,'').slice(-10),xw=String(x.website||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/\/$/,'');
    const dist=milesBetween(x.lat,x.lon,lat,lon);
    const sameName=!!name&&name===xn;
-   const variant=restaurantNameVariantMatchUI(name,xn);
-   const sameNameFamily=sameName||variant;
+   const nameScore=restaurantNameSimilarityUI(name,xn);
+   const sameNameFamily=sameName||nameScore>=0.60;
+   const sameAddr=restaurantAddressSimilarityUI(address,xa)>=0.90;
+   const sameStreet=restaurantAddressSimilarityUI(address,xa)>=0.72;
+   const samePhysical=Number.isFinite(dist)&&dist<=0.15;
+   const sameAddressAndName=sameAddr&&sameNameFamily;
+   const sameStreetAndName=sameStreet&&sameNameFamily&&samePhysical;
+   const sameNearbyAndName=samePhysical&&sameNameFamily&&(!address||!xa);
    const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(row);
    const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
-   const sameAddr=!!address&&!!xa&&address===xa;
-   const conflictingAddr=!!address&&!!xa&&!sameAddr;
-   const sameStreet=!!restaurantStreetFamily(row.address)&&restaurantStreetFamily(row.address)===restaurantStreetFamily(x.address);
-   const partialAddress=!addressHasStreetNumber(row.address)||!addressHasStreetNumber(x.address);
-   const originDistanceClose=Number.isFinite(Number(row.distance))&&Number.isFinite(Number(x.distance))&&Math.abs(Number(row.distance)-Number(x.distance))<=0.05;
-   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey&&((sameAddr)||(sameStreet&&originDistanceClose&&partialAddress));
-   const canonicalClose=Number.isFinite(dist)&&dist<=3;
+   const sameCanonicalIdentity=!!identityKey&&identityKey===existingIdentityKey&&samePhysical;
    const sameContact=(phone&&xp&&phone===xp)||(website&&xw&&website===xw);
-   const close=Number.isFinite(dist)&&dist<=0.08;
-   const sameNameStreet=sameStreet&&originDistanceClose&&partialAddress&&(variant||sameName);
-   return sameAddr&&sameNameFamily
-     || (sameCanonicalIdentity&&canonicalClose)
-     || sameNameStreet
-     || (sameName&&!conflictingAddr&&close)
-     || (sameContact&&!conflictingAddr&&Number.isFinite(dist)&&dist<=0.12);
+   const strongContact=sameContact&&samePhysical;
+   return sameAddressAndName
+     || sameStreetAndName
+     || sameNearbyAndName
+     || sameCanonicalIdentity
+     || strongContact;
   });
   if(!match){
     const inferred=RESTAURANT_TAXONOMY.classifyRestaurant(row);
@@ -1024,7 +1043,7 @@ function dedupeRestaurantPool(rows){
   if(!match.category || /^(restaurant|eatery|food)$/i.test(String(match.category)))match.category=inferred.primary||'American';
   match.distance=Math.min(Number(match.distance)||Infinity,Number(row.distance)||Infinity);
  }
- return out.sort((a,b)=>Number(a.distance)-Number(b.distance));
+ return out.sort((a,b)=>Number(a.distance)-Number(b.distance);
 }
 function restaurantCanonicalId(row){
 const name=normKey(row?.name);
@@ -2575,7 +2594,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantAddressSimilarityUI,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
