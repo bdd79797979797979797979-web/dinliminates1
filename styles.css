@@ -4378,3 +4378,78 @@ button,input,select,textarea{
   }
   #detailsModal .detail-secondary-actions .detail-hide-action{height:41px!important;min-height:41px!important}
 }
+
+
+/* CP723 — simple History stats: show what was chosen and how often. */
+.history-stats{
+  padding:12px;
+  border:1px solid #302d27;
+  border-radius:15px;
+  background:#141413;
+  box-shadow:none;
+}
+.history-stats:before,
+.history-stat-hero:after{display:none}
+.history-stats-head{
+  margin-bottom:9px;
+  padding-bottom:9px;
+  border-bottom:1px solid #292722;
+}
+.history-stats-head b{font-size:13px}
+.history-stats-note{font-size:8px;color:#777}
+.history-stats-totals{
+  display:flex;
+  gap:6px;
+  margin:0 0 10px;
+  font-size:9px;
+  color:#8b867d;
+}
+.history-stats-totals span{
+  padding:5px 8px;
+  border:1px solid #2d2b27;
+  border-radius:999px;
+  background:#11110f;
+}
+.history-choice-section + .history-choice-section{margin-top:12px}
+.history-choice-title{
+  margin-bottom:5px;
+  font-size:8px;
+  font-weight:900;
+  color:#8f8a82;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.history-choice-list{
+  border-top:1px solid #292722;
+}
+.history-choice-row{
+  min-height:38px;
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  border-bottom:1px solid #292722;
+}
+.history-choice-rank{
+  color:#666159;
+  font-size:8px;
+  text-align:center;
+}
+.history-choice-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#e8e3db;
+  font-size:10px;
+}
+.history-choice-count{
+  color:#c6a46a;
+  font-size:9px;
+  font-weight:900;
+}
+.history-stats-empty{
+  margin:8px 0 2px;
+  color:#66615a;
+  font-size:9px;
+}
