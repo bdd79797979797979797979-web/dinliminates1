@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 713,
-  "sourceBranch": "cp713-custom-taxonomy-delete-recovery",
+  "build": 714,
+  "sourceBranch": "cp714-manage-order-button-size-about-cleanup",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP713"
+  "checkpoint": "CP714"
 }
