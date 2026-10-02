@@ -124,6 +124,23 @@ assert.equal(await page.locator('#detailNoteEdit').count(),1);
 await page.locator('#detailNotesDelete').click();
 assert.equal(await page.locator('#detailNotesEmpty').isVisible(),true);
 
+await page.locator('#detailsModal [data-close]').click();
+await page.locator('#restaurantBackTop').click();
+await page.locator('#menu').click();
+await page.waitForTimeout(220);
+await page.locator('#history').click();
+await page.waitForTimeout(160);
+assert.equal(await page.locator('#historyModal').count(),1,'History modal should open from the main menu');
+const historyCountBefore=Number((await page.locator('#historyModal .history-toolbar .status').innerText()).match(/\d+/)?.[0]||0);
+assert.ok(historyCountBefore>=1,'History should contain the selected restaurant decision');
+const historyDelete=page.locator('#historyModal .cal-entry-x').first();
+assert.equal(await historyDelete.count(),1,'History calendar should expose an individual entry delete action');
+await historyDelete.click();
+await page.waitForTimeout(120);
+const historyCountAfter=Number((await page.locator('#historyModal .history-toolbar .status').innerText()).match(/\d+/)?.[0]||0);
+assert.equal(historyCountAfter,historyCountBefore-1,'History X should delete exactly one entry');
+await page.locator('#historyModal [data-close]').click();
+
 assert.equal(errors.length,0,'Browser page errors: '+errors.join(' | '));
 assert.equal(consoleErrors.length,0,'Browser console errors: '+consoleErrors.join(' | '));
 console.log(JSON.stringify({ok:true,build:releaseMeta.build,checkpoint:releaseMeta.checkpoint,home:'PASS',meal:'PASS',notes:'PASS',restaurant:'PASS',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
