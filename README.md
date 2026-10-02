@@ -2,7 +2,7 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 703.
+Current build: Version 1.0, Build 704.
 
 The deployable app lives at the repository root.
 
@@ -15,12 +15,17 @@ Milestones:
 6. Launch QA
 
 
+## CP704 Home hero photography
+- Dine In now uses a vibrant overhead dinner spread.
+- Dine Out now uses a close-up grilled steak with colorful vegetables.
+- Existing entry behavior and CP703 copy are preserved.
+
 ## CP703 front-page naming
 - Home entry cards now read **Dine In — Reveal Your Meal** and **Dine Out — Reveal Your Restaurant**.
 - Existing entry-button IDs and behavior are preserved.
 
 ## Current release hardening
-- Working branch: cp703-dine-in-out-copy
-- Base recovery: cp702-note-actions-per-note
+- Working branch: cp704-hero-food-photos
+- Base recovery: cp703-dine-in-out-copy
 - Current release candidate stays off main until the exact release commit is fully verified.
 - Vercel is the official runtime for the release candidate; Netlify remains legacy/backup. Vercel deployment is currently blocked by the connected account build-rate limit.
