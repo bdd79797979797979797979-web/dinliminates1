@@ -1,28 +1,25 @@
-# CURRENT RELEASE — BUILD 695 / CP695
+# CURRENT RELEASE — BUILD 696 / CP696
 
 Date: 2026-10-02
 
-Current candidate branch: `cp695-location-menu`
-Recovery baseline: `cp694-note-controls`
+Current candidate branch: `cp696-auto-restaurant-location`
+Recovery baseline: `cp695-location-menu`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP695 location + navigation pass
-- Hardened **Use My Location** around fresh-first browser geolocation with multiple fallback attempts.
-- Checks secure-context and browser Location permission state before requesting the device position.
-- Shows visible location status and the current location state in the restaurant controls.
-- Keeps search errors visible instead of overwriting them with a false location-success message.
-- Finished the hamburger interaction layer with open/close motion, refined iconography, navigation hierarchy, and a polished Back to Start treatment.
-- Manage Meals, History, and Settings remain the only top-level utility destinations.
-- Settings/About merge and CP694 note Edit/Delete controls remain intact.
-- No restaurant search provider logic, radius tiers, Quick Cuts, restaurant photos, or swipe mechanics were intentionally changed.
+## CP696 automatic restaurant location
+- Restaurants now automatically initiate **Use My Location** when the user enters the Restaurants screen and no location or typed address is already active.
+- The existing CP695 fresh-first geolocation flow remains unchanged, including secure-context checks, permission-state handling, fallback attempts, and visible status.
+- An active or manually typed address is never overwritten by the automatic entry request.
+- The request is deferred briefly until the Restaurants screen is rendered, preventing the location prompt from racing the screen transition.
+- No restaurant search provider logic, radius tiers, Quick Cuts, restaurant photos, swipe mechanics, menu design, or Notes behavior were intentionally changed.
 
-## CP695 verification
-- JavaScript source parses successfully.
-- Location flow contains fresh-first geolocation, permission handling, secure-context handling, and visible status updates.
-- Navigation checks confirm Restaurants and About are absent from the top-level menu.
-- Drawer animation, close/open handlers, Back to Start, and utility modal styling are present.
-- Build/release metadata is synchronized to Build 695 / CP695.
+## CP696 verification
+- Source insertion is present in `openRestaurant()`.
+- Automatic request is guarded by both `!S.location` and an empty address field.
+- Runtime callback rechecks the Restaurants screen, location state, and address field before calling `useLocation()`.
+- App asset query advanced from v664 to v665 so browsers do not retain the prior JavaScript shell.
+- Release metadata is synchronized to Build 696 / CP696.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
