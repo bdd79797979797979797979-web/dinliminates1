@@ -5473,11 +5473,10 @@ button,input,select,textarea{
 
 .luxury-home .home-card-photo.is-pressed{transform:scale(.985)!important;filter:saturate(1.04) brightness(1.04);box-shadow:0 13px 34px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.13)!important}.luxury-home .home-card-photo.is-pressed .home-card-overlay{opacity:.9}.luxury-home .home-card-photo.is-pressed .home-card-copy{transform:translateY(1px)}.luxury-home .home-card-photo,.luxury-home .home-card-copy{transition:transform .12s ease,filter .12s ease,box-shadow .12s ease,opacity .12s ease!important}
 
-.luxury-home .home-first-nudge{position:absolute;left:50%;bottom:73px;transform:translateX(-50%);z-index:4;color:rgba(250,238,211,.88);font-family:Georgia,"Times New Roman",serif;font-size:10px;font-style:italic;letter-spacing:.08em;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.75);opacity:1;transition:opacity .48s ease,transform .48s ease;pointer-events:none;white-space:nowrap}.luxury-home .home-first-nudge.is-faded{opacity:0;transform:translateX(-50%) translateY(3px)}@media(max-width:390px){.luxury-home .home-first-nudge{bottom:69px;font-size:9px}}
 
 .app:has(#home:not(.hidden))::after{animation:homeAmbientLight 12s ease-in-out infinite alternate}
 @keyframes homeAmbientLight{0%{opacity:.74;transform:scale(1);filter:saturate(1)}50%{opacity:.9;transform:scale(1.012);filter:saturate(1.035)}100%{opacity:.78;transform:scale(1.006);filter:saturate(1)}}
-@media(prefers-reduced-motion:reduce){.quick-section .quick-cuts-collapse-toggle::after,.unified-swipe-actions .round-maybe::before,.count-inline.count-updated,.app:has(#home:not(.hidden))::after{animation:none!important}.home-first-nudge,.swipe-card-coach{transition:none!important;animation:none!important}}
+@media(prefers-reduced-motion:reduce){.quick-section .quick-cuts-collapse-toggle::after,.unified-swipe-actions .round-maybe::before,.count-inline.count-updated,.app:has(#home:not(.hidden))::after{animation:none!important}.swipe-card-coach{transition:none!important;animation:none!important}}
 
 
 /* CP756 — editorial Home finish: match the supplied luxury reference more closely. */
@@ -5748,62 +5747,6 @@ button,input,select,textarea{
 }
 
 
-/* CP757 — reference refinement: soft editorial transition and restrained onboarding cue. */
-.luxury-home .food-choice::after{
-  content:""!important;
-  position:absolute!important;
-  left:0!important;
-  right:0!important;
-  bottom:-1px!important;
-  top:auto!important;
-  height:54px!important;
-  border:0!important;
-  border-radius:0!important;
-  background:linear-gradient(180deg,transparent 0%,rgba(7,6,5,.24) 42%,rgba(7,6,5,.82) 100%)!important;
-  pointer-events:none!important;
-  z-index:2!important;
-}
-.luxury-home .restaurant-choice::after{
-  content:""!important;
-  position:absolute!important;
-  left:0!important;
-  right:0!important;
-  top:0!important;
-  bottom:auto!important;
-  height:42px!important;
-  border:0!important;
-  border-radius:0!important;
-  background:linear-gradient(180deg,rgba(7,6,5,.78) 0%,rgba(7,6,5,.22) 58%,transparent 100%)!important;
-  pointer-events:none!important;
-  z-index:2!important;
-}
-.luxury-home .home-first-nudge{
-  display:block!important;
-  position:absolute!important;
-  left:50%!important;
-  bottom:62px!important;
-  transform:translateX(-50%)!important;
-  z-index:6!important;
-  color:rgba(247,230,191,.72)!important;
-  font-family:Georgia,"Times New Roman",serif!important;
-  font-size:9px!important;
-  font-style:italic!important;
-  letter-spacing:.10em!important;
-  text-shadow:0 2px 10px rgba(0,0,0,.78)!important;
-  opacity:1!important;
-  pointer-events:none!important;
-  white-space:nowrap!important;
-  transition:opacity .48s ease,transform .48s ease!important;
-}
-.luxury-home .home-first-nudge.is-faded{
-  opacity:0!important;
-  transform:translateX(-50%) translateY(4px)!important;
-}
-@media(max-width:390px){
-  .luxury-home .home-first-nudge{bottom:57px!important;font-size:8px!important}
-}
-
-
 /* CP758 — All/Maybe control: flat editorial text, fixed between Quick Cuts and Choices. */
 #food .quick-label,#restaurant .restaurant-choice-management{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;width:100%!important}
 #food .quick-label-right{display:contents!important}
@@ -5989,9 +5932,6 @@ button,input,select,textarea{
   backdrop-filter:blur(8px)!important;
   -webkit-backdrop-filter:blur(8px)!important;
 }
-.luxury-home .home-first-nudge{
-  bottom:53px!important;
-}
 @media(max-width:390px){
   .luxury-home{
     padding-top:100px!important;
@@ -6026,4 +5966,21 @@ button,input,select,textarea{
 }
 @media(prefers-reduced-motion:reduce){
   .luxury-home::after,.luxury-home .home-card-photo::before{animation:none!important}
+}
+
+
+/* CP762 — hard-lock the document while Home is active. */
+html.home-scroll-lock,
+body.home-scroll-lock{
+  height:100svh!important;
+  min-height:100svh!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+.app:has(#home:not(.hidden)){
+  height:100svh!important;
+  min-height:100svh!important;
+  max-height:100svh!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
 }
