@@ -1,3 +1,25 @@
+# CURRENT SAVEPOINT - BUILD 728 / CP728
+
+Date: 2026-10-02
+
+Working branch: cp728-hungry-reveal-home-polish
+Base source: 58d7d826f0d6122e434a7e7f2fae8ee8d5654d95
+
+Completed:
+- Add to phone is clearly labeled and retains native PWA-install fallback behavior.
+- Restaurant Hungry second Reveal is repaired through a separate pending mystery choice state.
+- Second-chance wheel click is guarded and its animation is reduced to one deliberate pass.
+- Dine In uses an elegant candlelit home-dinner image treatment.
+- Dine Out uses an upscale restaurant image treatment with brighter jewel-tone shine.
+- Meal and Restaurant choice counts use green styling.
+- Release metadata and service-worker cache are on Build 728.
+
+Verification:
+- JavaScript syntax parse: PASS.
+- Source-level CP728 regression checks: PASS.
+
+---
+
 # CURRENT SAVEPOINT — BUILD 707 / CP707
 
 Date: 2026-10-02
