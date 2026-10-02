@@ -1,12 +1,13 @@
-# CURRENT SAVEPOINT - BUILD 734 / CP734
+# CURRENT SAVEPOINT - BUILD 735 / CP735
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
 
 Completed:
-- Hungry wheel now preserves its resting visual rotation between spins.
-- One tap animates exactly one revolution from the current position.
-- No reverse animation after finish.
+- Family-style elegant Dine In image added.
+- Swipe directions centered above bottom controls and persist until tapped.
+- Fireworks celebration extended.
+- Prior wheel and choice-count fixes preserved.
 
-Recovery target: CP734
+Recovery target: CP735
