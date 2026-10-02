@@ -2492,6 +2492,7 @@ const renderEditorQuickCuts=focusId=>{
    const conflict=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).filter(x=>x!==qc).map(x=>x.name)].some(x=>normKey(x)===normKey(next));
    if(conflict){input.value=old;appToast('That Quick Cut name is already in use.');return;}
    qc.name=next;
+   const selectedIndex=existingCuts.indexOf(old);if(selectedIndex>=0)existingCuts[selectedIndex]=next;
    S.custom.forEach(meal=>{
      if(Array.isArray(meal.quickCuts))meal.quickCuts=meal.quickCuts.map(x=>x===old?next:x);
      if(meal.category===old)meal.category=next;
@@ -2504,6 +2505,7 @@ const renderEditorQuickCuts=focusId=>{
    const name=String(qc.name||'Custom Quick Cut');
    if(!await appConfirm('Delete '+name+'?','This removes the Custom Quick Cut from your category list and unassigns it from meals.','Delete Quick Cut'))return;
    S.customQuickCuts=S.customQuickCuts.filter(x=>String(x.id)!==String(id));
+   const cutIndex=existingCuts.indexOf(name);if(cutIndex>=0)existingCuts.splice(cutIndex,1);
    S.custom.forEach(meal=>{
      if(Array.isArray(meal.quickCuts))meal.quickCuts=meal.quickCuts.filter(x=>x!==name);
      if(meal.category===name)meal.category=meal.quickCuts?.[0]||'Other';
@@ -3016,6 +3018,7 @@ try{localStorage.removeItem(KEY);}catch{}
 home();
 }
 function resetRestoreView(){
+ document.querySelector('#settingsModal')?.remove();document.querySelector('#settingsModalBg')?.remove();
  removeFoodOverlays();
  const body='<div class="reset-restore-view"><div class="reset-restore-hero"><span class="manage-kicker">RESET &amp; RESTORE</span><h4>Choose what to return.</h4><p>Restore the original meal catalog without touching your custom meals, or start fresh by clearing all local app data.</p></div><div class="reset-restore-actions"><button class="reset-restore-option restore-action" id="restoreDefaultsOption" type="button"><span class="reset-restore-icon">↺</span><span><b>Restore Defaults</b><small>Return built-in meals to their original state and recover deleted built-in meals. Custom meals, Custom Quick Cuts, History, and notes remain.</small></span><span>›</span></button><button class="reset-restore-option reset-action" id="fullResetOption" type="button"><span class="reset-restore-icon">×</span><span><b>Full Reset</b><small>Erase meals, Custom Quick Cuts, history, notes, hidden choices, saved state, and device-stored photos.</small></span><span>›</span></button></div></div>';
  const modal=openModal('resetRestoreModal','Reset & Restore',body);
