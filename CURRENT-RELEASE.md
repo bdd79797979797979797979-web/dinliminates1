@@ -1,24 +1,25 @@
-# CURRENT RELEASE — BUILD 703 / CP703
+# CURRENT RELEASE — BUILD 704 / CP704
 
 Date: 2026-10-02
 
-Current candidate branch: `cp703-dine-in-out-copy`
-Recovery baseline: `cp702-note-actions-per-note`
+Current candidate branch: `cp704-hero-food-photos`
+Recovery baseline: `cp703-dine-in-out-copy`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP703 front-page naming
-- Replaced the two main home actions with **Dine In** and **Dine Out**.
-- Dine In sublabel: **Reveal Your Meal**.
-- Dine Out sublabel: **Reveal Your Restaurant**.
-- Preserved the existing meal and restaurant entry behavior; this is a front-page naming/copy refinement only.
-- Advanced the app.js cache query from v671 to v672.
-- Synchronized release identity to Build 703 / CP703.
+## CP704 Home hero photography
+- Replaced the Dine In hero photo with a vibrant overhead dinner spread featuring multiple colorful dishes.
+- Replaced the Dine Out hero photo with a close-up grilled steak with colorful vegetables and garnish.
+- Kept the existing Dine In / Reveal Your Meal and Dine Out / Reveal Your Restaurant copy.
+- Preserved the existing `foodStart` and `restStart` IDs and behavior.
+- Advanced the app.js cache query from v672 to v673.
+- Synchronized release identity to Build 704 / CP704.
 
-## CP703 verification
-- Source confirms `#foodStart` displays Dine In / Reveal Your Meal.
-- Source confirms `#restStart` displays Dine Out / Reveal Your Restaurant.
-- Existing `foodStart` and `restStart` IDs are preserved, so the underlying routing behavior is unchanged.
+## CP704 verification
+- Source confirms the Dine In card points to Pexels photo 29732918, described by Pexels as a colorful dinner table with various foods and drinks.
+- Source confirms the Dine Out card points to Pexels photo 29101362, described by Pexels as a close-up grilled steak with colorful vegetables and garnish.
+- Both source pages identify the images as free to use. citeturn878205view1turn687847view0
+- No Google image/API credentials were added.
 
 ---
 
