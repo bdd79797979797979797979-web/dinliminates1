@@ -1,26 +1,24 @@
-# CURRENT RELEASE — BUILD 702 / CP702
+# CURRENT RELEASE — BUILD 703 / CP703
 
 Date: 2026-10-02
 
-Current candidate branch: `cp702-note-actions-per-note`
-Recovery baseline: `cp701-app-diagnosis-refresh`
+Current candidate branch: `cp703-dine-in-out-copy`
+Recovery baseline: `cp702-note-actions-per-note`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP702 note controls
-- Updated Meal and Restaurant Details Notes to use the same per-note control pattern.
-- Empty state: **Add a note**.
-- Saved note: note content with **Edit** and a separate **×** delete control directly beside it.
-- Edit reopens the existing note for editing.
-- × removes that note immediately and returns the section to Add a note.
-- Kept the controls compact, premium, and phone-friendly.
-- Advanced app.js cache query from v670 to v671.
-- Synchronized release identity to Build 702 / CP702.
+## CP703 front-page naming
+- Replaced the two main home actions with **Dine In** and **Dine Out**.
+- Dine In sublabel: **Reveal Your Meal**.
+- Dine Out sublabel: **Reveal Your Restaurant**.
+- Preserved the existing meal and restaurant entry behavior; this is a front-page naming/copy refinement only.
+- Advanced the app.js cache query from v671 to v672.
+- Synchronized release identity to Build 703 / CP703.
 
-## CP702 verification
-- Source confirms the shared Details note component is used for both Meal and Restaurant notes.
-- Source confirms Edit and delete controls are tied to the saved note row rather than the section header.
-- Source confirms empty Notes return to the Add a note state.
+## CP703 verification
+- Source confirms `#foodStart` displays Dine In / Reveal Your Meal.
+- Source confirms `#restStart` displays Dine Out / Reveal Your Restaurant.
+- Existing `foodStart` and `restStart` IDs are preserved, so the underlying routing behavior is unchanged.
 
 ---
 
