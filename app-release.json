@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 753,
-  "sourceBranch": "cp753-swipe-hint-fix",
-  "checkpoint": "CP753",
-  "deploymentTrigger": "CP753-swipe-hint-fix-2026-10-02"
+  "build": 754,
+  "sourceBranch": "cp754-quickcuts-closed-default",
+  "checkpoint": "CP754",
+  "deploymentTrigger": "CP754-quickcuts-closed-default-2026-10-02"
 }
