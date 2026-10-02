@@ -5819,3 +5819,211 @@ button,input,select,textarea{
 #food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{min-width:70px!important;gap:5px!important}
 #food #foodMaybeDeck .deck-filter-label,#restaurant #restaurantMaybeDeck .deck-filter-label{font-size:8px!important}
 }
+
+/* CP760 — single-photo Home canvas with two inset picture windows. */
+.app:has(#home:not(.hidden)){
+  background:#080706!important;
+}
+.luxury-home{
+  position:relative!important;
+  width:100%!important;
+  height:100svh!important;
+  min-height:100svh!important;
+  margin-top:-58px!important;
+  padding:108px 0 max(6px,env(safe-area-inset-bottom))!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(180deg,rgba(4,3,2,.56) 0%,rgba(7,5,3,.18) 26%,rgba(6,5,4,.28) 64%,rgba(3,2,2,.72) 100%),
+    url('/api/image?url=https%3A%2F%2Fimages.pexels.com%2Fphotos%2F6162883%2Fpexels-photo-6162883.jpeg%3Fauto%3Dcompress%26cs%3Dtinysrgb%26w%3D1800') center 48%/cover no-repeat!important;
+  isolation:isolate!important;
+}
+.luxury-home::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(255,225,162,.10),transparent 28%),
+    linear-gradient(90deg,rgba(0,0,0,.16),transparent 35%,transparent 65%,rgba(0,0,0,.20))!important;
+}
+.luxury-home::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.10),transparent 34%,rgba(0,0,0,.18) 72%,rgba(0,0,0,.68) 100%)!important;
+  animation:homeAmbientLight 12s ease-in-out infinite alternate!important;
+}
+.luxury-home > *{position:relative!important;z-index:1!important}
+.luxury-home .home-intro{
+  position:relative!important;
+  z-index:6!important;
+}
+.luxury-home .home-actions{
+  position:relative!important;
+  z-index:5!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:14px!important;
+  width:100%!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-width:none!important;
+  margin:17px auto 0!important;
+}
+.luxury-home .home-card-photo{
+  position:relative!important;
+  width:min(88%,410px)!important;
+  height:clamp(150px,24svh,205px)!important;
+  min-height:150px!important;
+  flex:0 1 auto!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  padding:0!important;
+  border-radius:18px!important;
+  overflow:hidden!important;
+  background-size:cover!important;
+  border:1px solid rgba(242,214,159,.66)!important;
+  box-shadow:
+    0 20px 46px rgba(0,0,0,.56),
+    0 0 0 5px rgba(10,8,6,.54),
+    0 0 0 6px rgba(226,189,112,.20),
+    inset 0 1px 0 rgba(255,255,255,.20)!important;
+  isolation:isolate!important;
+}
+.luxury-home .home-card-photo::after{
+  content:""!important;
+  position:absolute!important;
+  inset:5px!important;
+  z-index:3!important;
+  border:1px solid rgba(255,241,201,.28)!important;
+  border-radius:13px!important;
+  pointer-events:none!important;
+  box-shadow:inset 0 0 28px rgba(0,0,0,.30)!important;
+}
+.luxury-home .home-card-photo::before{
+  content:""!important;
+  position:absolute!important;
+  inset:-30% -50%!important;
+  z-index:4!important;
+  pointer-events:none!important;
+  transform:translateX(-70%) rotate(9deg)!important;
+  background:linear-gradient(110deg,transparent 39%,rgba(255,248,224,.03) 45%,rgba(255,248,224,.27) 50%,rgba(255,248,224,.03) 55%,transparent 61%)!important;
+  mix-blend-mode:screen!important;
+  animation:homeWindowSheen 8s ease-in-out infinite!important;
+}
+@keyframes homeWindowSheen{
+  0%,55%,100%{transform:translateX(-70%) rotate(9deg);opacity:0}
+  63%{opacity:.12}
+  72%{transform:translateX(70%) rotate(9deg);opacity:.78}
+  80%{transform:translateX(95%) rotate(9deg);opacity:0}
+}
+.luxury-home .home-card-photo .home-card-overlay{
+  z-index:1!important;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.02) 0%,rgba(0,0,0,.08) 34%,rgba(0,0,0,.78) 100%),
+    linear-gradient(90deg,rgba(0,0,0,.18),transparent 48%,rgba(0,0,0,.10))!important;
+}
+.luxury-home .food-choice{background-position:center 58%!important}
+.luxury-home .restaurant-choice{background-position:center 50%!important}
+.luxury-home .home-card-copy{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:14px!important;
+  z-index:6!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  padding:0 12px!important;
+  text-align:center!important;
+}
+.luxury-home .home-card-copy strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(25px,7.5vw,38px)!important;
+  line-height:.94!important;
+  font-weight:700!important;
+  letter-spacing:.09em!important;
+  color:#f8e9bf!important;
+  text-shadow:0 3px 18px rgba(0,0,0,.82)!important;
+}
+.luxury-home .home-card-copy strong::before,
+.luxury-home .home-card-copy strong::after{
+  content:""!important;
+  display:inline-block!important;
+  width:28px!important;
+  height:1px!important;
+  vertical-align:middle!important;
+  margin:0 10px!important;
+  background:linear-gradient(90deg,transparent,#e0b86a,transparent)!important;
+}
+.luxury-home .home-card-copy>span{
+  margin:0!important;
+  font-size:clamp(8px,2.5vw,11px)!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:.18em!important;
+  text-transform:uppercase!important;
+  color:rgba(255,249,237,.94)!important;
+  text-shadow:0 2px 12px rgba(0,0,0,.88)!important;
+}
+.luxury-home .home-card-photo .arrow{display:none!important}
+.luxury-home .home-foot{
+  position:relative!important;
+  z-index:6!important;
+  flex:0 0 auto!important;
+  margin:5px 0 0!important;
+  padding:8px 0 max(2px,env(safe-area-inset-bottom))!important;
+  width:100%!important;
+  justify-content:center!important;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.32))!important;
+}
+.luxury-home .home-icon-action{
+  background:rgba(7,5,3,.18)!important;
+  backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;
+}
+.luxury-home .home-first-nudge{
+  bottom:53px!important;
+}
+@media(max-width:390px){
+  .luxury-home{
+    padding-top:100px!important;
+    padding-bottom:1px!important;
+    background-position:center 46%!important;
+  }
+  .luxury-home .home-actions{
+    gap:11px!important;
+    margin-top:14px!important;
+  }
+  .luxury-home .home-card-photo{
+    width:88%!important;
+    height:clamp(128px,20.5svh,165px)!important;
+    min-height:128px!important;
+    border-radius:16px!important;
+  }
+  .luxury-home .home-card-photo::after{inset:4px!important;border-radius:12px!important}
+  .luxury-home .home-card-copy{bottom:11px!important}
+  .luxury-home .home-card-copy strong{font-size:23px!important}
+  .luxury-home .home-card-copy strong::before,
+  .luxury-home .home-card-copy strong::after{width:20px!important;margin:0 7px!important}
+  .luxury-home .home-card-copy>span{font-size:7.5px!important;letter-spacing:.14em!important}
+  .luxury-home .home-foot{margin-top:3px!important;padding-top:7px!important}
+}
+@media(max-height:700px){
+  .luxury-home .home-actions{gap:8px!important;margin-top:10px!important}
+  .luxury-home .home-card-photo{
+    height:clamp(112px,18svh,145px)!important;
+    min-height:112px!important;
+  }
+  .luxury-home .home-card-copy{bottom:9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .luxury-home::after,.luxury-home .home-card-photo::before{animation:none!important}
+}
