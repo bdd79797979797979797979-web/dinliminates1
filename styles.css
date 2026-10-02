@@ -5271,3 +5271,20 @@ button,input,select,textarea{
 }
 
 .quick-section .quick-cuts-chevron{display:none!important;}
+
+
+/* CP751 — Quick Cuts is a text-only disclosure control; no circle or arrow. */
+.quick-section .quick-cuts-collapse-toggle{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  padding:0!important;
+  margin:0!important;
+  color:#d4d4d4!important;
+  width:auto!important;
+  min-width:0!important;
+  justify-self:start!important;
+  text-align:left!important;
+}
+.quick-section .quick-cuts-chevron{display:none!important}
