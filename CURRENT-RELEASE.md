@@ -1,25 +1,28 @@
-# CURRENT RELEASE — BUILD 694 / CP694
+# CURRENT RELEASE — BUILD 695 / CP695
 
 Date: 2026-10-02
 
-Current candidate branch: `cp694-note-controls`
-Recovery baseline: `cp693-premium-navigation`
+Current candidate branch: `cp695-location-menu`
+Recovery baseline: `cp694-note-controls`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP694 note controls
-- Added a sleek **Edit note** action for saved meal and restaurant notes.
-- Added a subtle circular **×** control to delete a saved note immediately.
-- Empty notes still show **Add a note**.
-- Delete clears the same device-local note storage used by CP692.
-- Note editing/deletion applies consistently to both Meal Details and Restaurant Details.
-- No restaurant search, location, filtering, Quick Cut, photo, or swipe mechanics were changed.
+## CP695 location + navigation pass
+- Hardened **Use My Location** around fresh-first browser geolocation with multiple fallback attempts.
+- Checks secure-context and browser Location permission state before requesting the device position.
+- Shows visible location status and the current location state in the restaurant controls.
+- Keeps search errors visible instead of overwriting them with a false location-success message.
+- Finished the hamburger interaction layer with open/close motion, refined iconography, navigation hierarchy, and a polished Back to Start treatment.
+- Manage Meals, History, and Settings remain the only top-level utility destinations.
+- Settings/About merge and CP694 note Edit/Delete controls remain intact.
+- No restaurant search provider logic, radius tiers, Quick Cuts, restaurant photos, or swipe mechanics were intentionally changed.
 
-## CP694 verification
-
+## CP695 verification
 - JavaScript source parses successfully.
-- Navigation markup checks pass: Restaurants and About are absent from the top-level menu; Manage Meals, History, Settings, and Back to Start remain.
-- Build/release metadata is synchronized to Build 694 / CP694.
+- Location flow contains fresh-first geolocation, permission handling, secure-context handling, and visible status updates.
+- Navigation checks confirm Restaurants and About are absent from the top-level menu.
+- Drawer animation, close/open handlers, Back to Start, and utility modal styling are present.
+- Build/release metadata is synchronized to Build 695 / CP695.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
