@@ -17,3 +17,6 @@ Focused QA: qa/cp712-meal-editing.cjs
 Focused workflow: .github/workflows/cp712-meal-editing-qa.yml
 
 Earlier protected checkpoints remain intact: CP705, CP709, CP710, CP711.
+
+## Audit trigger
+Focused QA target includes built-in Edit beside Hide, stable IDs, 116-meal no-duplicate merge, and IndexedDB photo replacement path.
