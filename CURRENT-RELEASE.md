@@ -1,3 +1,19 @@
+
+## CP756 editorial Home finish — 2026-10-02
+- Matched the supplied Home reference more closely.
+- Large centered gold Dinliminate wordmark at the top; Menu remains top-right.
+- Removed the extra Home eyebrow and swipe slogan from the landing page.
+- Meal Decisions Simplified is now a centered editorial subhead with gold rules.
+- Dine In and Dine Out are full-bleed photo sections rather than rounded app cards.
+- Added centered gold editorial rules around DINE IN / DINE OUT labels.
+- Added the exact requested reveal copy under each selection.
+- Bottom Add to Phone / Share App controls are transparent and separated by a fine gold rule.
+- Preserved click/tap behavior and the existing press feedback.
+- Home onboarding cue is suppressed on the landing screen because the page itself now carries the reveal language.
+- Bumped Home/service-worker asset version to v756.
+
+## CP756 QA note
+This is a Home-only visual pass on CP755. Decision logic, restaurant search/radius, Quick Cuts, winner/Hungry behavior and Details logic were not intentionally changed.
 # CURRENT RELEASE — BUILD 755 / CP755
 
 Date: 2026-10-02
