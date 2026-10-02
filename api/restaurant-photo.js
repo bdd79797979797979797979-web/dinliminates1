@@ -38,15 +38,42 @@ function decodeHtml(raw){
     .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
 }
 
+function publicRedirectUrl(location,current){
+  try{
+    const next=new URL(String(location||''),String(current||''));
+    if(next.protocol!=='https:')return '';
+    const host=next.hostname.toLowerCase();
+    if(host==='localhost'||host==='127.0.0.1'||host==='0.0.0.0'||host==='::1')return '';
+    if(/^10\./.test(host)||/^192\.168\./.test(host)||/^169\.254\./.test(host)||/^172\.(1[6-9]|2\d|3[0-1])\./.test(host))return '';
+    return next.href;
+  }catch{return ''}
+}
+async function fetchWithValidatedRedirects(start,options={},maxRedirects=4){
+  let current=absoluteHttpsUrl(start);
+  if(!current||isBlockedHost(current))return null;
+  for(let hop=0;hop<=maxRedirects;hop++){
+    const response=await fetch(current,{...options,redirect:'manual'});
+    if(!(response.status>=300&&response.status<400))return {response,url:current};
+    const location=response.headers.get('location');
+    if(!location)return null;
+    const next=publicRedirectUrl(location,current);
+    if(!next||isBlockedHost(next))return null;
+    current=next;
+  }
+  return null;
+}
+
 async function fetchText(url,headers={},timeout=7000,maxBytes=2200000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{
+    const result=await fetchWithValidatedRedirects(url,{headers:{
       'Accept':'text/html,application/xhtml+xml',
       'Accept-Language':'en-US,en;q=0.8',
       'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; restaurant-photo)',
       ...headers
     },signal:ctl.signal});
+    if(!result)return '';
+    const r=result.response;
     if(!r.ok)throw new Error('Page request failed ('+r.status+').');
     const data=Buffer.from(await r.arrayBuffer());
     if(data.length>maxBytes)throw new Error('Page too large.');
@@ -57,11 +84,13 @@ async function fetchText(url,headers={},timeout=7000,maxBytes=2200000){
 async function fetchImage(url,headers={},timeout=7000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{
+    const result=await fetchWithValidatedRedirects(url,{headers:{
       'Accept':'image/avif,image/webp,image/apng,image/jpeg,image/png,image/gif,image/*;q=0.8',
       'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; restaurant-photo)',
       ...headers
-    },redirect:'follow',signal:ctl.signal});
+    },signal:ctl.signal});
+    if(!result)throw new Error('Redirect validation failed.');
+    const r=result.response;
     if(!r.ok)throw new Error('Image request failed ('+r.status+').');
     const type=(r.headers.get('content-type')||'image/jpeg').split(';')[0].toLowerCase();
     if(!type.startsWith('image/'))throw new Error('Image response was not an image.');
