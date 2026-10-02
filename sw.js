@@ -1,4 +1,4 @@
-const CACHE='dinliminate-shell-v675';
+const CACHE='dinliminate-shell-v676';
 const IMAGE_CACHE='dinliminate-images-v1';
 const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./data/restaurant-taxonomy.js','./manifest.webmanifest','./app-release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png','./fallback-food.svg','./fallback-restaurant.svg'];
 self.addEventListener('install',event=>{
@@ -27,7 +27,7 @@ self.addEventListener('fetch',event=>{
   }
   const isImageRequest=req.destination==='image'||url.pathname.match(/\.(?:avif|webp|jpe?g|png|gif)$/i);
   const targetCache=isImageRequest?IMAGE_CACHE:CACHE;
-  event.respondWith(caches.open(targetCache).then(cache=>cache.match(req).then(cached=>fetch(req).then(res=>{
+  event.respondWith(caches.open(targetCache).then(cache=>cache.match(req,{ignoreSearch:true}).then(cached=>fetch(req).then(res=>{
     if(res.ok || res.type==='opaque'){
       const copy=res.clone();
       cache.put(req,copy).catch(()=>{});
