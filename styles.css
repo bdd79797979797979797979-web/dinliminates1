@@ -3311,3 +3311,21 @@ button,a,select{touch-action:manipulation}
  .location-status-row .status{font-size:8.5px}
  .utility-modal{width:min(95vw,520px)!important;max-height:90svh!important;border-radius:24px!important}
 }
+
+/* CP695 — drawer motion and refined utility surfaces. */
+.drawer{transform:translateX(104%);opacity:.72;transition:transform .18s cubic-bezier(.22,.8,.22,1),opacity .18s ease}
+.drawer.is-open{transform:translateX(0);opacity:1}
+.drawer-bg{opacity:0;transition:opacity .18s ease}
+.drawer-bg.is-open{opacity:1}
+.drawer-row{position:relative}
+.drawer-row::after{content:"";position:absolute;left:49px;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,#34322d,rgba(52,50,45,0))}
+.drawer-row:last-child::after{display:none}
+.drawer-row:hover .drawer-row-icon{border-color:#52636b;color:#c4e3e8;background:#182024}
+.drawer-row:hover .drawer-row-chevron{color:#99adb4;transform:translateX(1px)}
+.drawer-row-chevron{transition:transform .14s ease,color .14s ease}
+.drawer-footer-rule{border-top:1px solid #292a27;padding-top:12px}
+#settingsModal.utility-modal .modal-head h3,#historyModal.utility-modal .modal-head h3,#manageFoodsModal.utility-modal .modal-head h3{letter-spacing:-.05em}
+#settingsModal.utility-modal .modal-head,#historyModal.utility-modal .modal-head,#manageFoodsModal.utility-modal .modal-head{padding-bottom:14px}
+@media(prefers-reduced-motion:reduce){
+ .drawer,.drawer-bg,.drawer-row-chevron{transition:none!important}
+}
