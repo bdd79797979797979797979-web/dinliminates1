@@ -126,6 +126,21 @@ async function waitForRestaurant(expectedQuery=''){
  await settle();
 }
 async function openRestaurantScreen(){await page.locator('#restStart').click();await settle();}
+async function hiddenSearch(value,expectedQuery=value){
+  const requestBaseline=requests.length;
+  await page.evaluate(value=>{
+    const input=document.querySelector('#restaurantQuery');
+    if(!input)throw new Error('Hidden restaurant search field is missing.');
+    input.value=String(value||'');
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  },value);
+  if(String(value||'').trim()) await waitForRestaurant(expectedQuery);
+  else {
+    await page.waitForTimeout(800);
+    await page.locator('#find').click();
+    await waitForRestaurant();
+  }
+}
 
 await page.goto('http://127.0.0.1:4174/?qa=1');
 await page.waitForLoadState('domcontentloaded');
@@ -314,11 +329,11 @@ report["4_search_restaurants"]={};
 assert.equal(await page.locator('#restaurantSearch').count(),0,'Restaurant Search opener must remain hidden for now'); await page.locator('#restaurantQuery').evaluate(el=>el.classList.contains('hidden')||el.closest('#restaurantSearchBox')?.classList.contains('hidden'));
 await settle();
 requests.length=0;
-await page.locator('#restaurantQuery').fill('Mcdonalds');
+await hiddenSearch('Mcdonalds');
 await settle();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd'],'Local restaurant query filter should narrow the active pool immediately.');
-await page.locator('#restaurantQuery').press('Enter');
+await page.locator('#restaurantQuery').evaluate(el=>el.value='Mcdonalds');
 await waitForRestaurant();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd']);
@@ -360,8 +375,8 @@ await settle();
 
 // Photo pipeline: a Google-backed venue should hydrate its current Tinder card and Details image,
 // retain an immediate fallback while loading, and surface the required author attribution.
-await page.locator('#restaurantQuery').fill('Google Photo Test');
-await page.locator('#restaurantQuery').press('Enter');
+await hiddenSearch('Google Photo Test');
+await page.locator('#restaurantQuery').evaluate(el=>el.value='Google Photo Test');
 await waitForRestaurant();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['google-photo-test']);
@@ -402,30 +417,30 @@ assert.ok((await historyGoogleImg.getAttribute('src')).startsWith('blob:'),'Hist
 report["5_photo"].historyPhotoHydrated=true;
 
 
-await page.locator('#restaurantQuery').fill('burger'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+await hiddenSearch('burger');
 s=await snap();
 assert.deepEqual(new Set(s.restaurantPool),new Set(['mcd','american']));
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='burger'));
 report["4_search_restaurants"].burger=s.restaurantPool;
-await page.locator('#restaurantQuery').fill('mexican'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+await hiddenSearch('mexican');
 s=await snap();
 assert.deepEqual(s.restaurantPool,['taco']);
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='mexican'));
 report["4_search_restaurants"].mexican=s.restaurantPool;
-await page.locator('#restaurantQuery').fill('fish'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+await hiddenSearch('fish');
 s=await snap();
 assert.deepEqual(s.restaurantPool,['seafood']);
 assert.ok(requests.some(u=>new URL(u).searchParams.get('q')==='fish'));
 report["4_search_restaurants"].fish=s.restaurantPool;
-await page.locator('#restaurantQuery').fill('pizza restaurant'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+await hiddenSearch('pizza restaurant');
 s=await snap();
 assert.deepEqual(new Set(s.restaurantPool),new Set(['pizza','thirsty-goat']));
 report["4_search_restaurants"].pizzaRestaurant=s.restaurantPool;
-await page.locator('#restaurantQuery').fill('breakfast restaurant'); await page.locator('#restaurantQuery').press('Enter'); await waitForRestaurant();
+await hiddenSearch('breakfast restaurant');
 s=await snap();
 assert.deepEqual(s.restaurantPool,['waffle']);
 report["4_search_restaurants"].breakfastRestaurant=s.restaurantPool;
-await page.locator('#restaurantQuery').fill(''); await page.locator('#find').click(); await waitForRestaurant();
+await page.evaluate(()=>{const input=document.querySelector('#restaurantQuery');input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));}); await page.locator('#find').click(); await waitForRestaurant();
 
 // Hours data-model contract: explicit normalized state is used, provider openNow remains supported, and unknown is preserved.
 const openFixture=allResults.find(x=>x.id==='mcd');
