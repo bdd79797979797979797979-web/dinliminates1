@@ -5288,3 +5288,53 @@ button,input,select,textarea{
   text-align:left!important;
 }
 .quick-section .quick-cuts-chevron{display:none!important}
+
+
+/* CP751 — refined All / Maybe control: standalone A + heart, no pill. */
+#restaurant .restaurant-choice-management .restaurant-all-maybe-toggle{
+  width:auto!important;
+  min-width:0!important;
+  height:24px!important;
+  min-height:24px!important;
+  padding:0!important;
+  gap:2px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#5d5b57!important;
+  justify-self:end!important;
+}
+#restaurant .restaurant-all-maybe-toggle > span{
+  display:grid!important;
+  place-items:center!important;
+  width:20px!important;
+  min-width:20px!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+  border-radius:6px!important;
+  background:transparent!important;
+  color:#5d5b57!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  transition:color .18s ease,background .18s ease,transform .18s ease!important;
+}
+#restaurant .restaurant-all-maybe-toggle.is-all .deck-filter-all,
+#restaurant .restaurant-all-maybe-toggle.is-maybe .deck-filter-maybe{
+  color:#62d796!important;
+  background:transparent!important;
+  text-shadow:0 0 10px rgba(98,215,150,.16)!important;
+}
+#restaurant .restaurant-all-maybe-toggle:hover:not(:disabled) > span{
+  color:#bcb6ad!important;
+}
+#restaurant .restaurant-all-maybe-toggle:active:not(:disabled) > span{
+  transform:scale(.92)!important;
+}
+#restaurant .restaurant-all-maybe-toggle:disabled{opacity:.34!important}
+@media(max-width:390px){
+  #restaurant .restaurant-all-maybe-toggle{gap:1px!important}
+  #restaurant .restaurant-all-maybe-toggle > span{width:19px!important;min-width:19px!important;font-size:13px!important}
+}
