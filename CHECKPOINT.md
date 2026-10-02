@@ -1,3 +1,26 @@
+# CURRENT CHECKPOINT - BUILD 728 / CP728
+
+Date: 2026-10-02
+
+Working branch: cp728-hungry-reveal-home-polish
+Base source: 58d7d826f0d6122e434a7e7f2fae8ee8d5654d95
+Current checkpoint: CP728
+
+CP728 changes:
+- Clarified the Home Add to phone action with a visible label; it opens the native PWA install prompt when available or the iPhone Add to Home Screen instructions.
+- Fixed the Restaurant Hungry mystery flow so Try Another resets to a covered pending choice and the second Reveal works normally.
+- Hardened the Hungry second-chance wheel against repeat activation and reduced the animation to one deliberate spin cycle instead of the previous multi-turn sweep.
+- Refreshed Dine In and Dine Out Home imagery with elegant Pexels dinner photography.
+- Added warm home-dinner glow to Dine In and vibrant jewel-tone shine to Dine Out.
+- Choice counts are now green.
+- Build metadata and service-worker shell cache advanced to v728.
+
+Verification: app.js syntax PASS; CP728 source checks PASS.
+
+RECOVERY: use this CP728 branch as the recovery point for subsequent UI changes.
+
+---
+
 # CURRENT CHECKPOINT — BUILD 707 / CP707
 
 Date: 2026-10-02
