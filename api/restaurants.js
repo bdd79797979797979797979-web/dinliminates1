@@ -233,12 +233,12 @@ function wideArcgisCenters(lat,lon,radius){
  }
  return out;
 }
-async function arcgisWideCenterPlaces(lat,lon,searchExtentRadius){
+async function arcgisWideCenterPlaces(lat,lon,searchExtentRadius,searchTerm=''){
  const r=Math.min(50,Math.max(1,Number(searchExtentRadius)||50));
  const latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
  const params=new URLSearchParams({
-  category:'Restaurant,Fast Food',
+  ...(searchTerm?{SingleLine:searchTerm}:{category:'Restaurant,Fast Food'}),
   location:lon+','+lat,
   searchExtent:extent,
   maxLocations:'50',
@@ -263,10 +263,8 @@ async function arcgisWidePlaces(lat,lon,radius,searchTerm=''){
  for(const result of settled){
   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'ArcGIS expansion failed'));continue}
   for(const row of result.value||[]){
-   if(!searchTerm || restaurantNameSimilarity(row.name,searchTerm)>0 || isFastFoodName(row.name,searchTerm) || restaurantSearchTextMatches(row,searchTerm)){
     const distance=miles(lat,lon,n(row.lat),n(row.lon));
     if(Number.isFinite(distance)&&distance<=radius+0.001)rows.push({...row,distance});
-   }
   }
  }
  return{rows:dedupe(rows),errors,expansionPoints:points.length};
