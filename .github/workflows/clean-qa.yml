@@ -102,6 +102,9 @@ jobs:
       - name: Visual regression
         run: node qa/visual-regression.mjs
 
+      - name: Visual surface smoke
+        run: node qa/visual-regression.mjs --surface-smoke
+
       - name: Netlify preview smoke
         if: ${{ vars.NETLIFY_PREVIEW_URL != '' }}
         env:
