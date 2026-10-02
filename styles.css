@@ -3585,3 +3585,20 @@ button,input,select,textarea{
   #detailsModal .detail-note-edit{min-width:50px;height:32px}
   #detailsModal .detail-notes-delete{width:32px;height:32px;min-width:32px}
 }
+
+
+/* CP707 — restore full touch targets for Restaurant card utility controls. */
+#restaurant .restaurant-card-utility{
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+}
+
+/* CP707 — retire stale pre-icon Home helper selector. */
+.luxury-home #iphoneHelp{display:none!important;}
+
+/* CP707 — individual History calendar entry actions. */
+.history-calendar .cal-photo-wrap{position:relative;display:flex;align-items:stretch;justify-content:center;min-width:0;}
+.history-calendar .cal-photo-wrap .cal-photo-link{width:100%;}
+.history-calendar .cal-entry-x{position:absolute;top:-6px;right:-5px;width:21px;height:21px;min-width:21px;min-height:21px;border:1px solid #4b4437;border-radius:50%;background:#090909e8;color:#fff;font-size:11px;line-height:18px;padding:0;display:grid;place-items:center;z-index:25;box-shadow:0 3px 10px #000b;}
