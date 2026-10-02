@@ -810,7 +810,7 @@ function renderMaybeDeckToggle(kind){
  btn.setAttribute('aria-label',S.maybeDeck?'Viewing Maybes. Tap to show all choices.':'Viewing all choices. Tap to show Maybes.');
  btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
  btn.title=target;
- btn.innerHTML='<span class="deck-filter-label deck-filter-label-all" aria-hidden="true">ALL</span><span class="deck-filter-divider" aria-hidden="true">·</span><span class="deck-filter-label deck-filter-label-maybe" aria-hidden="true">MAYBE</span>';
+ btn.innerHTML='<span class="deck-filter-label deck-filter-label-all" aria-hidden="true">ALL</span><span class="deck-filter-divider" aria-hidden="true">·</span><span class="deck-filter-label deck-filter-label-maybe" aria-hidden="true">MAYBES</span>';
  btn.classList.toggle('is-maybe',S.maybeDeck);
  btn.classList.toggle('is-all',!S.maybeDeck);
 }
