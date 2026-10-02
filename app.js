@@ -1570,10 +1570,10 @@ S.restaurantSearchDegraded = !!(d.providerErrors?.length);
 S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
 S.restaurantSearchQuery = String(d.searchQuery||searchTerm||'');
 S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;
-const previousOrigin=S.restaurantSearchOrigin;
-const sameSearchOrigin=previousOrigin&&Math.abs(Number(previousOrigin.lat)-Number(loc.lat))<0.0005&&Math.abs(Number(previousOrigin.lon)-Number(loc.lon))<0.0005;
-const sameSearchQuery=String(S.restaurantSearchKey||'').endsWith(':'+normalizeRestaurantSearch(searchTerm));
-const previousRows=(sameSearchOrigin&&sameSearchQuery)?(S.restaurantPool||[]).map(row=>({...row,distance:milesBetween(row.lat,row.lon,loc.lat,loc.lon)})).filter(row=>Number.isFinite(Number(row.distance))&&Number(row.distance)<=radius+0.001):[];
+// Rebuild the active restaurant pool from the fresh provider response.
+ // Do not carry the previous pool forward: stale rows can survive provider-side
+ // dedupe/filter fixes and reappear as duplicate or non-restaurant cards.
+ const previousRows=[];
 const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), hoursState:restaurantHourState(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
  const dist=milesBetween(row.lat,row.lon,loc.lat,loc.lon);
  return Number.isFinite(dist) && dist<=radius+0.001;
