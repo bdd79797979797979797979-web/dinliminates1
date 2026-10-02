@@ -3652,10 +3652,17 @@ button,input,select,textarea{
 
 /* CP715 — winner / hungry screens use the same top-left Back affordance as Meals and Restaurants. */
 .winner{position:relative!important;}
+.winner-nav{
+  width:100%;
+  height:43px;
+  display:grid;
+  grid-template-columns:42px 1fr 42px;
+  align-items:center;
+  position:relative;
+  flex:0 0 43px;
+}
 .winner .winner-back{
-  position:absolute!important;
-  left:2px!important;
-  top:8px!important;
+  position:static!important;
   width:42px!important;
   height:40px!important;
   min-width:42px!important;
@@ -3669,6 +3676,14 @@ button,input,select,textarea{
   line-height:1!important;
   z-index:20!important;
   text-align:left!important;
+}
+.winner-brand{
+  text-align:center;
+  font-size:20px;
+  font-weight:850;
+  letter-spacing:-.05em;
+  color:#eee;
+  line-height:1;
 }
 .winner .winner-back:active{transform:scale(.94)!important;}
 
@@ -4021,3 +4036,8 @@ button,input,select,textarea{
   .hungry-wheel-result-copy b{font-size:18px}
   .hungry-wheel-actions button{min-height:46px}
 }
+
+
+/* CP721 — Winner and Hungry use the same 43px navigation height as Meals/Restaurants. */
+.winner .winner-back:active{transform:scale(.94)!important}
+.winner.hungry-mode .winner-nav{margin-bottom:0}
