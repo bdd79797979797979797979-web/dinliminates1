@@ -3278,3 +3278,36 @@ button,a,select{touch-action:manipulation}
   #detailsModal .detail-notes-delete{width:32px;height:32px;min-width:32px;font-size:17px}
   #detailsModal .detail-notes-toggle{height:32px;min-height:32px;padding:0 10px}
 }
+
+/* CP695 — finish navigation language and make Use My Location visibly trustworthy. */
+.location-strip{background:linear-gradient(160deg,#171715,#11110f)!important;border-color:#302e2a!important;box-shadow:0 10px 28px #0005}
+.location-main{grid-template-columns:40px minmax(0,1fr) 56px 74px;gap:6px}
+.location-btn{width:40px;height:40px;background:#151817;border:1px solid #35515a;color:#a9d7e2;display:grid;place-items:center;box-shadow:inset 0 0 0 1px #ffffff05,0 5px 15px #0005;transition:transform .12s ease,border-color .18s ease,background .18s ease}
+.location-btn .location-icon{width:18px;height:18px}
+.location-btn:hover{border-color:#4d7580;background:#182126}
+.location-btn:active{transform:scale(.94)}
+.location-btn:disabled{opacity:.72;cursor:wait}
+.location-btn[aria-busy="true"]{border-color:#67939c;box-shadow:0 0 0 3px #5e879018,0 5px 15px #0005}
+.location-status-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;margin-top:5px;padding:0 3px}
+.location-source-label{font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#7daebb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.location-source-label:not(.is-ready){color:#696763}
+.location-status-row .status{margin:0;color:#777;font-size:9px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.find[data-state="refresh"]{background:#1b2528;border:1px solid #3a5d67;color:#bfe4ec}
+.utility-modal{width:min(94vw,520px)!important;max-height:88svh!important;border-radius:26px!important;background:radial-gradient(110% 48% at 100% 0%,#1b2831 0%,rgba(27,40,49,0) 54%),linear-gradient(165deg,#151514 0%,#0e0e0d 100%)!important;border-color:#35322d!important}
+#settingsModal.utility-modal,#historyModal.utility-modal,#manageFoodsModal.utility-modal{box-shadow:0 30px 90px #000d}
+.drawer-section-label{padding:15px 0 5px;font-size:8px;font-weight:900;letter-spacing:.2em;color:#6f7880}
+.drawer-row-icon svg{width:18px;height:18px;display:block}
+.drawer-footer-rule{display:flex;justify-content:space-between;align-items:center;padding:0 2px 9px;color:#5f605c;font-size:7px;letter-spacing:.17em;font-weight:900}
+.drawer-start{grid-template-columns:34px 1fr!important;border-color:#46545a!important;background:linear-gradient(145deg,#182126,#111617)!important;box-shadow:0 10px 30px #0007!important}
+.drawer-start-icon{font-size:18px!important;color:#b9d8df!important;border-color:#45616a!important;background:#151c1f!important}
+.drawer-start>span:last-child{display:none}
+.drawer-start b{font-size:13px!important;letter-spacing:-.01em}
+.drawer-start small{font-size:9px!important;color:#7d8586!important}
+@media(max-width:390px){
+ .location-main{grid-template-columns:38px minmax(0,1fr) 52px 70px;gap:5px}
+ .location-btn{width:38px;height:38px}
+ .location-status-row{gap:7px}
+ .location-source-label{font-size:8px}
+ .location-status-row .status{font-size:8.5px}
+ .utility-modal{width:min(95vw,520px)!important;max-height:90svh!important;border-radius:24px!important}
+}
