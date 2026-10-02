@@ -1,11 +1,11 @@
-const CACHE='dinliminate-shell-v674';
+const CACHE='dinliminate-shell-v676';
 const IMAGE_CACHE='dinliminate-images-v1';
 const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./data/restaurant-taxonomy.js','./manifest.webmanifest','./app-release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png','./fallback-food.svg','./fallback-restaurant.svg'];
 self.addEventListener('install',event=>{
   event.waitUntil(Promise.all([caches.open(CACHE).then(c=>c.addAll(SHELL)),caches.open(IMAGE_CACHE)]).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',event=>{
-  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==IMAGE_CACHE&&k!=='dinliminate.restaurant.photos.v1').map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==IMAGE_CACHE&&k!=='dinliminate.restaurant.photos.v2').map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
 self.addEventListener('fetch',event=>{
   const req=event.request;
