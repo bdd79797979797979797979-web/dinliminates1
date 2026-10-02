@@ -4453,3 +4453,275 @@ button,input,select,textarea{
   color:#66615a;
   font-size:9px;
 }
+
+
+/* CP724 — unified Winner/Hungry navigation and restaurant/meal card controls. */
+#winner .winner-nav{
+  height:43px!important;
+  flex:0 0 43px!important;
+  display:grid!important;
+  grid-template-columns:42px auto 1fr!important;
+  align-items:center!important;
+  column-gap:2px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+}
+#winner .winner-brand{
+  justify-self:start!important;
+  text-align:left!important;
+  font-size:20px!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  line-height:1!important;
+  background:linear-gradient(115deg,#fff 5%,#ecd6a8 48%,#db8c55 78%,#fff1d8 96%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+}
+#winner .winner-back{
+  width:42px!important;
+  height:40px!important;
+  min-width:42px!important;
+  min-height:40px!important;
+  padding:0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+}
+#winner .winner-back:disabled{
+  opacity:.28!important;
+  pointer-events:none!important;
+}
+
+/* Keep the four decision controls identical on Meals and Restaurants. */
+.food .unified-swipe-actions,
+#restaurant .unified-swipe-actions{
+  display:grid!important;
+  grid-template-columns:42px 64px 64px 42px!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin:8px auto max(4px,env(safe-area-inset-bottom))!important;
+  width:100%!important;
+  flex:0 0 auto!important;
+}
+.food .unified-swipe-actions .round-back,
+#restaurant .unified-swipe-actions .round-back,
+.food .unified-swipe-actions .round-choose,
+#restaurant .unified-swipe-actions .round-choose{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+}
+.food .unified-swipe-actions .round-cut,
+#restaurant .unified-swipe-actions .round-cut,
+.food .unified-swipe-actions .round-maybe,
+#restaurant .unified-swipe-actions .round-maybe{
+  width:64px!important;
+  height:64px!important;
+  min-width:64px!important;
+  min-height:64px!important;
+}
+.unified-swipe-actions .round-choose{
+  border-radius:50%!important;
+  background:linear-gradient(180deg,#1d2629,#13191b)!important;
+  color:#d8c28f!important;
+  border:1px solid #67583e!important;
+  box-shadow:0 8px 20px #0006!important;
+}
+.unified-swipe-actions .round-choose span{font-size:20px!important;font-weight:900!important}
+.unified-swipe-actions .round-back:disabled{
+  opacity:.25!important;
+  pointer-events:none!important;
+}
+
+/* Choice filter/count: compact, text-sized, and green on both decision screens. */
+.quick-label-right{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:7px!important;
+}
+.quick-filter-toggle{
+  width:auto!important;
+  min-width:0!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#72d29a!important;
+  box-shadow:none!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.02em!important;
+  line-height:1!important;
+  text-transform:uppercase!important;
+}
+.quick-filter-toggle.is-maybe{
+  background:transparent!important;
+  border:0!important;
+  color:#8be5ad!important;
+}
+.quick-label .count-inline{
+  color:#72d29a!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  padding:0!important;
+  min-height:0!important;
+  background:transparent!important;
+  border:0!important;
+}
+
+/* Restaurant card: cuisine + Details only. Website is Details-only. */
+#restaurant .restaurant-card-meta-row{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  width:max-content!important;
+  max-width:100%!important;
+}
+#restaurant .restaurant-card-meta{
+  max-width:none!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+#restaurant .restaurant-card-utilities{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+}
+#restaurant .restaurant-card-details-utility{
+  width:30px!important;
+  height:30px!important;
+  min-width:30px!important;
+  min-height:30px!important;
+  flex:0 0 30px!important;
+  padding:0!important;
+  border-radius:10px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:linear-gradient(180deg,#1c1c1b,#121211)!important;
+  color:#d8c18a!important;
+  border:1px solid #594b34!important;
+  box-shadow:0 6px 15px #0007!important;
+}
+#restaurant .restaurant-card-details-utility .details-icon{
+  width:16px!important;
+  height:16px!important;
+}
+#restaurant .restaurant-card-website-utility{display:none!important}
+
+/* Cleaner shared Hide control inside both meal and restaurant Details. */
+#detailsModal .detail-secondary-actions{
+  margin-top:13px!important;
+  padding-top:12px!important;
+  border-top:1px solid #292621!important;
+}
+#detailsModal .detail-secondary-actions .detail-hide-action{
+  width:100%!important;
+  height:44px!important;
+  min-height:44px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  padding:0 14px!important;
+  border-radius:13px!important;
+  background:linear-gradient(145deg,#211a18,#171311)!important;
+  border:1px solid #593a32!important;
+  color:#dca39a!important;
+  box-shadow:inset 0 1px 0 #ffffff06!important,0 7px 16px #0005!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.09em!important;
+  text-transform:uppercase!important;
+}
+#detailsModal .detail-hide-icon{
+  width:17px!important;height:17px!important;min-width:17px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+}
+#detailsModal .detail-hide-icon svg{width:17px!important;height:17px!important;display:block!important}
+
+/* Restaurant Details: three evenly weighted, clearly separated actions. */
+#detailsModal .detail-utility-actions{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  margin:14px 0 0!important;
+  padding-top:12px!important;
+  border-top:1px solid #292621!important;
+}
+#detailsModal .detail-utility-actions .restaurant-detail-action{
+  width:100%!important;
+  min-width:0!important;
+  height:46px!important;
+  min-height:46px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  padding:0 5px!important;
+  border-radius:12px!important;
+  text-decoration:none!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+  box-shadow:inset 0 1px 0 #ffffff08,0 7px 16px #0005!important;
+}
+#detailsModal .detail-utility-actions .restaurant-detail-action:nth-child(1){
+  background:linear-gradient(145deg,#282217,#17140f)!important;
+  border:1px solid #6a5737!important;
+  color:#e2c68f!important;
+}
+#detailsModal .detail-utility-actions .restaurant-detail-action:nth-child(2){
+  background:linear-gradient(145deg,#18262d,#131b20)!important;
+  border:1px solid #405b67!important;
+  color:#b9d6e2!important;
+}
+#detailsModal .detail-utility-actions .restaurant-detail-action:nth-child(3){
+  background:linear-gradient(145deg,#1d1d1b,#141412)!important;
+  border:1px solid #454039!important;
+  color:#d5d0c7!important;
+}
+#detailsModal .detail-utility-actions .detail-action-icon{
+  width:16px!important;height:16px!important;min-width:16px!important;flex:0 0 16px!important;
+}
+#detailsModal .detail-action-label{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+@media(max-width:390px){
+  #winner .winner-nav{grid-template-columns:40px auto 1fr!important}
+  #winner .winner-back{width:40px!important;min-width:40px!important}
+  #winner .winner-brand{font-size:19px!important}
+  .food .unified-swipe-actions,#restaurant .unified-swipe-actions{
+    grid-template-columns:40px 60px 60px 40px!important;
+    gap:11px!important;
+  }
+  .food .unified-swipe-actions .round-back,#restaurant .unified-swipe-actions .round-back,
+  .food .unified-swipe-actions .round-choose,#restaurant .unified-swipe-actions .round-choose{
+    width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+  }
+  .food .unified-swipe-actions .round-cut,#restaurant .unified-swipe-actions .round-cut,
+  .food .unified-swipe-actions .round-maybe,#restaurant .unified-swipe-actions .round-maybe{
+    width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important;
+  }
+  #detailsModal .detail-utility-actions{gap:5px!important}
+  #detailsModal .detail-utility-actions .restaurant-detail-action{
+    height:44px!important;min-height:44px!important;padding:0 4px!important;
+    font-size:7px!important;border-radius:11px!important;
+  }
+}
