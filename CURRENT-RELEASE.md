@@ -1,3 +1,27 @@
+# CURRENT RELEASE — BUILD 699 / CP699
+
+Date: 2026-10-02
+
+Current candidate branch: `cp699-home-actions`
+Recovery baseline: `cp698-iphone-usage-pass`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP699 Home footer actions
+- Split the Home footer into separate **How to add to your phone** and **Share app** actions.
+- Kept both actions small, stacked, centered, and visually discreet at the bottom of the Home screen.
+- Added dedicated iPhone Add to Home Screen instructions.
+- Share uses the native share sheet when available and falls back to copying the app link.
+- Advanced client asset query from v667 to v668.
+- Synchronized release identity to Build 699 / CP699.
+
+## CP699 verification
+- Source confirms both Home footer buttons exist with unique IDs.
+- Source confirms the install instructions and share flows are independent.
+- Release metadata points to Build 699 / CP699 on `cp699-home-actions`.
+
+---
+
 # CURRENT RELEASE — BUILD 698 / CP698
 
 Date: 2026-10-02
