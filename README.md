@@ -2,11 +2,11 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 707.
+Current build: Version 1.0, Build 708.
 
 Clean recovery baseline: `clean-cp704-2026-10-02`.
 
-CP707 keeps Restaurant Search and Open/All hidden for now while the rest of the app is hardened.
+CP708 keeps Restaurant Search and Open/All hidden for now while the rest of the app is hardened.
 
 The deployable app lives at the repository root.
 
@@ -18,6 +18,11 @@ Milestones:
 5. Pass Around
 6. Launch QA
 
+
+## CP708 Home hero photography
+- Dine In uses Pexels photo 30736865, an elegant overhead gourmet dining spread.
+- Dine Out uses Pexels photo 27643020, a wide grilled-steak plate with fresh vegetables.
+- Existing Dine In / Dine Out copy and entry behavior remain unchanged.
 
 ## CP704 Home hero photography
 - Dine In now uses a vibrant overhead dinner spread.
