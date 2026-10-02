@@ -1,37 +1,33 @@
-# Dinliminate Launch QA Gate — Build 197 / CP487–CP488
+# Dinliminate Launch QA Gate — Build 698 / CP698
 
-Date: 2026-10-01
+Date: 2026-10-02
 
 ## Current candidate
-- Working branch: `cp487-launch-candidate-full-pass-2026-10-01`
-- Recovery baseline: `recovery-cp487-build197-pre-launch-pass-2026-09-30`
-- Release: Version 1.0 / Build 197 / CP487
-- Recorded source branch: `cp466-restaurant-identity-final-2026-09-30`
-- Restaurant API: r22
+- Working branch: `cp698-iphone-usage-pass`
+- Recovery baseline: `cp697-address-credit-polish`
+- Release: Version 1.0 / Build 698 / CP698
+- Restaurant API: r25
 - Radius tiers: 1 / 3 / 5 / 10 / 25 / 50 / 100 miles
-- Netlify preview: https://deploy-preview-92--diliminate.netlify.app
-- Vercel deployment is currently account-rate-limited.
+- Hosted test target: `dinliminate22`
+- Candidate status: not production
 
-## CP487–CP488 completed
-- Restored the missing Smoothie entry; built-in meal catalog is 116 unique meals.
-- Synchronized stale Restaurant QA from r20/50-mile assumptions to r22/100-mile behavior.
-- Added 100-mile coverage to live API smoke.
-- Refreshed hosted Netlify smoke for Build 197.
-- Aligned current food-image hosts across client proxy, server proxy, service worker, and QA.
-- Preserved recovery branches before the major repair stages.
+## CP698 completed
+- iPhone Safari-safe editable-field sizing and Search keyboard hints.
+- Manual address entry now invalidates pending automatic GPS so typed addresses are not overwritten.
+- Restaurant location action hit areas are 44px on standard phone widths, with a tighter 40px layout below 360px.
+- Release identity is synchronized across the app release file, release manifest, release API, and current documentation.
 
-## Launch gates
-1. Static/data and syntax QA
-2. Restaurant route/provider/search/classification/dedupe/reliability QA
-3. 1/3/5/10/25/50/100-mile API QA
-4. Browser and accessibility QA
-5. Hosted Netlify QA
-6. Food-image/source QA
-7. PWA manifest/service-worker QA
-8. 393×852 iPhone-size checks
+## Remaining launch gates
+1. Hosted runtime verification on the exact CP698 candidate
+2. Restaurant location/search/radius/Open/All/Quick Cut runtime pass
+3. Restaurant photo runtime verification
+4. Physical iPhone Safari/PWA install and touch/swipe certification
+5. Final third-party photo/source rights review
 
-## Physical-device gate
-Real iPhone Safari/PWA installation, GPS permission, touch/swipe behavior, and Add to Home Screen behavior still require the physical iPhone and are not claimed as certified by desktop automation.
+## Historical QA
+Older build references remain below in the repository history; they are retained as historical records and are not the current candidate identity.
+
+---
 
 ## Recovery chain
 - `recovery-cp487-build197-pre-launch-pass-2026-09-30`
