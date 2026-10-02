@@ -4878,32 +4878,47 @@ button,input,select,textarea{
 }
 
 
-/* CP722 — first-entry swipe guidance sits bottom-right above decision controls. */
+/* CP722/735 — first-entry swipe guidance centered directly over the bottom decision buttons. */
 .swipe-hint{
-  left:auto!important;
-  right:12px!important;
-  bottom:82px!important;
-  transform:none!important;
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:86px!important;
+  transform:translateX(-50%)!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
-  gap:7px!important;
-  min-height:30px!important;
-  padding:7px 10px!important;
-  border-radius:11px!important;
-  background:#171614ed!important;
+  gap:8px!important;
+  min-height:32px!important;
+  padding:7px 12px!important;
+  border-radius:12px!important;
+  background:#171614f2!important;
   border:1px solid #3a342b!important;
   box-shadow:0 9px 20px #0009,inset 0 1px 0 #ffffff08!important;
   backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;
   font-size:8px!important;
   letter-spacing:.03em!important;
   z-index:35!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
 }
+.swipe-hint:active{transform:translateX(-50%) scale(.97)!important}
 .swipe-hint-cut{color:#e06a61!important}
 .swipe-hint-mid{color:#bdb5a8!important}
 .swipe-hint-maybe{color:#79c892!important}
 @media(max-width:390px){
-  .swipe-hint{right:10px!important;bottom:77px!important}
+  .swipe-hint{bottom:82px!important}
+}
+
+/* CP735 — extend winner fireworks duration. */
+.firework-burst.burst-1,
+.firework-burst.burst-2,
+.firework-burst.burst-3{
+  animation-duration:3.6s!important;
+}
+.firework-burst span{
+  animation-duration:1.8s!important;
 }
 
 
