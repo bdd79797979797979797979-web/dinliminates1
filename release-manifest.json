@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 660,
-  "sourceBranch": "cp660-current-location-fallback",
+  "build": 661,
+  "sourceBranch": "cp661-location-timeout-recovery",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "preview",
-  "checkpoint": "CP660"
+  "checkpoint": "CP661"
 }
