@@ -2650,3 +2650,10 @@ button,a,select{touch-action:manipulation}
   }
   #restaurant .location-main .radius-chevron{right:7px!important;font-size:11px!important}
 }
+
+
+/* CP687 — make the Restaurant choice count a subtle premium blue. */
+#restaurant .count-inline{
+  color:#7fd5ff!important;
+  font-weight:800!important;
+}
