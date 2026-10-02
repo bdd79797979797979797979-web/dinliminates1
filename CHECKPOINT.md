@@ -1,18 +1,17 @@
-# CURRENT CHECKPOINT - BUILD 736 / CP736
+# CURRENT CHECKPOINT - BUILD 737 / CP737
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
-Current checkpoint: CP736
+Current checkpoint: CP737
 
-CP736 changes:
-- Restored the compact All/Maybe control to the A / heart icon design.
-- Both A and heart icons remain visible, with the active mode highlighted green.
-- Shrunk the control so it fits immediately to the left of the plain green Choices count.
-- Applied the compact treatment to both Meal and Restaurant choice rows.
-- CP735 home family-dinner image, persistent swipe guidance, longer fireworks, and prior wheel fixes remain preserved.
+CP737 changes:
+- Added the standard hamburger menu to the Winner/Hungry header at the top right.
+- Winner menu uses the same 42px menu treatment and position as the normal app screens.
+- Winner menu opens the same shared drawer and participates in the same aria-expanded state updates.
+- CP736 A/heart compact toggle, CP735 home/celebration polish, and CP734 wheel fixes remain preserved.
 
 Verification:
-- app.js syntax: PASS.
-- A/heart markup and compact width verified.
-- Choice count remains plain text.
+- app.js syntax PASS.
+- Winner menu markup and binding verified.
+- Winner menu included in drawer accessibility state.
