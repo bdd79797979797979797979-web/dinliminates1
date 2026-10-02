@@ -9,7 +9,7 @@ assert.ok(start>=0&&end>start,'UI restaurant dedupe block must exist');
 const extracted=source.slice(start,end);
 const factory=new Function(
   'normKey','milesBetween','RESTAURANT_TAXONOMY',
-  extracted+'; return {dedupeRestaurantPool,restaurantNameFamily,restaurantNameSimilarityUI,restaurantAddressSimilarityUI};'
+  extracted+'; return {dedupeRestaurantPool,restaurantNameFamily,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI};'
 );
 const normKey=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 const milesBetween=(lat1,lon1,lat2,lon2)=>{
