@@ -9,6 +9,9 @@ assert.equal(typeof photo._test?.fastKnownRestaurantPhoto,'function','fast known
 assert.match(app,/const KNOWN_RESTAURANT_PHOTO_FALLBACKS=/,'frontend known-photo fallback table should exist');
 
 const fixtures=[
+ {name:"Sweet P's Southern Style",needle:'Sweet-Ps-Southern-Style_8c41d09a14d942d0ca25ab6076d3f05e.jpg'},
+ {name:"Gray Smoke Barbecue",needle:'90a3488a-0fdb-47fa-9c6d-e76837ebc263.jpg'},
+ {name:"CAP’s Neighborhood Bar & Grill",needle:'CAPS-Neighborhood-Bar-Grill-7.jpg'},
  {name:"Reggie's BBQ",needle:"https://d1w7312wesee68.cloudfront.net/XqjMLj3K3JQ1LOypRViqpaLKzbu0dXfv_cQwp2AxpXk/ext%3Awebp/quality%3A85/plain/s3%3A//toast-sites-resources-prod/restaurantImages/263daf0a-e243-4425-8d8a-9b75cbf93056/82d46202-8e46-4a18-9858-9ca3d930ca93-19"},
  {name:"Legends Smokehouse & Grill",needle:"https://5dee1204fff7f466a182.cdn6.editmysite.com/uploads/b/5dee1204fff7f466a182a4e6fe08b0edea7ec96d54c794955f8198991dae5da6/Untitled%20design%282%29_1713398838.png?optimize=medium&width=2400"},
  {name:"Johnny's Big Burger",needle:"https://thebigburger.com/__l5e/assets-v1/3211c7e6-0473-4028-b8d0-db085ca4a369/frontpage.jpg"},
