@@ -8,11 +8,11 @@ const TARGETED_FAST=["McDonald's","Taco Bell","Wendy's","Burger King","KFC","Chi
 const FAST=/\b(?:mcdonald|taco bell|wendy|burger king|kfc|chick[- ]?fil[- ]?a|popeye|subway|sonic|arby|whataburger|five guys|culver|raising cane|wingstop|bojangles|cook ?out|dairy queen|jack in the box|hardee|del taco|checkers|rally|zaxby|churchs|captain ds|long john silver|jimmy john|jersey mike|firehouse subs|little caesars|domino|papa john|pizza hut|marcos pizza|krystal|steak ?n shake|white castle|freddy|in[- ]?n[- ]?out|carl.?s jr|panda express|jacks|chipotle)\b/i;
 const timezoneCache=new Map(),cache=new Map(),buckets=new Map();
 const SEARCH_BUDGET_MS=12000;
-const WIDE_DISCOVERY_RESERVE_MS=1500;
+const WIDE_DISCOVERY_RESERVE_MS=700;
 const WIDE_RADIUS_THRESHOLD=50;
 const WIDE_PROVIDER_RADIUS_CAP=50;
-const WIDE_PRIMARY_TIMEBOX_MS=7000;
-const WIDE_DISCOVERY_TIMEBOX_MS=10000;
+const WIDE_PRIMARY_TIMEBOX_MS=4500;
+const WIDE_DISCOVERY_TIMEBOX_MS=4500;
 const OVERPASS_HTTP_TIMEOUT_MS=5200;
 const MAX_SEARCH_PER_MINUTE=60;
 const GOOGLE_KEY=String(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY||'').trim();
@@ -218,56 +218,47 @@ async function arcgisPlaces(lat,lon,radius,searchTerm='',timeout=7000){
  return {rows,errors};
 }
 
-const WIDE_ARCGIS_RING_MILES=60;
-const WIDE_ARCGIS_RING_POINTS=8;
-const WIDE_ARCGIS_QUERY_TIMEOUT_MS=2600;
-function wideArcgisCenters(lat,lon,radius){
- const ring=Math.min(WIDE_ARCGIS_RING_MILES,Math.max(50,Number(radius)||100));
+const WIDE_PHOTON_RING_MILES=60;
+const WIDE_PHOTON_RING_POINTS=6;
+const WIDE_PHOTON_QUERY_TIMEOUT_MS=2800;
+function widePhotonCenters(lat,lon,radius){
+ const ring=Math.min(WIDE_PHOTON_RING_MILES,Math.max(55,Number(radius)||100));
  const a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  const out=[{lat,lon}];
- for(let i=0;i<WIDE_ARCGIS_RING_POINTS;i++){
-  const ang=i*2*Math.PI/WIDE_ARCGIS_RING_POINTS;
+ for(let i=0;i<WIDE_PHOTON_RING_POINTS;i++){
+  const ang=i*2*Math.PI/WIDE_PHOTON_RING_POINTS;
   out.push({lat:lat+Math.sin(ang)*a,lon:lon+Math.cos(ang)*b});
  }
  return out;
 }
-async function arcgisWideCenterPlaces(lat,lon,searchExtentRadius,searchTerm=''){
+async function photonWideCenterPlaces(lat,lon,searchExtentRadius,searchTerm=''){
  const r=Math.min(50,Math.max(1,Number(searchExtentRadius)||50));
  const latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
- const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
- const params=new URLSearchParams({
-  category:'Restaurant,Fast Food',
-  ...(searchTerm?{SingleLine:searchTerm}:{}),
-  location:lon+','+lat,
-  searchExtent:extent,
-  maxLocations:'50',
-  outFields:'PlaceName,Type,Place_addr,City,Region,Country,Phone,URL',
-  forStorage:'false',
-  f:'json'
- });
- const data=await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},WIDE_ARCGIS_QUERY_TIMEOUT_MS);
- const rows=[];
- for(const cand of data?.candidates||[]){
-  const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},name=String(attrs.PlaceName||cand.address||'').trim();
-  if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
-  const fast=isFastFoodName(name,String(attrs.Type||''));
-  const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',providerType:String(attrs.Type||''),address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS wide POI'};
-  if(row.distance<=100&&!isClearlyNonDiningBusiness(row))rows.push(row);
- }
- return rows;
-}
-async function arcgisWidePlaces(lat,lon,radius,searchTerm=''){
- const points=wideArcgisCenters(lat,lon,radius),rows=[],errors=[];
- const tasks=points.map(p=>arcgisWideCenterPlaces(p.lat,p.lon,50,searchTerm));
- const settled=await Promise.allSettled(tasks);
+ const bbox=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
+ const base=[
+  new URLSearchParams({q:searchTerm||'restaurant',osm_tag:'amenity:restaurant',bbox,limit:'250',lang:'en',countrycode:'US',dedupe:'1',lat:String(lat),lon:String(lon),zoom:'11'}),
+  new URLSearchParams({q:searchTerm||'fast food',osm_tag:'amenity:fast_food',bbox,limit:'250',lang:'en',countrycode:'US',dedupe:'1',lat:String(lat),lon:String(lon),zoom:'11'})
+ ];
+ const rows=[],errors=[];
+ const settled=await Promise.allSettled(base.map(p=>json('https://photon.komoot.io/api/?'+p.toString(),{},WIDE_PHOTON_QUERY_TIMEOUT_MS)));
  for(const result of settled){
-  if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'ArcGIS expansion failed'));continue}
-  for(const row of result.value||[]){
-    const distance=miles(lat,lon,n(row.lat),n(row.lon));
-    if(Number.isFinite(distance)&&distance<=radius+0.001)rows.push({...row,distance});
+  if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'Photon expansion failed'));continue}
+  for(const feature of result.value?.features||[]){
+   const row=photonRow(feature,{lat,lon});
+   if(row&&row.distance<=100&&!isClearlyNonDiningBusiness(row))rows.push(row);
   }
  }
- return{rows:dedupe(rows),errors,expansionPoints:points.length};
+ return {rows,errors};
+}
+async function photonWidePlaces(lat,lon,radius,searchTerm=''){
+ const points=widePhotonCenters(lat,lon,radius),rows=[],errors=[];
+ const settled=await Promise.allSettled(points.map(p=>photonWideCenterPlaces(p.lat,p.lon,50,searchTerm)));
+ for(const result of settled){
+  if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'Photon outer expansion failed'));continue}
+  rows.push(...(result.value?.rows||[]));
+  errors.push(...(result.value?.errors||[]));
+ }
+ return {rows:dedupe(rows),errors,expansionPoints:points.length};
 }
 
 function searchQueryClause(lat,lon,radius,searchTerm){
@@ -1233,7 +1224,7 @@ if(mode==='search'){
  const providerRadius=wideSearch?Math.min(radius,WIDE_PROVIDER_RADIUS_CAP):radius;
  const discoveryPromise=searchTerm&&!wideSearch ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null;
  const primaryPromise=wideSearch
-  ? Promise.allSettled([arcgisWidePlaces(lat,lon,radius,searchTerm)])
+  ? Promise.allSettled([photonWidePlaces(lat,lon,radius,searchTerm)])
   : Promise.allSettled([
     photonPlaces(lat,lon,providerRadius,searchTerm),
     arcgisPlaces(lat,lon,providerRadius,searchTerm),
@@ -1250,7 +1241,7 @@ if(mode==='search'){
  }
  const photonResult=wideSearch?{status:'fulfilled',value:{rows:[],errors:[]}}:(Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
  const arcgisResult=wideSearch
-  ? (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Wide ArcGIS provider timed out')})
+  ? (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Wide Photon provider timed out')})
   : (Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
  const googleResult=wideSearch
   ? {status:'fulfilled',value:{rows:[],errors:[]}}
