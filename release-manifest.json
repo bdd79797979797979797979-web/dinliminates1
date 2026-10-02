@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 743,
+  "build": 745,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP743"
+  "checkpoint": "CP745"
 }
