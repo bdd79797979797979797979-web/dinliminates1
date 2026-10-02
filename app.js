@@ -2655,9 +2655,10 @@ function manageFoodsView() {
   const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
   const state=deleted?'Deleted':(hidden?'Hidden':'Active');
   const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
-  const primary=deleted?'<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>':(hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>');
-  const extra=deleted?'':'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button><button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>';
-  return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+primary+extra+'</span></div>';
+  const primary=deleted?'<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action '+(hidden?'manage-restore':'manage-hide')+'" '+(hidden?'data-food-restore="'+esc(id)+'"':'data-food-hide="'+esc(id)+'')+'">'+(hidden?'Restore':'Hide')+'</button>';
+  const extra=deleted?'':'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button>';
+  const deleteAction=deleted?'':'<button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>';
+  return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+extra+primary+deleteAction+'</span></div>';
  };
  const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Edit any meal, replace its photo, hide it from decisions, or delete it. Deleted meals stay recoverable on this device.</p></div>'+
  '<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
@@ -2690,7 +2691,7 @@ function settingsView(){
  settingsActionButton('exportPdf','▣','Export PDF','Save or share your Dinliminate history as a polished PDF.','export-action')+
  settingsActionButton('privacySettings','◇','Privacy & Data','How location, history, notes, and third-party data are handled.','privacy-action')+
  '</div></section>'+
- '<section class="settings-section settings-about-section"><div class="settings-section-kicker">ABOUT DINLIMINATE</div><div class="settings-about-copy"><h3>Dinliminate</h3><p>Cut the dinner choices until one survives.</p></div><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()))+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></section>'+
+ '<section class="settings-section settings-about-section"><div class="settings-section-kicker">ABOUT DINLIMINATE</div><div class="settings-about-copy"><p>Cut the dinner choices until one survives.</p></div><div class="about-meta"><p><span>Version</span><b>'+esc(APP_VERSION)+'</b></p><p><span>Build</span><b>'+esc(APP_BUILD)+'</b></p><p><span>Date</span><b>'+esc(new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date()))+'</b></p></div><p class="about-credit">Made by Brian Dunn for Devona Dunn</p></section>'+
  '</div>';
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
