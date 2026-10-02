@@ -1,24 +1,28 @@
-# CURRENT RELEASE — BUILD 699 / CP699
+# CURRENT RELEASE — BUILD 700 / CP700
 
 Date: 2026-10-02
 
-Current candidate branch: `cp699-home-actions`
-Recovery baseline: `cp698-iphone-usage-pass`
+Current candidate branch: `cp700-premium-home-actions`
+Recovery baseline: `cp699-home-actions`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP699 Home footer actions
-- Split the Home footer into separate **How to add to your phone** and **Share app** actions.
-- Kept both actions small, stacked, centered, and visually discreet at the bottom of the Home screen.
-- Added dedicated iPhone Add to Home Screen instructions.
-- Share uses the native share sheet when available and falls back to copying the app link.
-- Advanced client asset query from v667 to v668.
-- Synchronized release identity to Build 699 / CP699.
+## CP700 premium Home actions
+- Replaced the bottom text labels with two discreet utility icons.
+- **Add to phone:** premium iPhone-outline icon with a plus.
+- **Share:** premium share/network icon.
+- Kept the controls centered at the bottom with comfortable 43–44px tap targets.
+- Hardened the Home action event path with delegated click handling.
+- Add to phone now supports the browser install prompt when available and otherwise opens iPhone instructions.
+- Share uses the native share sheet when available, with secure clipboard and legacy copy fallbacks.
+- Advanced client asset query to v669.
+- Synchronized release identity to Build 700 / CP700.
 
-## CP699 verification
-- Source confirms both Home footer buttons exist with unique IDs.
-- Source confirms the install instructions and share flows are independent.
-- Release metadata points to Build 699 / CP699 on `cp699-home-actions`.
+## CP700 verification
+- Source confirms unique Add to Phone and Share buttons use `data-home-action` routing.
+- Source confirms the previous combined footer label is gone.
+- Source confirms the new icon-only controls have accessible aria labels and titles.
+- Release metadata points to Build 700 / CP700 on `cp700-premium-home-actions`.
 
 ---
 
