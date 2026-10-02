@@ -1,3 +1,15 @@
+# CURRENT SAVEPOINT — Build 708 / CP708
+
+Date: 2026-10-02
+
+Working branch: `cp708-full-audit-final-hardening`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Hosted test target: `dinliminate22`
+
+CP708 is the current full-audit hardening candidate. Restaurant Search and Open/All remain intentionally hidden. Release metadata, QA contracts, cache generation, documentation, and active workflows are synchronized to Build 708 / CP708.
+
+The protected clean copy remains `clean-cp704-2026-10-02`.
+
 # CURRENT SAVEPOINT — BUILD 707 / CP707
 
 Date: 2026-10-02
