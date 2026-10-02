@@ -1928,20 +1928,12 @@ function bindCardButton(id,handler){
  el.style.webkitUserSelect='none';
  el.style.userSelect='none';
  let lastActivation=0;
- const playDecisionButtonJump=()=>{
-  if(!el.classList.contains('round-action'))return;
-  el.classList.remove('decision-button-jump');
-  void el.offsetWidth;
-  el.classList.add('decision-button-jump');
-  window.setTimeout(()=>el.classList.remove('decision-button-jump'),240);
- };
  const activate=e=>{
   const now=performance.now();
   if(now-lastActivation<450)return;
   lastActivation=now;
   e?.preventDefault?.();
   e?.stopPropagation?.();
-  playDecisionButtonJump();
   try{
    const result=handler?.(e);
    if(result&&typeof result.catch==='function')result.catch(()=>{});
