@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 709,
-  "sourceBranch": "cp709-unified-decision-button-jump",
-  "checkpoint": "CP709"
+  "build": 711,
+  "sourceBranch": "cp711-unified-decision-rails",
+  "checkpoint": "CP711"
 }
