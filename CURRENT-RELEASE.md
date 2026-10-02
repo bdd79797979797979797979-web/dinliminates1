@@ -1,27 +1,24 @@
-# CURRENT RELEASE — BUILD 708 / CP708
+# CURRENT RELEASE — BUILD 709 / CP709
 
 Date: 2026-10-02
 
-Current candidate branch: `cp708-hero-photos-unified-button-press`
+Current candidate branch: `cp709-unified-decision-button-jump`
 Clean recovery baseline: `clean-cp704-2026-10-02`
-Prior audit checkpoints: CP705 / CP706 / CP707
+Prior audit checkpoints: CP705 / CP706 / CP707 / CP708
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP708 hero photos + button parity
-- Refreshed Dine In with a vibrant overhead gourmet spread using Pexels photo 37140465.
-- Refreshed Dine Out with a dramatic gourmet steak and grilled-vegetable image using Pexels photo 36850066.
-- Preserved Dine In / Reveal Your Meal and Dine Out / Reveal Your Restaurant.
-- Meal Back / Cut / Maybe now use the same `bindCardButton` activation path as Restaurant Back / Cut / Maybe for matching press/click behavior.
+## CP709 decision-button motion
+- Meal and Restaurant Back / Cut / Maybe share the same explicit tap “jump” animation.
+- The animation is triggered once per activation and respects `prefers-reduced-motion`.
+- CP708 Home hero photography is preserved: vibrant Dine In spread and gourmet steak Dine Out image.
 - Restaurant Search and Open/All remain intentionally hidden.
-- Advanced the app.js cache query from v674 to v675.
-- Synchronized release identity to Build 708 / CP708.
+- Synchronized release identity to Build 709 / CP709.
 
-## CP708 verification
-- Pexels lists both selected images as free to use. citeturn121582search0turn418483search1
-- Source preserves the existing `foodStart` and `restStart` IDs and entry copy.
-- Source now binds Meal Back / Cut / Maybe through the shared card-button activation helper.
-- No Google image/API credentials were added.
+## CP709 verification
+- Shared `bindCardButton` triggers the decision-button jump for Meal and Restaurant round actions.
+- Existing duplicate-activation suppression remains in place.
+- CP704 remains the protected clean rollback baseline.
 
 ---
 
