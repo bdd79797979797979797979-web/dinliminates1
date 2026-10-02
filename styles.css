@@ -5171,3 +5171,29 @@ button,input,select,textarea{
   min-height:42px!important;
   margin:0!important;
 }
+
+
+/* CP746 — keep Restaurant All/Maybe toggle in the Quick Cuts row, immediately left of Choices. */
+#restaurant .restaurant-choice-management #restaurantMaybeDeck{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  margin:0!important;
+  justify-self:end!important;
+  align-self:center!important;
+  z-index:auto!important;
+}
+#restaurant .restaurant-choice-management{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+}
+#restaurant .restaurant-choice-management #restaurantCount{
+  justify-self:end!important;
+  margin:0!important;
+  white-space:nowrap!important;
+}
