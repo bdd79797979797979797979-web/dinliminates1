@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 758,
-  "sourceBranch":"cp758-all-maybe-placement",
+  "build": 759,
+  "sourceBranch":"cp759-initial-layout-fix",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint":"CP758"
+  "checkpoint":"CP759"
 }
