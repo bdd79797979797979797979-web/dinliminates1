@@ -194,14 +194,14 @@ async function photonPlaces(lat,lon,radius,searchTerm=''){
  return {rows,errors};
 }
 
-async function arcgisPlaces(lat,lon,radius,searchTerm=''){
+async function arcgisPlaces(lat,lon,radius,searchTerm='',timeout=7000){
  const r=Math.min(MAX_RADIUS,Math.max(1,radius)),latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
  const terms=providerSearchTerms(searchTerm),categories=['Restaurant','Fast Food'],rows=[],errors=[];
  const jobs=[];
  for(const category of categories)for(const term of terms)jobs.push((async()=>{
    const params=new URLSearchParams({SingleLine:term,category,location:lon+','+lat,searchExtent:extent,maxLocations:'50',outFields:'PlaceName,Type,Place_addr,City,Region,Country,Phone,URL',forStorage:'false',f:'json'});
-   return {category,data:await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},7000)};
+   return {category,data:await json('https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+params.toString(),{},timeout)};
  })());
  const results=await Promise.allSettled(jobs);
  for(const result of results){
@@ -219,7 +219,7 @@ async function arcgisPlaces(lat,lon,radius,searchTerm=''){
 }
 
 const WIDE_ARCGIS_RING_MILES=60;
-const WIDE_ARCGIS_RING_POINTS=8;
+const WIDE_ARCGIS_RING_POINTS=4;
 function wideArcgisCenters(lat,lon,radius){
  const ring=Math.min(WIDE_ARCGIS_RING_MILES,Math.max(50,Number(radius)||100));
  const a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
@@ -232,7 +232,7 @@ function wideArcgisCenters(lat,lon,radius){
 }
 async function arcgisWidePlaces(lat,lon,radius,searchTerm=''){
  const points=wideArcgisCenters(lat,lon,radius);
- const tasks=points.map(p=>arcgisPlaces(p.lat,p.lon,50,searchTerm));
+ const tasks=points.map(p=>arcgisPlaces(p.lat,p.lon,50,searchTerm,4500));
  const settled=await Promise.allSettled(tasks),rows=[],errors=[];
  for(const result of settled){
   if(result.status!=='fulfilled'){errors.push(String(result.reason?.message||result.reason||'ArcGIS expansion failed'));continue}
@@ -1206,7 +1206,7 @@ if(mode==='search'){
  // redundant Overpass discovery pass. This prevents 100-mile provider result
  // caps from replacing nearby restaurants with a biased subset of the huge box.
  const providerRadius=wideSearch?Math.min(radius,WIDE_PROVIDER_RADIUS_CAP):radius;
- const discoveryPromise=wideSearch||searchTerm ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
+ const discoveryPromise=searchTerm ? (wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : overpass(lat,lon,radius,'restaurant|fast_food',searchTerm)) : null;
  const primaryPromise=Promise.allSettled([
    photonPlaces(lat,lon,providerRadius,searchTerm),
    wideSearch?arcgisWidePlaces(lat,lon,radius,searchTerm):arcgisPlaces(lat,lon,providerRadius,searchTerm),
