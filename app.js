@@ -814,8 +814,6 @@ function renderQuickCutsCollapse(kind){
  toggle.setAttribute('aria-expanded',String(!collapsed));
  toggle.setAttribute('aria-label',(collapsed?'Expand ':'Collapse ')+'Quick Cuts');
  toggle.title=collapsed?'Show Quick Cuts':'Hide Quick Cuts';
- const chevron=toggle.querySelector('.quick-cuts-chevron');
- if(chevron)chevron.textContent=collapsed?'⌄':'⌃';
  chips.setAttribute('aria-hidden',String(collapsed));
 }
 function bindQuickCutsCollapse(kind){
