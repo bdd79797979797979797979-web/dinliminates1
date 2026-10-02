@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 702,
-  "sourceBranch": "cp702-note-actions-per-note",
+  "build": 703,
+  "sourceBranch": "cp703-dine-in-out-copy",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP702"
+  "checkpoint": "CP703"
 }
