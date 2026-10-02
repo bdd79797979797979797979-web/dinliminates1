@@ -5104,3 +5104,58 @@ button,input,select,textarea{
   transform:rotate(var(--wheel-rotation))!important;
   transition:transform 4.15s cubic-bezier(.12,.72,.11,1)!important;
 }
+
+
+/* CP736 — compact A / heart All-Maybe toggle, sized to sit immediately left of Choices count. */
+#food .quick-label-right,
+#restaurant .quick-label-right{
+  gap:6px!important;
+}
+#food .quick-filter-toggle,
+#restaurant .quick-filter-toggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:34px!important;
+  min-width:34px!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+  gap:2px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#666!important;
+  font-size:10px!important;
+  line-height:1!important;
+}
+#food .quick-filter-toggle > span,
+#restaurant .quick-filter-toggle > span{
+  display:grid!important;
+  place-items:center!important;
+  width:15px!important;
+  height:20px!important;
+  min-width:15px!important;
+  border-radius:7px!important;
+  color:#777!important;
+  line-height:1!important;
+}
+#food .quick-filter-toggle.is-all > .deck-filter-all,
+#restaurant .quick-filter-toggle.is-all > .deck-filter-all{
+  color:#55d88a!important;
+  background:#1c3024!important;
+}
+#food .quick-filter-toggle.is-maybe > .deck-filter-maybe,
+#restaurant .quick-filter-toggle.is-maybe > .deck-filter-maybe{
+  color:#55d88a!important;
+  background:#1c3024!important;
+}
+#food .quick-filter-toggle:disabled,
+#restaurant .quick-filter-toggle:disabled{opacity:.34!important}
+@media(max-width:390px){
+  #food .quick-filter-toggle,
+  #restaurant .quick-filter-toggle{width:32px!important;min-width:32px!important}
+  #food .quick-filter-toggle > span,
+  #restaurant .quick-filter-toggle > span{width:14px!important;min-width:14px!important}
+}
