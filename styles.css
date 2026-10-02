@@ -5197,3 +5197,74 @@ button,input,select,textarea{
   margin:0!important;
   white-space:nowrap!important;
 }
+
+
+/* CP747 — collapsible Quick Cuts for Meals and Restaurants. */
+.quick-section .quick-cuts-collapse-toggle{
+  appearance:none!important;
+  border:0!important;
+  background:transparent!important;
+  color:#d4d4d4!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:5px!important;
+  min-width:0!important;
+  height:27px!important;
+  min-height:27px!important;
+  padding:0!important;
+  margin:0!important;
+  font:inherit!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  letter-spacing:.01em!important;
+  line-height:1!important;
+  text-align:left!important;
+  cursor:pointer!important;
+}
+.quick-section .quick-cuts-collapse-toggle:hover{color:#f1ece4!important}
+.quick-section .quick-cuts-chevron{
+  display:inline-grid!important;
+  place-items:center!important;
+  width:15px!important;
+  height:15px!important;
+  border:1px solid #45423c!important;
+  border-radius:50%!important;
+  color:#9d978d!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  transition:transform .22s ease,color .22s ease,border-color .22s ease!important;
+}
+.quick-section.is-collapsed .quick-cuts-chevron{
+  color:#d7b77b!important;
+  border-color:#65543a!important;
+}
+.quick-section > .quick{
+  max-height:90px!important;
+  opacity:1!important;
+  transform:translateY(0)!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  transition:max-height .28s ease,opacity .2s ease,transform .28s ease,padding .28s ease!important;
+}
+.quick-section.is-collapsed > .quick{
+  max-height:0!important;
+  min-height:0!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  opacity:0!important;
+  transform:translateY(-5px)!important;
+  pointer-events:none!important;
+}
+#restaurant .quick-section.is-collapsed > .quick{
+  margin-top:0!important;
+}
+#restaurant .quick-cuts-collapse-toggle{
+  font-size:11px!important;
+  font-weight:800!important;
+}
+@media(max-width:390px){
+  .quick-section .quick-cuts-collapse-toggle{font-size:11px!important}
+  .quick-section .quick-cuts-chevron{width:14px!important;height:14px!important;font-size:9px!important}
+}
