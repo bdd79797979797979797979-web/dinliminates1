@@ -22,7 +22,7 @@ Status: candidate — not production
 ## CP752 recovery
 This branch is a clean continuation of CP751. No restaurant-search, radius, Quick Cuts, swipe, winner, or Hungry-mode behavior was intentionally changed.
 
-Deployment trigger: CP752-home-cinematic-final
+Deployment trigger: CP752-home-cinematic-final-preview
 
 # CURRENT RELEASE — BUILD 709 / CP709
 
