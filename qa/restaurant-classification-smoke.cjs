@@ -1,11 +1,13 @@
 const assert=require('assert/strict');
 const handler=require('../api/restaurants');
-const isFast=handler._test?.isFastFoodName; const dedupe=handler._test?.dedupe; const isNonDining=handler._test?.isClearlyNonDiningBusiness; const filterNonDining=handler._test?.filterNonDiningRows; const knownWebsite=handler._test?.knownRestaurantWebsite;
+const isFast=handler._test?.isFastFoodName; const dedupe=handler._test?.dedupe; const isNonDining=handler._test?.isClearlyNonDiningBusiness; const nameSimilarity=handler._test?.restaurantNameSimilarity; const addressSimilarity=handler._test?.restaurantAddressSimilarity; const filterNonDining=handler._test?.filterNonDiningRows; const knownWebsite=handler._test?.knownRestaurantWebsite;
 assert.equal(typeof isFast,'function','fast-food classifier test hook should exist');
 assert.equal(typeof dedupe,'function','restaurant dedupe test hook should exist');
 assert.equal(typeof isNonDining,'function','non-dining business filter test hook should exist');
 assert.equal(typeof filterNonDining,'function','non-dining row filter test hook should exist');
 assert.equal(typeof knownWebsite,'function','known restaurant website test hook should exist');
+assert.equal(typeof nameSimilarity,'function','restaurant name similarity test hook should exist');
+assert.equal(typeof addressSimilarity,'function','restaurant address similarity test hook should exist');
 assert.equal(knownWebsite({name:"Camacho's Famous"}),'https://www.camachosfamous.com','Camacho\'s Famous must use its official website');
 for(const name of ["McDonald's","Wendy's","Burger King","KFC","Taco Bell","Chick-fil-A","Chipotle"]) assert.equal(isFast(name),true,name+' should classify as Fast Food');
 for(const name of ["Applebee's","Ruby Tuesday","Olive Garden","Texas Roadhouse","Outback Steakhouse","Cracker Barrel","O'Charley's","Red Lobster","Panera Bread","The Thirsty Goat"]) assert.equal(isFast(name),false,name+' should not classify as Fast Food');
@@ -37,6 +39,37 @@ assert.equal(reportedDuplicates.filter(x=>/^excell/i.test(x.name)).length,1,'Exc
 assert.equal(reportedDuplicates.filter(x=>/strippers chicken|chicken strippers/i.test(x.name)).length,1,'Chicken Strippers provider/name variants must merge to one result');
 console.log('Restaurant duplicate regression: PASS');
 assert.equal(handler._test.restaurantNameTokens('Excell Market Bar-B-Q').join(' '),'excell market bbq','BBQ name normalization should canonicalize Bar-B-Q');
+
+
+// CP670 location-first dedupe regression.
+assert.ok(nameSimilarity('Excell BBQ','Excell Market Bar-B-Q')>=0.60,'Excell BBQ name variants should be similar enough to merge');
+assert.ok(nameSimilarity('Strippers Chicken','Chicken Strippers')>=0.60,'Chicken Strippers name variants should be similar enough to merge');
+assert.ok(addressSimilarity('3102 Ashland City Rd, Clarksville, TN 37043','3102 Ashland City Road, Clarksville, Tennessee 37043')>=0.90,'Equivalent addresses should normalize together');
+
+const sameAddressDifferentNames=dedupe([
+ {id:'same-a',name:'Panda Garden',address:'1000 Market St, Clarksville, TN 37040',lat:36.53,lon:-87.36,distance:1,source:'Photon'},
+ {id:'same-b',name:'Burger House',address:'1000 Market Street, Clarksville, TN 37040',lat:36.53001,lon:-87.36001,distance:1,source:'ArcGIS'}
+]);
+assert.equal(sameAddressDifferentNames.length,2,'Same address by itself must not collapse unrelated restaurant names');
+
+const similarAddressSameName=dedupe([
+ {id:'addr-a',name:'Excell BBQ',address:'3102 Ashland City Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:.7,source:'OpenStreetMap'},
+ {id:'addr-b',name:'Excell Market Bar-B-Q',address:'3102 Ashland City Road, Clarksville, Tennessee 37043',lat:36.53042,lon:-87.36008,distance:.7,source:'ArcGIS'}
+]);
+assert.equal(similarAddressSameName.length,1,'Same/similar address plus similar name must collapse to one restaurant');
+
+const nearCoordsSimilarName=dedupe([
+ {id:'near-a',name:'Strippers Chicken',address:'124 S 10th St, Clarksville, TN 37040',lat:36.5280,lon:-87.3590,distance:1.2,source:'OpenStreetMap'},
+ {id:'near-b',name:'Chicken Strippers',address:'124 South 10th Street, Clarksville, TN 37040',lat:36.52804,lon:-87.35896,distance:1.2,source:'Photon'}
+]);
+assert.equal(nearCoordsSimilarName.length,1,'Near-identical coordinates plus similar name must collapse to one restaurant');
+
+const sameNameDifferentAddresses=dedupe([
+ {id:'diff-a',name:'Chris Pizza',address:'100 Main St, Clarksville, TN 37040',lat:36.53,lon:-87.36,distance:.2,source:'Photon'},
+ {id:'diff-b',name:'Chris Pizza',address:'800 College St, Clarksville, TN 37040',lat:36.55,lon:-87.34,distance:2.0,source:'ArcGIS'}
+]);
+assert.equal(sameNameDifferentAddresses.length,2,'Same restaurant name at clearly different addresses must remain separate');
+console.log('CP670 location-first dedupe regression: PASS');
 
 
 const nonDiningFixtures=[
