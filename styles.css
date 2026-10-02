@@ -3717,3 +3717,65 @@ button,input,select,textarea{
   outline:none;
 }
 #foodEditorForm #editFoodNote:focus{border-color:#665943;box-shadow:0 0 0 2px #c6a46a12}
+
+
+/* CP718 — compact History stats panel. */
+.history-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.history-intro-copy{min-width:0}
+.history-stats-toggle{
+  flex:0 0 auto;
+  min-height:34px;
+  padding:0 12px;
+  border:1px solid #3a352d;
+  border-radius:999px;
+  background:#171614;
+  color:#d9c49d;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.04em;
+}
+.history-stats-toggle:active{transform:scale(.96)}
+.history-stats{
+  margin:0 0 13px;
+  padding:12px;
+  border:1px solid #302c26;
+  border-radius:16px;
+  background:linear-gradient(145deg,#171614,#11110f);
+  box-shadow:0 10px 24px #0003;
+}
+.history-stats-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.history-stats-head>div{display:grid;gap:3px}
+.history-stats-kicker{font-size:8px;font-weight:900;letter-spacing:.17em;color:#98a7bb;text-transform:uppercase}
+.history-stats-head b{font-size:13px;color:#ece8e0}
+.history-stats-note{font-size:8px;color:#67645e;text-align:right}
+.history-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.history-stat{
+  min-height:56px;
+  display:grid;
+  align-content:center;
+  gap:3px;
+  padding:9px 10px;
+  border:1px solid #2b2925;
+  border-radius:12px;
+  background:#121210;
+}
+.history-stat span,.history-stat-wide span{font-size:8px;color:#6f6b64;text-transform:uppercase;letter-spacing:.08em}
+.history-stat b{font-size:17px;letter-spacing:-.03em;color:#eee8de}
+.history-stat-wide{
+  margin-top:7px;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid #2b2925;
+  border-radius:12px;
+  background:#121210;
+}
+.history-stat-wide b{font-size:11px;color:#d9c49d;text-align:right}
+@media(max-width:390px){
+  .history-intro{align-items:center}
+  .history-stats{padding:10px}
+  .history-stat{min-height:52px}
+}
