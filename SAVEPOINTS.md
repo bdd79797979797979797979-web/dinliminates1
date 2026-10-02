@@ -1,3 +1,23 @@
+# CURRENT SAVEPOINT — BUILD 707 / CP707
+
+Date: 2026-10-02
+
+Working branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Hosted test target: `dinliminate22`
+
+Verified source hardening:
+- Vercel release endpoint uses `app-release.json`.
+- App Diagnosis no longer hardcodes CP701.
+- Home tagline is current.
+- PWA shell cache is v674.
+- History calendar deletes individual entries.
+- Restaurant Search and Open/All remain hidden by design.
+
+Do not delete the clean CP704 baseline branch.
+
+---
+
 # CURRENT SAVEPOINT — Build 197 / CP487–CP488
 
 Date: 2026-10-01
