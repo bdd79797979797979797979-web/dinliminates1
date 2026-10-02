@@ -837,7 +837,7 @@ function triggerSwipeHaptic(){
 function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
  const next=$(nextId);
- let downX=0,active=false,committed=false,hapticTriggered=false,pointerId=null,suppressClickUntil=0;
+ let downX=0,lastX=0,active=false,committed=false,hapticTriggered=false,pointerId=null,suppressClickUntil=0,moveFrame=null;
  card.style.touchAction='none';
  card.style.userSelect='none';
  card.style.webkitUserSelect='none';
@@ -846,7 +846,14 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   img.draggable=false;
   img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});
  });
+ const cancelMoveFrame=()=>{
+  if(moveFrame!=null){
+   try{cancelAnimationFrame(moveFrame);}catch{}
+   moveFrame=null;
+  }
+ };
  const reset=()=>{
+  cancelMoveFrame();
   card.classList.remove('swipe-active');
   card.style.transition='';
   card.style.transform='';
@@ -855,6 +862,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   if(next)next.style.transform='scale(.96)';
  };
  const settleBack=()=>{
+  cancelMoveFrame();
   card.classList.remove('swipe-active');
   card.style.transition='transform .18s cubic-bezier(.22,1,.36,1)';
   card.style.transform='translate3d(0,0,0)';
@@ -881,11 +889,12 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  };
  const commit=(dx)=>{
   if(committed||!active)return;
+  cancelMoveFrame();
   committed=true;
   active=false;
   hapticTriggered=false;
   cleanup();
-  suppressClickUntil=Date.now()+350;
+  suppressClickUntil=Date.now()+450;
   card.classList.remove('swipe-active');
   card.style.transition='transform .18s cubic-bezier(.22,1,.36,1)';
   card.style.opacity='1';
@@ -893,9 +902,35 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   const action=dx<0?onCut:onMaybe;
   window.setTimeout(()=>{reset();action();},185);
  };
+ const paintMove=()=>{
+  moveFrame=null;
+  if(!active||committed)return;
+  const dx=lastX-downX;
+  if(Math.abs(dx)<=8)return;
+  const absX=Math.abs(dx);
+  if(absX>=90&&!hapticTriggered){
+   hapticTriggered=true;
+   triggerSwipeHaptic();
+  }
+  const rotationStart=42;
+  const eased=Math.min(1,Math.max(0,(absX-rotationStart)/95));
+  const rotation=(dx<0?-1:1)*Math.min(10,eased*(3+absX*.045));
+  card.style.transform=rotation===0
+    ? 'translate3d('+dx+'px,0,0)'
+    : 'translate3d('+dx+'px,0,0) rotate('+rotation.toFixed(2)+'deg)';
+  card.style.opacity='1';
+  card.style.setProperty('--swipe-tint-alpha',String(Math.min(.18,absX/700)));
+  card.dataset.swipe=dx<0?'cut':'maybe';
+ };
+ const scheduleMove=()=>{
+  if(moveFrame!=null)return;
+  moveFrame=requestAnimationFrame(paintMove);
+ };
  const finish=(e)=>{
   if(!active)return;
-  const dx=Number(e?.clientX||downX)-downX;
+  if(e?.clientX!=null)lastX=e.clientX;
+  cancelMoveFrame();
+  const dx=lastX-downX;
   if(Math.abs(dx)>=90)commit(dx);
   else{
    active=false;
@@ -908,6 +943,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
   downX=e.clientX;
+  lastX=e.clientX;
   active=true;
   committed=false;
   hapticTriggered=false;
@@ -921,24 +957,10 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  };
  card.onpointermove=e=>{
   if(!active||e.isPrimary===false||e.pointerId!==pointerId)return;
-  const dx=e.clientX-downX;
-  if(Math.abs(dx)>8){
+  if(e.clientX!=null)lastX=e.clientX;
+  if(Math.abs(lastX-downX)>8){
    if(e.cancelable)e.preventDefault();
-   const absX=Math.abs(dx);
-   if(absX>=90&&!hapticTriggered){
-    hapticTriggered=true;
-    triggerSwipeHaptic();
-   }
-   // Follow the finger directly: no rounding, no transition, no opacity fade.
-   const rotationStart=42;
-   const eased=Math.min(1,Math.max(0,(absX-rotationStart)/95));
-   const rotation=(dx<0?-1:1)*Math.min(10,eased*(3+absX*.045));
-   card.style.transform=rotation===0
-     ? 'translate3d('+dx+'px,0,0)'
-     : 'translate3d('+dx+'px,0,0) rotate('+rotation.toFixed(2)+'deg)';
-   card.style.opacity='1';
-   card.style.setProperty('--swipe-tint-alpha',String(Math.min(.18,absX/700)));
-   card.dataset.swipe=dx<0?'cut':'maybe';
+   scheduleMove();
   }
  };
  card.onpointerup=e=>finish(e);
