@@ -31,10 +31,11 @@ Milestones:
 - Existing entry-button IDs and behavior are preserved.
 
 ## Current release hardening
-- Working branch: cp704-hero-food-photos
-- Base recovery: cp703-dine-in-out-copy
-- Current release candidate stays off main until the exact release commit is fully verified.
-- Vercel is the official runtime for the release candidate; Netlify remains legacy/backup. Vercel deployment is currently blocked by the connected account build-rate limit.
+- Working branch: cp708-full-audit-final-hardening
+- Clean recovery baseline: clean-cp704-2026-10-02
+- Current release candidate: Build 708 / CP708
+- Restaurant Search and Open/All remain intentionally hidden.
+- Vercel is the runtime verification target; Netlify `dinliminate22` remains the hosted certification target.
 
 
 ## CP708 full-audit hardening
