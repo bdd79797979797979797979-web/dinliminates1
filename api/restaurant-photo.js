@@ -3,7 +3,7 @@
 const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.com','lh3.googleusercontent.com','bing.com','www.bing.com','tse1.mm.bing.net','tse2.mm.bing.net','tse3.mm.bing.net','tse4.mm.bing.net','unsplash.com','images.unsplash.com','pexels.com','images.pexels.com','shutterstock.com','istockphoto.com','gettyimages.com','depositphotos.com','alamy.com','stock.adobe.com']);
 const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark|google[ -]?play|play[ -]?store|app[ -]?store|download[ -]?app|download|badge|payment|visa|mastercard|amex|social[ -]?media|facebook|instagram|tiktok|youtube|x[ -]?twitter)\b/i;
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace)\b/i;
-const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;
+const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;\nconst LOW_QUALITY_IMAGE_HINTS=/\b(?:thumbnail|thumb|tiny|small|lowres|low[-_ ]?res|preview|sprite|tile)\b/i;\nconst PHOTO_SOURCE_TIER={\n  'known-restaurant-photo':100,\n  'official-fast-path':96,\n  'osm-exact-poi':95,\n  'official-venue-page':94,\n  'exact-public-venue-image':92,\n  'known-public-venue-page':90,\n  'exact-public-venue-page':88\n};
 
 function json(res,status,payload){
   res.statusCode=status;
@@ -81,7 +81,7 @@ async function fetchText(url,headers={},timeout=7000,maxBytes=2200000){
   }finally{clearTimeout(timer)}
 }
 
-async function fetchImage(url,headers={},timeout=7000){
+function imageDimensions(bytes,type){\n  try{\n    if(type==='image/png'&&bytes.length>=24){\n      const w=bytes.readUInt32BE(16),h=bytes.readUInt32BE(20);\n      return {width:w,height:h};\n    }\n    if(type==='image/gif'&&bytes.length>=10){\n      return {width:bytes.readUInt16LE(6),height:bytes.readUInt16LE(8)};\n    }\n    if((type==='image/jpeg'||type==='image/jpg')&&bytes.length>4&&bytes[0]===0xff&&bytes[1]===0xd8){\n      let i=2;\n      while(i+9<bytes.length){\n        if(bytes[i]!==0xff){i++;continue;}\n        const marker=bytes[i+1];\n        i+=2;\n        if(marker===0xd8||marker===0xd9||marker===0x01)continue;\n        if(i+2>bytes.length)break;\n        const len=bytes.readUInt16BE(i);\n        if(len<2||i+len>bytes.length)break;\n        if((marker>=0xc0&&marker<=0xc3)||(marker>=0xc5&&marker<=0xc7)||(marker>=0xc9&&marker<=0xcb)||(marker>=0xcd&&marker<=0xcf)){\n          return {width:bytes.readUInt16BE(i+5),height:bytes.readUInt16BE(i+3)};\n        }\n        i+=len;\n      }\n    }\n  }catch{}\n  return {width:0,height:0};\n}\nfunction mediaQuality(media){\n  const width=Number(media?.width)||0,height=Number(media?.height)||0;\n  if(!width||!height)return 0;\n  const pixels=width*height,ratio=width/height;\n  if(width<400||height<250||pixels<180000||ratio<0.48||ratio>2.7)return -100;\n  let score=Math.min(18,Math.log10(pixels/180000+1)*8);\n  if(ratio>=1.1&&ratio<=2.1)score+=4;\n  return score;\n}\nfunction chooseBetterPhoto(a,b){\n  if(!a)return b;\n  if(!b)return a;\n  const as=(PHOTO_SOURCE_TIER[a.source]||70)+mediaQuality(a.media);\n  const bs=(PHOTO_SOURCE_TIER[b.source]||70)+mediaQuality(b.media);\n  return bs>as?b:a;\n}\nasync function fetchImage(url,headers={},timeout=7000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
     const result=await fetchWithValidatedRedirects(url,{headers:{
@@ -253,7 +253,7 @@ function structuredRestaurantMatches(html,name,address){
   return false;
 }
 
-function pageMatchesRestaurant(html,name,address){
+function strictPageMatchesRestaurant(html,name,address){\n  const source=String(html||'');\n  if(structuredRestaurantMatches(source,name,address))return true;\n  const hay=normalizeMatchText(source.slice(0,1400000));\n  const tokens=significantNameTokens(name);\n  if(!tokens.length)return false;\n  const nameHitCount=tokens.filter(t=>hay.includes(t)).length;\n  if(nameHitCount/tokens.length<0.9)return false;\n  const rawAddress=String(address||'');\n  const normAddress=normalizeMatchText(rawAddress);\n  const number=(rawAddress.match(/\\b\\d{1,6}\\b/)||[])[0];\n  const zip=(rawAddress.match(/\\b\\d{5}(?:-\\d{4})?\\b/)||[])[0];\n  const cityTokens=normAddress.split(' ').filter(t=>t.length>=4&&!/^\\d+$/.test(t)).slice(-5);\n  const numberOk=!!number&&hay.includes(normalizeMatchText(number));\n  const zipOk=!!zip&&hay.includes(normalizeMatchText(zip));\n  const cityHits=cityTokens.filter(t=>hay.includes(t)).length;\n  if(number&&zip)return numberOk&&zipOk;\n  if(number)return numberOk&&cityHits>=1;\n  return cityHits>=2;\n}\n\nfunction pageMatchesRestaurant(html,name,address){
   const source=String(html||'');
   if(structuredRestaurantMatches(source,name,address))return true;
   const hay=normalizeMatchText(source.slice(0,1400000));
@@ -589,9 +589,8 @@ module.exports=async function handler(req,res){
   const osmExact=q.osmExact==='1';
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
-    // Tier 1: exact OSM POI photo. Return immediately when the restaurant
-    // record already contains an exact venue image; never make the user wait
-    // for search-engine discovery in this case.
+    // Tier 1: exact OSM POI photo. It is trusted as exact-venue evidence,
+    // but we still validate the image itself for usable dimensions.
     if(osmExact&&/^https:\/\//i.test(osmImage)&&!isBlockedHost(osmImage)&&!BLOCKED_IMAGE_HINTS.test(osmImage)){
       try{
         const media=await fetchImage(osmImage,{'Referer':'https://www.openstreetmap.org/'},3500);
