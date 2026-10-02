@@ -9,7 +9,10 @@ const css=fs.readFileSync(path.join(__dirname,'..','styles.css'),'utf8');
 assert.match(index,/id="locate"/,'Current Location control must exist');
 assert.match(index,/id="find"/,'Restaurant Find/Refresh control must exist');
 
-const refreshRule=css.match(/#restaurant \.location-main \.find{[\s\S]*?\n}/)?.[0]||'';
+const marker='/* CP681 — match Restaurant Refresh to the Location/Search control footprint. */';
+const markerPos=css.lastIndexOf(marker);
+assert(markerPos>=0,'CP681 style block must exist');
+const refreshRule=css.slice(markerPos,css.indexOf('}\n#restaurant .location-main .find .find-icon',markerPos)+1);
 assert(refreshRule.includes('width:36px!important'),'Refresh width must be 36px');
 assert(refreshRule.includes('height:36px!important'),'Refresh height must be 36px');
 assert(refreshRule.includes('border-radius:50%!important'),'Refresh must be circular');
