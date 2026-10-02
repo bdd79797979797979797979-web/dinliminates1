@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 714,
-  "sourceBranch": "cp714-manage-order-button-size-about-cleanup",
+  "build": 715,
+  "sourceBranch": "cp715-restaurant-maybe-home-winner",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP714"
+  "checkpoint": "CP715"
 }
