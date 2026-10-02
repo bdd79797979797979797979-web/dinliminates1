@@ -2432,14 +2432,14 @@ const defaultItem=isEdit?getDefaultFoods().find(x=>String(x.id)===String(item?.i
 const isBuiltInEdit=!!defaultItem;
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
-const cats=[...FOOD_QUICK,'Other'];
+const cats=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x.name||'').trim()).filter(Boolean)];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
 const nut=item?.nutrition||{};
 const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
 const descriptionText=String(item?.description||'').trim();
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
-'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. Your first selected category is the primary cuisine.</p><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+(existingCuts.includes(x)?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. The Custom box creates a reusable cuisine or Quick Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset>'+
 '<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
 '<label>Calories<input id="editFoodCalories" type="number" required min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
 '<label>Protein<input id="editFoodProtein" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
@@ -2453,6 +2453,59 @@ const body='<form class="add" id="foodEditorForm">'+
 '<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
+const renderEditorQuickCuts=focusId=>{
+ const host=$('editFoodQuickCuts');if(!host)return;
+ const standard=[...FOOD_QUICK,'Other'];
+ host.innerHTML=standard.map(label=>'<label class="quick-cut-tile"><input type="checkbox" name="editQuickCut" value="'+esc(label)+'" '+(existingCuts.includes(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('');
+ host.insertAdjacentHTML('beforeend',(S.customQuickCuts||[]).map(qc=>{
+   const name=String(qc?.name||'').trim();if(!name)return '';
+   const src=customQuickCutImage(name);
+   return '<div class="custom-qc-tile" data-custom-qc-id="'+esc(qc.id)+'"><label class="quick-cut-tile custom-qc-select"><input type="checkbox" name="editQuickCut" value="'+esc(name)+'" '+(existingCuts.includes(name)?'checked':'')+'><span class="custom-qc-photo" style="background-image:url(\''+esc(src)+'\')"></span><span class="custom-qc-label">'+esc(name)+'</span></label><div class="custom-qc-tools"><label class="custom-qc-upload" title="Upload Quick Cut photo"><span aria-hidden="true">＋</span><input type="file" accept="image/*" data-custom-qc-file="'+esc(qc.id)+'"></label><input class="custom-qc-rename" type="text" value="'+esc(name)+'" aria-label="Rename '+esc(name)+'" data-custom-qc-rename="'+esc(qc.id)+'"><button type="button" class="custom-qc-delete" data-custom-qc-delete="'+esc(qc.id)+'" aria-label="Delete '+esc(name)+'">×</button></div></div>';
+ }).join(''));
+ host.insertAdjacentHTML('beforeend','<button type="button" class="quick-cut-custom-add" id="addCustomQuickCut"><span>＋</span><b>Custom</b><small>New box</small></button>');
+ host.querySelectorAll('[data-custom-qc-file]').forEach(input=>input.onchange=async()=>{
+   const id=input.dataset.customQcFile,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
+   try{const data=await readImageFile(input.files?.[0]);if(!data)return;const storageId='quickcut:'+id;const ok=await putStoredPhoto(storageId,data);if(!ok){appToast('Could not save that Quick Cut photo on this device.');return;}qc.image='idb:'+storageId;save();foodQuick();renderEditorQuickCuts(id);appToast('Quick Cut photo updated.');}catch(e){appToast(e.message);}
+ });
+ host.querySelectorAll('[data-custom-qc-rename]').forEach(input=>input.onchange=()=>{
+   const id=input.dataset.customQcRename,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
+   const old=String(qc.name||'').trim(),next=input.value.trim();
+   if(!next){input.value=old;appToast('Give the Custom Quick Cut a name.');return;}
+   const conflict=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).filter(x=>x!==qc).map(x=>x.name)].some(x=>normKey(x)===normKey(next));
+   if(conflict){input.value=old;appToast('That Quick Cut name is already in use.');return;}
+   qc.name=next;
+   S.custom.forEach(meal=>{
+     if(Array.isArray(meal.quickCuts))meal.quickCuts=meal.quickCuts.map(x=>x===old?next:x);
+     if(meal.category===old)meal.category=next;
+   });
+   if(S.cutCats.has(old)){S.cutCats.delete(old);S.cutCats.add(next);}
+   save();buildFood();foodQuick();renderEditorQuickCuts(id);
+ };
+ host.querySelectorAll('[data-custom-qc-delete]').forEach(btn=>btn.onclick=async()=>{
+   const id=btn.dataset.customQcDelete,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
+   const name=String(qc.name||'Custom Quick Cut');
+   if(!await appConfirm('Delete '+name+'?','This removes the Custom Quick Cut from your category list and unassigns it from meals.','Delete Quick Cut'))return;
+   S.customQuickCuts=S.customQuickCuts.filter(x=>String(x.id)!==String(id));
+   S.custom.forEach(meal=>{
+     if(Array.isArray(meal.quickCuts))meal.quickCuts=meal.quickCuts.filter(x=>x!==name);
+     if(meal.category===name)meal.category=meal.quickCuts?.[0]||'Other';
+     if(!meal.quickCuts?.length)meal.quickCuts=['Other'];
+   });
+   S.cutCats.delete(name);
+   await deleteStoredPhoto('quickcut:'+id);
+   save();buildFood();foodQuick();renderEditorQuickCuts();appToast(name+' deleted.');
+ });
+ $('addCustomQuickCut').onclick=()=>{
+   const taken=new Set([...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x.name||''))]);
+   let number=(S.customQuickCuts||[]).length+1,name='Custom '+number;
+   while(taken.has(name)){number++;name='Custom '+number;}
+   const id='custom-qc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+   S.customQuickCuts.push({id,name,image:''});
+   save();renderEditorQuickCuts(id);
+   const input=host.querySelector('[data-custom-qc-rename="'+id+'"]');input?.focus();input?.select();
+ };
+};
+renderEditorQuickCuts();
 $('editFoodFile').onchange=async()=>{
 try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
@@ -2488,7 +2541,7 @@ const nutrition=nutritionValues;
 const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const photoInput=$('editFoodPhoto').value.trim();
-let photo=photoInput||(isEdit&&item?.image&&!String(item.image).startsWith('idb:')?item.image:'');
+let photo=photoInput||(isEdit&&item?.image?String(item.image):'');
 if(!photo && !isEdit){
   const saveButton=document.querySelector('#foodEditorForm button.cut');
   if(saveButton){saveButton.disabled=true;saveButton.dataset.originalLabel=saveButton.textContent;saveButton.textContent='Finding photo…';}
@@ -2506,8 +2559,8 @@ if(photo.startsWith('data:image/')){
  const ok=await putStoredPhoto(id,photo);
  if(!ok){appToast('Could not save that photo on this device.');return;}
  photo='idb:'+id;
-}else if(previous&&String(previous.image||'').startsWith('idb:')){
- await deleteStoredPhoto(id); storedPhotoIds.delete(id);
+}else if(String(photo).startsWith('idb:')){
+ /* Existing device photo is intentionally preserved when no new upload was chosen. */
 }
 const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
 if(idx>=0)S.custom[idx]=updated;else S.custom.push(updated);
@@ -2517,7 +2570,8 @@ const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
-if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
+if(photo.startsWith('data:image/')){const ok=await putStoredPhoto(id,photo);if(!ok){appToast('Could not save that photo on this device.');return;}photo='idb:'+id;}
+if(id!==item.id&&String(photo).startsWith('idb:')){const oldPhoto=await getStoredPhoto(item.id);if(oldPhoto){const ok=await putStoredPhoto(id,oldPhoto);if(!ok){appToast('Could not move the saved photo.');return;}photo='idb:'+id;}}
 const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
 if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
