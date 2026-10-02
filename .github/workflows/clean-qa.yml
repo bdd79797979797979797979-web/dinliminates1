@@ -3,7 +3,9 @@ name: Dinliminate Clean QA
 on:
   push:
     branches:
-      - cp487-launch-candidate-full-pass-2026-10-01
+      - main
+      - 'cp*-audit-*'
+      - 'cp*-launch-*'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -82,9 +84,14 @@ jobs:
       - name: Browser smoke
         run: node qa/browser-smoke.mjs
       - name: iPhone optimization smoke
+        if: ${{ vars.NETLIFY_PREVIEW_URL != '' }}
         env:
-          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-94--diliminate.netlify.app' }}
+          BASE_URL: ${{ vars.NETLIFY_PREVIEW_URL }}
         run: node qa/iphone-optimization-smoke.mjs
+
+      - name: iPhone optimization smoke not configured
+        if: ${{ vars.NETLIFY_PREVIEW_URL == '' }}
+        run: echo 'NETLIFY_PREVIEW_URL is not configured; hosted iPhone smoke is intentionally skipped.'
 
       - name: Accessibility smoke
         run: node qa/accessibility-smoke.mjs
@@ -96,9 +103,14 @@ jobs:
         run: node qa/visual-regression.mjs
 
       - name: Netlify preview smoke
+        if: ${{ vars.NETLIFY_PREVIEW_URL != '' }}
         env:
-          BASE_URL: ${{ github.event_name == 'pull_request' && format('https://deploy-preview-{0}--diliminate.netlify.app', github.event.pull_request.number) || 'https://deploy-preview-92--diliminate.netlify.app' }}
+          BASE_URL: ${{ vars.NETLIFY_PREVIEW_URL }}
         run: node qa/netlify-preview-smoke.mjs
+
+      - name: Netlify preview smoke not configured
+        if: ${{ vars.NETLIFY_PREVIEW_URL == '' }}
+        run: echo 'NETLIFY_PREVIEW_URL is not configured; hosted Netlify smoke is intentionally skipped.'
 
       - name: Upload visual QA artifacts
         if: always()
