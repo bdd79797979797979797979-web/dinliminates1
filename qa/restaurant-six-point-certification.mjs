@@ -333,8 +333,6 @@ await hiddenSearch('Mcdonalds');
 await settle();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd'],'Local restaurant query filter should narrow the active pool immediately.');
-await page.locator('#restaurantQuery').evaluate(el=>el.value='Mcdonalds');
-await waitForRestaurant();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['mcd']);
 assert.ok(requests.some(u=>String(new URL(u).searchParams.get('q')||'').toLowerCase()==='mcdonalds'),'Explicit restaurant search was not sent to provider search');
@@ -376,8 +374,6 @@ await settle();
 // Photo pipeline: a Google-backed venue should hydrate its current Tinder card and Details image,
 // retain an immediate fallback while loading, and surface the required author attribution.
 await hiddenSearch('Google Photo Test');
-await page.locator('#restaurantQuery').evaluate(el=>el.value='Google Photo Test');
-await waitForRestaurant();
 s=await snap();
 assert.deepEqual(s.restaurantPool,['google-photo-test']);
 const googleCardImg=page.locator('#restaurantCard img[data-google-photo-id="ChIJ1234567890"]');
