@@ -354,27 +354,16 @@ async function putPersistentRestaurantPhoto(row,blob,attributions,source){
 }
 function restaurantFallbackImage(row){
  const labels=[row?.category,row?.cuisine,...(Array.isArray(row?.quickCutTags)?row.quickCutTags:[]),...((typeof restaurantCuisineTags==='function')?restaurantCuisineTags(row):[])].filter(Boolean);
- const foodMap={
-  'Fast Food':QUICK_IMAGES.American,
-  Burgers:QUICK_IMAGES.American,
-  Pizza:QUICK_IMAGES.Italian,
-  Mexican:QUICK_IMAGES.Mexican,
-  American:QUICK_IMAGES.American,
-  Italian:QUICK_IMAGES.Italian,
-  Asian:QUICK_IMAGES.Asian,
-  BBQ:QUICK_IMAGES.Southern,
-  Seafood:QUICK_IMAGES.Seafood,
-  Breakfast:QUICK_IMAGES.Breakfast,
-  Southern:QUICK_IMAGES.Southern,
-  Healthy:QUICK_IMAGES.Healthy
- };
+ // Restaurant cards should use restaurant-category photography, not meal-category photography.
+ // These images are served through /api/image so the service worker can cache them for offline/repeat use.
+ const restaurantMap={...REST_QUICK_IMAGES};
  for(const label of labels){
-  if(foodMap[label])return imageProxyUrl(foodMap[label]);
+  if(restaurantMap[label])return imageProxyUrl(restaurantMap[label]);
   const normalized=String(label).trim().toLowerCase();
-  const found=Object.keys(foodMap).find(key=>key.toLowerCase()===normalized);
-  if(found)return imageProxyUrl(foodMap[found]);
+  const found=Object.keys(restaurantMap).find(key=>key.toLowerCase()===normalized);
+  if(found)return imageProxyUrl(restaurantMap[found]);
  }
- return imageProxyUrl(QUICK_IMAGES.American);
+ return imageProxyUrl(REST_QUICK_IMAGES.American);
 }
 function decodePhotoAttributions(raw){
  const value=String(raw||'').trim();if(!value)return[];
@@ -2625,7 +2614,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
