@@ -1,3 +1,15 @@
+# Dinliminate image-source governance — CURRENT RELEASE
+
+Build 708 · CP708 · cp708-full-audit-final-hardening
+
+Current Home hero imagery:
+- Dine In: Pexels photo 29732918 — vibrant overhead dinner table with assorted dishes.
+- Dine Out: Pexels photo 29101362 — grilled steak with colorful vegetables.
+
+Current rights status:
+- External image usage remains inventoried.
+- Third-party usage/redistribution review remains a final launch gate.
+
 # Dinliminate image-source governance
 
 ## Current release
