@@ -895,20 +895,59 @@ function restaurantNameKey(value){return norm(String(value||'').replace(/[’']s
 function restaurantStreetKey(value){
   const raw=normAddress(value||'');
   if(!raw)return '';
-  const first=raw.split(',')[0].trim();
-  return first.replace(/^\d+[a-z]?\s+/,'').trim().split(' ').slice(0,4).join(' ').trim();
+  const tokens=raw.split(' ').filter(Boolean);
+  const start=(tokens[0]||'').match(/^\d+[a-z]?$/i)?1:0;
+  const suffixes=new Set(['st','rd','ave','blvd','dr','ln','pkwy','hwy','rte','cir','ct','pl','trl','ter','way']);
+  const street=[];
+  for(let i=start;i<tokens.length&&street.length<6;i++){
+    street.push(tokens[i]);
+    if(suffixes.has(tokens[i]))break;
+  }
+  return street.join(' ').trim();
+}
+function restaurantAddressKey(value){
+  const raw=normAddress(value||'');
+  if(!raw)return '';
+  const tokens=raw.split(' ').filter(Boolean);
+  const number=tokens[0]||'';
+  const street=restaurantStreetKey(value);
+  return /^\d+[a-z]?$/i.test(number)&&street ? number+'|'+street : street;
+}
+function restaurantNameSimilarity(a,b){
+  const aa=restaurantNameTokens(a),bb=restaurantNameTokens(b);
+  if(!aa.length||!bb.length)return 0;
+  const as=new Set(aa),bs=new Set(bb);
+  const shared=[...as].filter(t=>bs.has(t)).length;
+  const shorter=Math.min(as.size,bs.size);
+  const union=new Set([...as,...bs]).size;
+  if(!shared||!shorter||!union)return 0;
+  const coverage=shared/shorter;
+  const jaccard=shared/union;
+  // Short-name coverage matters more than raw character similarity:
+  // "Excell BBQ" vs "Excell Market Bar-B-Q", and
+  // "Strippers Chicken" vs "Chicken Strippers".
+  if(coverage>=0.75&&jaccard>=0.60)return Math.max(coverage,jaccard);
+  return 0;
+}
+function restaurantAddressSimilarity(a,b){
+  const ax=normAddress(a||''),ar=normAddress(b||'');
+  if(!ax||!ar)return 0;
+  if(ax===ar)return 1;
+  const kx=restaurantAddressKey(a),kr=restaurantAddressKey(b);
+  if(kx&&kr&&kx===kr)return 0.90;
+  const sx=restaurantStreetKey(a),sr=restaurantStreetKey(b);
+  if(sx&&sr&&sx===sr)return 0.72;
+  const xt=ax.split(' '),rt=ar.split(' '),shared=xt.filter(t=>rt.includes(t)).length;
+  const coverage=shared/Math.min(xt.length,rt.length);
+  return coverage>=0.80?0.80:0;
 }
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
 
-  const canonicalX=restaurantNameTokens(x.name).join(' ');
-  const canonicalR=restaurantNameTokens(r.name).join(' ');
   const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
-  const canonicalSame=!!canonicalX&&canonicalX===canonicalR;
-  const variant=nameVariantMatch(canonicalX,canonicalR);
-  const variantRaw=nameVariantMatch(x.name,r.name);
-  const sameNameFamily=sameName||canonicalSame||variant||variantRaw;
+  const nameScore=restaurantNameSimilarity(x.name,r.name);
+  const sameNameFamily=sameName||nameScore>=0.60;
 
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
@@ -917,26 +956,31 @@ function sameRestaurant(x,r){
     ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
 
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
-  const sameAddress=!!ax&&!!ar&&ax===ar;
-  const conflictingAddress=!!ax&&!!ar&&!sameAddress;
-  const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
+  const conflictingAddress=!!ax&&!!ar&&ax!==ar;
+  const addressScore=restaurantAddressSimilarity(x.address,r.address);
+  const sameAddress=addressScore>=0.90;
+  const sameStreet=addressScore>=0.72;
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
   const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))
     &&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameCanonicalIdentity=!!identityKey&&identityKey===rowIdentityKey&&((sameAddress)||(sameStreet&&originDistanceClose&&partialAddress));
+  const sameCanonicalIdentity=!!identityKey&&identityKey===rowIdentityKey&&(
+    sameAddress||(sameStreet&&originDistanceClose&&partialAddress)
+  );
 
-  // Strongest identity signals.
-  if(sameAddress&&(sameNameFamily||sameBrand))return true;
+  // Primary identity rule: same/similar physical address + similar name.
+  if(sameAddress&&sameNameFamily)return true;
+  if(addressScore>=0.90&&nameScore>=0.60)return true;
+  if(sameStreet&&nameScore>=0.60&&dist<=0.20)return true;
+
+  // Strong provider-independent identity signals.
   if(sameCanonicalIdentity)return true;
   if(sameContact(x,r)&&!conflictingAddress&&dist<=0.20)return true;
+  if(sameNameFamily&&!conflictingAddress&&dist<=0.10)return true;
 
-  // Same business name/variant at the same street or very near the same point.
-  if(sameStreet&&sameNameFamily&&dist<=0.20)return true;
-  if(sameNameFamily&&!conflictingAddress&&dist<=0.20)return true;
-
-  // Preserve the existing provider/brand safeguards for distinct nearby venues.
+  // Known brand/profile safeguards.
+  if(sameBrand&&sameAddress)return true;
   if(sameName&&sameBrand&&!conflictingAddress&&dist<=0.20)return true;
-  if(variant&&sameBrand&&!conflictingAddress&&dist<=0.20)return true;
+  if(nameScore>=0.60&&sameBrand&&!conflictingAddress&&dist<=0.20)return true;
   return false;
 }
 function dedupe(rows){
