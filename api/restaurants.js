@@ -11,7 +11,7 @@ const SEARCH_BUDGET_MS=12000;
 const WIDE_DISCOVERY_RESERVE_MS=1500;
 const WIDE_RADIUS_THRESHOLD=50;
 const WIDE_PROVIDER_RADIUS_CAP=50;
-const WIDE_PRIMARY_TIMEBOX_MS=8500;
+const WIDE_PRIMARY_TIMEBOX_MS=7000;
 const WIDE_DISCOVERY_TIMEBOX_MS=10000;
 const OVERPASS_HTTP_TIMEOUT_MS=5200;
 const MAX_SEARCH_PER_MINUTE=60;
@@ -220,7 +220,7 @@ async function arcgisPlaces(lat,lon,radius,searchTerm='',timeout=7000){
 
 const WIDE_ARCGIS_RING_MILES=60;
 const WIDE_ARCGIS_RING_POINTS=8;
-const WIDE_ARCGIS_QUERY_TIMEOUT_MS=3200;
+const WIDE_ARCGIS_QUERY_TIMEOUT_MS=2600;
 function wideArcgisCenters(lat,lon,radius){
  const ring=Math.min(WIDE_ARCGIS_RING_MILES,Math.max(50,Number(radius)||100));
  const a=ring/69,b=ring/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
@@ -1222,8 +1222,8 @@ if(mode==='search'){
  if(hit&&Date.now()-hit.t<60000)return res.status(200).json(hit.data);
  if(rate(req,mode))return res.status(429).json({ok:false,code:'RATE_LIMITED',message:'Restaurant search is temporarily busy. Please try again.'});
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=30, s-maxage=30, stale-while-revalidate=60');
- const timezonePromise=timezone(lat,lon);
  const wideSearch=radius>WIDE_RADIUS_THRESHOLD;
+ const timezonePromise=wideSearch?Promise.resolve(''):timezone(lat,lon);
  const discoveryPlan=radiusDiscoveryPlan(lat,lon,radius);
  const primaryBudget=Math.max(9000,SEARCH_BUDGET_MS-(wideSearch?discoveryPlan.reserveMs:0));
  // For 100-mile searches, keep the primary providers anchored to their proven
