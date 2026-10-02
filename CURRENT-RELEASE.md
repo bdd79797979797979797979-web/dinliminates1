@@ -1,25 +1,26 @@
-# CURRENT RELEASE — BUILD 697 / CP697
+# CURRENT RELEASE — BUILD 698 / CP698
 
 Date: 2026-10-02
 
-Current candidate branch: `cp697-address-credit-polish`
-Recovery baseline: `cp696-auto-restaurant-location`
+Current candidate branch: `cp698-iphone-usage-pass`
+Recovery baseline: `cp697-address-credit-polish`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP697 address + creator credit polish
-- **Made by Brian Dunn for Devona Dunn** now uses a clearer satin blue treatment in About.
-- Tapping the populated Restaurant address field clears the displayed location so a new address can be entered without manually deleting the previous one.
-- Clearing the field also releases the previous location and resets the restaurant search origin so Find uses the new address.
-- Address autocomplete remains available after the field is cleared.
-- No restaurant provider, radius, Quick Cuts, photo, swipe, or menu logic was intentionally changed.
+## CP698 iPhone usage pass
+- Restored Safari-safe **16px text sizing** for editable Restaurant address and restaurant-search fields so iPhone Safari does not zoom the page when those fields receive focus.
+- Added **Search** keyboard return hints to the Restaurant address and restaurant search fields.
+- When manual address editing begins while the automatic GPS request is still pending, the pending GPS result is invalidated so it cannot overwrite the address the user is entering.
+- Increased the compact Restaurant location action hit areas on phones to **44px** on standard iPhone widths, with a tighter 40px layout for very narrow screens.
+- Preserved the existing compact visual hierarchy, restaurant search behavior, radius tiers, Quick Cuts, photos, swipe mechanics, and navigation.
 
-## CP697 verification
-- Source contains the populated-address focus clear behavior.
-- The focus handler nulls the previous restaurant location before new address entry.
-- Creator credit has matching blue rules in the stylesheet so later cascade rules do not restore the muted gray color.
-- App asset query advanced from v665 to v666.
-- Release metadata is synchronized to Build 697 / CP697.
+## CP698 verification
+- Source confirms pending-location cancellation on both address focus and address input.
+- Source confirms Restaurant address/search fields use iPhone Search return hints.
+- Final mobile CSS restores 16px editable-field sizing after later compact Restaurant rules.
+- Restaurant location action hit areas are 44px at max-width 430px and 40px below 360px.
+- App asset query advanced from v666 to v667.
+- Release metadata is synchronized to Build 698 / CP698.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
