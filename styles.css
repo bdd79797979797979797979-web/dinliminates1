@@ -3671,3 +3671,10 @@ button,input,select,textarea{
   text-align:left!important;
 }
 .winner .winner-back:active{transform:scale(.94)!important;}
+
+
+/* CP715 — keep Restaurant decision-button press feedback centered like Meals. */
+#restaurant .unified-swipe-actions > .round-action:active,
+#restaurant .unified-swipe-actions > .deck-filter-toggle:active{
+  transform:scale(.94)!important;
+}
