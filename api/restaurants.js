@@ -219,9 +219,7 @@ async function arcgisPlaces(lat,lon,radius,searchTerm='',timeout=7000){
 }
 
 const WIDE_ARCGIS_RING_MILES=60;
-const WIDE_ARCGIS_RING_POINTS=4;
-const WIDE_ARCGIS_RING_MILES=60;
-const WIDE_ARCGIS_RING_POINTS=4;
+const WIDE_ARCGIS_RING_POINTS=8;
 const WIDE_ARCGIS_QUERY_TIMEOUT_MS=4200;
 function wideArcgisCenters(lat,lon,radius){
  const ring=Math.min(WIDE_ARCGIS_RING_MILES,Math.max(50,Number(radius)||100));
@@ -238,7 +236,8 @@ async function arcgisWideCenterPlaces(lat,lon,searchExtentRadius,searchTerm=''){
  const latD=r/69,lonD=r/(69*Math.max(.35,Math.cos(lat*Math.PI/180)));
  const extent=[lon-lonD,lat-latD,lon+lonD,lat+latD].join(',');
  const params=new URLSearchParams({
-  ...(searchTerm?{SingleLine:searchTerm}:{category:'Restaurant,Fast Food'}),
+  category:'Restaurant,Fast Food',
+  ...(searchTerm?{SingleLine:searchTerm}:{}),
   location:lon+','+lat,
   searchExtent:extent,
   maxLocations:'50',
@@ -252,7 +251,8 @@ async function arcgisWideCenterPlaces(lat,lon,searchExtentRadius,searchTerm=''){
   const a=cand?.location||{},cl=n(a.y),cn=n(a.x),attrs=cand?.attributes||{},name=String(attrs.PlaceName||cand.address||'').trim();
   if(!name||!Number.isFinite(cl)||!Number.isFinite(cn))continue;
   const fast=isFastFoodName(name,String(attrs.Type||''));
-  rows.push({id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',providerType:String(attrs.Type||''),address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS wide POI'});
+  const row={id:'arcgis-'+norm(name)+'-'+cl.toFixed(5)+'-'+cn.toFixed(5),name,category:fast?'Fast Food':'Restaurant',fastFood:fast,cuisine:'',providerType:String(attrs.Type||''),address:String(attrs.Place_addr||cand.address||''),phone:String(attrs.Phone||attrs.phone||''),website:String(attrs.URL||attrs.Url||attrs.url||''),opening_hours:'',lat:cl,lon:cn,distance:miles(lat,lon,cl,cn),photo:'',menuItems:[],brand:'',source:'ArcGIS wide POI'};
+  if(row.distance<=100&&!isClearlyNonDiningBusiness(row))rows.push(row);
  }
  return rows;
 }
