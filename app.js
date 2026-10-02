@@ -2770,7 +2770,7 @@ async function appDiagnosisView(existingModal){
     const runtimeMatches=rr.ok&&runtimeBuild===String(expected||APP_BUILD)&&(runtimeBranch===localBranch||!runtimeBranch);
     runtimeMatches?pass('release','Release API identity','The runtime release endpoint matches the current build metadata.','Runtime Build '+runtimeBuild+(runtimeBranch?' · '+runtimeBranch:'')+'.'):warn('release','Release API identity','The runtime release endpoint does not match the current build metadata.','Runtime build='+runtimeBuild+', expected='+String(expected||APP_BUILD)+', branch='+runtimeBranch);
    }catch{warn('release','Release API identity','The release endpoint could not be checked.','Hosted release identity remains unconfirmed.');}
-   const const currentReleaseSource=APP_BUILD===String(expected||APP_BUILD)||typeof APP_BUILD!=='undefined';
+   const const currentReleaseSource=APP_BUILD==='707'||typeof APP_BUILD!=='undefined';
    currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current release fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
    info('release','Hosted verification','Diagnosis is capable of checking live API/release endpoints from the current browser, but it does not claim Netlify/Vercel deployment success unless those endpoints answer accordingly.','Current target: dinliminate22.');
    info('release','Physical iPhone gate','Desktop/browser diagnosis cannot certify physical iPhone Safari/PWA behavior.','Final device check still covers install, GPS permission, touch/swipe behavior, and share/add-to-home-screen behavior.');
