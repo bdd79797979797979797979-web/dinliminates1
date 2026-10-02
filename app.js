@@ -3015,25 +3015,35 @@ S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.rest
 try{localStorage.removeItem(KEY);}catch{}
 home();
 }
+function resetRestoreView(){
+ removeFoodOverlays();
+ const body='<div class="reset-restore-view"><div class="reset-restore-hero"><span class="manage-kicker">RESET &amp; RESTORE</span><h4>Choose what to return.</h4><p>Restore the original meal catalog without touching your custom meals, or start fresh by clearing all local app data.</p></div><div class="reset-restore-actions"><button class="reset-restore-option restore-action" id="restoreDefaultsOption" type="button"><span class="reset-restore-icon">↺</span><span><b>Restore Defaults</b><small>Return built-in meals to their original state and recover deleted built-in meals. Custom meals, Custom Quick Cuts, History, and notes remain.</small></span><span>›</span></button><button class="reset-restore-option reset-action" id="fullResetOption" type="button"><span class="reset-restore-icon">×</span><span><b>Full Reset</b><small>Erase meals, Custom Quick Cuts, history, notes, hidden choices, saved state, and device-stored photos.</small></span><span>›</span></button></div></div>';
+ const modal=openModal('resetRestoreModal','Reset & Restore',body);
+ $('restoreDefaultsOption').onclick=async()=>{modal.remove();$('resetRestoreModalBg')?.remove();await systemRestoreFlow();};
+ $('fullResetOption').onclick=async()=>{modal.remove();$('resetRestoreModalBg')?.remove();await resetAppDataFlow();};
+}
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
-S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
+S.hidden.clear(); S.deleted.clear(); S.deletedCustomMeals=[]; S.customQuickCuts=[]; S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem(ITEM_NOTES_KEY);}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
 }
 async function systemRestoreFlow(){
-if(!await appConfirm('Restore system defaults?', 'This restores the original meal deck and clears saved round changes. Custom meals remain on this device.', 'Restore'))return;
-S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false;
-try{localStorage.removeItem(KEY);}catch{}
-document.querySelector('#settingsModal')?.remove();
-document.querySelector('#settingsModalBg')?.remove();
-document.querySelector('#drawer')?.classList.add('hidden');
-document.querySelector('#drawerBg')?.classList.add('hidden');
-save();
-home();
+if(!await appConfirm('Restore built-in defaults?','This returns every built-in meal to its original catalog state and recovers deleted built-in meals. Custom meals, Custom Quick Cuts, History, and notes stay on this device.','Restore Defaults'))return;
+ const defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
+ const builtInOverrides=S.custom.filter(x=>defaultIds.has(String(x.id)));
+ for(const item of builtInOverrides){
+  if(String(item.image||'').startsWith('idb:')){await deleteStoredPhoto(item.id);storedPhotoIds.delete(item.id);}
+ }
+ S.custom=S.custom.filter(x=>!defaultIds.has(String(x.id)));
+ S.deleted.clear();
+ S.hidden.clear();S.hiddenRestaurants={};S.cutCats.clear();S.foodCuts.clear();S.maybe.clear();S.foodMaybeRound=false;S.restaurantCuts.clear();S.restaurantMaybeRound=false;
+ S.pool=[];S.restaurantPool=[];S.index=0;S.restaurantIndex=0;S.foodActions=[];S.restaurantActions=[];S.winnerItem=null;S.winnerType='food';S.location=null;S.locationSource='none';S.locationFreshAt=null;S.restaurantTimezone='';S.restaurantSearchOrigin=null;S.restaurantSearchKey='';S.restaurantQuery='';S.restaurantSearchDegraded=false;S.storageWarning=false;S.saved=false;
+ buildFood();foodQuick();save();
+ document.querySelector('#settingsModal')?.remove();document.querySelector('#settingsModalBg')?.remove();document.querySelector('#resetRestoreModal')?.remove();document.querySelector('#resetRestoreModalBg')?.remove();document.querySelector('#drawer')?.classList.add('hidden');document.querySelector('#drawerBg')?.classList.add('hidden');
+ home();
 }
 const homeActionHandler = (event) => {
  const button = event.target.closest?.('[data-home-action]');
