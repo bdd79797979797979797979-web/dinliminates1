@@ -1,20 +1,20 @@
-# CURRENT RELEASE — BUILD 692 / CP692
+# CURRENT RELEASE — BUILD 693 / CP693
 
 Date: 2026-10-02
 
-Current candidate branch: `cp692-restaurant-meal-details`
-Recovery baseline: `cp691-swipe-stability`
-Hosted test target: `dinliminate112`
+Current candidate branch: `cp693-premium-navigation`
+Recovery baseline: `cp692-restaurant-meal-details`
+Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP692 details pass
+## CP693 premium navigation pass
 - Rebuilt Meal Details and Restaurant Details around one shared visual hierarchy: photo → name/status → information → Notes → actions → Hide.
 - Added device-local Notes for both individual meals and restaurants. Notes survive normal rounds and app system restore, and are removed by Reset App Data.
 - Meal Details now separates ingredients, preparation, nutrition, and Notes instead of using “recipe / notes” as one mixed field.
 - Add/Edit Meal now includes an optional **About this meal** field and labels the preparation field **Recipe / preparation**.
 - Restaurant Details now keeps Category, Cuisine, Location, Distance, Status, Hours, and Phone in a quieter information layout, with Website / Call / Directions grouped as the utility row.
 - Hide Meal / Hide Restaurant remains available as a clearly secondary action.
-- Restaurant swipe mechanics were not changed in CP692.
+- Restaurant swipe mechanics and the CP692 Details/Notes behavior were not changed in CP693.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
