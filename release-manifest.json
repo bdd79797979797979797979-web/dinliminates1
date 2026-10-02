@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 686,
-  "sourceBranch": "cp686-premium-radius-row",
+  "build": 691,
+  "sourceBranch": "cp691-swipe-stability",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
-  "netlify": "legacy/backup",
-  "checkpoint": "CP686"
+  "netlify": "dinliminate112 preview",
+  "checkpoint": "CP691"
 }
