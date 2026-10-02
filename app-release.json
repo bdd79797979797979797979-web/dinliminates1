@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 745,
+  "build": 747,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
-  "checkpoint": "CP745",
-  "deploymentTrigger": "CP745-radius-timeout-fix-2026-10-02"
+  "checkpoint": "CP747",
+  "deploymentTrigger": "CP747-collapsible-quick-cuts-2026-10-02"
 }
