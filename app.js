@@ -2422,6 +2422,8 @@ async function findOnlineMealPhoto(name) {
 
 function foodEditor(item=null) {
 const isEdit=!!item;
+const defaultItem=isEdit?getDefaultFoods().find(x=>String(x.id)===String(item?.id)):null;
+const isBuiltInEdit=!!defaultItem;
 const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=[...FOOD_QUICK,'Other'];
@@ -2442,14 +2444,13 @@ const body='<form class="add" id="foodEditorForm">'+
 '<label class="meal-editor-text-label">About this meal<textarea id="editFoodDescription" placeholder="A short description of the meal (optional)" rows="3">'+esc(descriptionText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
-'<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*"></label>'+
-'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
+'<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
 $('editFoodFile').onchange=async()=>{
 try {
 const data=await readImageFile($('editFoodFile').files?.[0]);
-if(data) $('editFoodPhoto').value=data;
+if(data){ $('editFoodPhoto').value=data; appToast('New photo selected. Save the meal to apply it.'); }
 } catch(e) { appToast(e.message); }
 };
 $('foodEditorForm').onsubmit=async e=>{
@@ -2491,14 +2492,27 @@ if(!photo && !isEdit){
 if(!photo)photo=DEFAULT_FOOD_IMAGE;
 let recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
-if(isEdit){
+if(isEdit&&isBuiltInEdit){
+const id=String(item.id);
+const idx=S.custom.findIndex(x=>String(x.id)===id);
+const previous=idx>=0?S.custom[idx]:null;
+if(photo.startsWith('data:image/')){
+ const ok=await putStoredPhoto(id,photo);
+ if(!ok){appToast('Could not save that photo on this device.');return;}
+ photo='idb:'+id;
+}else if(previous&&String(previous.image||'').startsWith('idb:')){
+ await deleteStoredPhoto(id); storedPhotoIds.delete(id);
+}
+const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
+if(idx>=0)S.custom[idx]=updated;else S.custom.push(updated);
+S.maybe.delete(id); S.hidden.delete(id);
+} else if(isEdit){
 const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-const updated={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,description,ingredients,recipe};
-if(nutrition)updated.nutrition=nutrition; else delete updated.nutrition;
+const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
 if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
 S.maybe.delete(item.id); S.hidden.delete(item.id);
