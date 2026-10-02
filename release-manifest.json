@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 698,
-  "sourceBranch": "cp698-iphone-usage-pass",
+  "build": 699,
+  "sourceBranch": "cp699-home-actions",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP698"
+  "checkpoint": "CP699"
 }
