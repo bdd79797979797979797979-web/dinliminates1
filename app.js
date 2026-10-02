@@ -2687,6 +2687,8 @@ async function appDiagnosisView(existingModal){
    legacy.length?fail('food','Legacy meal cleanup',legacy.length+' Stouffer/frozen-dinner choice(s) remain.',legacy.map(x=>x.name).join(', ')):pass('food','Legacy meal cleanup','Stouffer/frozen-dinner legacy choice is absent.');
    const foodSourceChecks=typeof foodCut==='function'&&typeof foodMaybe==='function'&&typeof foodBack==='function'&&typeof bindCardButton==='function';
    foodSourceChecks?pass('food','Meal decision actions','Cut, Maybe, Choose, and Details use the current card-button path.','The direct Choose action remains separate from swipe decisions.'):warn('food','Meal decision actions','Source could not confirm every current card action binding.','Open a Meal card and rerun diagnosis.');
+   const chooseCardActions=document.querySelectorAll('.choose-card-action');
+   chooseCardActions.length?pass('food','Choose-this placement','Direct Choose actions are present on the current card layout.','They remain separated from the larger Cut/Maybe controls.'):info('food','Choose-this placement','The current card is not rendered on this screen, so direct Choose placement is deferred until a Meal card is open.');
    const noteSource=typeof bindDetailNotes==='function'&&typeof itemNoteKey==='function';
    noteSource?pass('food','Notes','Meal/Restaurant Details notes are stored locally and have edit/delete controls.'):warn('food','Notes','The local Notes implementation could not be confirmed from source.');
    
