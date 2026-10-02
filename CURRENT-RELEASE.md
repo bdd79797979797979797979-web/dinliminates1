@@ -1,26 +1,25 @@
-# CURRENT RELEASE — BUILD 693 / CP693
+# CURRENT RELEASE — BUILD 694 / CP694
 
 Date: 2026-10-02
 
-Current candidate branch: `cp693-premium-navigation`
-Recovery baseline: `cp692-restaurant-meal-details`
+Current candidate branch: `cp694-note-controls`
+Recovery baseline: `cp693-premium-navigation`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP693 premium navigation pass
-- Removed Restaurants from the top-level hamburger menu.
-- Kept Manage Meals as the meal-management destination, including Hidden Foods / Restore.
-- Combined Settings and About into one premium Settings surface.
-- Kept History as a top-level destination.
-- Redesigned the hamburger drawer, Settings, History, and Back to Start with one shared dark-satin / restrained-blue visual language.
-- Added Settings sections for hidden restaurants, system tools, data/privacy, and About/build information.
-- Added a lightweight History introduction while keeping the existing calendar, photo history, and Details behavior.
-- Meal/Restaurant Details, local Notes, restaurant search/location/radius/filtering, Quick Cuts, photos, and swipe mechanics were not changed in CP693.
+## CP694 note controls
+- Added a sleek **Edit note** action for saved meal and restaurant notes.
+- Added a subtle circular **×** control to delete a saved note immediately.
+- Empty notes still show **Add a note**.
+- Delete clears the same device-local note storage used by CP692.
+- Note editing/deletion applies consistently to both Meal Details and Restaurant Details.
+- No restaurant search, location, filtering, Quick Cut, photo, or swipe mechanics were changed.
 
-## CP693 verification
+## CP694 verification
+
 - JavaScript source parses successfully.
 - Navigation markup checks pass: Restaurants and About are absent from the top-level menu; Manage Meals, History, Settings, and Back to Start remain.
-- Build/release metadata is synchronized to Build 693 / CP693.
+- Build/release metadata is synchronized to Build 694 / CP694.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
