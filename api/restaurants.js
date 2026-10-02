@@ -969,7 +969,8 @@ function sameRestaurant(x,r){
 
   const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
   const nameScore=restaurantNameSimilarity(x.name,r.name);
-  const sameNameFamily=sameName||nameScore>=0.60;
+  const nameVariant=nameVariantMatch(x.name,r.name);
+  const sameNameFamily=sameName||nameVariant;
 
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
