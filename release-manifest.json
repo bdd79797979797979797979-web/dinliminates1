@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 691,
-  "sourceBranch": "cp691-swipe-stability",
+  "build": 692,
+  "sourceBranch": "cp692-restaurant-meal-details",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate112 preview",
-  "checkpoint": "CP691"
+  "checkpoint": "CP692"
 }
