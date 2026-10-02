@@ -8,12 +8,12 @@
 <meta name="apple-mobile-web-app-title" content="Dinliminate">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icon.svg?v=666" type="image/svg+xml">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=666">
+<link rel="icon" href="./icon.svg?v=667" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=667">
 
 <title>Dinliminate — Dinner Decisions Simplified</title>
 
-<link rel="stylesheet" href="./styles.css?v=666">
+<link rel="stylesheet" href="./styles.css?v=667">
 </head>
 <body>
 <main class="app">
@@ -55,7 +55,7 @@
     <button class="location-btn" id="locate" type="button" aria-label="Use My Location" title="Use your current location for nearby restaurants">
       <svg class="location-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.1" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2.7v2.4M12 18.9v2.4M2.7 12h2.4M18.9 12h2.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </button>
-    <div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address" aria-label="Restaurant address" aria-autocomplete="list" aria-controls="suggestionsBox" aria-expanded="false"><div id="suggestionsBox" role="listbox" aria-label="Address suggestions" hidden></div></div>
+    <div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address" aria-label="Restaurant address" aria-autocomplete="list" enterkeyhint="search" spellcheck="false" aria-controls="suggestionsBox" aria-expanded="false"><div id="suggestionsBox" role="listbox" aria-label="Address suggestions" hidden></div></div>
     <button class="find" id="find" type="button" aria-label="Find restaurants" title="Find restaurants near the selected location"><svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr-only">Find</span></button>
     <div class="radius-control" aria-label="Restaurant search radius"><select id="radius" class="radius-select" aria-label="Restaurant search radius"><option value="1">1 mi</option><option value="3">3 mi</option><option value="5">5 mi</option><option value="10" selected>10 mi</option><option value="25">25 mi</option><option value="50">50 mi</option><option value="100">100 mi</option></select><span class="radius-chevron" aria-hidden="true">⌄</span></div>
   </div>
@@ -63,7 +63,7 @@
     <span id="locationSourceLabel" class="location-source-label">No location selected</span>
     <p class="status" id="status" role="status" aria-live="polite">Enter an address or use your location.</p>
   </div>
-</div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
+</div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" enterkeyhint="search" spellcheck="false" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
 <div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div>
 </section>
 
@@ -94,7 +94,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=666"></script>
+<script src="./app.js?v=667"></script>
 </main>
 </body>
 </html>
