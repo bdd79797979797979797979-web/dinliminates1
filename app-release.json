@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 760,
-  "sourceBranch":"cp760-home-single-background-windows",
-  "checkpoint":"CP760",
-  "deploymentTrigger":"CP760-home-single-background-windows-2026-10-02"
+  "build": 762,
+  "sourceBranch":"cp762-home-cleanup",
+  "checkpoint":"CP762",
+  "deploymentTrigger":"CP762-home-cleanup-2026-10-02"
 }
