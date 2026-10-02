@@ -1,18 +1,14 @@
-# CURRENT CHECKPOINT - BUILD 731 / CP731
+# CURRENT CHECKPOINT - BUILD 732 / CP732
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
-Base source: 58d7d826f0d6122e434a7e7f2fae8ee8d5654d95
-Current checkpoint: CP731
+Current checkpoint: CP732
 
-CP731 changes:
-- Restaurant choice management is now one compact row: Quick Cuts | ALL/MAYBE | green Choices count.
-- Restaurant ALL/MAYBE visibly shows both options together; the active option is highlighted.
-- Restaurant choice count uses title-case Choice/Choices and stays green.
-- Restaurant location/address/radius controls remain above this management row.
-- CP730 hungry wheel one-turn fix remains preserved.
+CP732 changes:
+- Choice counts are plain green text again, with no green box, border, background, or shadow container.
+- Restaurant management row remains Quick Cuts | ALL/MAYBE | green Choices count.
+- CP731 and CP730 fixes remain preserved.
 
 Verification:
-- app.js syntax check: PASS.
-- Restaurant management row source and styling verified.
+- Choice-count CSS verified: transparent background, no border, no box shadow.
