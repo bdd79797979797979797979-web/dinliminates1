@@ -1,3 +1,32 @@
+# CURRENT RELEASE — BUILD 707 / CP707
+
+Date: 2026-10-02
+
+Current candidate branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Prior audit checkpoints: CP705 / CP706
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP707 audit hardening
+- Repaired the Vercel release endpoint to use `app-release.json`.
+- Rebuilt App Diagnosis release checks so they compare current metadata dynamically instead of hardcoding CP701.
+- Updated the offline build fallback to Build 707.
+- Advanced the application/service-worker cache generation to v674.
+- Restored the selected Home tagline: “Beautifully swipe until it’s revealed.”
+- Made History calendar deletion per individual entry.
+- Removed a duplicate custom-meal note deletion call.
+- Restored 44px touch targets for Restaurant card utility controls.
+- Replaced stale active QA contracts with current Build 707 / r25 contracts.
+- Kept Restaurant Search and Open/All intentionally hidden as requested.
+
+## Launch limitations still intentionally open
+- Restaurant Search UI remains hidden.
+- Restaurant Open/All UI remains hidden.
+- Physical iPhone Safari/PWA certification remains a device-only gate.
+- Netlify target `dinliminate22` still needs live hosted certification.
+
+
 # CURRENT RELEASE — BUILD 704 / CP704
 
 Date: 2026-10-02
