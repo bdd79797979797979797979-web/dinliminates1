@@ -2675,8 +2675,7 @@ function settingsView(){
  '</div></section>'+
  '<section class="settings-section"><div class="settings-section-kicker">TOOLS</div><div class="settings-actions">'+
  settingsActionButton('appDiagnosis','⌁','App Diagnosis','Live checks for the current build and restaurant system.','diagnosis-action')+
- settingsActionButton('systemRestore','↺','System Restore','Restores built-in defaults while keeping Custom Meals and History.','restore-action')+
- settingsActionButton('resetAppData','×','Reset App Data','Removes locally stored meals, history, hidden choices, and app preferences.','reset-action')+
+ settingsActionButton('resetRestore','↺','Reset & Restore','Restore original meals or wipe all local app data.','restore-action')+
  '</div></section>'+
  '<section class="settings-section"><div class="settings-section-kicker">YOUR DATA</div><div class="settings-actions settings-actions-utility">'+
  settingsActionButton('exportPdf','▣','Export PDF','Save or share your Dinliminate history as a polished PDF.','export-action')+
@@ -2687,8 +2686,7 @@ function settingsView(){
  const modal=openModal('settingsModal','Settings',body);
  modal.querySelectorAll('[data-setting-rest]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.settingRest;delete S.hiddenRestaurants[id];const row=S.restaurantPool.find(x=>x.id===id);if(row)row._hidden=false;save();modal.remove();$('settingsModalBg')?.remove();settingsView();});
  $('appDiagnosis').onclick=()=>{modal.classList.add('diagnosis-modal');modal.style.minHeight='min(78svh,720px)';modal.style.maxHeight='88svh';appDiagnosisView(modal);};
- $('systemRestore').onclick=systemRestoreFlow;
- $('resetAppData').onclick=resetAppDataFlow;
+ $('resetRestore').onclick=()=>resetRestoreView();
  $('exportPdf').onclick=()=>exportPdfView();
  $('privacySettings').onclick=()=>privacyView();
 }
