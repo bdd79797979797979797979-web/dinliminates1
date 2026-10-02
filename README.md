@@ -2,7 +2,7 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 708.
+Current build: Version 1.0, Build 709.
 
 Clean recovery baseline: `clean-cp704-2026-10-02`.
 
@@ -18,6 +18,10 @@ Milestones:
 5. Pass Around
 6. Launch QA
 
+
+## CP709 decision-button motion
+- Meal and Restaurant Back / Cut / Maybe share an explicit tap jump animation.
+- Reduced-motion users receive a non-animated press state.
 
 ## CP708 hero photos + button parity
 - Dine In hero refreshed with Pexels 37140465.
