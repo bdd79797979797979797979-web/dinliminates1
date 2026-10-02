@@ -4905,3 +4905,54 @@ button,input,select,textarea{
 @media(max-width:390px){
   .swipe-hint{right:10px!important;bottom:77px!important}
 }
+
+
+/* CP722 — simple History choice-frequency stats. */
+.history-stats-columns{
+  display:grid;
+  gap:14px;
+}
+.history-stats-group{
+  padding-top:1px;
+}
+.history-stats-group-title{
+  margin:0 0 5px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.16em;
+  color:#b9a06c;
+  text-transform:uppercase;
+}
+.history-choice-row{
+  min-height:35px;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  border-bottom:1px solid #292722;
+}
+.history-choice-row:last-child{border-bottom:0}
+.history-choice-rank{
+  font-size:8px;
+  color:#55514a;
+  font-variant-numeric:tabular-nums;
+}
+.history-choice-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:10px;
+  color:#e8e1d8;
+}
+.history-choice-row>b{
+  font-size:10px;
+  color:#c9ac73;
+  font-variant-numeric:tabular-nums;
+}
+.history-stats-empty{
+  margin:0;
+  padding:8px 0 1px;
+  font-size:9px;
+  color:#67635c;
+}
