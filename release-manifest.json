@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 709,
-  "sourceBranch": "cp709-unified-decision-button-jump",
+  "build": 712,
+  "sourceBranch": "cp712-full-meal-editing",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP709"
+  "checkpoint": "CP712"
 }
