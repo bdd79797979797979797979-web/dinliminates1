@@ -1,3 +1,27 @@
+# CURRENT RELEASE — BUILD 708 / CP708
+
+Date: 2026-10-02
+
+Current candidate branch: `cp708-stunning-home-food-photos`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Prior audit repair branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP708 Home hero photography
+- Dine In now uses Pexels photo 30736865: an elegant overhead table setting with diverse gourmet dishes.
+- Dine Out now uses Pexels photo 27643020: a wide, vibrant grilled-steak plate with fresh vegetables.
+- Preserved Dine In — Reveal Your Meal and Dine Out — Reveal Your Restaurant.
+- No Google image/API credentials were added.
+- Advanced the app.js cache query from v674 to v675.
+- Synchronized release identity to Build 708 / CP708.
+
+## CP708 verification
+- Both Home photo URLs use the existing `images.pexels.com` image proxy path.
+- Pexels describes the selected source photos as free stock photos; Pexels' current license permits use in websites and apps, including commercial use. citeturn309149search0turn121582search3turn418483search11
+
+---
+
 # CURRENT RELEASE — BUILD 707 / CP707
 
 Date: 2026-10-02
