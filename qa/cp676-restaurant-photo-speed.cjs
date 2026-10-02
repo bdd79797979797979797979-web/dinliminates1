@@ -3,6 +3,10 @@ const fs=require('fs');
 const path=require('path');
 
 const photo=require('../api/restaurant-photo');
+const app=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
+const photoText=fs.readFileSync(path.join(__dirname,'..','api','restaurant-photo.js'),'utf8');
+
+const photo=require('../api/restaurant-photo');
 assert.equal(typeof photo._test?.fastOfficialVenuePhoto,'function','fast official photo helper should exist');
 assert.equal(typeof photo._test?.knownPublicPhotoPage,'function','known public photo hint helper should exist');
 assert.equal(typeof photo._test?.knownRestaurantPhoto,'function','known restaurant photo helper should exist');
@@ -19,6 +23,8 @@ assert.match(app,/const run=\(\)=>targets\.forEach\(row=>\{loadRestaurantPhoto\(
 assert.match(app,/"the thirsty goat":'https:\/\/www\.thirstygoatsango\.com'/,'Thirsty Goat official site hint should exist');
 assert.match(app,/"sweet p's":'https:\/\/sweetpssouthernstyle\.com'/,'Sweet P official site hint should exist');
 assert.match(app,/const KNOWN_RESTAURANT_PHOTO_FALLBACKS=/,'known restaurant photo fallbacks should exist');
+assert.match(photoText,/site:visitclarksvilletn\.com/,'Visit Clarksville should be searched as a local photo discovery source');
+assert.match(photoText,/site:clarksvillenow\.com/,'ClarksvilleNow should be searched as a local publication photo discovery source');
 assert.match(app,/"gray smoke barbecue":'https:\/\/graysmokebarbecue\.com\//,'Gray Smoke official site hint should exist');
 assert.match(app,/"cap's neighborhood bar & grill":'https:\/\/capssangogrill\.com\//,'CAPs official site hint should exist');
 console.log('CP676 restaurant photo speed smoke: PASS');
