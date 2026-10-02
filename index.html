@@ -98,7 +98,22 @@
     <div class="hungry-wheel-result-copy"><span>THE WHEEL CHOSE</span><b id="hungryWheelResultName"></b></div>
   </div>
   <div class="hungry-wheel-actions"><button class="cut" id="hungryWheelSpin" type="button">Spin the Wheel</button><button class="secondary hidden" id="hungryWheelChoose" type="button">Choose This</button></div>
-</div><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
+</div>
+<div id="hungryRestaurantPanel" class="hungry-restaurant-panel hidden" aria-hidden="true">
+  <div class="hungry-mystery-copy"><span>MYSTERY PICK</span><b>Trust the mystery.</b><small id="hungryRestaurantCount"></small></div>
+  <div class="hungry-mystery-stage">
+    <div class="hungry-mystery-card" id="hungryMysteryCard">
+      <div class="hungry-mystery-blur"></div>
+      <img id="hungryMysteryImg" alt="" aria-hidden="true">
+      <div class="hungry-mystery-cover"><span>?</span><b>MYSTERY</b><small>Tap reveal</small></div>
+    </div>
+  </div>
+  <div id="hungryMysteryResult" class="hungry-mystery-result hidden">
+    <div class="hungry-mystery-result-image-wrap"><img id="hungryMysteryResultImg" alt=""></div>
+    <div class="hungry-mystery-result-copy"><span>THE MYSTERY IS…</span><b id="hungryMysteryResultName"></b><small id="hungryMysteryResultMeta"></small></div>
+  </div>
+  <div class="hungry-mystery-actions"><button class="cut" id="hungryMysteryReveal" type="button">Reveal</button><button class="secondary hidden" id="hungryMysteryChoose" type="button">Choose This</button><button class="secondary hidden" id="hungryMysteryAgain" type="button">Try Another</button></div>
+</div></div><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
 
 <div class="drawer-bg hidden" id="drawerBg"></div><aside class="drawer hidden" id="drawer" aria-label="Main menu">
   <div class="drawer-head">
@@ -125,7 +140,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=721"></script>
+<script src="./app.js?v=722"></script>
 </main>
 </body>
 </html>
