@@ -315,37 +315,57 @@ function digitsOnly(value){return String(value||'').replace(/\D/g,'');}
 function htmlText(value){
  return String(value||'').replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s+/g,' ').trim();
 }
+async function fetchValidatedWebsite(url,options={},validate=safeWebsiteUrl,maxRedirects=4){
+  let current=validate(url);
+  if(!current)return null;
+  for(let hop=0;hop<=maxRedirects;hop++){
+    const response=await fetch(current,{...options,redirect:'manual'});
+    if(!(response.status>=300&&response.status<400))return {response,url:current};
+    const location=response.headers.get('location');
+    if(!location)return null;
+    try{
+      const next=new URL(location,current).toString();
+      if(!validate(next))return null;
+      current=next;
+    }catch{return null}
+  }
+  return null;
+}
+
 async function fetchWebPage(url,timeout=3500,maxBytes=1200000){
  const page=safeWebsiteUrl(url);if(!page)return null;
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
  try{
-  const response=await fetch(page,{redirect:'follow',headers:{
+  const result=await fetchValidatedWebsite(page,{headers:{
    Accept:'text/html,application/xhtml+xml',
    'Accept-Language':'en-US,en;q=0.8',
    'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-website-resolver)'
-  },signal:ctl.signal});
-  if(!response.ok)return null;
-  if(isBlockedWebsite(response.url))return null;
+  },signal:ctl.signal},safeWebsiteUrl);
+  if(!result)return null;
+  const response=result.response;
+  if(!response.ok||isBlockedWebsite(result.url))return null;
   const bytes=Buffer.from(await response.arrayBuffer());
   if(bytes.length>maxBytes)return null;
-  return {url:page,finalUrl:safeWebsiteUrl(response.url)||page,html:bytes.toString('utf8')};
+  return {url:page,finalUrl:result.url,html:bytes.toString('utf8')};
  }catch{return null}finally{clearTimeout(timer)}
 }
 async function fetchDiscoveryPage(url,timeout=3000,maxBytes=1000000){
  const page=safeDiscoveryUrl(url);if(!page)return null;
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
  try{
-  const response=await fetch(page,{redirect:'follow',headers:{
+  const result=await fetchValidatedWebsite(page,{headers:{
    Accept:'text/html,application/xhtml+xml',
    'Accept-Language':'en-US,en;q=0.8',
    'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-web-presence-resolver)'
-  },signal:ctl.signal});
+  },signal:ctl.signal},safeDiscoveryUrl);
+  if(!result)return null;
+  const response=result.response;
   if(!response.ok)return null;
   const bytes=Buffer.from(await response.arrayBuffer());
   if(bytes.length>maxBytes)return null;
-  const finalUrl=safeWebsiteUrl(response.url);
-  if(finalUrl&&!isDiscoveryHost(response.url))return {url:page,finalUrl,html:bytes.toString('utf8')};
-  if(!isDiscoveryHost(response.url))return null;
+  const finalUrl=safeWebsiteUrl(result.url);
+  if(finalUrl&&!isDiscoveryHost(result.url))return {url:page,finalUrl,html:bytes.toString('utf8')};
+  if(!isDiscoveryHost(result.url))return null;
   return {url:page,finalUrl:'',html:bytes.toString('utf8')};
  }catch{return null}finally{clearTimeout(timer)}
 }
