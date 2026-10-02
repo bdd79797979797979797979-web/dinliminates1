@@ -27,7 +27,31 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run full Meals browser user test
-        run: node qa/cp714-meals-user-test.cjs
+        id: meals-test
+        shell: bash
+        run: |
+          set +e
+          node qa/cp714-meals-user-test.cjs 2>&1 | tee qa/cp714-meals-user-test-output.txt
+          code=${PIPESTATUS[0]}
+          {
+            echo "commit: ${GITHUB_SHA}"
+            echo "branch: ${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            echo "exit_code: ${code}"
+            echo
+            cat qa/cp714-meals-user-test-output.txt
+          } > qa/cp714-meals-user-test-result.txt
+          exit ${code}
+
+      - name: Commit browser test result to QA branch
+        if: always() && !contains(github.event.head_commit.message, '[qa-report]')
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add qa/cp714-meals-user-test-output.txt qa/cp714-meals-user-test-result.txt
+          git diff --cached --quiet || git commit -m "[qa-report] CP714 Meals browser user test result"
+          target="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git push origin "HEAD:${target}"
 
       - name: Upload QA screenshots/logs if present
         if: always()
