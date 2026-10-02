@@ -3329,3 +3329,79 @@ button,a,select{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){
  .drawer,.drawer-bg,.drawer-row-chevron{transition:none!important}
 }
+
+
+/* CP698 — final iPhone interaction pass.
+   Keep the compact premium layout, but restore Safari-safe text sizing for
+   editable Restaurant fields and give the location actions comfortable tap areas. */
+@media(max-width:430px){
+  #restaurant .location-main #address,
+  #restaurant .restaurant-search-box input{
+    font-size:16px!important;
+    -webkit-text-size-adjust:100%;
+  }
+  #restaurant .location-main{
+    grid-template-columns:44px minmax(0,1fr) 44px 66px!important;
+    gap:4px!important;
+  }
+  #restaurant .location-main .location-btn,
+  #restaurant .location-main .find{
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+  }
+  #restaurant .location-main #address{
+    height:38px!important;
+    min-height:38px!important;
+    line-height:1.15!important;
+  }
+  #restaurant .location-main .radius-control{
+    width:66px!important;
+    min-width:66px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+  #restaurant .location-main .radius-select{
+    min-height:38px!important;
+    font-size:11px!important;
+  }
+  #restaurant .restaurant-search-box input{
+    min-height:44px!important;
+    height:44px!important;
+    line-height:1.15!important;
+  }
+  #restaurant .location-main button,
+  #restaurant .location-main select,
+  #restaurant .restaurant-search-box input{
+    -webkit-tap-highlight-color:transparent;
+  }
+}
+@media(max-width:360px){
+  #restaurant .location-main{
+    grid-template-columns:40px minmax(0,1fr) 40px 60px!important;
+    gap:3px!important;
+  }
+  #restaurant .location-main .location-btn,
+  #restaurant .location-main .find{
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+  }
+  #restaurant .location-main .radius-control{
+    width:60px!important;
+    min-width:60px!important;
+    height:36px!important;
+    min-height:36px!important;
+  }
+  #restaurant .location-main .radius-select{
+    min-height:36px!important;
+    font-size:10px!important;
+  }
+}
+
+/* Keep iPhone form controls from inheriting Safari's automatic tap treatment. */
+button,input,select,textarea{
+  -webkit-tap-highlight-color:transparent;
+}
