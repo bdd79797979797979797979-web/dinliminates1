@@ -75,6 +75,7 @@ winnerItem:null,
 winnerType:'food',
 hungryWheelChoice:null,
 hungryWheelSpinning:false,
+hungryWheelRotation:0,
 schemaVersion:4,
 notes:{},
 restaurantTimezone:'',
@@ -2119,7 +2120,7 @@ return '<path d="'+d+'" fill="'+fills[index%fills.length]+'" stroke="#0b0b0b" st
 }).join('')+
 '<circle cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.5"/>'+
 '<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
-svg.style.setProperty('--wheel-rotation','0deg');
+svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
 }
 function hungryWheelPool(){
 const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
@@ -2151,7 +2152,11 @@ const selectedIndex=Number.isInteger(forced)&&forced>=0&&forced<pool.length?forc
 const item=pool[selectedIndex];
 const step=360/pool.length;
 const centerAngle=-90+(selectedIndex+.5)*step;
-const rotation=1800-90-centerAngle;
+const desiredMod=(((-90-centerAngle)%360)+360)%360;
+const currentMod=((S.hungryWheelRotation%360)+360)%360;
+const delta=(desiredMod-currentMod+360)%360;
+const rotation=S.hungryWheelRotation+1800+delta;
+S.hungryWheelRotation=rotation;
 S.hungryWheelChoice=item;
 S.hungryWheelSpinning=true;
 if(spin)spin.disabled=true;
@@ -2177,6 +2182,7 @@ show('winner');
 const hungry = item?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
+S.hungryWheelRotation=0;
 const detailsBtn=$('details');
 if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
 $('winner')?.classList.toggle('hungry-mode',hungry);
@@ -3299,6 +3305,13 @@ if(e.key==='Escape'){ e.preventDefault(); invalidateAddressSuggestions(); }
 });
 bindRestaurantTools();
 $('winnerBackTop').onclick = () => home();
+$('hungryWheelSpin').onclick = spinHungryWheel;
+$('hungryWheelChoose').onclick = () => {
+  const choice=S.hungryWheelChoice;
+  if(!choice || S.hungryWheelSpinning)return;
+  S.hungryWheelChoice=null;
+  winner(choice);
+};
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
 $('restart').onclick = resetRound;
@@ -3310,7 +3323,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel};
 load();
 renderLocationSource();
 renderFindButton();
