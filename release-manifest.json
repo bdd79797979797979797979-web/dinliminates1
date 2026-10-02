@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 686,
-  "sourceBranch": "cp686-premium-radius-row",
+  "build": 690,
+  "sourceBranch": "cp690-smooth-swipe-motion",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
