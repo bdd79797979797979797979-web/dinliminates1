@@ -1,7 +1,7 @@
 # Dinliminate image-source governance
 
 ## Current release
-Build 127 · cp258-food-catalog-expansion-2026-09-30
+Build 707 · cp707-audit-fixes-except-hidden-restaurant-controls
 
 ## Policy
 Built-in food imagery must use HTTPS. Quick Cut imagery is sourced from approved image CDNs used by the release. The app also inventories every third-party food-image host so usage can be reviewed before public launch.
