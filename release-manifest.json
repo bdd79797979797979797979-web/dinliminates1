@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 726,
+  "build": 727,
   "sourceBranch": "cp715-restaurant-maybe-home-winner",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP726"
+  "checkpoint": "CP727"
 }
