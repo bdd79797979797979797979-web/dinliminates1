@@ -412,9 +412,21 @@ function knownPublicPhotoPage(name){
  return hit?.url||'';
 }
 const KNOWN_RESTAURANT_PHOTOS=[
- {names:["sweet p's southern style","sweet ps southern style"],image:'https://static.where-e.com/United_States/Tennessee/Sweet-Ps-Southern-Style_8c41d09a14d942d0ca25ab6076d3f05e.jpg',sourceUrl:'https://sweet-ps-southern-style.wheree.com/'},
- {names:["gray smoke barbecue","gray smoke","gray's smoke"],image:'https://du9m0k402rjmo.cloudfront.net/images/P_23585/90a3488a-0fdb-47fa-9c6d-e76837ebc263.jpg',sourceUrl:'https://graysmokebarbecue.com/'},
- {names:["cap's neighborhood bar & grill","caps neighborhood bar & grill","caps neighborhood bar and grill"],image:'https://clarksvillenow.sagacom.com/files/2024/05/CAPS-Neighborhood-Bar-Grill-7.jpg',sourceUrl:'https://clarksvillenow.com/local/caps-neighborhood-bar-grill-opens-family-friendly-spot-in-clarksville/'}
+ {names:["sweet p's southern style","sweet ps southern style"],image:"https://static.where-e.com/United_States/Tennessee/Sweet-Ps-Southern-Style_8c41d09a14d942d0ca25ab6076d3f05e.jpg",sourceUrl:"https://sweet-ps-southern-style.wheree.com/"},
+ {names:["gray smoke barbecue","gray smoke","gray's smoke"],image:"https://du9m0k402rjmo.cloudfront.net/images/P_23585/90a3488a-0fdb-47fa-9c6d-e76837ebc263.jpg",sourceUrl:"https://graysmokebarbecue.com/"},
+ {names:["cap's neighborhood bar & grill","caps neighborhood bar & grill","caps neighborhood bar and grill"],image:"https://clarksvillenow.sagacom.com/files/2024/05/CAPS-Neighborhood-Bar-Grill-7.jpg",sourceUrl:"https://clarksvillenow.com/local/caps-neighborhood-bar-grill-opens-family-friendly-spot-in-clarksville/"},
+ {names:["Reggie's BBQ","Reggie's BBQ Clarksville"],image:"https://d1w7312wesee68.cloudfront.net/XqjMLj3K3JQ1LOypRViqpaLKzbu0dXfv_cQwp2AxpXk/ext%3Awebp/quality%3A85/plain/s3%3A//toast-sites-resources-prod/restaurantImages/263daf0a-e243-4425-8d8a-9b75cbf93056/82d46202-8e46-4a18-9858-9ca3d930ca93-19",sourceUrl:"https://reggiesbbq.com/"},
+ {names:["Legends Smokehouse & Grill","Legends Smokehouse and Grill","Legends Smokehouse"],image:"https://5dee1204fff7f466a182.cdn6.editmysite.com/uploads/b/5dee1204fff7f466a182a4e6fe08b0edea7ec96d54c794955f8198991dae5da6/Untitled%20design%282%29_1713398838.png?optimize=medium&width=2400",sourceUrl:"https://www.legendssmokehouseandgrill.com/about-us"},
+ {names:["Johnny's Big Burger","Johnnys Big Burger"],image:"https://thebigburger.com/__l5e/assets-v1/3211c7e6-0473-4028-b8d0-db085ca4a369/frontpage.jpg",sourceUrl:"https://thebigburger.com/"},
+ {names:["Blackhorse Pub & Brewery","Blackhorse Pub and Brewery","Blackhorse"],image:"https://assets.site-static.com/userFiles/2147/image/Mark/Compress_Images_Special_Project/The%20Blackhorse%20Pub%20Brewery%2C%20TN.jpg",sourceUrl:"https://www.mattwardhomes.com/clarksville/"},
+ {names:["Pbody's","Pbodys"],image:"https://img.p.mapq.st/?q=75&url=https%3A%2F%2Fmedia-cdn.tripadvisor.com%2Fmedia%2Fphoto-o%2F07%2F11%2Fa6%2F80%2Fpbody-s.jpg&w=3840",sourceUrl:"https://www.mapquest.com/us/tennessee/pbodys-424425299"},
+ {names:["The Catfish House","Catfish House"],image:"https://static.wixstatic.com/media/568437_1b8e1db53bfa4086b85fad232d3b91f4~mv2.jpg/v1/fill/w_960%2Ch_460%2Cal_c%2Cq_85%2Cenc_avif%2Cquality_auto/568437_1b8e1db53bfa4086b85fad232d3b91f4~mv2.jpg",sourceUrl:"https://www.catfishhouseclarksville.com/"},
+ {names:["Liberty Park Grill"],image:"https://photos.smugmug.com/USA/Tennessee/Clarksville/i-L9DVxSZ/0/92fe32e8/L/ClarksvilleTN-369-L.jpg",sourceUrl:"https://abritandasoutherner.com/things-to-do-in-clarksville-tn/"},
+ {names:["Cafe 931","Café 931"],image:"https://pub-ba1a74be17d7442a9f2541946eb9510e.r2.dev/shops/1f9865fb-9f52-490e-8c41-377ec5adab87/0.jpg",sourceUrl:"https://joe.coffee/locations/tn/clarksville/cafe-931-clarksville-1f9865fb-9f52-490e-8c41-377ec5adab87/"},
+ {names:["Yada on Franklin","Yada"],image:"https://static.spotapps.co/spots/cd/9f903fe2ff4bd0b72d4439b91d8d95/full",sourceUrl:"https://yadaonfranklin.com/"},
+ {names:["The Mailroom","Mailroom"],image:"https://images.squarespace-cdn.com/content/v1/6772c0e3152fba51d1e9cea1/1735573738359-OFYKQZMLW8GCX7TIKR0Q/Mailroom-Featured-Image-Header.jpg",sourceUrl:"https://www.mailroomtn.com/about"},
+ {names:["Silke's Old World Breads","Silkes Old World Breads","Silke's"],image:"https://silkesoldworldbreads.com/cdn/shop/files/outside_whole_bldg_for_web.jpg?v=1631571846&width=3840",sourceUrl:"https://silkesoldworldbreads.com/"},
+ {names:["Casa D'Italia","Casa D’Italia","Casa D Italia","Casa D'Italia Ristorante"],image:"https://static.goto-where.com/70162-albums-1.jpg",sourceUrl:"https://casa-ditalia.goto-where.com/"}
 ];
 function knownRestaurantPhoto(name,address){
  const normalized=normalizeMatchText(name);
