@@ -1,0 +1,38 @@
+name: CP714 Meals User Test
+
+on:
+  push:
+    branches: [cp714-manage-order-button-size-about-cleanup]
+  workflow_dispatch:
+
+jobs:
+  meals-user-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout CP714
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run full Meals browser user test
+        run: node qa/cp714-meals-user-test.cjs
+
+      - name: Upload QA screenshots/logs if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cp714-meals-user-test-artifacts
+          path: |
+            qa-artifacts
+            /tmp/server.log
+          if-no-files-found: ignore
