@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 699,
-  "sourceBranch": "cp699-home-actions",
+  "build": 700,
+  "sourceBranch": "cp700-premium-home-actions",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP699"
+  "checkpoint": "CP700"
 }
