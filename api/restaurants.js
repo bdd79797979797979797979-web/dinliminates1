@@ -46,15 +46,7 @@ function isClearlyNonDiningBusiness(row){
  // Explicitly reject the known food-provider false positive while allowing
  // it back through only when the source itself says it is a dining venue.
  const knownNonDiningName=/\b(?:larsons?|larson's)\s+enterprise(?:\s+(?:inc|llc|co|company))?\b/i;
- if(knownNonDiningName.test(norm(row?.name||''))){
-   const diningType=/\b(?:restaurant|fast[_ ]?food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food truck|food court|food hall)\b/i;
-   const sourceType=[
-    row?.providerType,row?.primaryType,
-    Array.isArray(row?.types)?row.types.join(' '):row?.types,
-    row?.amenity
-   ].filter(Boolean).join(' ');
-   if(!diningType.test(sourceType))return true;
- }
+ if(knownNonDiningName.test(norm(row?.name||'')))return true;
 
  const strongNonDiningType=/\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\b/i;
  const diningHay=norm([
