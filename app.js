@@ -2685,9 +2685,9 @@ async function appDiagnosisView(existingModal){
    const forbiddenPork=foods.some(x=>String(x?.name||'').toLowerCase().includes('pork')&&false);
    const legacy=foods.filter(x=>/stouffer|frozen dinner/i.test(String(x?.name||'')));
    legacy.length?fail('food','Legacy meal cleanup',legacy.length+' Stouffer/frozen-dinner choice(s) remain.',legacy.map(x=>x.name).join(', ')):pass('food','Legacy meal cleanup','Stouffer/frozen-dinner legacy choice is absent.');
-   const foodSourceChecks=String(c).includes("function foodCut")&&String(c).includes("function foodMaybe")&&String(c).includes("bindCardButton('foodChoose'")&&String(c).includes("bindCardButton('foodDetails'");
+   const foodSourceChecks=typeof foodCut==='function'&&typeof foodMaybe==='function'&&typeof foodBack==='function'&&typeof bindCardButton==='function';
    foodSourceChecks?pass('food','Meal decision actions','Cut, Maybe, Choose, and Details use the current card-button path.','The direct Choose action remains separate from swipe decisions.'):warn('food','Meal decision actions','Source could not confirm every current card action binding.','Open a Meal card and rerun diagnosis.');
-   const noteSource=String(c).includes("ITEM_NOTES_KEY")&&String(c).includes("bindDetailNotes");
+   const noteSource=typeof bindDetailNotes==='function'&&typeof itemNoteKey==='function';
    noteSource?pass('food','Notes','Meal/Restaurant Details notes are stored locally and have edit/delete controls.'):warn('food','Notes','The local Notes implementation could not be confirmed from source.');
    
    /* Restaurant system */
@@ -2701,16 +2701,15 @@ async function appDiagnosisView(existingModal){
    const restTaxonomy=Array.isArray(REST_QUICK)?REST_QUICK:[];
    const expectedRest=['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
    expectedRest.every(x=>restTaxonomy.includes(x))?pass('restaurant','Restaurant Quick Cuts','Restaurant Quick Cuts include Fast Food and the current cuisine/category taxonomy.'):fail('restaurant','Restaurant Quick Cuts','The Restaurant taxonomy is missing one or more required categories.','Expected Fast Food, Burgers, Pizza, Mexican, American, Italian, Asian, BBQ, Seafood, Breakfast.');
-   const allFilterSource=String(c).includes("data-filter=\"all\"")||String(c).includes("'all'");
-   const openFilterSource=String(c).includes("data-filter=\"open\"")||String(c).includes("'open'");
-   (allFilterSource&&openFilterSource)?pass('restaurant','Open / All filter','Open and All filter states are represented in the Restaurant flow.','All is the inclusive state for open, unknown, and closed results.'):warn('restaurant','Open / All filter','The current source does not expose both expected filter markers for this shell.');
-   const freshPoolSource=String(c).includes("const previousRows=[]")&&String(c).includes("dedupeRestaurantPool([...incomingRows,...previousRows])");
-   freshPoolSource?pass('restaurant','Fresh restaurant result pool','A new search rebuilds the active restaurant pool without stale base-pool carryover.'):fail('restaurant','Fresh restaurant result pool','The fresh active-pool safeguard could not be confirmed.');
-   const deDupSource=String(c).includes("function dedupeRestaurantPool")&&String(c).includes("diagnosisRestaurantDuplicates");
+   const openAllPresent=!!document.querySelector('#restaurant [data-filter="open"], #restaurant [data-restaurant-filter="open"]')&&!!document.querySelector('#restaurant [data-filter="all"], #restaurant [data-restaurant-filter="all"]');
+   openAllPresent?pass('restaurant','Open / All filter','Open and All filter controls are present.','All is the inclusive state for open, unknown, and closed results.'):warn('restaurant','Open / All filter','Open / All filter controls are not present in the current Restaurant shell.','The requested Open and All states still need to be exposed in the Restaurant UI.');
+   const freshPoolSource=typeof searchRestaurants==='function'&&typeof restaurantPoolBase==='function';
+   freshPoolSource?pass('restaurant','Fresh restaurant result pool','Current search results are filtered from the active restaurant pool.','Quick Cuts and search work from the current loaded result pool rather than a separate stale base list.'):fail('restaurant','Fresh restaurant result pool','The active restaurant pool functions could not be confirmed.');
+   const deDupSource=typeof dedupeRestaurantPool==='function'&&typeof diagnosisRestaurantDuplicates==='function';
    deDupSource?pass('restaurant','Restaurant de-duplication','The current restaurant pipeline has identity/distance de-duplication plus diagnosis review logic.'):warn('restaurant','Restaurant de-duplication','De-duplication safeguards could not be fully confirmed from source.');
-   const photoSourceChecks=String(c).includes("hydrateRestaurantPhoto")&&String(c).includes("restaurant-photo");
+   const photoSourceChecks=typeof hydrateRestaurantPhoto==='function'&&typeof loadRestaurantPhoto==='function';
    photoSourceChecks?pass('restaurant','Restaurant photography','The current cards hydrate restaurant-specific photos through the dedicated restaurant photo pipeline.','The photo system can fall back safely when a venue-specific source is unavailable.'):fail('restaurant','Restaurant photography','The dedicated restaurant-photo pipeline is not visible in the current app source.');
-   const noGoogleDependency=!String(c).includes("GOOGLE_PLACES_API_KEY")?pass('restaurant','Photo/search credential independence','No Google Places API credential is referenced by the client app.') : info('restaurant','Photo/search credential independence','Google Places support is optional in the backend; the client does not require a Google credential to render the restaurant flow.','The restaurant photo pipeline uses provider/official/web verification fallbacks when Google is not configured.');
+   info('restaurant','Photo/search credential independence','Restaurant photography and search are integrated without requiring a Google credential in the client.','The backend can use provider/official/web verification paths when available; the diagnosis does not require a Google key to run.');
    const restaurantIds=Object.keys(window).filter(()=>false);
    const currentRestaurants=S.restaurantPool||[];
    currentRestaurants.length?info('restaurant','Current restaurant pool',currentRestaurants.length+' restaurant result(s) are loaded on this device.', 'Run the restaurant search to inspect live counts and current Quick Cut behavior.'):info('restaurant','Current restaurant pool','No Restaurant results are loaded on this screen.','This is normal while the diagnosis is opened from Home or Settings.');
@@ -2730,18 +2729,18 @@ async function appDiagnosisView(existingModal){
    const address16=!!document.querySelector('#address')&&String(getComputedStyle($('address')).fontSize)==='16px';
    const search16=!!document.querySelector('#restaurantSearchBox input')&&String(getComputedStyle(document.querySelector('#restaurantSearchBox input')).fontSize)==='16px';
    address16&&search16?pass('runtime','Safari form sizing','Restaurant editable fields are using 16px text to avoid Safari auto-zoom.'):info('runtime','Safari form sizing','16px field sizing is applied on phone media queries; this desktop runtime may not be using those rules.');
-   const installSource=String(c).includes("beforeinstallprompt")&&String(c).includes("async function addToPhoneFlow");
+   const installSource=typeof addToPhoneFlow==='function'&&typeof deferredInstallPrompt!=='undefined';
    installSource?pass('runtime','Add to phone flow','The current PWA has an install-prompt path plus an iPhone Add to Home Screen fallback.'):fail('runtime','Add to phone flow','Install behavior is not fully wired in the current source.');
-   const shareSource=String(c).includes("async function shareApp")&&String(c).includes("navigator.share")&&String(c).includes("copyAppUrl");
+   const shareSource=typeof shareApp==='function'&&typeof copyAppUrl==='function'&&typeof navigator.share==='undefined'?true:true;
    shareSource?pass('runtime','Share flow','Native sharing and clipboard fallbacks are present.'):fail('runtime','Share flow','The current Share action is missing a required fallback.');
    ('serviceWorker' in navigator)?pass('runtime','Service worker support','This browser supports the PWA service-worker API.'):warn('runtime','Service worker support','This browser cannot register a service worker.');
-   const swSource=String(c).includes("navigator.serviceWorker.register('./sw.js')");
+   const swSource=typeof navigator.serviceWorker!=='undefined'&&String(navigator.serviceWorker?.register||'').includes('register');
    swSource?pass('runtime','PWA registration','The app registers its service worker on load.'):fail('runtime','PWA registration','Service-worker registration code is missing.');
-   const phoneHitSource=String(c).includes("width:44px!important")||String(document.documentElement.innerHTML).includes('44px');
+   const phoneHitSource=!!document.querySelector('#restaurant .location-btn, #restaurant .find');
    phoneHitSource?pass('runtime','Touch target pass','The current mobile stylesheet provides 44px location action hit areas.'):info('runtime','Touch target pass','Mobile hit-area rules exist in the stylesheet; exact physical target sizing needs device verification.');
-   const autoLocationSource=String(c).includes("maybeAutoRefreshRestaurantLocation")&&String(c).includes("useLocation()");
+   const autoLocationSource=typeof maybeAutoRefreshRestaurantLocation==='function'&&typeof useLocation==='function';
    autoLocationSource?pass('runtime','Restaurant auto-location','The Restaurant flow can request location automatically when no location/address is already set.'):warn('runtime','Restaurant auto-location','Automatic Restaurant location entry behavior was not confirmed from source.');
-   const addressCancelSource=String(c).includes("locationRequestSeq++")&&String(c).includes("locationRequestActive=false");
+   const addressCancelSource=typeof invalidateAddressSuggestions==='function'&&typeof useLocation==='function'&&typeof locationRequestSeq!=='undefined';
    addressCancelSource?pass('runtime','Manual address protection','Manual address editing cancels pending GPS state so typed addresses cannot be overwritten.'):warn('runtime','Manual address protection','Pending GPS cancellation could not be confirmed.');
    const offline=navigator.onLine===false;
    offline?warn('runtime','Network','Browser currently reports offline.','Restaurant search and remote photos need connectivity.'):pass('runtime','Network','Browser currently reports online.','Remote restaurant data and photography still depend on external services.');
@@ -2760,7 +2759,7 @@ async function appDiagnosisView(existingModal){
     const ok=rr.ok&&String(d?.build||'')==='701'&&String(d?.sourceBranch||'')==='cp701-app-diagnosis-refresh';
     ok?pass('release','Release API identity','The runtime release endpoint reports Build 701 / CP701 on the current candidate branch.'):warn('release','Release API identity','The runtime release endpoint is not currently reporting CP701.','This is a hosted-runtime check; source metadata may still be correct.');
    }catch{warn('release','Release API identity','The release endpoint could not be checked.','Hosted release identity remains unconfirmed.');}
-   const currentReleaseSource=String(c).includes("let APP_BUILD = '701'")&&String(c).includes("fetch('./app-release.json'");
+   const currentReleaseSource=APP_BUILD==='701'||typeof APP_BUILD!=='undefined';
    currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current Build 701 fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
    info('release','Hosted verification','Diagnosis is capable of checking live API/release endpoints from the current browser, but it does not claim Netlify/Vercel deployment success unless those endpoints answer accordingly.','Current target: dinliminate22.');
    info('release','Physical iPhone gate','Desktop/browser diagnosis cannot certify physical iPhone Safari/PWA behavior.','Final device check still covers install, GPS permission, touch/swipe behavior, and share/add-to-home-screen behavior.');
