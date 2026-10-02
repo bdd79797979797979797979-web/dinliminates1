@@ -5478,3 +5478,271 @@ button,input,select,textarea{
 .app:has(#home:not(.hidden))::after{animation:homeAmbientLight 12s ease-in-out infinite alternate}
 @keyframes homeAmbientLight{0%{opacity:.74;transform:scale(1);filter:saturate(1)}50%{opacity:.9;transform:scale(1.012);filter:saturate(1.035)}100%{opacity:.78;transform:scale(1.006);filter:saturate(1)}}
 @media(prefers-reduced-motion:reduce){.quick-section .quick-cuts-collapse-toggle::after,.unified-swipe-actions .round-maybe::before,.count-inline.count-updated,.app:has(#home:not(.hidden))::after{animation:none!important}.home-first-nudge,.swipe-card-coach{transition:none!important;animation:none!important}}
+
+
+/* CP756 — editorial Home finish: match the supplied luxury reference more closely. */
+.app:has(#home:not(.hidden)){
+  padding-left:0!important;
+  padding-right:0!important;
+  background:#080706;
+}
+.app:has(#home:not(.hidden)) .app-topbar{
+  position:absolute!important;
+  top:env(safe-area-inset-top)!important;
+  left:0!important;
+  right:0!important;
+  height:92px!important;
+  padding:0 18px!important;
+  z-index:20!important;
+  background:linear-gradient(180deg,rgba(5,4,3,.34),transparent)!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar .brand-mark{
+  position:absolute;
+  left:50%;
+  top:5px;
+  transform:translateX(-50%);
+  width:max-content;
+  pointer-events:none;
+}
+.app:has(#home:not(.hidden)) .app-topbar .brand{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(44px,13vw,62px)!important;
+  line-height:.92!important;
+  font-style:italic!important;
+  font-weight:700!important;
+  letter-spacing:-.065em!important;
+  color:#f2d38c!important;
+  background:linear-gradient(180deg,#fff0b6 0%,#efd18a 48%,#c9913d 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:0 3px 22px rgba(0,0,0,.64),0 0 28px rgba(224,170,80,.12)!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar #menu{
+  position:absolute!important;
+  top:13px!important;
+  right:16px!important;
+  width:42px!important;
+  height:42px!important;
+  border-radius:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#f0d38f!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar #menu span{
+  display:block!important;
+  width:28px!important;
+  height:2px!important;
+  margin:6px auto!important;
+  background:currentColor!important;
+  border-radius:0!important;
+  box-shadow:0 1px 6px rgba(0,0,0,.45);
+}
+.luxury-home{
+  position:relative!important;
+  width:100%!important;
+  height:100svh!important;
+  min-height:100svh!important;
+  margin-top:-58px!important;
+  padding:112px 0 max(7px,env(safe-area-inset-bottom))!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  overflow:hidden!important;
+  text-align:center!important;
+  background:
+    radial-gradient(circle at 50% 6%,rgba(246,208,128,.10),transparent 22%),
+    linear-gradient(180deg,#0a0806 0%,#15100b 45%,#090806 100%)!important;
+}
+.luxury-home .luxury-orb{display:none!important}
+.luxury-home .home-intro{
+  flex:0 0 auto!important;
+  padding:0 18px!important;
+  margin:0!important;
+  z-index:5!important;
+}
+.luxury-home h1{
+  margin:8px auto 0!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(28px,8.2vw,40px)!important;
+  line-height:.96!important;
+  font-weight:500!important;
+  font-style:italic!important;
+  letter-spacing:.015em!important;
+  color:#f5e8c8!important;
+  background:none!important;
+  -webkit-text-fill-color:#f5e8c8!important;
+  text-shadow:0 2px 15px rgba(0,0,0,.74)!important;
+  max-width:none!important;
+  width:auto!important;
+}
+.luxury-home h1::before,.luxury-home h1::after{
+  content:"";
+  display:inline-block;
+  width:44px;
+  height:1px;
+  vertical-align:middle;
+  margin:0 14px;
+  background:linear-gradient(90deg,transparent,#e1bd72,transparent);
+  opacity:.95;
+}
+.luxury-home .home-actions{
+  position:relative!important;
+  z-index:4!important;
+  display:grid!important;
+  grid-template-rows:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:2px!important;
+  width:100%!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-width:none!important;
+  margin:20px 0 0!important;
+}
+.luxury-home .home-card-photo{
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background-size:cover!important;
+  box-shadow:none!important;
+  transform:none;
+}
+.luxury-home .home-card-photo::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  border:0!important;
+  border-radius:0!important;
+  pointer-events:none!important;
+  box-shadow:none!important;
+}
+.luxury-home .home-card-photo .home-card-overlay{
+  position:absolute!important;
+  inset:0!important;
+  z-index:1!important;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.03) 10%,rgba(0,0,0,.04) 36%,rgba(0,0,0,.58) 100%),
+    linear-gradient(90deg,rgba(0,0,0,.23),transparent 52%,rgba(0,0,0,.12))!important;
+}
+.luxury-home .food-choice{
+  background-position:center 53%!important;
+}
+.luxury-home .restaurant-choice{
+  background-position:center 48%!important;
+}
+.luxury-home .home-card-copy{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:18px!important;
+  z-index:3!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  padding:0 18px!important;
+  gap:6px!important;
+  text-align:center!important;
+}
+.luxury-home .home-card-copy strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(27px,7.8vw,42px)!important;
+  line-height:.95!important;
+  font-weight:700!important;
+  letter-spacing:.09em!important;
+  color:#f7e7bd!important;
+  text-shadow:0 3px 18px rgba(0,0,0,.7)!important;
+}
+.luxury-home .home-card-copy strong::before,.luxury-home .home-card-copy strong::after{
+  content:"";
+  display:inline-block;
+  width:34px;
+  height:1px;
+  vertical-align:middle;
+  margin:0 12px;
+  background:linear-gradient(90deg,transparent,#dfb968,transparent);
+}
+.luxury-home .home-card-copy>span{
+  margin:0!important;
+  font-size:clamp(9px,2.7vw,12px)!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:.22em!important;
+  text-transform:uppercase!important;
+  color:rgba(255,248,236,.95)!important;
+  text-shadow:0 2px 12px rgba(0,0,0,.88)!important;
+}
+.luxury-home .home-card-photo .arrow{display:none!important}
+.luxury-home .home-foot{
+  position:relative!important;
+  z-index:5!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:11px 0 4px!important;
+  width:100%!important;
+  justify-content:center!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(0,0,0,.54))!important;
+}
+.luxury-home .home-foot-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+}
+.luxury-home .home-icon-action{
+  width:138px!important;
+  min-width:138px!important;
+  height:36px!important;
+  min-height:36px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#efd18d!important;
+  box-shadow:none!important;
+}
+.luxury-home .home-icon-action + .home-icon-action{
+  border-left:1px solid rgba(237,205,138,.65)!important;
+}
+.luxury-home .home-foot-icon{
+  width:23px!important;
+  height:23px!important;
+}
+.luxury-home .home-icon-label{
+  margin-top:2px!important;
+  font-size:9px!important;
+  color:#f3e4bf!important;
+  letter-spacing:.02em!important;
+}
+.luxury-home .home-card-photo.is-pressed{
+  transform:scale(.992)!important;
+  filter:saturate(1.04) brightness(1.035)!important;
+  box-shadow:none!important;
+}
+.luxury-home .home-card-photo.is-pressed .home-card-overlay{opacity:.8!important}
+.luxury-home .home-first-nudge{display:none!important}
+@media(max-width:390px){
+  .app:has(#home:not(.hidden)) .app-topbar{height:84px!important;padding:0 12px!important}
+  .app:has(#home:not(.hidden)) .app-topbar .brand{font-size:clamp(40px,12.8vw,54px)!important}
+  .app:has(#home:not(.hidden)) .app-topbar #menu{top:10px!important;right:10px!important}
+  .luxury-home{margin-top:-58px!important;padding-top:102px!important;padding-bottom:1px!important}
+  .luxury-home .home-intro{padding:0 10px!important}
+  .luxury-home h1{font-size:25px!important}
+  .luxury-home h1::before,.luxury-home h1::after{width:27px;margin:0 9px}
+  .luxury-home .home-actions{margin-top:15px!important;gap:1px!important}
+  .luxury-home .home-card-copy{bottom:16px!important;gap:5px!important}
+  .luxury-home .home-card-copy strong{font-size:24px!important}
+  .luxury-home .home-card-copy strong::before,.luxury-home .home-card-copy strong::after{width:24px;margin:0 8px}
+  .luxury-home .home-card-copy>span{font-size:8px!important;letter-spacing:.16em!important}
+  .luxury-home .home-foot{padding-top:8px!important}
+  .luxury-home .home-icon-action{width:125px!important;min-width:125px!important}
+}
+@media(max-height:700px){
+  .luxury-home .home-actions{margin-top:12px!important}
+  .luxury-home .home-card-copy{bottom:11px!important}
+  .luxury-home .home-card-copy strong{font-size:22px!important}
+}
