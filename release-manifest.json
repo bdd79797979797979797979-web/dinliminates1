@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 755,
-  "sourceBranch": "cp755-premium-micro-polish",
+  "build": 756,
+  "sourceBranch":"cp756-home-editorial-finish",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP755"
+  "checkpoint":"CP756"
 }
