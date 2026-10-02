@@ -520,7 +520,18 @@ const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':
 const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el.remove());
 const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
 const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
-const allFoods = () => [...getDefaultFoods(), ...S.custom.map(x=>({...x,quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}))];
+const allFoods = () => {
+ const defaults=getDefaultFoods();
+ const defaultIds=new Set(defaults.map(x=>String(x.id)));
+ const overrides=new Map((S.custom||[]).map(x=>[String(x.id),x]));
+ const merged=defaults.map(item=>{
+  const override=overrides.get(String(item.id));
+  if(!override)return item;
+  return Object.assign({},item,override,{builtInEdit:true,builtInId:String(item.id),quickCuts:Array.isArray(override.quickCuts)&&override.quickCuts.length?override.quickCuts:[override.category||item.category||'American']});
+ });
+ const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}));
+ return merged.concat(customOnly);
+};
 const STORAGE_VERSION = 4;
 const ITEM_NOTES_KEY = 'dinliminate.item.notes.v1';
 function loadItemNotes(){
