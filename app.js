@@ -862,6 +862,7 @@ function drawFood(){
  img.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  const foodCard=$('foodCard');if(foodCard){foodCard.querySelector('.maybe-stamp')?.remove();if(S.maybe.has(item.id)){const stamp=document.createElement('span');stamp.className='maybe-stamp';stamp.setAttribute('aria-label','Marked Maybe');stamp.textContent='MAYBE';foodCard.appendChild(stamp);}}
 $('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('foodCount').textContent=S.pool.length+(S.pool.length===1?' choice':' choices');
+const foodBackButton=$('foodBack');if(foodBackButton){foodBackButton.disabled=S.foodActions.length===0;foodBackButton.setAttribute('aria-disabled',String(S.foodActions.length===0));}
 renderMaybeDeckToggle('food');
  const nextCard=$('foodNextCard');
  if(nextCard){
@@ -898,7 +899,7 @@ function resolveFoodAfterDecision(){
  S.index=Math.max(0,Math.min(S.index,S.pool.length-1));drawFood();save();
 }
 function foodBack(){
- const action=S.foodActions.pop();if(!action){home();return;}
+ const action=S.foodActions.pop();if(!action)return;
  if(action.type==='cut')S.foodCuts.delete(action.id);
  if(action.type==='maybe'){if(action.hadMaybe)S.maybe.add(action.id);else S.maybe.delete(action.id);}
  S.foodMaybeRound=!!action.maybeRound||!!action.recycleOnUndo||!!action.roundAfter;buildFood();
@@ -1907,15 +1908,12 @@ const nextRow = rows[S.restaurantIndex + 1];
 const nextImage = restaurantFallback(nextRow);
 const shortAddress = row.address ? esc(String(row.address).split(',').slice(0,2).join(', ')) : '';
  const cardLocation = (shortAddress || distanceLabel) ? '<div class="restaurant-card-location-distance" title="'+esc(row.address||'')+'">'+[shortAddress,distanceLabel?esc(distanceLabel):''].filter(Boolean).join(' <span aria-hidden="true">•</span> ')+'</div>' : '';
- const websitePresentation=restaurantWebsitePresentation(row);
- const websiteLabel=websitePresentation.kind==='website'?'Website':(websitePresentation.kind==='official-page'?'Official Page':'Search Website');
- const websiteAria=websitePresentation.kind==='website'?'Open '+esc(row.name)+' website':websitePresentation.kind==='official-page'?'Open the official Facebook or Instagram page for '+esc(row.name):'Search '+esc(row.name)+' website';
- const cardWebsite = '<a class="restaurant-card-utility restaurant-card-website-utility" data-restaurant-website-key="'+esc(restaurantWebsiteRowKey(row))+'" href="'+esc(websitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+websiteAria+'" title="'+websiteLabel+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></a>';
 const cardDetailsAction = '<button class="restaurant-card-utility restaurant-card-details-utility" id="restDetails" type="button" aria-label="Details" title="Details"><svg class="details-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7.25h2M11 7.25h7M6 12h2M11 12h7M6 16.75h2M11 16.75h5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
- const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span><div class="restaurant-card-utilities">'+cardDetailsAction+cardWebsite+'</div></div>';
+ const cardUtilityRow='<div class="restaurant-card-meta-row"><span class="restaurant-card-meta">'+esc(category)+'</span>'+cardDetailsAction+'</div>';
 $('restStage').innerHTML =
 '<div class="restaurant-card-stack"><article class="card next-card '+(nextRow?'':'hidden')+'" id="restaurantNextCard" aria-hidden="true"><img src="'+esc(nextImage)+'" data-restaurant-photo-key="'+esc(nextRow?.id||'')+'" data-fallback="'+esc(nextRow?.photoFallback||restaurantFallbackImage(nextRow))+'" data-final-fallback="'+esc(restaurantFallbackImage(nextRow))+'" alt="'+esc(nextRow?.name||'')+'"><div class="shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></article><article class="card" id="restaurantCard"><img src="'+esc(image)+'" data-restaurant-photo-key="'+esc(row.id||'')+'" data-fallback="'+esc(row.photoFallback||restaurantFallbackImage(row))+'" data-final-fallback="'+esc(restaurantFallbackImage(row))+'" alt="'+esc(row.name)+'"><div class="shade"></div><div class="restaurant-card-photo-ui">'+restaurantMaybeBadge+'</div><div class="restaurant-photo-credit" aria-live="polite"></div><div class="card-copy">'+cardUtilityRow+'<h3>'+esc(row.name)+'</h3>'+cardLocation+'</div></div></article></div>'+'<div class="swipe-actions unified-swipe-actions" aria-label="Restaurant decision controls"><button class="round-action round-back secondary" id="restBack" aria-label="Back"><span>↶</span></button><button class="round-action round-cut cut" id="restCut" aria-label="Cut"><span>✕</span></button><button class="round-action round-maybe maybe" id="restMaybe" aria-label="Maybe"><span>♥</span></button><button class="round-action round-choose choose" id="restChoose" aria-label="Choose this restaurant"><span>✓</span></button></div>';
 const current = rows[S.restaurantIndex];
+const restBackButton=$('restBack');if(restBackButton){restBackButton.disabled=S.restaurantActions.length===0;restBackButton.setAttribute('aria-disabled',String(S.restaurantActions.length===0));}
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restMaybe', () => restaurantMaybe(current));
@@ -1924,7 +1922,6 @@ bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
 bindImageFallback('#restStage img',restaurantFallback(row),restaurantFallbackImage(row));
 hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
-hydrateRestaurantWebsite(row,'#restStage #restaurantCard');
 if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 prefetchRestaurantPhotos(rows,S.restaurantIndex,RESTAURANT_PHOTO_PREFETCH_COUNT);
 }
@@ -1947,7 +1944,7 @@ function restaurantMaybe(row){
 }
 
 function restaurantBack(){
- const action=S.restaurantActions.pop();if(!action){home();return;}
+ const action=S.restaurantActions.pop();if(!action)return;
  const row=S.restaurantPool.find(x=>x.id===action.id);if(row){if(action.type==='cut')row._cut=false;if(action.type==='maybe')row._maybe=!!action.hadMaybe;}
  S.restaurantMaybeRound=!!action.maybeRound||!!action.roundAfter;const rows=restaurantPoolFiltered(),restored=rows.findIndex(x=>x.id===action.id);
  S.restaurantIndex=restored>=0?restored:Math.max(0,Math.min(action.index||0,Math.max(0,rows.length-1)));drawRestaurants();save();
