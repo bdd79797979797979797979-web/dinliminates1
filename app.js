@@ -2360,14 +2360,14 @@ for(let d=new Date(today.getFullYear(),today.getMonth(),today.getDate());daySet.
   d.setDate(d.getDate()-1);
 }
 const statsMarkup='<section class="history-stats hidden" id="historyStats" aria-label="Your stats">'+
-'<div class="history-stats-head"><div><span class="history-stats-kicker">YOUR STATS</span><b>Decision snapshot</b></div><span class="history-stats-note">Saved on this device</span></div>'+
+'<div class="history-stats-head"><div><span class="history-stats-kicker">YOUR STATS</span><b>Your Dinliminate snapshot</b></div><span class="history-stats-note">Private · on this device</span></div>'+
+'<div class="history-stat-hero"><span>Total decisions</span><b>'+totalCount+'</b><small>'+mealCount+' meals · '+restaurantCount+' restaurants</small></div>'+
 '<div class="history-stat-grid">'+
 '<div class="history-stat"><span>Meals chosen</span><b>'+mealCount+'</b></div>'+
 '<div class="history-stat"><span>Restaurants chosen</span><b>'+restaurantCount+'</b></div>'+
-'<div class="history-stat"><span>Total decisions</span><b>'+totalCount+'</b></div>'+
 '<div class="history-stat"><span>Current streak</span><b>'+streak+' day'+(streak===1?'':'s')+'</b></div>'+
 '</div>'+
-'<div class="history-stat-wide"><span>Most-used meal Quick Cut</span><b>'+esc(topTag)+'</b></div>'+
+'<div class="history-stat-wide"><span>Most-used meal Quick Cut</span><b>'+esc(topTag)+'</b><span class="history-stat-arrow">›</span></div>'+
 '</section>';
 let body = '<div class="history-intro"><div class="history-intro-copy"><span class="history-kicker">YOUR DECISIONS</span><h4>History</h4><p>Browse previous meal and restaurant choices by date.</p></div><button class="history-stats-toggle" id="historyStatsToggle" type="button" aria-expanded="false">Your Stats</button></div>'+statsMarkup+'<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev" aria-label="Previous month">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext" aria-label="Next month">›</button></div><div class="cal-grid cal-grid-20" role="grid" aria-label="'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+' history">'; 
 ['S','M','T','W','T','F','S'].forEach(d => body += '<span class="cal-d" role="columnheader">'+d+'</span>');
