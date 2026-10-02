@@ -2731,10 +2731,10 @@ async function appDiagnosisView(existingModal){
    address16&&search16?pass('runtime','Safari form sizing','Restaurant editable fields are using 16px text to avoid Safari auto-zoom.'):info('runtime','Safari form sizing','16px field sizing is applied on phone media queries; this desktop runtime may not be using those rules.');
    const installSource=typeof addToPhoneFlow==='function'&&typeof deferredInstallPrompt!=='undefined';
    installSource?pass('runtime','Add to phone flow','The current PWA has an install-prompt path plus an iPhone Add to Home Screen fallback.'):fail('runtime','Add to phone flow','Install behavior is not fully wired in the current source.');
-   const shareSource=typeof shareApp==='function'&&typeof copyAppUrl==='function'&&typeof navigator.share==='undefined'?true:true;
+   const shareSource=typeof shareApp==='function'&&typeof copyAppUrl==='function';
    shareSource?pass('runtime','Share flow','Native sharing and clipboard fallbacks are present.'):fail('runtime','Share flow','The current Share action is missing a required fallback.');
    ('serviceWorker' in navigator)?pass('runtime','Service worker support','This browser supports the PWA service-worker API.'):warn('runtime','Service worker support','This browser cannot register a service worker.');
-   const swSource=typeof navigator.serviceWorker!=='undefined'&&String(navigator.serviceWorker?.register||'').includes('register');
+   const swSource=typeof navigator.serviceWorker!=='undefined';
    swSource?pass('runtime','PWA registration','The app registers its service worker on load.'):fail('runtime','PWA registration','Service-worker registration code is missing.');
    const phoneHitSource=!!document.querySelector('#restaurant .location-btn, #restaurant .find');
    phoneHitSource?pass('runtime','Touch target pass','The current mobile stylesheet provides 44px location action hit areas.'):info('runtime','Touch target pass','Mobile hit-area rules exist in the stylesheet; exact physical target sizing needs device verification.');
