@@ -632,6 +632,12 @@ for (const item of (S.customQuickCuts||[])) {
   if(data){item.image=data;storedPhotoIds.add(key);changed=true;}else item.image='';
  }
 }
+for (const item of (S.deletedCustomMeals||[])) {
+ if(String(item.image||'').startsWith('idb:')){
+  const data=await getStoredPhoto(item.id);
+  if(data){item.image=data;storedPhotoIds.add(item.id);}else item.image=DEFAULT_FOOD_IMAGE;
+ }
+}
 if(changed && S.screen==='food'){ buildFood(); foodQuick(); drawFood(); }
 }
 function updateStorageIndicator() {
@@ -2468,7 +2474,7 @@ const body='<form class="add" id="foodEditorForm">'+
 '<label class="meal-editor-text-label">About this meal<textarea id="editFoodDescription" placeholder="A short description of the meal (optional)" rows="3">'+esc(descriptionText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
-'<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:')?item.image:'')+'">'+
+'<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:') && !String(item.image).startsWith('data:image/')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
 const renderEditorQuickCuts=focusId=>{
@@ -2483,7 +2489,7 @@ const renderEditorQuickCuts=focusId=>{
  host.insertAdjacentHTML('beforeend','<button type="button" class="quick-cut-custom-add" id="addCustomQuickCut"><span>＋</span><b>Custom</b><small>New box</small></button>');
  host.querySelectorAll('[data-custom-qc-file]').forEach(input=>input.onchange=async()=>{
    const id=input.dataset.customQcFile,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
-   try{const data=await readImageFile(input.files?.[0]);if(!data)return;const storageId='quickcut:'+id;const ok=await putStoredPhoto(storageId,data);if(!ok){appToast('Could not save that Quick Cut photo on this device.');return;}qc.image='idb:'+storageId;save();foodQuick();renderEditorQuickCuts(id);appToast('Quick Cut photo updated.');}catch(e){appToast(e.message);}
+   try{const data=await readImageFile(input.files?.[0]);if(!data)return;const storageId='quickcut:'+id;const ok=await putStoredPhoto(storageId,data);if(!ok){appToast('Could not save that Quick Cut photo on this device.');return;}qc.image=data;save();foodQuick();renderEditorQuickCuts(id);appToast('Quick Cut photo updated.');}catch(e){appToast(e.message);}
  });
  host.querySelectorAll('[data-custom-qc-rename]').forEach(input=>input.onchange=()=>{
    const id=input.dataset.customQcRename,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
@@ -2521,6 +2527,7 @@ const renderEditorQuickCuts=focusId=>{
    while(taken.has(name)){number++;name='Custom '+number;}
    const id='custom-qc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
    S.customQuickCuts.push({id,name,image:''});
+   existingCuts.push(name);
    save();renderEditorQuickCuts(id);
    const input=host.querySelector('[data-custom-qc-rename="'+id+'"]');input?.focus();input?.select();
  };
@@ -2578,7 +2585,7 @@ const previous=idx>=0?S.custom[idx]:null;
 if(photo.startsWith('data:image/')){
  const ok=await putStoredPhoto(id,photo);
  if(!ok){appToast('Could not save that photo on this device.');return;}
- photo='idb:'+id;
+
 }else if(String(photo).startsWith('idb:')){
  /* Existing device photo is intentionally preserved when no new upload was chosen. */
 }
@@ -2590,8 +2597,8 @@ const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
-if(photo.startsWith('data:image/')){const ok=await putStoredPhoto(id,photo);if(!ok){appToast('Could not save that photo on this device.');return;}photo='idb:'+id;}
-if(id!==item.id&&String(photo).startsWith('idb:')){const oldPhoto=await getStoredPhoto(item.id);if(oldPhoto){const ok=await putStoredPhoto(id,oldPhoto);if(!ok){appToast('Could not move the saved photo.');return;}photo='idb:'+id;}}
+if(photo.startsWith('data:image/')){const ok=await putStoredPhoto(id,photo);if(!ok){appToast('Could not save that photo on this device.');return;}}
+if(id!==item.id&&String(photo).startsWith('idb:')){const oldPhoto=await getStoredPhoto(item.id);if(oldPhoto){const ok=await putStoredPhoto(id,oldPhoto);if(!ok){appToast('Could not move the saved photo.');return;}photo=oldPhoto;}}
 const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
 if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
