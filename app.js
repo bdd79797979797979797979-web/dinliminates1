@@ -2894,6 +2894,11 @@ $('radius').addEventListener('change', () => {
  searchRestaurants();
 });
 $('address').addEventListener('input', () => {
+  if(locationRequestActive){
+    locationRequestSeq++;
+    locationRequestActive=false;
+    setLocationBusy(false);
+  }
   S.location=null;
   S.locationSource='typed';
   S.restaurantSearchOrigin=null;
@@ -2903,6 +2908,11 @@ $('address').addEventListener('input', () => {
 $('address').addEventListener('focus', () => {
   const input=$('address');
   if(!input)return;
+  if(locationRequestActive){
+    locationRequestSeq++;
+    locationRequestActive=false;
+    setLocationBusy(false);
+  }
   const current=input.value.trim();
   if(current){
     invalidateAddressSuggestions();
