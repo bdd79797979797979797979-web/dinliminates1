@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 752,
-  "sourceBranch": "cp752-home-cinematic",
-  "checkpoint": "CP752",
-  "deploymentTrigger": "CP752-home-cinematic-2026-10-02"
+  "build": 753,
+  "sourceBranch": "cp753-swipe-hint-fix",
+  "checkpoint": "CP753",
+  "deploymentTrigger": "CP753-swipe-hint-fix-2026-10-02"
 }
