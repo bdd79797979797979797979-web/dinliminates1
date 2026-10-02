@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 700,
-  "sourceBranch": "cp700-premium-home-actions",
-  "checkpoint": "CP700"
+  "build": 701,
+  "sourceBranch": "cp701-app-diagnosis-refresh",
+  "checkpoint": "CP701"
 }
