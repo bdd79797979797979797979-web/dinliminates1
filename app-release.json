@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 660,
-  "sourceBranch": "cp660-current-location-fallback",
-  "checkpoint": "CP660"
+  "build": 661,
+  "sourceBranch": "cp661-location-timeout-recovery",
+  "checkpoint": "CP661"
 }
