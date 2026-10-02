@@ -1043,7 +1043,7 @@ function dedupeRestaurantPool(rows){
   if(!match.category || /^(restaurant|eatery|food)$/i.test(String(match.category)))match.category=inferred.primary||'American';
   match.distance=Math.min(Number(match.distance)||Infinity,Number(row.distance)||Infinity);
  }
- return out.sort((a,b)=>Number(a.distance)-Number(b.distance);
+ return out.sort((a,b)=>Number(a.distance)-Number(b.distance));
 }
 function restaurantCanonicalId(row){
 const name=normKey(row?.name);
