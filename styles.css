@@ -3555,3 +3555,47 @@ button,input,select,textarea{
  .meal-editor-photo-section .file-label{justify-items:stretch;}
  .meal-editor-photo-section .file-label input{max-width:none;width:100%;box-sizing:border-box;}
 }
+
+/* CP713 — reusable Custom Quick Cut tiles + universal meal recovery. */
+.meal-category-editor .custom-taxonomy-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.quick-cut-tile{position:relative;display:flex;align-items:center;gap:7px;min-height:48px!important;padding:7px 8px!important;border:1px solid #302c27;border-radius:12px;background:linear-gradient(145deg,#191816,#121211);color:#d7cec1}
+.quick-cut-tile span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.custom-qc-tile{display:grid;gap:5px;padding:7px;border:1px solid #4b412f;border-radius:13px;background:linear-gradient(145deg,#1c1a17,#12110f);box-shadow:inset 0 0 0 1px #c6a46a12}
+.custom-qc-select{border:0!important;background:transparent!important;padding:0!important;min-height:40px!important}
+.custom-qc-photo{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background-size:cover;background-position:center;border:1px solid #4a4237}
+.custom-qc-label{font-size:9px!important;font-weight:850;color:#eee5d7}
+.custom-qc-tools{display:grid;grid-template-columns:34px minmax(0,1fr) 28px;gap:5px;align-items:center}
+.custom-qc-upload{position:relative;width:34px;height:30px;display:grid;place-items:center;border:1px solid #3d5962;border-radius:9px;background:#151c1f;color:#a9d4e0;font-size:13px;overflow:hidden}
+.custom-qc-upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.custom-qc-rename{height:30px!important;min-width:0!important;margin:0!important;padding:0 7px!important;font-size:10px!important;background:#171615!important}
+.custom-qc-delete{width:28px;height:30px;border:1px solid #5c3b37;border-radius:9px;background:#211817;color:#e1b1aa;font-size:15px;line-height:1}
+.quick-cut-custom-add{min-height:96px;border:1px dashed #69583a;border-radius:13px;background:linear-gradient(145deg,#1a1814,#11100e);color:#d9bd7e;display:grid;place-items:center;align-content:center;gap:2px;cursor:pointer}
+.quick-cut-custom-add span{font-size:23px;line-height:1}
+.quick-cut-custom-add b{font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.quick-cut-custom-add small{font-size:8px;color:#7e776b}
+#manageFoodsModal .manage-delete{color:#d6aaa2!important;border-color:#5c3b37!important}
+#manageFoodsModal .row-state.is-deleted{color:#d09d95!important}
+.deleted-meals-section{margin-top:16px;padding-top:13px;border-top:1px solid #302a22}
+.deleted-meals-heading{display:grid;gap:3px;margin-bottom:6px}
+.deleted-meals-heading h5{margin:2px 0 0;color:#e2d7ca;font-size:12px;text-transform:uppercase;letter-spacing:.1em}
+.deleted-meals-heading p{margin:0;color:#777168;font-size:9px;line-height:1.4}
+.reset-restore-view{display:grid;gap:14px;padding-bottom:4px}
+.reset-restore-hero{display:grid;gap:4px}
+.reset-restore-hero h4{margin:2px 0 0;color:#eee5da;font-size:24px;letter-spacing:-.035em}
+.reset-restore-hero p{margin:0;color:#8c857b;font-size:10px;line-height:1.5}
+.reset-restore-actions{display:grid;gap:8px}
+.reset-restore-option{width:100%;min-height:76px;padding:10px 12px;display:grid;grid-template-columns:36px minmax(0,1fr) 18px;gap:10px;align-items:center;border-radius:16px;text-align:left}
+.reset-restore-option .reset-restore-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#23211d;border:1px solid #423a2f;color:#d8bf8a;font-weight:900;font-size:16px}
+.reset-restore-option>span:nth-child(2){display:grid;gap:3px}
+.reset-restore-option b{font-size:12px;color:#eee6dc}
+.reset-restore-option small{font-size:9px;color:#8e887f;line-height:1.4}
+.reset-restore-option>span:last-child{font-size:22px;color:#6d665d;text-align:right}
+.reset-restore-option.restore-action{background:linear-gradient(145deg,#192d2b,#131b1a);border:1px solid #3a5b56;color:#d9e9df}
+.reset-restore-option.reset-action{background:linear-gradient(145deg,#281919,#171211);border:1px solid #633934;color:#f0c5bd}
+@media(max-width:430px){
+ .meal-category-editor .custom-taxonomy-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .custom-qc-tile{padding:6px}
+ .custom-qc-tools{grid-template-columns:32px minmax(0,1fr) 27px}
+ .custom-qc-upload{width:32px;height:29px}
+ .custom-qc-delete{width:27px;height:29px}
+}
