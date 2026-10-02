@@ -95,7 +95,7 @@ for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMA
 return imageProxyUrl(QUICK_IMAGES.American);
 }
 const KNOWN_RESTAURANT_WEBSITES={
-  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
+  "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"the thirsty goat":'https://www.thirstygoatsango.com',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
 };
 function knownRestaurantWebsite(row){
  const name=normKey(row?.name),brand=normKey(row?.brand);
@@ -297,6 +297,8 @@ function bindHomeImageFallbacks(){
 }
 const restaurantPhotoInflight=new Map();
 const restaurantPhotoCache=new Map();
+const restaurantPhotoMissCache=new Map();
+const RESTAURANT_PHOTO_MISS_TTL=15*60*1000;
 const RESTAURANT_PHOTO_CACHE_NAME='dinliminate.restaurant.photos.v1';
 const RESTAURANT_PHOTO_CACHE_MAX_AGE=30*24*60*60*1000;
 const RESTAURANT_PHOTO_PREFETCH_COUNT=2;
@@ -382,21 +384,14 @@ function setRestaurantPhotoCredit(card,attributions){
  credit.innerHTML='Photo by '+safe.map(x=>'<a href="'+esc(x.uri)+'" target="_blank" rel="noopener noreferrer">'+esc(x.name)+'</a>').join(', ');
  credit.classList.add('is-visible');
 }
-async function hydrateRestaurantPhoto(row,scope){
- if(!row)return;
+async function loadRestaurantPhoto(row){
+ if(!row)return null;
  const rowKey=String(row.id||row.canonicalId||'').trim();
- if(!rowKey)return;
- const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
+ if(!rowKey)return null;
  const cacheHit=restaurantPhotoCache.get(rowKey);
- if(cacheHit?.url){
-  imgs.forEach(img=>{
-   if(!img.isConnected)return;
-   img.src=cacheHit.url;
-   img.dataset.restaurantPhotoLoaded='true';
-   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions);
-  });
-  return;
- }
+ if(cacheHit?.url)return cacheHit;
+ const missAt=Number(restaurantPhotoMissCache.get(rowKey)||0);
+ if(missAt&&Date.now()-missAt<RESTAURANT_PHOTO_MISS_TTL)return null;
  let pending=restaurantPhotoInflight.get(rowKey);
  if(!pending){
   const params=new URLSearchParams();
@@ -409,8 +404,8 @@ async function hydrateRestaurantPhoto(row,scope){
   const source=String(row.source||'');
   const osmPhoto=safeExternalUrl(row.photo);
   if(source.startsWith('OpenStreetMap')&&osmPhoto){
-    params.set('osmExact','1');
-    params.set('osmImage',osmPhoto);
+   params.set('osmExact','1');
+   params.set('osmImage',osmPhoto);
   }
   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
@@ -419,29 +414,43 @@ async function hydrateRestaurantPhoto(row,scope){
    const stored=await getPersistentRestaurantPhoto(row);
    if(stored)return stored;
    const res=await fetch(requestUrl,{cache:'force-cache'});
-   if(!res.ok)throw new Error('Restaurant photo unavailable');
+   if(!res.ok){
+    restaurantPhotoMissCache.set(rowKey,Date.now());
+    throw new Error('Restaurant photo unavailable');
+   }
    const blob=await res.blob();
-   if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
+   if(!blob.type.startsWith('image/')){
+    restaurantPhotoMissCache.set(rowKey,Date.now());
+    throw new Error('Restaurant photo response was not an image');
+   }
    const attributions=decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions'));
    const sourceName=String(res.headers.get('X-Restaurant-Photo-Source')||'').trim();
    await putPersistentRestaurantPhoto(row,blob,attributions,sourceName);
    return {url:URL.createObjectURL(blob),attributions,source:sourceName};
   })().then(data=>{
    restaurantPhotoCache.set(rowKey,data);
+   restaurantPhotoMissCache.delete(rowKey);
    if(data.source)row.photoSource=data.source;
    return data;
   }).finally(()=>restaurantPhotoInflight.delete(rowKey));
   restaurantPhotoInflight.set(rowKey,pending);
  }
- try{
-  const data=await pending;
-  imgs.forEach(img=>{
-   if(!img.isConnected)return;
-   img.src=data.url;
-   img.dataset.restaurantPhotoLoaded='true';
-   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
-  });
- }catch{}
+ try{return await pending;}catch{return null;}
+}
+async function hydrateRestaurantPhoto(row,scope){
+ if(!row)return;
+ const rowKey=String(row.id||row.canonicalId||'').trim();
+ if(!rowKey)return;
+ const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
+ if(!imgs.length)return;
+ const data=await loadRestaurantPhoto(row);
+ if(!data?.url)return;
+ imgs.forEach(img=>{
+  if(!img.isConnected)return;
+  img.src=data.url;
+  img.dataset.restaurantPhotoLoaded='true';
+  setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
+ });
 }
 
 function prefetchRestaurantPhotos(rows,startIndex,count=RESTAURANT_PHOTO_PREFETCH_COUNT){
@@ -453,7 +462,7 @@ function prefetchRestaurantPhotos(rows,startIndex,count=RESTAURANT_PHOTO_PREFETC
   if(row)targets.push(row);
  }
  if(!targets.length)return;
- const run=()=>targets.forEach(row=>{hydrateRestaurantPhoto(row,'#restStage').catch(()=>{});});
+ const run=()=>targets.forEach(row=>{loadRestaurantPhoto(row).catch(()=>{});});
  if(typeof window.requestIdleCallback==='function')window.requestIdleCallback(run,{timeout:1200});
  else window.setTimeout(run,350);
 }
@@ -2629,7 +2638,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
