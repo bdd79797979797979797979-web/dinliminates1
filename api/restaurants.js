@@ -834,10 +834,10 @@ function applyGoogleContactPatches(rows,patches){
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 const RESTAURANT_NAME_VARIANT_BLOCKERS=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameTokens(value){
-  let text=norm(String(value||'').replace(/[’']s\\b/gi,' '));
-  text=text.replace(/\\bbar(?:-?\\s*)?b(?:-?\\s*)?q\\b/g,'bbq');
-  text=text.replace(/\\bbarbecue\\b/g,'bbq');
-  text=text.replace(/\\bb\\s+q\\b/g,'bbq');
+  let text=norm(String(value||'').replace(/[’']s\b/gi,' '));
+  text=text.replace(/\bbar\s+b\s+q\b/g,'bbq');
+  text=text.replace(/\bbarbecue\b/g,'bbq');
+  text=text.replace(/\bb\s+q\b/g,'bbq');
   return text.split(' ').filter(Boolean);
 }
 function nameVariantMatch(a,b){
