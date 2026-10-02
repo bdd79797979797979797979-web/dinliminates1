@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 747,
+  "build": 748,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
-  "checkpoint": "CP747",
-  "deploymentTrigger": "CP747-collapsible-quick-cuts-2026-10-02"
+  "checkpoint": "CP748",
+  "deploymentTrigger": "CP748-dismiss-swipe-hint-2026-10-02"
 }
