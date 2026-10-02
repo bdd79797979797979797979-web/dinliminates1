@@ -1345,7 +1345,8 @@ let locationRequestActive = false;
 let locationRequestSeq = 0;
 function renderFindButton(){
  const btn=$('find');if(!btn)return;
- const state=S.location?'refresh':'find';
+ const hasSearchTarget=!!S.location || !!$('address')?.value.trim();
+ const state=hasSearchTarget?'refresh':'find';
  const label=state==='refresh'?'Refresh restaurant search using this location and radius':'Find restaurants near the selected location';
  btn.dataset.state=state;
  btn.title=label;
@@ -1358,7 +1359,8 @@ function setFindBusy(busy) {
 const btn=$('find'); if(!btn)return;
 btn.disabled=busy;
 btn.setAttribute('aria-busy',String(busy));
-const state=busy?'busy':(S.location?'refresh':'find');
+const hasSearchTarget=!!S.location || !!$('address')?.value.trim();
+ const state=busy?'busy':(hasSearchTarget?'refresh':'find');
 btn.dataset.state=state;
 btn.title=busy?'Searching for restaurants…':(state==='refresh'?'Refresh restaurant search using this location and radius':'Find restaurants near the selected location');
 btn.innerHTML=busy
@@ -1827,7 +1829,8 @@ function closeRestaurantSearch(){
  save();
 }
 function bindRestaurantTools(){
- $('restaurantSearch').onclick=()=>{
+ const restaurantSearchButton=$('restaurantSearch');
+ if(restaurantSearchButton) restaurantSearchButton.onclick=()=>{
    const box=$('restaurantSearchBox');
    if(!box)return;
    const willOpen=box.classList.contains('hidden');
@@ -1840,7 +1843,7 @@ function bindRestaurantTools(){
    $('restaurantQuery').value=S.restaurantQuery;
    renderRestaurantSearchControl();
    $('restaurantQuery').focus();
- }
+ };
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
    S.restaurantQuery=$('restaurantQuery').value;
