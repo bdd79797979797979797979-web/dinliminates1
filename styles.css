@@ -2091,10 +2091,10 @@ button,a,select{touch-action:manipulation}
 }
 .unified-swipe-actions .round-show-maybe:disabled{opacity:.38!important}
 @keyframes decisionButtonJump{
-  0%{transform:translateY(0) scale(1)}
-  38%{transform:translateY(-3px) scale(.975)}
-  72%{transform:translateY(1px) scale(.985)}
-  100%{transform:translateY(0) scale(1)}
+  0%{transform:scale(1)}
+  38%{transform:scale(.975)}
+  72%{transform:scale(.985)}
+  100%{transform:scale(1)}
 }
 .unified-swipe-actions .round-action.decision-button-jump{
   animation:decisionButtonJump .24s cubic-bezier(.22,1,.36,1);
@@ -2346,78 +2346,6 @@ button,a,select{touch-action:manipulation}
   }
   .unified-swipe-actions .round-show-maybe .deck-filter-heart{font-size:16px!important}
   .unified-swipe-actions .round-show-maybe .deck-filter-all{font-size:15px!important}
-}
-
-
-/* CP684 — fix Restaurant swipe-rail specificity conflict.
-   CP567 constrained #restaurant .swipe-actions to 255px, which caused
-   the fourth All/Maybe circle to overlap Cut/Maybe. The Restaurant rail
-   now explicitly inherits the same full-width centered four-slot layout
-   as Meals. */
-#restaurant .unified-swipe-actions{
-  position:relative!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  flex-direction:row!important;
-  flex-wrap:nowrap!important;
-  width:100%!important;
-  max-width:100%!important;
-  min-height:64px!important;
-  margin:13px auto 5px!important;
-  padding:0!important;
-  gap:10px!important;
-  box-sizing:border-box!important;
-}
-#restaurant .unified-swipe-actions .round-action,
-#restaurant .unified-swipe-actions .round-show-maybe{
-  position:static!important;
-  inset:auto!important;
-  left:auto!important;
-  right:auto!important;
-  top:auto!important;
-  margin:0!important;
-  transform:none!important;
-  flex:0 0 auto!important;
-}
-#restaurant .unified-swipe-actions .round-back{
-  width:44px!important;
-  min-width:44px!important;
-  height:44px!important;
-  min-height:44px!important;
-}
-#restaurant .unified-swipe-actions .round-cut,
-#restaurant .unified-swipe-actions .round-maybe{
-  width:60px!important;
-  min-width:60px!important;
-  height:60px!important;
-  min-height:60px!important;
-}
-#restaurant .unified-swipe-actions .round-show-maybe{
-  width:44px!important;
-  min-width:44px!important;
-  height:44px!important;
-  min-height:44px!important;
-}
-@media(max-width:390px){
-  #restaurant .unified-swipe-actions{
-    gap:8px!important;
-    min-height:60px!important;
-  }
-  #restaurant .unified-swipe-actions .round-back,
-  #restaurant .unified-swipe-actions .round-show-maybe{
-    width:42px!important;
-    min-width:42px!important;
-    height:42px!important;
-    min-height:42px!important;
-  }
-  #restaurant .unified-swipe-actions .round-cut,
-  #restaurant .unified-swipe-actions .round-maybe{
-    width:58px!important;
-    min-width:58px!important;
-    height:58px!important;
-    min-height:58px!important;
-  }
 }
 
 
@@ -3614,3 +3542,9 @@ button,input,select,textarea{
 .history-calendar .cal-photo-wrap{position:relative;display:flex;align-items:stretch;justify-content:center;min-width:0;}
 .history-calendar .cal-photo-wrap .cal-photo-link{width:100%;}
 .history-calendar .cal-entry-x{position:absolute;top:-6px;right:-5px;width:21px;height:21px;min-width:21px;min-height:21px;border:1px solid #4b4437;border-radius:50%;background:#090909e8;color:#fff;font-size:11px;line-height:18px;padding:0;display:grid;place-items:center;z-index:25;box-shadow:0 3px 10px #000b;}
+
+
+/* CP711 - parity pass for Meal + Restaurant decision controls. */
+.unified-swipe-actions .round-action{transform-origin:center center!important;will-change:transform;}
+.unified-swipe-actions .round-action.decision-button-jump{animation:decisionButtonJump .24s cubic-bezier(.22,1,.36,1)!important;}
+.unified-swipe-actions .round-cut:active,.unified-swipe-actions .round-maybe:active,.unified-swipe-actions .round-back:active{transform:scale(.94)!important;}
