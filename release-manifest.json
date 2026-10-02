@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 757,
-  "sourceBranch":"cp757-home-reference-refine",
+  "build": 758,
+  "sourceBranch":"cp758-all-maybe-placement",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint":"CP757"
+  "checkpoint":"CP758"
 }
