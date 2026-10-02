@@ -22,13 +22,21 @@ const RESTAURANT_TAXONOMY={
   restaurantIdentityKey:()=>'', 
   classifyRestaurant:()=>({tags:[],primary:'American'})
 };
-const {dedupeRestaurantPool,restaurantNameFamily,restaurantNameSimilarityUI,restaurantAddressSimilarityUI}=factory(normKey,milesBetween,RESTAURANT_TAXONOMY);
+const {dedupeRestaurantPool,restaurantNameFamily,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI}=factory(normKey,milesBetween,RESTAURANT_TAXONOMY);
 
 const row=(id,name,address,lat,lon,source)=>({id,name,address,lat,lon,distance:1,source});
 assert.equal(restaurantNameFamily('Excell Market Bar-B-Q'),'excell market bbq','Frontend must canonicalize Bar-B-Q');
 assert.ok(restaurantNameSimilarityUI('Excell BBQ','Excell Market Bar-B-Q')>=0.60,'Excell name variants must match');
 assert.ok(restaurantNameSimilarityUI('Strippers Chicken','Chicken Strippers')>=0.60,'Strippers Chicken variants must match');
 assert.ok(restaurantAddressSimilarityUI('3102 Ashland City Rd, Clarksville, TN 37043','3102 Ashland City Road, Clarksville, Tennessee 37043')>=0.90,'Equivalent addresses must match');
+assert.ok(typeof restaurantNameCoreMatchUI==='function','Core restaurant name matcher must exist');
+assert.equal(restaurantNameCoreMatchUI('Excell Market & BBQ','Excell Bar-B-Q'),true,'Excell variants must share a core restaurant identity token');
+
+const exactExcell=dedupeRestaurantPool([
+ row('ex1','Excell Market & BBQ','3102 Ashland City Rd, Clarksville, TN 37043',36.5304,-87.3601,'OpenStreetMap'),
+ row('ex2','Excell Bar-B-Q','3102 Ashland City Road, Clarksville, TN 37043',36.53042,-87.36008,'ArcGIS')
+]);
+assert.equal(exactExcell.length,1,'Exact reported Excell Market & BBQ / Excell Bar-B-Q duplicate must collapse to one result');
 
 assert.equal(dedupeRestaurantPool([
  row('a','Excell BBQ','3102 Ashland City Rd, Clarksville, TN 37043',36.5304,-87.3601,'OpenStreetMap'),
