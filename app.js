@@ -2131,6 +2131,7 @@ return '<path d="'+d+'" fill="'+fills[index%fills.length]+'" stroke="#0b0b0b" st
 }).join('')+
 '<circle cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.5"/>'+
 '<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
+svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
 svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
 }
 function hungryWheelPool(){
@@ -2278,6 +2279,7 @@ others.splice(landingIndex,0,item);
 S.hungryWheelDisplayItems=others;
 renderHungryWheel();
 const rotation=S.hungryWheelRotation+360;
+svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
 S.hungryWheelRotation=rotation;
 S.hungryWheelChoice=item;
 S.hungryWheelSpinning=true;
@@ -2291,6 +2293,7 @@ void svg.offsetWidth;
 svg.classList.add('is-spinning');
 const finish=()=>{
  if(spinToken!==S.hungryWheelSpinToken)return;
+ svg.style.setProperty('--wheel-resting-rotation',rotation+'deg');
  svg.classList.remove('is-spinning');
  S.hungryWheelSpinning=false;
  if(spin)spin.setAttribute('aria-busy','false');
