@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const release=JSON.parse(fs.readFileSync(path.join(root,'release.json'),'utf8'));
+const release=JSON.parse(fs.readFileSync(path.join(root,'app-release.json'),'utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.png':'image/png'};
 const server=http.createServer((req,res)=>{
   const pathname=decodeURIComponent((req.url||'/').split('?')[0]);
@@ -311,7 +311,8 @@ report["3_radius"].maxRadiusVerified=true;
 
 // 4. Restaurant Search box: provider request plus local result presentation.
 report["4_search_restaurants"]={};
-await page.locator('#restaurantSearch').click(); await settle();
+assert.equal(await page.locator('#restaurantSearch').count(),0,'Restaurant Search opener must remain hidden for now'); await page.locator('#restaurantQuery').evaluate(el=>el.classList.contains('hidden')||el.closest('#restaurantSearchBox')?.classList.contains('hidden'));
+await settle();
 requests.length=0;
 await page.locator('#restaurantQuery').fill('Mcdonalds');
 await settle();
@@ -438,7 +439,7 @@ report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalize
 // 5. Restaurant hours are informational only; they must not filter the decision deck.
 report["5_hours_model"]={open:'open',closed:'closed',unknown:'unknown',normalizedStateUsed:true};
 report["5_open_all"]={controlPresent:false,nonFiltering:true};
-assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant Open/All hours control must be absent');
+assert.equal(await page.locator('#hoursToggle').count(),0,'Restaurant Open/All hours control must remain hidden for now');
 const noHoursSnap=await page.evaluate(()=>window.__DINLIMINATE_QA__?.snapshot());
 assert.ok(noHoursSnap.restaurantPool.includes('closed'),'Closed restaurants must remain in the decision pool; hours must not filter results');
 await page.locator('#restDetails').click(); await page.waitForTimeout(120);
