@@ -1,7 +1,7 @@
 const assert=require('assert/strict');
 const fs=require('fs'),vm=require('vm');
 const apiSrc=fs.readFileSync('api/restaurants.js','utf8');
-assert(apiSrc.includes("const API_VERSION='r22'"),'Restaurant API should report r22 after current radius discovery hardening');
+assert(apiSrc.includes("const API_VERSION='r25'"),'Restaurant API should report r25 after current radius discovery hardening');
 assert(apiSrc.includes('WIDE_DISCOVERY_RESERVE_MS'),'Wide searches must reserve time for geographic discovery');
 assert(apiSrc.includes('WIDE_RADIUS_THRESHOLD=25'),'Wide discovery threshold should remain above 25 miles');
 assert(apiSrc.includes('async function wideRadiusOverpass'),'Wide searches must use the multi-batch Overpass path');
