@@ -4,6 +4,8 @@ on:
   push:
     branches: [cp715-restaurant-maybe-home-winner]
   workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 jobs:
   hungry-wheel-user-test:
