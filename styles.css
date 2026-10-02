@@ -5069,3 +5069,12 @@ button,input,select,textarea{
   #restaurant .restaurant-all-maybe-toggle > span{min-width:36px!important;padding:0 5px!important}
   #restaurant .restaurant-choice-management .quick-cuts-label{font-size:10px!important}
 }
+
+
+/* CP733 — prevent the hungry wheel from animating back to zero after one spin. */
+.hungry-wheel-ring svg{
+  transition:none!important;
+}
+.hungry-wheel-ring svg.is-spinning{
+  transition:transform 4.15s cubic-bezier(.12,.72,.11,1)!important;
+}
