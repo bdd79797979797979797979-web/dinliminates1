@@ -73,6 +73,8 @@ restaurantSearchDegraded:false,
 locationFreshAt:null,
 winnerItem:null,
 winnerType:'food',
+hungryWheelChoice:null,
+hungryWheelSpinning:false,
 schemaVersion:4,
 notes:{},
 restaurantTimezone:'',
@@ -2093,18 +2095,101 @@ function triggerWinnerMoment(hungry=false){
  }
 }
 
+function wheelPoint(cx,cy,r,angle){
+const rad=angle*Math.PI/180;
+return {x:cx+Math.cos(rad)*r,y:cy+Math.sin(rad)*r};
+}
+function renderHungryWheel(){
+const svg=$('hungryWheel');
+const countEl=$('hungryWheelCount');
+if(!svg)return;
+const items=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+const pool=items.length?items:allFoods();
+if(countEl)countEl.textContent=pool.length+' meals on the wheel';
+const cx=180,cy=180,r=168,inner=34,step=360/Math.max(1,pool.length);
+const fills=['#22211e','#2b2924','#333028','#272624','#302d28','#242321'];
+svg.setAttribute('aria-label','Dinner wheel with '+pool.length+' available meals');
+svg.innerHTML=pool.map((item,index)=>{
+const start=-90+index*step, end=start+step-.14;
+const p1=wheelPoint(cx,cy,r,start),p2=wheelPoint(cx,cy,r,end);
+const q1=wheelPoint(cx,cy,inner,end),q2=wheelPoint(cx,cy,inner,start);
+const d='M '+p1.x.toFixed(2)+' '+p1.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+p2.x.toFixed(2)+' '+p2.y.toFixed(2)+' L '+q1.x.toFixed(2)+' '+q1.y.toFixed(2)+' A '+inner+' '+inner+' 0 0 0 '+q2.x.toFixed(2)+' '+q2.y.toFixed(2)+' Z';
+const escaped=esc(item.name||'Meal');
+return '<path d="'+d+'" fill="'+fills[index%fills.length]+'" stroke="#0b0b0b" stroke-width="1.1"><title>'+escaped+'</title></path>';
+}).join('')+
+'<circle cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.5"/>'+
+'<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
+svg.style.setProperty('--wheel-rotation','0deg');
+}
+function hungryWheelPool(){
+const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+return active.length?active:allFoods();
+}
+function showHungryWheelResult(item){
+const result=$('hungryWheelResult'),name=$('hungryWheelResultName'),img=$('hungryWheelResultImg'),choose=$('hungryWheelChoose'),spin=$('hungryWheelSpin');
+if(name)name.textContent=item?.name||'';
+if(img){
+ const src=foodPhoto(item);
+ img.src=src;
+ img.alt=item?.name||'Chosen meal';
+ img.onerror=function(){
+   const fb=foodPhotoFallback(item);
+   if(this.src!==fb)this.src=fb;
+ };
+}
+result?.classList.remove('hidden');
+if(choose){choose.disabled=false;choose.classList.remove('hidden');}
+if(spin){spin.disabled=false;spin.textContent='Spin Again';}
+}
+function spinHungryWheel(){
+const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+if(!svg||S.hungryWheelSpinning)return;
+const pool=hungryWheelPool();
+if(!pool.length){appToast('There are no meals available to spin.');return;}
+const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
+const selectedIndex=Number.isInteger(forced)&&forced>=0&&forced<pool.length?forced:Math.floor(Math.random()*pool.length);
+const item=pool[selectedIndex];
+const step=360/pool.length;
+const centerAngle=-90+(selectedIndex+.5)*step;
+const rotation=1800-90-centerAngle;
+S.hungryWheelChoice=item;
+S.hungryWheelSpinning=true;
+if(spin)spin.disabled=true;
+$('hungryWheelChoose')?.classList.add('hidden');
+$('hungryWheelResult')?.classList.add('hidden');
+svg.style.setProperty('--wheel-rotation',rotation+'deg');
+svg.classList.remove('is-spinning');
+void svg.offsetWidth;
+svg.classList.add('is-spinning');
+const finish=()=>{
+ svg.classList.remove('is-spinning');
+ S.hungryWheelSpinning=false;
+ showHungryWheelResult(item);
+};
+svg.addEventListener('transitionend',finish,{once:true});
+window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
+}
 function winner(item) {
 S.winnerItem = item;
 S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
 if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
 show('winner');
 const hungry = item?.category === 'Hungry';
+S.hungryWheelChoice=null;
+S.hungryWheelSpinning=false;
 const detailsBtn=$('details');
 if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
+$('winner')?.classList.toggle('hungry-mode',hungry);
+$('winName').classList.toggle('hidden',hungry);
+$('hungryWheelPanel')?.classList.toggle('hidden',!hungry);
+$('hungryWheelPanel')?.setAttribute('aria-hidden',String(!hungry));
+$('hungryNote').textContent=hungry?"You eliminated everything. It’s either this or Fish Sticks.":'';
+$('hungryNote').classList.toggle('hidden',!hungry);
 $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
 if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
+winImg.classList.toggle('hidden',hungry);
 const winnerBaseFallback=S.winnerType==='restaurant'?restaurantFallbackImage(item):HUNGRY_IMAGE;
 const winnerImage=imageProxyUrl(item?.image || item?.photo || item?.photoFallback || winnerBaseFallback);
 const winnerFallback=imageProxyUrl(item?.photoFallback || item?.image || winnerBaseFallback);
@@ -2120,12 +2205,18 @@ winImg.onerror=function(){
   if(!String(current||'').startsWith('data:image/svg') && HUNGRY_IMAGE){this.src=HUNGRY_IMAGE;}
 };
 winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||'');
-if ($('celebration')) $('celebration').classList.toggle('hidden', hungry); triggerWinnerMoment(hungry);
- const hungryNote=$('hungryNote'); if(hungryNote){hungryNote.textContent=hungry?'Fish Sticks?':''; hungryNote.classList.toggle('hidden',!hungry);}
- if (!hungry) {
-   triggerCelebration();
-   hydrateRestaurantPhoto(item,'#winner');
- }
+if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
+triggerWinnerMoment(hungry);
+if(hungry){
+  renderHungryWheel();
+  $('hungryWheelResult')?.classList.add('hidden');
+  $('hungryWheelChoose')?.classList.add('hidden');
+  const spinBtn=$('hungryWheelSpin');
+  if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';}
+}else{
+  triggerCelebration();
+  hydrateRestaurantPhoto(item,'#winner');
+}
 save();
 }
 function openModal(id, title, body) {
