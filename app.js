@@ -2252,9 +2252,9 @@ const finish=()=>{
 svg.addEventListener('transitionend',finish,{once:true});
 window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
 }
-function winner(item) {
+function winner(item, explicitType=null) {
 S.winnerItem = item;
-S.winnerType = S.screen === 'restaurant' ? 'restaurant' : 'food';
+S.winnerType = explicitType || (S.screen === 'restaurant' ? 'restaurant' : 'food');
 if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
 show('winner');
 const hungry = item?.category === 'Hungry';
@@ -3403,7 +3403,7 @@ $('hungryWheelChoose').onclick = () => {
   const choice=S.hungryWheelChoice;
   if(!choice || S.hungryWheelSpinning)return;
   S.hungryWheelChoice=null;
-  winner(choice);
+  winner(choice,'food');
 };
 $('hungryMysteryReveal').onclick = revealHungryRestaurant;
 $('hungryMysteryAgain').onclick = tryAnotherHungryRestaurant;
@@ -3411,7 +3411,7 @@ $('hungryMysteryChoose').onclick = () => {
   const choice=S.hungryRestaurantChoice;
   if(!choice)return;
   S.hungryRestaurantChoice=null;
-  winner(choice);
+  winner(choice,'restaurant');
 };
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
