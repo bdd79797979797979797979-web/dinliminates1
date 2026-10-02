@@ -1,0 +1,26 @@
+name: Dinliminate CP712 Meal Editing QA
+
+on:
+  push:
+    branches:
+      - 'cp712-audit-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  meal-editing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Syntax checks
+        run: node --check app.js && node --check data/foods.js && node --check qa/cp712-meal-editing.cjs
+      - name: CP712 meal editing QA
+        run: node qa/cp712-meal-editing.cjs
