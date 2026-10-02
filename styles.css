@@ -2090,24 +2090,6 @@ button,a,select{touch-action:manipulation}
   border-color:#4a7890!important;
 }
 .unified-swipe-actions .round-show-maybe:disabled{opacity:.38!important}
-@keyframes decisionButtonJump{
-  0%{transform:scale(1)}
-  38%{transform:scale(.975)}
-  72%{transform:scale(.985)}
-  100%{transform:scale(1)}
-}
-.unified-swipe-actions .round-action.decision-button-jump{
-  animation:decisionButtonJump .24s cubic-bezier(.22,1,.36,1);
-}
-@media(prefers-reduced-motion:reduce){
-  .unified-swipe-actions .round-action.decision-button-jump{animation:none;transform:scale(.97);}
-}
-.unified-swipe-actions .round-cut:active,
-.unified-swipe-actions .round-maybe:active,
-.unified-swipe-actions .round-back:active,
-.unified-swipe-actions .round-show-maybe:active{
-  transform:scale(.94)!important;
-}
 .detail-hide-icon{
   display:inline-flex!important;
   align-items:center!important;
@@ -3545,6 +3527,8 @@ button,input,select,textarea{
 
 
 /* CP711 - parity pass for Meal + Restaurant decision controls. */
-.unified-swipe-actions .round-action{transform-origin:center center!important;will-change:transform;}
-.unified-swipe-actions .round-action.decision-button-jump{animation:decisionButtonJump .24s cubic-bezier(.22,1,.36,1)!important;}
-.unified-swipe-actions .round-cut:active,.unified-swipe-actions .round-maybe:active,.unified-swipe-actions .round-back:active{transform:scale(.94)!important;}
+.unified-swipe-actions .round-action{transform-origin:center center!important;}
+.unified-swipe-actions .round-cut:active,
+.unified-swipe-actions .round-maybe:active,
+.unified-swipe-actions .round-back:active,
+.unified-swipe-actions .round-show-maybe:active{transform:scale(.94)!important;}
