@@ -1,4 +1,5 @@
 name: CP722 Decision UI User Test
+# Browser QA for top-row filters, card utilities, decision rails, and Hungry recovery
 
 on:
   push:
