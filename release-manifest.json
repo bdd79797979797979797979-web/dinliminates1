@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 760,
-  "sourceBranch":"cp760-home-single-background-windows",
+  "build": 762,
+  "sourceBranch":"cp762-home-cleanup",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint":"CP760"
+  "checkpoint":"CP762"
 }
