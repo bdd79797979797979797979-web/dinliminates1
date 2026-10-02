@@ -5724,7 +5724,7 @@ button,input,select,textarea{
   box-shadow:none!important;
 }
 .luxury-home .home-card-photo.is-pressed .home-card-overlay{opacity:.8!important}
-.luxury-home .home-first-nudge{display:none!important}
+
 @media(max-width:390px){
   .app:has(#home:not(.hidden)) .app-topbar{height:84px!important;padding:0 12px!important}
   .app:has(#home:not(.hidden)) .app-topbar .brand{font-size:clamp(40px,12.8vw,54px)!important}
@@ -5745,4 +5745,60 @@ button,input,select,textarea{
   .luxury-home .home-actions{margin-top:12px!important}
   .luxury-home .home-card-copy{bottom:11px!important}
   .luxury-home .home-card-copy strong{font-size:22px!important}
+}
+
+
+/* CP757 — reference refinement: soft editorial transition and restrained onboarding cue. */
+.luxury-home .food-choice::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:-1px!important;
+  top:auto!important;
+  height:54px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:linear-gradient(180deg,transparent 0%,rgba(7,6,5,.24) 42%,rgba(7,6,5,.82) 100%)!important;
+  pointer-events:none!important;
+  z-index:2!important;
+}
+.luxury-home .restaurant-choice::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:auto!important;
+  height:42px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:linear-gradient(180deg,rgba(7,6,5,.78) 0%,rgba(7,6,5,.22) 58%,transparent 100%)!important;
+  pointer-events:none!important;
+  z-index:2!important;
+}
+.luxury-home .home-first-nudge{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  bottom:62px!important;
+  transform:translateX(-50%)!important;
+  z-index:6!important;
+  color:rgba(247,230,191,.72)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:9px!important;
+  font-style:italic!important;
+  letter-spacing:.10em!important;
+  text-shadow:0 2px 10px rgba(0,0,0,.78)!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  white-space:nowrap!important;
+  transition:opacity .48s ease,transform .48s ease!important;
+}
+.luxury-home .home-first-nudge.is-faded{
+  opacity:0!important;
+  transform:translateX(-50%) translateY(4px)!important;
+}
+@media(max-width:390px){
+  .luxury-home .home-first-nudge{bottom:57px!important;font-size:8px!important}
 }
