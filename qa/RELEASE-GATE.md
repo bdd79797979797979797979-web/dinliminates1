@@ -1,11 +1,11 @@
-# Dinliminate Launch QA Gate — Build 707 / CP707
+# Dinliminate Launch QA Gate — Build 708 / CP708
 
 Date: 2026-10-02
 
 ## Current candidate
-- Working branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+- Working branch: `cp708-full-audit-final-hardening`
 - Clean recovery baseline: `clean-cp704-2026-10-02`
-- Release: Version 1.0 / Build 707 / CP707
+- Release: Version 1.0 / Build 708 / CP708
 - Restaurant API: r25
 - Radius tiers: 1 / 3 / 5 / 10 / 25 / 50 / 100 miles
 - Hosted test target: `dinliminate22`
@@ -21,6 +21,11 @@ Date: 2026-10-02
 - Restaurant card utilities use 44px touch targets.
 - Active static/browser/iPhone/hosted QA contracts are synchronized to current release identity and r25.
 - Notes retain per-note Add/Edit/Delete behavior for Meals and Restaurants.
+
+## Additional hardening completed
+- Restaurant website/photo external fetches validate each redirect hop before following it.
+- Active QA no longer depends on the obsolete release.json file or retired CP487-era contracts.
+- Visual smoke covers Home, Meal, Winner, Settings, and the Restaurant start surface.
 
 ## Launch gates still requiring real evidence
 1. Static/data/syntax QA
