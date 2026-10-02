@@ -860,17 +860,19 @@ function dismissSwipeHint(){
  const el=document.querySelector('#swipeHint');
  if(!el)return;
  el.remove();
- try{localStorage.setItem('dinliminate.swipeHint.v2','1')}catch{}
+ try{localStorage.setItem('dinliminate.swipeHint.v3','1')}catch{}
 }
 function maybeShowSwipeHint(){
-try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;}catch{}
+try{if(localStorage.getItem('dinliminate.swipeHint.v3'))return;}catch{}
 document.querySelector('#swipeHint')?.remove();
 const el=document.createElement('button');
 el.id='swipeHint';
 el.type='button';
 el.className='swipe-hint';
-el.setAttribute('aria-label','Dismiss swipe directions');
-el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
+el.setAttribute('aria-label','Swipe instructions. Tap to dismiss.');
+el.setAttribute('title','Tap to dismiss');
+el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span><span class="swipe-hint-dismiss" aria-hidden="true">×</span>';
+el.onpointerup=(event)=>{event.preventDefault();event.stopPropagation();dismissSwipeHint();};
 el.onclick=(event)=>{event.preventDefault();event.stopPropagation();dismissSwipeHint();};
 document.body.appendChild(el);
 }
