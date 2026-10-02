@@ -328,7 +328,6 @@ function structuredRestaurantMatches(html,name,address){
 
 function strictPageMatchesRestaurant(html,name,address){
   const source=String(html||'');
-  if(structuredRestaurantMatches(source,name,address))return true;
   const hay=normalizeMatchText(source.slice(0,1400000));
   const tokens=significantNameTokens(name);
   if(!tokens.length)return false;
@@ -386,6 +385,7 @@ function venueScore(candidate,name,address,website){
   if(FOOD_IMAGE_HINTS.test(context))score-=Math.min(120,foodHits*24);
   if(candidate.source==='img')score+=8;
   if(candidate.source==='background')score+=3;
+  if(LOW_QUALITY_IMAGE_HINTS.test(String(candidate?.url||'')))score-=28;
   const websiteHost=hostOf(website);
   const candidateHost=hostOf(candidate.url);
   if(websiteHost&&candidateHost&&(candidateHost===websiteHost||candidateHost.endsWith('.'+websiteHost)))score+=18;
