@@ -2655,7 +2655,11 @@ function manageFoodsView() {
   const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
   const state=deleted?'Deleted':(hidden?'Hidden':'Active');
   const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
-  const primary=deleted?'<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action '+(hidden?'manage-restore':'manage-hide')+'" '+(hidden?'data-food-restore="'+esc(id)+'"':'data-food-hide="'+esc(id)+'')+'">'+(hidden?'Restore':'Hide')+'</button>';
+  const primary=deleted
+    ? '<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>'
+    : hidden
+      ? '<button class="manage-row-action manage-restore" data-food-restore="'+esc(id)+'">Restore</button>'
+      : '<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>';
   const extra=deleted?'':'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button>';
   const deleteAction=deleted?'':'<button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>';
   return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+extra+primary+deleteAction+'</span></div>';
