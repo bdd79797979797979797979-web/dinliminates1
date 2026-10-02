@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 713,
-  "sourceBranch": "cp713-custom-taxonomy-delete-recovery",
-  "checkpoint": "CP713"
+  "build": 714,
+  "sourceBranch": "cp714-manage-order-button-size-about-cleanup",
+  "checkpoint": "CP714"
 }
