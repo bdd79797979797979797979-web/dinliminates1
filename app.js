@@ -2149,6 +2149,7 @@ function hungryRestaurantPool(){
    if(!row)return false;
    if(row._hidden||restaurantHidden(row))return false;
    if(!restaurantMatchesQuery(row))return false;
+   if([...S.restaurantCuts].some(label=>restaurantQuickMatches(row,label)))return false;
    return true;
  });
  const unique=dedupeRestaurantPool(raw);
@@ -2166,7 +2167,7 @@ function renderHungryRestaurantMystery(item,covered=true){
  const choose=$('hungryMysteryChoose'),again=$('hungryMysteryAgain'),reveal=$('hungryMysteryReveal');
  if(!card||!img||!result)return;
  if(item){
-   const src=restaurantImage(item);
+   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
    img.src=src;
    img.alt=item.name||'Mystery restaurant';
    img.onerror=function(){
@@ -2180,7 +2181,7 @@ function renderHungryRestaurantMystery(item,covered=true){
  if(cover)cover.classList.toggle('hidden',!covered);
  result.classList.toggle('hidden',covered||!item);
  if(item&&!covered){
-   $('hungryMysteryResultImg').src=restaurantImage(item);
+   $('hungryMysteryResultImg').src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
    $('hungryMysteryResultImg').alt=item.name||'Chosen restaurant';
    $('hungryMysteryResultImg').dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
    $('hungryMysteryResultName').textContent=item.name||'';
