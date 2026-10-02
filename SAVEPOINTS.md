@@ -1,13 +1,12 @@
-# CURRENT SAVEPOINT - BUILD 735 / CP735
+# CURRENT SAVEPOINT - BUILD 736 / CP736
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
 
 Completed:
-- Family-style elegant Dine In image added.
-- Swipe directions centered above bottom controls and persist until tapped.
-- Fireworks celebration extended.
-- Prior wheel and choice-count fixes preserved.
+- All/Maybe restored to compact A / heart icon control.
+- Control reduced to fit directly left of Choices count.
+- Prior CP735/CP734 fixes preserved.
 
-Recovery target: CP735
+Recovery target: CP736
