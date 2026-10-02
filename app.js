@@ -76,6 +76,7 @@ winnerType:'food',
 hungryWheelChoice:null,
 hungryWheelSpinning:false,
 hungryWheelRotation:0,
+hungryWheelSpinToken:0,
 schemaVersion:4,
 notes:{},
 restaurantTimezone:'',
@@ -2150,6 +2151,7 @@ if(!pool.length){appToast('There are no meals available to spin.');return;}
 const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
 const selectedIndex=Number.isInteger(forced)&&forced>=0&&forced<pool.length?forced:Math.floor(Math.random()*pool.length);
 const item=pool[selectedIndex];
+const spinToken=++S.hungryWheelSpinToken;
 const step=360/pool.length;
 const centerAngle=-90+(selectedIndex+.5)*step;
 const desiredMod=(((-90-centerAngle)%360)+360)%360;
@@ -2167,6 +2169,7 @@ svg.classList.remove('is-spinning');
 void svg.offsetWidth;
 svg.classList.add('is-spinning');
 const finish=()=>{
+ if(spinToken!==S.hungryWheelSpinToken)return;
  svg.classList.remove('is-spinning');
  S.hungryWheelSpinning=false;
  showHungryWheelResult(item);
@@ -2183,6 +2186,7 @@ const hungry = item?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
+S.hungryWheelSpinToken++;
 const detailsBtn=$('details');
 if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
 $('winner')?.classList.toggle('hungry-mode',hungry);
@@ -3154,6 +3158,10 @@ if(navigator.share){navigator.share({title:'Dinliminate',text}).catch(()=>{});}
 else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToast('Decision copied.')).catch(()=>{});
 }
 function resetRound(){
+S.hungryWheelSpinToken++;
+S.hungryWheelSpinning=false;
+S.hungryWheelChoice=null;
+S.hungryWheelRotation=0;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
