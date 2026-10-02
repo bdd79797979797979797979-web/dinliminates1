@@ -2160,7 +2160,9 @@ function hungryRestaurantPick(excludeId=null){
  if(!pool.length)return null;
  const candidates=excludeId==null?pool:pool.filter(row=>String(row.id)!==String(excludeId));
  const source=candidates.length?candidates:pool;
- return source[Math.floor(Math.random()*source.length)]||null;
+ const forced=Number(window.__DINLIMINATE_TEST_MYSTERY_INDEX);
+ const index=Number.isInteger(forced)&&forced>=0&&forced<source.length?forced:Math.floor(Math.random()*source.length);
+ return source[index]||null;
 }
 function renderHungryRestaurantMystery(item,covered=true){
  const card=$('hungryMysteryCard'),img=$('hungryMysteryImg'),result=$('hungryMysteryResult');
@@ -2189,7 +2191,7 @@ function renderHungryRestaurantMystery(item,covered=true){
    $('hungryMysteryResultMeta').textContent=meta;
    hydrateRestaurantPhoto(item,'#hungryRestaurantPanel');
  }
- if(again){again.classList.toggle('hidden',covered);again.disabled=!covered&&hungryRestaurantPool().length<2;}
+ if(again){const canAgain=hungryRestaurantPool().length>=2;again.classList.toggle('hidden',covered||!canAgain);again.disabled=false;}
  if(choose)choose.classList.toggle('hidden',covered);
  if(reveal)reveal.classList.toggle('hidden',!covered);
 }
