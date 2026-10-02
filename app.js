@@ -1969,11 +1969,12 @@ function bindCardButton(id,handler){
  el.style.touchAction='manipulation';
  el.style.webkitUserSelect='none';
  el.style.userSelect='none';
- let lastActivation=0;
+ if(!Number.isFinite(Number(el.__dinliminateLastActivation)))el.__dinliminateLastActivation=0;
  const activate=e=>{
   const now=performance.now();
-  if(now-lastActivation<450)return;
-  lastActivation=now;
+  const last=Number(el.__dinliminateLastActivation)||0;
+  if(now-last<450)return;
+  el.__dinliminateLastActivation=now;
   e?.preventDefault?.();
   e?.stopPropagation?.();
   try{
