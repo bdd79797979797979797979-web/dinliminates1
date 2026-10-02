@@ -2,7 +2,7 @@ name: Dinliminate Fast Browser QA
 
 on:
   push:
-    branches: [cp487-launch-candidate-full-pass-2026-10-01]
+    branches: ['cp*-audit-*', 'cp*-launch-*', main]
   workflow_dispatch:
 
 permissions:
