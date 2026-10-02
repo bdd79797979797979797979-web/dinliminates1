@@ -1,3 +1,29 @@
+# CURRENT CHECKPOINT — Build 708 / CP708
+
+Date: 2026-10-02
+
+Working branch: `cp708-full-audit-final-hardening`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Latest full-audit repair checkpoint: CP708
+
+Verified source-level state:
+- Home reads **Dine In — Reveal Your Meal** and **Dine Out — Reveal Your Restaurant**.
+- Home tagline is **Beautifully swipe until it’s revealed.**
+- Meal and Restaurant Notes support Add / Edit / × delete.
+- Meal and Restaurant swipe uses the stabilized pointer/requestAnimationFrame path.
+- Restaurant Search and Open/All are intentionally hidden.
+- Restaurant location, radius, Quick Cuts, dedupe, photos, details, website/phone/directions remain present.
+- Build metadata is synchronized to 708 / CP708.
+- Service-worker shell cache is v675.
+- Historical obsolete GitHub Actions workflows have been removed from the active workflow directory.
+
+Release gates still open:
+- Hosted `dinliminate22` runtime certification.
+- Physical iPhone Safari/PWA certification.
+- Final image rights/source review.
+
+Use `clean-cp704-2026-10-02` for an exact clean rollback.
+
 # CURRENT CHECKPOINT — BUILD 707 / CP707
 
 Date: 2026-10-02
