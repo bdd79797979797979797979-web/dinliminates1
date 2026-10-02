@@ -1,32 +1,29 @@
-# CURRENT RELEASE — BUILD 701 / CP701
+# CURRENT RELEASE — BUILD 702 / CP702
 
 Date: 2026-10-02
 
-Current candidate branch: `cp701-app-diagnosis-refresh`
-Recovery baseline: `cp700-premium-home-actions`
+Current candidate branch: `cp702-note-actions-per-note`
+Recovery baseline: `cp701-app-diagnosis-refresh`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP701 App Diagnosis refresh
-- Rebuilt App Diagnosis around the current CP701 UI and source contracts.
-- Removed stale checks that referenced obsolete Meal/Restaurant element IDs.
-- Added current Home utility icon/action checks for Add to Phone and Share.
-- Added current Meal checks for the restored catalog, requested meals, Quick Cuts, Details data, notes, legacy cleanup, and decision-action wiring.
-- Added current Restaurant checks for 1/3/5/10/25/50/100-mile controls, location/search controls, Fast Food/cuisine taxonomy, Open/All flow, fresh active-pool behavior, de-duplication, dedicated restaurant photography, API health, and no client dependency on Google credentials.
-- Added current iPhone/PWA checks for safe viewport, Safari 16px field sizing, install prompt + iPhone instructions, native Share + copy fallbacks, service-worker registration, touch-target rules, automatic Restaurant location, and GPS cancellation during manual address entry.
-- Added current release checks for Build 701 / CP701 across app-release, release-manifest, and the runtime release API.
-- Preserved explicit informational launch gates for hosted verification and physical iPhone Safari/PWA certification.
-- Advanced app.js cache query from v669 to v670.
-- Synchronized release identity to Build 701 / CP701.
+## CP702 note controls
+- Updated Meal and Restaurant Details Notes to use the same per-note control pattern.
+- Empty state: **Add a note**.
+- Saved note: note content with **Edit** and a separate **×** delete control directly beside it.
+- Edit reopens the existing note for editing.
+- × removes that note immediately and returns the section to Add a note.
+- Kept the controls compact, premium, and phone-friendly.
+- Advanced app.js cache query from v670 to v671.
+- Synchronized release identity to Build 702 / CP702.
 
-## CP701 verification
-- Source confirms App Diagnosis checks current IDs and source contracts.
-- Source confirms Run again remains available after each completed diagnostic run.
-- Added a current direct Choose-this placement check for Meal and Restaurant cards.
-- Source confirms current candidate branch and build metadata are aligned.
-- Physical iPhone and hosted-runtime certification remain separate gates.
+## CP702 verification
+- Source confirms the shared Details note component is used for both Meal and Restaurant notes.
+- Source confirms Edit and delete controls are tied to the saved note row rather than the section header.
+- Source confirms empty Notes return to the Add a note state.
 
 ---
+
 
 
 # CURRENT RELEASE — BUILD 698 / CP698
