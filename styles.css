@@ -3253,7 +3253,7 @@ button,a,select{touch-action:manipulation}
 .about-meta p{margin:0;padding:10px 8px;border:1px solid #272622;border-radius:13px;background:#121211;display:grid;gap:4px}
 .about-meta span{font-size:8px;text-transform:uppercase;letter-spacing:.13em;color:#666}
 .about-meta b{font-size:11px;color:#ddd}
-.about-credit{font-size:9px;color:#8c8a84;text-align:center;margin:14px 0 0;letter-spacing:.02em}
+.about-credit{font-size:9px;color:#72b7dc;text-align:center;margin:14px 0 0;letter-spacing:.02em}
 @media(max-width:390px){
  .drawer{padding-left:17px;padding-right:17px}
  .drawer-brand strong{font-size:23px}
