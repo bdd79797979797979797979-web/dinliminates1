@@ -5078,3 +5078,14 @@ button,input,select,textarea{
 .hungry-wheel-ring svg.is-spinning{
   transition:transform 4.15s cubic-bezier(.12,.72,.11,1)!important;
 }
+
+
+/* CP734 — preserve the wheel's resting rotation so every tap animates exactly one revolution. */
+.hungry-wheel-ring svg{
+  transform:rotate(var(--wheel-resting-rotation,0deg))!important;
+  transition:none!important;
+}
+.hungry-wheel-ring svg.is-spinning{
+  transform:rotate(var(--wheel-rotation))!important;
+  transition:transform 4.15s cubic-bezier(.12,.72,.11,1)!important;
+}
