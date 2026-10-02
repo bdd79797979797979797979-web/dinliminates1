@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 701,
-  "sourceBranch": "cp701-app-diagnosis-refresh",
+  "build": 702,
+  "sourceBranch": "cp702-note-actions-per-note",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP701"
+  "checkpoint": "CP702"
 }
