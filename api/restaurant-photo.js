@@ -3,7 +3,17 @@
 const NO_PHOTO_HOSTS=new Set(['google.com','www.google.com','googleusercontent.com','lh3.googleusercontent.com','bing.com','www.bing.com','tse1.mm.bing.net','tse2.mm.bing.net','tse3.mm.bing.net','tse4.mm.bing.net','unsplash.com','images.unsplash.com','pexels.com','images.pexels.com','shutterstock.com','istockphoto.com','gettyimages.com','depositphotos.com','alamy.com','stock.adobe.com']);
 const BLOCKED_IMAGE_HINTS=/\b(?:logo|favicon|sprite|icon|avatar|placeholder|default[-_ ]?image|brandmark|wordmark|google[ -]?play|play[ -]?store|app[ -]?store|download[ -]?app|download|badge|payment|visa|mastercard|amex|social[ -]?media|facebook|instagram|tiktok|youtube|x[ -]?twitter)\b/i;
 const VENUE_IMAGE_HINTS=/\b(?:exterior|outside|outdoor|front|entrance|entry|building|storefront|facade|façade|sign|signage|location|drive[- ]?thru|drive through|parking lot|parking|street view|patio|terrace)\b/i;
-const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;\nconst LOW_QUALITY_IMAGE_HINTS=/\b(?:thumbnail|thumb|tiny|small|lowres|low[-_ ]?res|preview|sprite|tile)\b/i;\nconst PHOTO_SOURCE_TIER={\n  'known-restaurant-photo':100,\n  'official-fast-path':96,\n  'osm-exact-poi':95,\n  'official-venue-page':94,\n  'exact-public-venue-image':92,\n  'known-public-venue-page':90,\n  'exact-public-venue-page':88\n};
+const FOOD_IMAGE_HINTS=/\b(?:menu|food|dish|meal|burger|pizza|salad|steak|wings|tacos?|sushi|pasta|chicken|fries|dessert|cake|sandwich|plate|entrée|entree|appetizer|breakfast|lunch|dinner|drink|cocktail|coffee|beer|wine)\b/i;
+const LOW_QUALITY_IMAGE_HINTS=/\b(?:thumbnail|thumb|tiny|small|lowres|low[-_ ]?res|preview|sprite|tile)\b/i;
+const PHOTO_SOURCE_TIER={
+  'known-restaurant-photo':100,
+  'official-fast-path':96,
+  'osm-exact-poi':95,
+  'official-venue-page':94,
+  'exact-public-venue-image':92,
+  'known-public-venue-page':90,
+  'exact-public-venue-page':88
+};
 
 function json(res,status,payload){
   res.statusCode=status;
@@ -82,7 +92,69 @@ async function fetchText(url,headers={},timeout=7000,maxBytes=2200000){
 }
 
 function imageDimensions(bytes,type){
-  try{\n    if(type==='image/webp'&&bytes.length>=30&&bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP'){\n      const chunk=bytes.toString('ascii',12,16);\n      if(chunk==='VP8X'&&bytes.length>=30){\n        const width=1+(bytes[24]|(bytes[25]<<8)|(bytes[26]<<16));\n        const height=1+(bytes[27]|(bytes[28]<<8)|(bytes[29]<<16));\n        return {width,height};\n      }\n      if(chunk==='VP8 '&&bytes.length>=30){\n        const start=bytes.indexOf(Buffer.from([0x9d,0x01,0x2a]),20);\n        if(start>=0&&start+7<bytes.length)return {width:bytes.readUInt16LE(start+3)&0x3fff,height:bytes.readUInt16LE(start+5)&0x3fff};\n      }\n      if(chunk==='VP8L'&&bytes.length>=25){\n        const b0=bytes[21],b1=bytes[22],b2=bytes[23],b3=bytes[24];\n        const width=1+((b1<<8)|(b0&0xff)|((b2&0x3f)<<16));\n        const height=1+((b3<<16)|(bytes[25]<<8)|(bytes[24]>>6));\n        if(width>0&&height>0)return {width,height};\n      }\n    }\n    if(type==='image/png'&&bytes.length>=24){\n      const w=bytes.readUInt32BE(16),h=bytes.readUInt32BE(20);\n      return {width:w,height:h};\n    }\n    if(type==='image/gif'&&bytes.length>=10){\n      return {width:bytes.readUInt16LE(6),height:bytes.readUInt16LE(8)};\n    }\n    if((type==='image/avif'||type==='image/avif-sequence'))return {width:800,height:600};\n    if((type==='image/jpeg'||type==='image/jpg')&&bytes.length>4&&bytes[0]===0xff&&bytes[1]===0xd8){\n      let i=2;\n      while(i+9<bytes.length){\n        if(bytes[i]!==0xff){i++;continue;}\n        const marker=bytes[i+1];\n        i+=2;\n        if(marker===0xd8||marker===0xd9||marker===0x01)continue;\n        if(i+2>bytes.length)break;\n        const len=bytes.readUInt16BE(i);\n        if(len<2||i+len>bytes.length)break;\n        if((marker>=0xc0&&marker<=0xc3)||(marker>=0xc5&&marker<=0xc7)||(marker>=0xc9&&marker<=0xcb)||(marker>=0xcd&&marker<=0xcf)){\n          return {width:bytes.readUInt16BE(i+5),height:bytes.readUInt16BE(i+3)};\n        }\n        i+=len;\n      }\n    }\n  }catch{}\n  return {width:0,height:0};\n}\nfunction mediaQuality(media){\n  const width=Number(media?.width)||0,height=Number(media?.height)||0;\n  if(!width||!height)return 0;\n  const pixels=width*height,ratio=width/height;\n  if(width<400||height<250||pixels<180000||ratio<0.48||ratio>2.7)return -100;\n  let score=Math.min(18,Math.log10(pixels/180000+1)*8);\n  if(ratio>=1.1&&ratio<=2.1)score+=4;\n  return score;\n}\nfunction chooseBetterPhoto(a,b){\n  if(!a)return b;\n  if(!b)return a;\n  const as=(PHOTO_SOURCE_TIER[a.source]||70)+mediaQuality(a.media);\n  const bs=(PHOTO_SOURCE_TIER[b.source]||70)+mediaQuality(b.media);\n  return bs>as?b:a;\n}\nasync function fetchImage(url,headers={},timeout=7000){
+  try{
+    if(type==='image/webp'&&bytes.length>=30&&bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP'){
+      const chunk=bytes.toString('ascii',12,16);
+      if(chunk==='VP8X'&&bytes.length>=30){
+        const width=1+(bytes[24]|(bytes[25]<<8)|(bytes[26]<<16));
+        const height=1+(bytes[27]|(bytes[28]<<8)|(bytes[29]<<16));
+        return {width,height};
+      }
+      if(chunk==='VP8 '&&bytes.length>=30){
+        const start=bytes.indexOf(Buffer.from([0x9d,0x01,0x2a]),20);
+        if(start>=0&&start+7<bytes.length)return {width:bytes.readUInt16LE(start+3)&0x3fff,height:bytes.readUInt16LE(start+5)&0x3fff};
+      }
+      if(chunk==='VP8L'&&bytes.length>=25){
+        const b0=bytes[21],b1=bytes[22],b2=bytes[23],b3=bytes[24];
+        const width=1+((b1<<8)|(b0&0xff)|((b2&0x3f)<<16));
+        const height=1+((b3<<16)|(bytes[25]<<8)|(bytes[24]>>6));
+        if(width>0&&height>0)return {width,height};
+      }
+    }
+    if(type==='image/png'&&bytes.length>=24){
+      const w=bytes.readUInt32BE(16),h=bytes.readUInt32BE(20);
+      return {width:w,height:h};
+    }
+    if(type==='image/gif'&&bytes.length>=10){
+      return {width:bytes.readUInt16LE(6),height:bytes.readUInt16LE(8)};
+    }
+    if((type==='image/avif'||type==='image/avif-sequence'))return {width:800,height:600};
+    if((type==='image/jpeg'||type==='image/jpg')&&bytes.length>4&&bytes[0]===0xff&&bytes[1]===0xd8){
+      let i=2;
+      while(i+9<bytes.length){
+        if(bytes[i]!==0xff){i++;continue;}
+        const marker=bytes[i+1];
+        i+=2;
+        if(marker===0xd8||marker===0xd9||marker===0x01)continue;
+        if(i+2>bytes.length)break;
+        const len=bytes.readUInt16BE(i);
+        if(len<2||i+len>bytes.length)break;
+        if((marker>=0xc0&&marker<=0xc3)||(marker>=0xc5&&marker<=0xc7)||(marker>=0xc9&&marker<=0xcb)||(marker>=0xcd&&marker<=0xcf)){
+          return {width:bytes.readUInt16BE(i+5),height:bytes.readUInt16BE(i+3)};
+        }
+        i+=len;
+      }
+    }
+  }catch{}
+  return {width:0,height:0};
+}
+function mediaQuality(media){
+  const width=Number(media?.width)||0,height=Number(media?.height)||0;
+  if(!width||!height)return 0;
+  const pixels=width*height,ratio=width/height;
+  if(width<400||height<250||pixels<180000||ratio<0.48||ratio>2.7)return -100;
+  let score=Math.min(18,Math.log10(pixels/180000+1)*8);
+  if(ratio>=1.1&&ratio<=2.1)score+=4;
+  return score;
+}
+function chooseBetterPhoto(a,b){
+  if(!a)return b;
+  if(!b)return a;
+  const as=(PHOTO_SOURCE_TIER[a.source]||70)+mediaQuality(a.media);
+  const bs=(PHOTO_SOURCE_TIER[b.source]||70)+mediaQuality(b.media);
+  return bs>as?b:a;
+}
+async function fetchImage(url,headers={},timeout=7000){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
   try{
     const result=await fetchWithValidatedRedirects(url,{headers:{
@@ -255,7 +327,27 @@ function structuredRestaurantMatches(html,name,address){
 }
 
 function strictPageMatchesRestaurant(html,name,address){
-  const source=String(html||'');\n  if(structuredRestaurantMatches(source,name,address))return true;\n  const hay=normalizeMatchText(source.slice(0,1400000));\n  const tokens=significantNameTokens(name);\n  if(!tokens.length)return false;\n  const nameHitCount=tokens.filter(t=>hay.includes(t)).length;\n  if(nameHitCount/tokens.length<0.9)return false;\n  const rawAddress=String(address||'');\n  const normAddress=normalizeMatchText(rawAddress);\n  const number=(rawAddress.match(/\\b\\d{1,6}\\b/)||[])[0];\n  const zip=(rawAddress.match(/\\b\\d{5}(?:-\\d{4})?\\b/)||[])[0];\n  const cityTokens=normAddress.split(' ').filter(t=>t.length>=4&&!/^\\d+$/.test(t)).slice(-5);\n  const numberOk=!!number&&hay.includes(normalizeMatchText(number));\n  const zipOk=!!zip&&hay.includes(normalizeMatchText(zip));\n  const cityHits=cityTokens.filter(t=>hay.includes(t)).length;\n  if(number&&zip)return numberOk&&zipOk;\n  if(number)return numberOk&&cityHits>=1;\n  return cityHits>=2;\n}\n\nfunction pageMatchesRestaurant(html,name,address){
+  const source=String(html||'');
+  if(structuredRestaurantMatches(source,name,address))return true;
+  const hay=normalizeMatchText(source.slice(0,1400000));
+  const tokens=significantNameTokens(name);
+  if(!tokens.length)return false;
+  const nameHitCount=tokens.filter(t=>hay.includes(t)).length;
+  if(nameHitCount/tokens.length<0.9)return false;
+  const rawAddress=String(address||'');
+  const normAddress=normalizeMatchText(rawAddress);
+  const number=(rawAddress.match(/\\b\\d{1,6}\\b/)||[])[0];
+  const zip=(rawAddress.match(/\\b\\d{5}(?:-\\d{4})?\\b/)||[])[0];
+  const cityTokens=normAddress.split(' ').filter(t=>t.length>=4&&!/^\\d+$/.test(t)).slice(-5);
+  const numberOk=!!number&&hay.includes(normalizeMatchText(number));
+  const zipOk=!!zip&&hay.includes(normalizeMatchText(zip));
+  const cityHits=cityTokens.filter(t=>hay.includes(t)).length;
+  if(number&&zip)return numberOk&&zipOk;
+  if(number)return numberOk&&cityHits>=1;
+  return cityHits>=2;
+}
+
+function pageMatchesRestaurant(html,name,address){
   const source=String(html||'');
   if(structuredRestaurantMatches(source,name,address))return true;
   const hay=normalizeMatchText(source.slice(0,1400000));
