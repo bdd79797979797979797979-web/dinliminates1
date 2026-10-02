@@ -3405,3 +3405,31 @@ button,a,select{touch-action:manipulation}
 button,input,select,textarea{
   -webkit-tap-highlight-color:transparent;
 }
+
+
+/* CP699 — discreet Home install/share actions. */
+.luxury-home #addToPhone{
+  color:#9a9389!important;
+  background:linear-gradient(180deg,#171716,#111110)!important;
+  border-color:#332f29!important;
+}
+.luxury-home #shareApp{
+  color:#aaa39a!important;
+  background:linear-gradient(180deg,#161615,#10100f)!important;
+  border-color:#302c27!important;
+}
+.luxury-home #addToPhone:hover,
+.luxury-home #shareApp:hover{
+  color:#d7c7aa!important;
+  border-color:#4b4134!important;
+}
+.add-phone-fallback{display:grid;gap:13px;padding:3px 2px 2px}
+.add-phone-fallback h4{margin:0;color:#f4eee6;font-size:23px;letter-spacing:-.04em}
+.add-phone-steps{display:grid;gap:9px}
+.add-phone-step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:10px 11px;border:1px solid #302e2a;border-radius:14px;background:linear-gradient(145deg,#191817,#131312)}
+.add-phone-step>span{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;border:1px solid #4b4134;background:#171513;color:#cdbb9d;font-size:10px;font-weight:800}
+.add-phone-step p{margin:0;color:#9b9892;font-size:11px;line-height:1.42}
+@media(max-width:390px){
+  .luxury-home .home-foot-actions{gap:2px}
+  .luxury-home .home-foot-action{width:138px;min-width:138px;height:27px;min-height:27px;font-size:8.5px!important}
+}
