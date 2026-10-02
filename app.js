@@ -76,6 +76,7 @@ winnerType:'food',
 hungryWheelChoice:null,
 hungryWheelSpinning:false,
 hungryWheelRotation:0,
+hungryWheelDisplayItems:null,
 hungryRestaurantChoice:null,
 hungryRestaurantPendingChoice:null,
 hungryWheelSpinToken:0,
@@ -2104,7 +2105,13 @@ function renderHungryWheel(){
 const svg=$('hungryWheel');
 const countEl=$('hungryWheelCount');
 if(!svg)return;
-const items=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+const activeItems=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+const basePool=activeItems.length?activeItems:allFoods();
+const displayIds=Array.isArray(S.hungryWheelDisplayItems)?S.hungryWheelDisplayItems.map(item=>String(item?.id||'')):null;
+const ordered=displayIds?.length
+ ? displayIds.map(id=>basePool.find(item=>String(item.id)===id)).filter(Boolean)
+ : [];
+const items=ordered.length===basePool.length?ordered:basePool;
 const pool=items.length?items:allFoods();
 if(countEl)countEl.textContent=pool.length+' meals on the wheel';
 const cx=180,cy=180,r=168,inner=34,step=360/Math.max(1,pool.length);
@@ -2260,11 +2267,13 @@ const selectedIndex=Number.isInteger(forced)&&forced>=0&&forced<pool.length?forc
 const item=pool[selectedIndex];
 const spinToken=++S.hungryWheelSpinToken;
 const step=360/pool.length;
-const centerAngle=-90+(selectedIndex+.5)*step;
-const desiredMod=(((-90-centerAngle)%360)+360)%360;
 const currentMod=((S.hungryWheelRotation%360)+360)%360;
-const delta=(desiredMod-currentMod+360)%360;
-const rotation=S.hungryWheelRotation+360+delta;
+const landingIndex=((Math.round(currentMod/step)%pool.length)+pool.length)%pool.length;
+const others=pool.filter(candidate=>String(candidate.id)!==String(item.id));
+others.splice(landingIndex,0,item);
+S.hungryWheelDisplayItems=others;
+renderHungryWheel();
+const rotation=S.hungryWheelRotation+360;
 S.hungryWheelRotation=rotation;
 S.hungryWheelChoice=item;
 S.hungryWheelSpinning=true;
@@ -2295,6 +2304,7 @@ const hungry = item?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
+S.hungryWheelDisplayItems=null;
 S.hungryRestaurantChoice=null;
 S.hungryRestaurantPendingChoice=null;
 S.hungryWheelSpinToken++;
@@ -3283,6 +3293,7 @@ S.hungryWheelSpinToken++;
 S.hungryWheelSpinning=false;
 S.hungryWheelChoice=null;
 S.hungryWheelRotation=0;
+S.hungryWheelDisplayItems=null;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
