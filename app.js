@@ -856,8 +856,14 @@ function foodQuick() {
  });
  bindQuickCutsCollapse('food');
 }
+function dismissSwipeHint(){
+ const el=document.querySelector('#swipeHint');
+ if(!el)return;
+ el.remove();
+ try{localStorage.setItem('dinliminate.swipeHint.v2','1')}catch{}
+}
 function maybeShowSwipeHint(){
-try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;localStorage.setItem('dinliminate.swipeHint.v2','1');}catch{}
+try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;}catch{}
 document.querySelector('#swipeHint')?.remove();
 const el=document.createElement('button');
 el.id='swipeHint';
@@ -865,7 +871,7 @@ el.type='button';
 el.className='swipe-hint';
 el.setAttribute('aria-label','Dismiss swipe directions');
 el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
-el.onclick=(event)=>{event.preventDefault();event.stopPropagation();el.remove();};
+el.onclick=(event)=>{event.preventDefault();event.stopPropagation();dismissSwipeHint();};
 document.body.appendChild(el);
 }
 function startFood() {
@@ -911,6 +917,7 @@ renderMaybeDeckToggle('food');
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
 function foodCut(item=S.pool[S.index]){
+ dismissSwipeHint();
  if(!item)return;
  const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;
  foodCommit('cut',item);
@@ -919,6 +926,7 @@ function foodCut(item=S.pool[S.index]){
  S.foodCuts.add(item.id);buildFood();resolveFoodAfterDecision();
 }
 function foodMaybe(item=S.pool[S.index]){
+ dismissSwipeHint();
  if(!item)return;
  if(S.pool.length===1){foodCommit('maybe',item);winner(item);return;}
  foodCommit('maybe',item);S.maybe.add(item.id);
@@ -1962,6 +1970,7 @@ if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 prefetchRestaurantPhotos(rows,S.restaurantIndex,RESTAURANT_PHOTO_PREFETCH_COUNT);
 }
 function restaurantCut(row){
+ dismissSwipeHint();
  if(!row)return;
  const unkept=restaurantPoolFiltered().filter(x=>!x._maybe).length;
  S.restaurantActions.push({type:'cut',id:row.id,index:S.restaurantIndex,maybeRound:!!S.restaurantMaybeRound,hadMaybe:!!row._maybe,roundAfter:!!S.restaurantMaybeRound||(Array.isArray(S.restaurantPool)&&S.restaurantPool.some(x=>x._maybe)&&unkept<=1)});
@@ -1972,6 +1981,7 @@ function restaurantCut(row){
 }
 
 function restaurantMaybe(row){
+ dismissSwipeHint();
  if(!row)return;const rows=restaurantPoolFiltered();if(rows.length===1){winner(row);return;}
  const wasRecycle=S.restaurantMaybeRound;S.restaurantActions.push({type:'maybe',id:row.id,index:S.restaurantIndex,maybeRound:wasRecycle,hadMaybe:!!row._maybe});row._maybe=true;
  const remaining=restaurantPoolFiltered(),next=restaurantChoiceIndex(remaining,(S.restaurantIndex+1)%Math.max(1,remaining.length),wasRecycle);
