@@ -2794,25 +2794,53 @@ function exportPdfView(){
  const modal=openModal('exportPdfModal','Export PDF',body);
  modal.querySelectorAll('[data-export-scope]').forEach(btn=>btn.onclick=()=>{const scope=btn.dataset.exportScope;modal.remove();$('exportPdfModalBg')?.remove();exportHistoryPrint(scope);});
 }
-function addToPhoneInstructions() {
- openModal('addToPhoneModal','How to add to your phone','<div class="add-phone-fallback"><span class="share-app-kicker">IPHONE</span><h4>Keep Dinliminate close.</h4><div class="add-phone-steps"><div class="add-phone-step"><span>1</span><p>Tap the <b>Share</b> button in Safari.</p></div><div class="add-phone-step"><span>2</span><p>Choose <b>Add to Home Screen</b>.</p></div><div class="add-phone-step"><span>3</span><p>Tap <b>Add</b>. Dinliminate will sit on your Home Screen like an app.</p></div></div></div>');
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', event => {
+ event.preventDefault();
+ deferredInstallPrompt = event;
+});
+async function copyAppUrl(url){
+ try{
+  if(navigator.clipboard && window.isSecureContext){
+   await navigator.clipboard.writeText(url);
+   return true;
+  }
+ }catch{}
+ try{
+  const helper=document.createElement('textarea');
+  helper.value=url;
+  helper.setAttribute('readonly','');
+  helper.style.position='fixed';
+  helper.style.opacity='0';
+  helper.style.pointerEvents='none';
+  document.body.appendChild(helper);
+  helper.select();
+  const copied=document.execCommand('copy');
+  helper.remove();
+  return copied;
+ }catch{return false;}
 }
-async function shareApp() {
+async function addToPhoneFlow(){
+ if(deferredInstallPrompt){
+  try{
+   await deferredInstallPrompt.prompt();
+   await deferredInstallPrompt.userChoice;
+   deferredInstallPrompt=null;
+   return;
+  }catch{}
+ }
+ openModal('addToPhoneModal','How to add to your phone','<div class="add-phone-fallback"><span class="share-app-kicker">IPHONE</span><h4>Keep Dinliminate close.</h4><div class="add-phone-steps"><div class="add-phone-step"><span>1</span><p>Tap the <b>Share</b> button in Safari.</p></div><div class="add-phone-step"><span>2</span><p>Choose <b>Add to Home Screen</b>.</p></div><div class="add-phone-step"><span>3</span><p>Tap <b>Add</b>. Dinliminate will sit on your Home Screen like an app.</p></div></div><p class="add-phone-footnote">On Android or supported browsers, this action may install Dinliminate directly.</p></div>');
+}
+async function shareApp(){
  const url=String(location.href||'').split('#')[0];
- const shareData={
-  title:'Dinliminate — Dinner Decisions Simplified',
-  text:'Try Dinliminate — swipe until dinner is decided.',
-  url
- };
- if(navigator.share){
+ const shareData={title:'Dinliminate — Dinner Decisions Simplified',text:'Try Dinliminate — swipe until it’s decided.',url};
+ if(typeof navigator.share==='function'){
   try{await navigator.share(shareData);return;}catch(err){if(err?.name==='AbortError')return;}
  }
- if(navigator.clipboard){
-  try{await navigator.clipboard.writeText(url);appToast('App link copied.');return;}catch{}
- }
- openModal('shareAppModal','Share app','<div class="share-app-fallback"><span class="share-app-kicker">SHARE APP</span><h4>Pass it along.</h4><p>Share Dinliminate with someone who needs help deciding what to eat.</p><input class="share-app-url" type="text" readonly value="'+esc(url)+'" onclick="this.select()"><button class="detail-web-action share-app-copy" id="shareAppCopy" type="button">Copy link</button></div>');
+ if(await copyAppUrl(url)){appToast('App link copied.');return;}
+ openModal('shareAppModal','Share app','<div class="share-app-fallback"><span class="share-app-kicker">SHARE APP</span><h4>Pass it along.</h4><p>Use your device share controls or copy this link.</p><input class="share-app-url" type="text" readonly value="'+esc(url)+'" onclick="this.select()"><button class="detail-web-action share-app-copy" id="shareAppCopy" type="button">Copy link</button></div>');
  const copy=$('shareAppCopy');
- if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(url);appToast('App link copied.');}catch{const field=document.querySelector('.share-app-url');field?.focus();field?.select();}};
+ if(copy)copy.onclick=async()=>{if(await copyAppUrl(url)){appToast('App link copied.');}else{const field=document.querySelector('.share-app-url');field?.focus();field?.select();appToast('Select the link to copy it.');}};
 }
 
 function shareWinner() {
@@ -2848,8 +2876,16 @@ document.querySelector('#drawerBg')?.classList.add('hidden');
 save();
 home();
 }
-const addToPhone=$('addToPhone'); if (addToPhone) addToPhone.onclick = addToPhoneInstructions;
-$('shareApp').onclick = shareApp;
+const homeActionHandler = (event) => {
+ const button = event.target.closest?.('[data-home-action]');
+ if(!button || button.disabled || !document.body.contains(button)) return;
+ event.preventDefault();
+ event.stopPropagation();
+ const action = button.dataset.homeAction;
+ if(action==='add') addToPhoneFlow();
+ else if(action==='share') shareApp();
+};
+document.addEventListener('click', homeActionHandler, true);
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
 ['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
