@@ -384,3 +384,11 @@ Do not promote this candidate to Vercel production until the exact release commi
 - Quick Pass remains the default; Full Pass is the optional original round-robin mode.
 - Build: **133**.
 NaN
+## CP758 final verification — 2026-10-02
+- Verified `renderMaybeDeckToggle()` now renders text labels **ALL · MAYBE** rather than the legacy A/heart markup.
+- Verified the Meals row uses `display:contents` for the right-side wrapper so the grid order is **Quick Cuts → All/Maybe → Choices**.
+- Verified Restaurant row uses the same three-column order directly.
+- Verified both toggle elements are forced to `position:static`, eliminating the off-screen/left-edge placement visible in the reported screenshot.
+- Verified the new control is flat (no pill background/border/radius) and the active side is subtly green with an underline.
+- JavaScript syntax parses successfully after the CP758 changes.
+- The live hosted CP758 preview remains constrained by the existing Netlify UI build command and Vercel access/deployment limits; this is not a CP758 code error.
