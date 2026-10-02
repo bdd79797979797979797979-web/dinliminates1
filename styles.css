@@ -3599,3 +3599,22 @@ button,input,select,textarea{
  .custom-qc-upload{width:32px;height:29px}
  .custom-qc-delete{width:27px;height:29px}
 }
+
+/* CP714 — management order + selective decision-button enlargement. */
+@media(min-width:391px){
+  .unified-swipe-actions .round-cut,
+  .unified-swipe-actions .round-maybe{
+    width:68px!important;height:68px!important;min-width:68px!important;min-height:68px!important;
+  }
+  .unified-swipe-actions .round-cut span,
+  .unified-swipe-actions .round-maybe span{font-size:22px!important;}
+}
+@media(max-width:390px){
+  .unified-swipe-actions .round-cut,
+  .unified-swipe-actions .round-maybe{
+    width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;
+  }
+  .unified-swipe-actions .round-cut span,
+  .unified-swipe-actions .round-maybe span{font-size:21px!important;}
+}
+#manageFoodsModal .manage-food-row .food-row-actions{gap:5px!important;}
