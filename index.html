@@ -50,12 +50,20 @@
 
 <section class="screen hidden decision-screen restaurant" id="restaurant">
 <div class="decision-bar"><button id="restaurantBackTop" class="decision-back" aria-label="Back to home">‹</button><div class="decision-brand">Dinliminate</div><button id="restaurantMenu" class="menu decision-menu" aria-label="Menu"><span></span><span></span><span></span></button></div>
-<div class="location-strip" aria-label="Restaurant location controls"><div class="location-main">
-<button class="location-btn" id="locate" aria-label="Use My Location" title="Use your current location for nearby restaurants">⌖</button>
-<div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address" aria-label="Restaurant address" aria-autocomplete="list" aria-controls="suggestionsBox" aria-expanded="false"><div id="suggestionsBox" role="listbox" aria-label="Address suggestions" hidden></div></div>
-<button class="find" id="find" aria-label="Find restaurants" title="Find restaurants near the selected location"><svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr-only">Find</span></button>
-<div class="radius-control" aria-label="Restaurant search radius"><select id="radius" class="radius-select" aria-label="Restaurant search radius"><option value="1">1 mi</option><option value="3">3 mi</option><option value="5">5 mi</option><option value="10" selected>10 mi</option><option value="25">25 mi</option><option value="50">50 mi</option><option value="100">100 mi</option></select><span class="radius-chevron" aria-hidden="true">⌄</span></div>
-</div><p class="status sr-only" id="status" role="status" aria-live="polite">Enter an address or use your location.</p><span id="locationSourceLabel" class="location-source-label sr-only">No location selected</span></div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
+<div class="location-strip" aria-label="Restaurant location controls">
+  <div class="location-main">
+    <button class="location-btn" id="locate" type="button" aria-label="Use My Location" title="Use your current location for nearby restaurants">
+      <svg class="location-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.1" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2.7v2.4M12 18.9v2.4M2.7 12h2.4M18.9 12h2.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="address-wrap"><input id="address" autocomplete="street-address" placeholder="Enter an address" aria-label="Restaurant address" aria-autocomplete="list" aria-controls="suggestionsBox" aria-expanded="false"><div id="suggestionsBox" role="listbox" aria-label="Address suggestions" hidden></div></div>
+    <button class="find" id="find" type="button" aria-label="Find restaurants" title="Find restaurants near the selected location"><svg class="find-icon find-locator-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr-only">Find</span></button>
+    <div class="radius-control" aria-label="Restaurant search radius"><select id="radius" class="radius-select" aria-label="Restaurant search radius"><option value="1">1 mi</option><option value="3">3 mi</option><option value="5">5 mi</option><option value="10" selected>10 mi</option><option value="25">25 mi</option><option value="50">50 mi</option><option value="100">100 mi</option></select><span class="radius-chevron" aria-hidden="true">⌄</span></div>
+  </div>
+  <div class="location-status-row">
+    <span id="locationSourceLabel" class="location-source-label">No location selected</span>
+    <p class="status" id="status" role="status" aria-live="polite">Enter an address or use your location.</p>
+  </div>
+</div><div class="restaurant-search-box hidden" id="restaurantSearchBox"><input id="restaurantQuery" type="search" autocomplete="off" placeholder="Search restaurants, cuisine, or category" aria-label="Search restaurants"></div><div class="quick-section restaurant-quick-section"><div class="label-row quick-label"><span>Quick Cuts</span><span id="restaurantCount" class="count-inline"></span></div><div class="quick" id="restQuick"></div></div>
 <div class="rest-stage" id="restStage"><div class="empty"><b>Ready when you are.</b><span>Set a location, then find restaurants.</span></div></div>
 </section>
 
@@ -66,17 +74,19 @@
     <div class="drawer-brand">
       <span class="drawer-kicker">DINLIMINATE</span>
       <strong>Dinner Decisions Simplified</strong>
-      <span>Choose. Discover. Enjoy.</span>
+      <span>Your dinner, beautifully decided.</span>
     </div>
     <button class="drawer-close" id="drawerClose" type="button" aria-label="Close menu">×</button>
   </div>
+  <div class="drawer-section-label">NAVIGATION</div>
   <nav class="drawer-nav" aria-label="App navigation">
-    <button class="drawer-row" id="manage" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true">◈</span><span><b>Manage Meals</b><small>Add, edit, hide, or restore meals</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
-    <button class="drawer-row" id="history" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true">◷</span><span><b>History</b><small>See the decisions you have made</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
-    <button class="drawer-row" id="settings" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true">⌘</span><span><b>Settings</b><small>Tools, data, privacy, and app details</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
+    <button class="drawer-row" id="manage" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 5.5h12M6 9.5h8M6 14.5h12M6 18.5h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span><b>Manage Meals</b><small>Add, edit, hide, or restore</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
+    <button class="drawer-row" id="history" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l2.8 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span><b>History</b><small>See your previous decisions</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
+    <button class="drawer-row" id="settings" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7h12M6 12h12M6 17h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="7" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="12" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="17" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/></svg></span><span><b>Settings</b><small>Tools, data, privacy, and app details</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
   </nav>
   <div class="drawer-footer">
-    <button class="drawer-start" id="backToStart" type="button"><span class="drawer-start-icon" aria-hidden="true">⌂</span><span><b>Back to Start</b><small>Return to the dinner decision screen</small></span><span aria-hidden="true">↑</span></button>
+    <div class="drawer-footer-rule"><span>DINLIMINATE</span><span>BUILD</span></div>
+    <button class="drawer-start" id="backToStart" type="button"><span class="drawer-start-icon" aria-hidden="true">←</span><span><b>Back to Start</b><small>Return to the home screen</small></span></button>
   </div>
 </aside>
 
