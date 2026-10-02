@@ -8,13 +8,19 @@ Hosted test target: `dinliminate22`
 Status: candidate — not production
 
 ## CP693 premium navigation pass
-- Rebuilt Meal Details and Restaurant Details around one shared visual hierarchy: photo → name/status → information → Notes → actions → Hide.
-- Added device-local Notes for both individual meals and restaurants. Notes survive normal rounds and app system restore, and are removed by Reset App Data.
-- Meal Details now separates ingredients, preparation, nutrition, and Notes instead of using “recipe / notes” as one mixed field.
-- Add/Edit Meal now includes an optional **About this meal** field and labels the preparation field **Recipe / preparation**.
-- Restaurant Details now keeps Category, Cuisine, Location, Distance, Status, Hours, and Phone in a quieter information layout, with Website / Call / Directions grouped as the utility row.
-- Hide Meal / Hide Restaurant remains available as a clearly secondary action.
-- Restaurant swipe mechanics and the CP692 Details/Notes behavior were not changed in CP693.
+- Removed Restaurants from the top-level hamburger menu.
+- Kept Manage Meals as the meal-management destination, including Hidden Foods / Restore.
+- Combined Settings and About into one premium Settings surface.
+- Kept History as a top-level destination.
+- Redesigned the hamburger drawer, Settings, History, and Back to Start with one shared dark-satin / restrained-blue visual language.
+- Added Settings sections for hidden restaurants, system tools, data/privacy, and About/build information.
+- Added a lightweight History introduction while keeping the existing calendar, photo history, and Details behavior.
+- Meal/Restaurant Details, local Notes, restaurant search/location/radius/filtering, Quick Cuts, photos, and swipe mechanics were not changed in CP693.
+
+## CP693 verification
+- JavaScript source parses successfully.
+- Navigation markup checks pass: Restaurants and About are absent from the top-level menu; Manage Meals, History, Settings, and Back to Start remain.
+- Build/release metadata is synchronized to Build 693 / CP693.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
