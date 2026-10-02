@@ -3361,7 +3361,7 @@ const closeDrawer=()=>{
  const drawer=$('drawer'),bg=$('drawerBg');
  drawer?.classList.remove('is-open');
  bg?.classList.remove('is-open');
- ['#menu','#foodMenu','#restaurantMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','false'));
+ ['#menu','#foodMenu','#restaurantMenu','#winnerMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','false'));
  drawerCloseTimer=setTimeout(()=>{drawer?.classList.add('hidden');bg?.classList.add('hidden');},180);
 };
 const openDrawer=()=>{
@@ -3370,7 +3370,7 @@ const openDrawer=()=>{
  drawer?.classList.remove('hidden');
  bg?.classList.remove('hidden');
  requestAnimationFrame(()=>{drawer?.classList.add('is-open');bg?.classList.add('is-open');});
- ['#menu','#foodMenu','#restaurantMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','true'));
+ ['#menu','#foodMenu','#restaurantMenu','#winnerMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','true'));
 };
 const appMenu = $('menu'); if (appMenu) {appMenu.setAttribute('aria-expanded','false');appMenu.onclick = openDrawer;}
 const foodMenu = $('foodMenu'); if (foodMenu) {foodMenu.setAttribute('aria-expanded','false');foodMenu.onclick = openDrawer;}
