@@ -1,25 +1,25 @@
-# CURRENT RELEASE — BUILD 696 / CP696
+# CURRENT RELEASE — BUILD 697 / CP697
 
 Date: 2026-10-02
 
-Current candidate branch: `cp696-auto-restaurant-location`
-Recovery baseline: `cp695-location-menu`
+Current candidate branch: `cp697-address-credit-polish`
+Recovery baseline: `cp696-auto-restaurant-location`
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP696 automatic restaurant location
-- Restaurants now automatically initiate **Use My Location** when the user enters the Restaurants screen and no location or typed address is already active.
-- The existing CP695 fresh-first geolocation flow remains unchanged, including secure-context checks, permission-state handling, fallback attempts, and visible status.
-- An active or manually typed address is never overwritten by the automatic entry request.
-- The request is deferred briefly until the Restaurants screen is rendered, preventing the location prompt from racing the screen transition.
-- No restaurant search provider logic, radius tiers, Quick Cuts, restaurant photos, swipe mechanics, menu design, or Notes behavior were intentionally changed.
+## CP697 address + creator credit polish
+- **Made by Brian Dunn for Devona Dunn** now uses a clearer satin blue treatment in About.
+- Tapping the populated Restaurant address field clears the displayed location so a new address can be entered without manually deleting the previous one.
+- Clearing the field also releases the previous location and resets the restaurant search origin so Find uses the new address.
+- Address autocomplete remains available after the field is cleared.
+- No restaurant provider, radius, Quick Cuts, photo, swipe, or menu logic was intentionally changed.
 
-## CP696 verification
-- Source insertion is present in `openRestaurant()`.
-- Automatic request is guarded by both `!S.location` and an empty address field.
-- Runtime callback rechecks the Restaurants screen, location state, and address field before calling `useLocation()`.
-- App asset query advanced from v664 to v665 so browsers do not retain the prior JavaScript shell.
-- Release metadata is synchronized to Build 696 / CP696.
+## CP697 verification
+- Source contains the populated-address focus clear behavior.
+- The focus handler nulls the previous restaurant location before new address entry.
+- Creator credit has matching blue rules in the stylesheet so later cascade rules do not restore the muted gray color.
+- App asset query advanced from v665 to v666.
+- Release metadata is synchronized to Build 697 / CP697.
 
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
