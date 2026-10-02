@@ -14,7 +14,7 @@ const row=app.slice(manageStart,manageEnd);
 assert(row.includes('const extra=deleted?\'\':\'<button class="manage-row-action manage-edit"'),'Edit action must be present');
 assert(row.includes('const primary=deleted'),'Hide/Restore action must be present');
 assert(row.includes('const deleteAction=deleted?'), 'Delete action must be present');
-assert(row.includes('>'+ 'extra+primary+deleteAction'), 'Active row order must be Edit -> Hide/Restore -> Delete');
+assert(row.includes('>\'+extra+primary+deleteAction+\'</span>') || row.includes('food-row-actions\'>\'+extra+primary+deleteAction'), 'Active row order must be Edit -> Hide/Restore -> Delete');
 assert(row.includes('data-food-deleted-restore') && !row.includes('data-food-delete') || row.includes('const deleteAction=deleted?'), 'Deleted rows must not render Delete');
 
 assert(!app.includes('<div class="settings-about-copy"><h3>Dinliminate</h3>'),'White About Dinliminate heading should be removed');
