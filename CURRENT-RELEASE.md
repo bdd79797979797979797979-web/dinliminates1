@@ -22,6 +22,7 @@ Status: candidate — not production
 ## CP701 verification
 - Source confirms App Diagnosis checks current IDs and source contracts.
 - Source confirms Run again remains available after each completed diagnostic run.
+- Added a current direct Choose-this placement check for Meal and Restaurant cards.
 - Source confirms current candidate branch and build metadata are aligned.
 - Physical iPhone and hosted-runtime certification remain separate gates.
 
