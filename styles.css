@@ -3618,3 +3618,56 @@ button,input,select,textarea{
   .unified-swipe-actions .round-maybe span{font-size:21px!important;}
 }
 #manageFoodsModal .manage-food-row .food-row-actions{gap:5px!important;}
+
+
+/* CP715 — force Restaurant Maybe/All toggle into the same horizontal decision rail as Meals. */
+#restaurant .unified-swipe-actions > .round-action,
+#restaurant .unified-swipe-actions > .deck-filter-toggle{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  margin:0!important;
+  align-self:center!important;
+  flex:0 0 auto!important;
+}
+#restaurant .unified-swipe-actions{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+}
+@media(max-width:390px){
+  #restaurant .unified-swipe-actions{gap:10px!important;}
+  #restaurant .unified-swipe-actions > .round-back,
+  #restaurant .unified-swipe-actions > .round-show-maybe{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;}
+  #restaurant .unified-swipe-actions > .round-cut,
+  #restaurant .unified-swipe-actions > .round-maybe{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;}
+}
+
+/* CP715 — winner / hungry screens use the same top-left Back affordance as Meals and Restaurants. */
+.winner{position:relative!important;}
+.winner .winner-back{
+  position:absolute!important;
+  left:2px!important;
+  top:8px!important;
+  width:42px!important;
+  height:40px!important;
+  min-width:42px!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:none!important;
+  color:#aaa!important;
+  font-size:29px!important;
+  line-height:1!important;
+  z-index:20!important;
+  text-align:left!important;
+}
+.winner .winner-back:active{transform:scale(.94)!important;}
