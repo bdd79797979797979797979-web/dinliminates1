@@ -21,3 +21,5 @@ Pre-audit photo reference: `cp705-full-audit-baseline`
 
 ## Next verification
 Test real restaurant results in Clarksville and confirm the displayed images remain venue-specific, high quality, and fast.
+
+Final CP710 refinements: curated known-good photos remain eligible after a lighter source-page confirmation; strict identity matching no longer accepts the older loose structured-data shortcut; low-quality/thumbnail-style assets are down-ranked.
