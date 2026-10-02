@@ -2900,7 +2900,22 @@ $('address').addEventListener('input', () => {
   renderLocationSource();
   suggestAddresses();
 });
-$('address').addEventListener('focus', () => { if ($('address').value.trim().length>=2) suggestAddresses(); });
+$('address').addEventListener('focus', () => {
+  const input=$('address');
+  if(!input)return;
+  const current=input.value.trim();
+  if(current){
+    invalidateAddressSuggestions();
+    S.location=null;
+    S.locationSource='typed';
+    S.restaurantSearchOrigin=null;
+    input.value='';
+    renderLocationSource();
+    $('status').textContent='Enter an address to search.';
+  }else if(input.value.trim().length>=2){
+    suggestAddresses();
+  }
+});
 $('address').addEventListener('keydown', e => {
 if(e.key==='ArrowDown'){ if(moveSuggestion(1)){e.preventDefault();return;} }
 if(e.key==='ArrowUp'){ if(moveSuggestion(-1)){e.preventDefault();return;} }
