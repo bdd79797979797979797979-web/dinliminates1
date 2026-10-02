@@ -4202,3 +4202,61 @@ button,input,select,textarea{
   .hungry-mystery-result-copy b{font-size:18px}
   .hungry-mystery-actions button{min-height:46px}
 }
+
+
+/* CP722 — compact top-row All/Maybe filter and unified bottom Choose action. */
+.quick-label-right{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  min-width:0;
+}
+.quick-filter-toggle{
+  width:auto!important;
+  min-width:38px!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0 8px!important;
+  border:1px solid #2d6245!important;
+  border-radius:999px!important;
+  background:#153b2a!important;
+  color:#73d49b!important;
+  box-shadow:none!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.04em!important;
+  line-height:1!important;
+}
+.quick-filter-toggle:disabled{opacity:.45}
+.quick-filter-toggle.is-maybe{
+  background:#184532!important;
+  border-color:#397a59!important;
+  color:#8be5ad!important;
+}
+.quick-label .count-inline{
+  color:#73d49b!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  white-space:nowrap!important;
+}
+.unified-swipe-actions .round-choose{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  border-radius:50%!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:#153b2a!important;
+  color:#8be5ad!important;
+  border:1px solid #397a59!important;
+  box-shadow:0 8px 20px #0005!important;
+}
+.unified-swipe-actions .round-choose span{font-size:20px!important;font-weight:900!important}
+.unified-swipe-actions .round-choose:active{transform:scale(.94)!important}
+.food-cuisine-row .card-header-actions,
+.restaurant-card-meta-row .restaurant-card-utilities{
+  align-items:center;
+}
