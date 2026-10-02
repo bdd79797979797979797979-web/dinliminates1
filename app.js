@@ -1,3 +1,4 @@
+/* CP693 verification marker — no runtime behavior change. */
 
 (() => {
 'use strict';
