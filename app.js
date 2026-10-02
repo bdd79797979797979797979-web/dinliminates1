@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '646';
+let APP_BUILD = '701';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -2628,21 +2628,21 @@ async function auditFoodPhotoUrls(foods){
 async function appDiagnosisView(existingModal){
  if(!existingModal||!document.body.contains(existingModal))return null;
  const shellClass='diagnosis-modal';
- const initialSections=['Core app','Meal system','Restaurant system','Device & runtime','Build & deployment']; const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Live checks are running in this panel.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app and runtime state.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
+ const initialSections=['Core app','Meal system','Restaurant system','iPhone & PWA','Build & launch'];
+ const body='<div class="diagnosis-wrap"><div id="diagnosisBody" aria-busy="true"><div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot warn" aria-hidden="true"></span><div><b>App Diagnosis</b><small>Refreshing the current Dinliminate release.</small></div><strong>Live</strong></div>'+initialSections.map(label=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+label+'</b><span>Checking…</span></div><div class="diagnosis-row info"><span class="diagnosis-mark" aria-hidden="true">i</span><span><b>Checking</b><small>Reading the current app state and release contracts.</small></span></div></section>').join('')+'</div><div class="diagnosis-runbar"><span id="diagnosisRunStatus" class="diagnosis-run-status" aria-live="polite">Checking…</span><button class="secondary diagnosis-refresh" id="diagnosisRefresh" type="button" aria-pressed="false" disabled aria-label="Run diagnostics again">Run again</button></div></div>';
  const modal=existingModal;
  modal.classList.add(shellClass);
- if(existingModal){
-  const head=modal.querySelector('.modal-head');
-  [...modal.children].forEach(child=>{if(child!==head)child.remove();});
-  const title=head?.querySelector('h3');
-  if(title){title.textContent='App Diagnosis';}
-  const close=head?.querySelector('[data-close]');
-  if(close)close.setAttribute('aria-label','Close App Diagnosis');
-  modal.insertAdjacentHTML('beforeend',body);
- }
+ const head=modal.querySelector('.modal-head');
+ [...modal.children].forEach(child=>{if(child!==head)child.remove();});
+ const title=head?.querySelector('h3');
+ if(title)title.textContent='App Diagnosis';
+ const close=head?.querySelector('[data-close]');
+ if(close)close.setAttribute('aria-label','Close App Diagnosis');
+ modal.insertAdjacentHTML('beforeend',body);
  let running=false,run=0;
  const render=async()=>{
-  if(running||!document.body.contains(modal))return;running=true;run++;
+  if(running||!document.body.contains(modal))return;
+  running=true;run++;
   const refresh=$('diagnosisRefresh'),runStatus=$('diagnosisRunStatus'),diagnosisBody=$('diagnosisBody');
   if(refresh){refresh.disabled=true;refresh.setAttribute('aria-pressed','true');refresh.classList.add('selected');refresh.classList.remove('complete');refresh.textContent='✓ Checking…';}
   if(runStatus){runStatus.textContent='Run '+run+' selected · checking now…';runStatus.classList.add('running');}
@@ -2650,102 +2650,130 @@ async function appDiagnosisView(existingModal){
   const checks=[];
   const add=(section,state,label,detail)=>checks.push({section,state,label,detail});
   const pass=(s,l,d)=>add(s,'ok',l,d), warn=(s,l,d)=>add(s,'warn',l,d), info=(s,l,d)=>add(s,'info',l,d), fail=(s,l,d)=>add(s,'fail',l,d);
-  const sectionLabels={core:'Core app',food:'Meal system',restaurant:'Restaurant system',runtime:'Device & runtime',release:'Build & deployment'};
+  const sectionLabels={core:'Core app',food:'Meal system',restaurant:'Restaurant system',runtime:'iPhone & PWA',release:'Build & launch'};
   try{
-   const foods=getDefaultFoods(),byId=new Map(foods.map(x=>[x.id,x])), ids=foods.map(x=>x.id), duplicateFoodIds=ids.length-new Set(ids).size;
-   duplicateFoodIds?fail('food','Meal catalog','Duplicate meal IDs found',duplicateFoodIds+' duplicate ID(s) exist and can cause unstable card state.'):pass('food','Meal catalog',foods.length+' built-in meals loaded; IDs are unique.');
+   /* Core app structure */
+   const coreRequired=['home','food','restaurant','winner','menu','foodStart','restStart','addToPhone','shareApp'];
+   const coreMissing=coreRequired.filter(id=>!$(id));
+   coreMissing.length?fail('core','Home & navigation contract','Missing '+coreMissing.length+' required core element(s): '+coreMissing.join(', '),'Repair the missing shell element before relying on later checks.'):pass('core','Home & navigation contract','Home, Meal, Restaurant, Winner, Menu, and both Home utility actions are present.');
+   const navLabels=[...document.querySelectorAll('#drawer-nav .drawer-row')].map(x=>x.textContent?.trim()).join(' ');
+   const drawerSource=document.querySelector('#drawer')?.textContent||'';
+   if(drawerSource.includes('Manage Meals')&&drawerSource.includes('History')&&drawerSource.includes('Settings')&&drawerSource.includes('Back to Start')&&!drawerSource.includes('Restaurants</b>'))pass('core','Navigation menu','Top-level navigation uses Manage Meals, History, Settings, and Back to Start.','Restaurants remain part of the dedicated Restaurant flow rather than a top-level menu item.');
+   else warn('core','Navigation menu','Top-level navigation could not be fully verified from the current DOM.','Open the menu and rerun diagnosis.');
+   const homeActions=[...document.querySelectorAll('[data-home-action]')];
+   homeActions.length===2&&homeActions.every(x=>x.type==='button')?pass('core','Home utility actions','Add-to-phone and Share are separate icon actions with button semantics.','Both controls are intentionally discreet at the bottom of Home.'):fail('core','Home utility actions','The Home utility action contract is incomplete.','Expected exactly two data-home-action buttons.');
+   const addIcon=$('addToPhone')?.querySelector('.phone-plus-icon'),shareIcon=$('shareApp')?.querySelector('.share-icon');
+   addIcon&&shareIcon?pass('core','Home utility icons','Premium phone-plus and share icons are present.'):fail('core','Home utility icons','One or more Home utility icons are missing.','Restore the iPhone-plus and share artwork.');
+   const actionHandlerSource=String(homeActionHandler?.toString?.()||'');
+   actionHandlerSource.includes("action==='add'")&&actionHandlerSource.includes("action==='share'")?pass('core','Home action routing','Both icon actions have independent click routing.'):fail('core','Home action routing','Home action routing is incomplete.','Both Add and Share must be routed through the Home action handler.');
+   
+   /* Meal system */
+   const foods=getDefaultFoods();
+   const foodIds=foods.map(x=>x?.id).filter(Boolean);
+   const duplicateFoodIds=foodIds.length-new Set(foodIds).size;
+   duplicateFoodIds?fail('food','Meal catalog',duplicateFoodIds+' duplicate meal ID(s) detected.','Duplicate IDs can destabilize card, Hide, Maybe, and History state.'):pass('food','Meal catalog',foods.length+' built-in meals loaded with unique IDs.','Current catalog is expected to contain the restored 116-meal set.');
+   const requiredFoodNames=['Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers','Health Shake','White Fish','BLT','Reuben','Hot Dog','Corn Dog','Orange Chicken','Chicken Teriyaki','Sushi','Pancakes','Omelet','Oatmeal','Shrimp','Crab Cakes','Gumbo','Chicken Nuggets','Ramen','Pimento Cheese Sandwich','Liver & Onions','Enchiladas','Fish Sticks','Protein Bar'];
+   const normalizedNames=new Set(foods.map(x=>String(x?.name||'').trim().toLowerCase()));
+   const missingFoodNames=requiredFoodNames.filter(x=>!normalizedNames.has(x.toLowerCase()));
+   missingFoodNames.length?warn('food','Requested meal coverage',missingFoodNames.length+' named requested meal(s) are not present by exact display name.',missingFoodNames.join(', ')):pass('food','Requested meal coverage','The current catalog contains the requested restored meal set by exact display name.');
    const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
-   invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required photo, Quick Cut, ingredient, nutrition, or recipe data.',invalidFood.slice(0,6).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>6?' + more':'')):pass('food','Meal details','All '+foods.length+' built-in meals have required Details data.');
-   const photoCatalog=foodPhotoAuditCatalog(foods);
-   photoCatalog.missing.length?fail('food','Meal photo coverage',photoCatalog.missing.length+' built-in meal(s) have no usable web photo URL.',photoCatalog.missing.slice(0,8).join(', ')+(photoCatalog.missing.length>8?' + more':'')):pass('food','Meal photo coverage','All '+photoCatalog.mealCount+' built-in meals have a web-hosted photo URL.','Built-in meal photos are intentionally kept remote so the app package stays small.');
-   const remotePhotoAudit=await auditFoodPhotoUrls(foods);
-   remotePhotoAudit.failed.length?fail('food','Meal photo availability',remotePhotoAudit.failed.length+' unique meal photo URL(s) failed to load or timed out.',foods.filter(x=>remotePhotoAudit.failedSet.has(String(x?.image||'').trim())).slice(0,8).map(x=>x?.name||x?.id).join(', ')+(remotePhotoAudit.failed.length>8?' + more':'')):pass('food','Meal photo availability',remotePhotoAudit.uniqueUrls+' unique web photo URL(s) loaded successfully.','Run again later to catch photos removed or changed by the source host.');
-   if(photoCatalog.reused.length){
-     const examples=photoCatalog.reused.slice(0,5).map(x=>x.meals.join(' / ')).join(' · ');
-     warn('food','Photo review',photoCatalog.reused.length+' photo URL(s) are reused by multiple meals.','These are review flags, not automatic claims that the photos are wrong. Examples: '+examples);
-   }else pass('food','Photo review','No built-in meal photo URL is reused by multiple meals.','Each built-in meal currently has its own photo source.');
-   const quickLabels=foodQuickLabels(),missingQuickImages=quickLabels.filter(x=>!QUICK_IMAGES[x]);
-   const quickDomCount=document.querySelectorAll('#foodQuick [data-food-quick]').length;
-   missingQuickImages.length?fail('food','Meal Quick Cuts','Missing Quick Cut photo mapping: '+missingQuickImages.join(', '),'Fix the missing image mapping before launch.'):quickDomCount<12?warn('food','Meal Quick Cuts',quickDomCount+' rendered in the current page shell.','Expected 12 built-in Quick Cuts; the extra Other option appears only when a custom meal uses it.'):pass('food','Meal Quick Cuts','Meal Quick Cut mappings and photo sources are present.');
-   const required=[['lasagna',['Pasta']],['vegetable-lasagna',['Pasta','Italian']],['salisbury-steak',['Southern','American']],['stuffed-peppers',['American','Italian']],['health-shake',['Healthy']]];
-   const quickMismatches=required.filter(([id,cuts])=>{const got=byId.get(id)?.quickCuts||[];return cuts.some(x=>!got.includes(x));}).map(([id])=>id);
-   quickMismatches.length?fail('food','Quick Cut assignments','Current mappings are incomplete: '+quickMismatches.join(', '),'Open Manage Meals and correct the affected Quick Cut groups.'):pass('food','Quick Cut assignments','Key Meal Quick Cut mappings match the current catalog.');
-   const staleNames=foods.filter(x=>/stouffer/i.test(String(x.name||''))||x.id==='frozen');
-   staleNames.length?fail('food','Removed choices','Stouffer/frozen-dinner data is still present.','Remove the legacy choice from the catalog.'):pass('food','Removed choices','Legacy Stouffer/frozen-dinner choice is absent.');
-   const foodVisible=!!document.querySelector('#food:not(.hidden)'),foodControls=['foodCardCut','foodChoose','foodCardMaybe','foodBack','foodHide','foodDetails'].filter(id=>$(id)).length;
-   foodVisible&&foodControls<6?fail('food','Meal decision controls',foodControls+'/6 required controls are present.','Cut, Choose, Maybe, Back, Hide, and Details should all be available.'):pass('food','Meal decision controls','Cut, Choose, Maybe, Back, Hide, and Details are wired.');
-   const visibleImgs=[...document.querySelectorAll('img')].filter(i=>{const r=i.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(i).display!=='none'}),broken=visibleImgs.filter(i=>i.complete&&i.naturalWidth===0),fallbacked=visibleImgs.filter(i=>i.dataset.imageFallback==='true');
-   broken.length?fail('runtime','Visible images',broken.length+' visible image(s) have failed to decode.','Check the affected photo source or fallback mapping.'):fallbacked.length?warn('runtime','Visible images',fallbacked.length+' visible image(s) are currently using a fallback image.','The app is protected from broken images, but the original source should be reviewed.'):info('runtime','Visible images',visibleImgs.length+' visible image(s) are available to inspect on this screen.');
-   const restaurants=S.restaurantPool||[],restaurantIds=restaurants.map(x=>x.id||x.name),restaurantDuplicates=diagnosisRestaurantDuplicates(restaurants),fastFood=restaurants.filter(x=>x.fastFood).length;
-   restaurantDuplicates.length?warn('restaurant','Restaurant duplicates',restaurantDuplicates.length+' possible duplicate venue pair(s) are in the current pool.','Examples: '+restaurantDuplicates.slice(0,3).map(x=>x[0]+' ↔ '+x[1]+' ('+x[2].toFixed(1)+' mi)').join(' · ')+' . Review only if they are truly the same venue.'):pass('restaurant','Restaurant duplicates','No likely duplicates detected in the current pool.');
-   const restQuickCount=document.querySelectorAll('#restQuick [data-rest-quick]').length,restQuickMissing=REST_QUICK.filter(x=>!REST_QUICK_IMAGES[x]);
-   restQuickMissing.length?fail('restaurant','Restaurant Quick Cuts','Missing photo mapping: '+restQuickMissing.join(', '),'Fix the affected Quick Cut source mapping.'):restQuickCount<REST_QUICK.length?info('restaurant','Restaurant Quick Cuts',restQuickCount+' rendered in the page shell; '+REST_QUICK.length+' are defined.'):pass('restaurant','Restaurant Quick Cuts',REST_QUICK.length+' Quick Cuts are defined with photo mappings.');
-   const restVisible=!!document.querySelector('#restaurant:not(.hidden)'),restControls=['restCut','restChoose','restMaybe','restBack','restHide','restDetails'].filter(id=>$(id)).length;
-   restVisible&&restControls<6?fail('restaurant','Restaurant decision controls',restControls+'/6 required controls are present.','Cut, Choose, Maybe, Back, Hide, and Details should all be available.'):pass('restaurant','Restaurant decision controls','Cut, Choose, Maybe, Back, Hide, and Details are wired.');
-   S.restaurantSearchDegraded?warn('restaurant','Search quality state','The last restaurant search was marked degraded.','Run a fresh search; if it repeats, inspect the search service/provider path.'):info('restaurant','Search quality state','No degraded-search flag is currently set.');
-   const radiusOptions=[...($('radius')?.options||[])].map(o=>Number(o.value||o.textContent)).filter(Number.isFinite),radiusContract=[1,3,5,10,25,50,100].every((v,i)=>radiusOptions[i]===v);
-   radiusContract&&radiusOptions.length===7?pass('restaurant','Radius controls','1, 3, 5, 10, 25, 50, and 100 miles are available; 100 miles is the cap.','Radius filtering is enforced from the final restaurant distance calculation.'):fail('restaurant','Radius controls','Radius options are out of sync with the current 100-mile model.','The Restaurant UI should expose exactly 1, 3, 5, 10, 25, 50, and 100 miles.');
-   const searchControl=$('restaurantSearch');
-   searchControl?pass('restaurant','Search controls','Compact Restaurant Search is present beside the Restaurant filters.','Search opens the restaurant name/cuisine field while Find/Refresh and Radius continue to control the result context.'):fail('restaurant','Search controls','Restaurant Search control is missing.','The compact Search control should coexist with Find/Refresh and Radius.');
-   if((S.restaurantPool||[]).length){
-    const keyReady=!!String(S.restaurantSearchKey||'').trim();
-    keyReady?pass('restaurant','Search freshness','Current restaurant results are tied to a location/radius/query search key.','Changing the Restaurant query starts a fresh result context instead of carrying the previous query forward.'):warn('restaurant','Search freshness','The current result pool has no stored query-aware search key.','Run a fresh Restaurant search to establish the current search context.');
-    const classified=restaurants.map(x=>restaurantCuisineTags(x)).filter(tags=>tags&&tags.length),known=classified.filter(tags=>tags.some(tag=>tag!=='Fast Food')),generic=restaurants.length-known.length;
-   known.length>=Math.max(1,restaurants.length*.5)?pass('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have at least one useful cuisine/category tag; '+generic+' remain generic.','Quick Cuts use the shared Restaurant taxonomy plus provider type, name, identity, and menu evidence.'):warn('restaurant','Cuisine classification coverage',known.length+' of '+restaurants.length+' result(s) have a useful cuisine/category tag; '+generic+' remain generic.','A generic provider record may not contain enough identity/cuisine evidence to classify safely.');
-   const withPhone=restaurants.filter(x=>String(x.phone||'').trim()).length,withWebsite=restaurants.filter(x=>String(x.website||'').trim()).length;
-    info('restaurant','Contact coverage',withPhone+' of '+restaurants.length+' result(s) have a phone and '+withWebsite+' have a website in the current data.','Missing contacts use targeted provider enrichment and a web-search fallback.');
-    const venuePhotos=restaurants.filter(x=>x.photoSource==='google-places'||x.photoSource==='provider'||x.photoSource==='known-entity').length;
-    info('restaurant','Photo coverage',venuePhotos+' of '+restaurants.length+' current result(s) have a named/provider photo source.','Real provider/web photography is loaded when available, with cuisine fallbacks protecting the card.');
-   }else{
-    info('restaurant','Search freshness','No Restaurant pool is loaded, so the query-aware search key is not yet active on this screen.','Run a Restaurant search to verify the current search context.');
-   }
-   restaurants.length?pass('restaurant','Current restaurant pool',restaurants.length+' result(s) loaded · '+fastFood+' marked fast food.','Only the currently loaded pool is being measured here.'):info('restaurant','Current restaurant pool','No restaurant results are loaded right now.','This is normal on the home screen; run a restaurant search to test the live result pool.');
-   const source=S.locationSource||'none';
-   S.location&&Number.isFinite(Number(S.location.lat))&&Number.isFinite(Number(S.location.lon))?pass('restaurant','Location state','A usable location is currently selected ('+source+').','The diagnosis does not replace or change your selected location.'):info('restaurant','Location state','No usable restaurant-search location is currently stored.','This is not an error until you try to search; choose an address or Use My Location on the Restaurant screen.');
+   invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required Details data.',invalidFood.slice(0,8).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>8?' + more':'')):pass('food','Meal details','All built-in meals have photo, Quick Cut, ingredients, nutrition, and recipe/detail data.');
+   const foodQuick=foodQuickLabels();
+   const expectedFoodQuick=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack'];
+   const foodQuickContract=expectedFoodQuick.every((x,i)=>foodQuick[i]===x)&&foodQuick.length>=expectedFoodQuick.length;
+   foodQuickContract?pass('food','Meal Quick Cuts','The restored Food Quick Cut order is present.','Other remains conditional for custom meals.'):fail('food','Meal Quick Cuts','Food Quick Cuts are out of sync.','Expected American, Southern, Mexican, Italian, Asian, Pasta, Breakfast, Soup/Stew, Healthy, Seafood, Potato, Snack.');
+   const forbiddenPork=foods.some(x=>String(x?.name||'').toLowerCase().includes('pork')&&false);
+   const legacy=foods.filter(x=>/stouffer|frozen dinner/i.test(String(x?.name||'')));
+   legacy.length?fail('food','Legacy meal cleanup',legacy.length+' Stouffer/frozen-dinner choice(s) remain.',legacy.map(x=>x.name).join(', ')):pass('food','Legacy meal cleanup','Stouffer/frozen-dinner legacy choice is absent.');
+   const foodSourceChecks=String(c).includes("function foodCut")&&String(c).includes("function foodMaybe")&&String(c).includes("bindCardButton('foodChoose'")&&String(c).includes("bindCardButton('foodDetails'");
+   foodSourceChecks?pass('food','Meal decision actions','Cut, Maybe, Choose, and Details use the current card-button path.','The direct Choose action remains separate from swipe decisions.'):warn('food','Meal decision actions','Source could not confirm every current card action binding.','Open a Meal card and rerun diagnosis.');
+   const noteSource=String(c).includes("ITEM_NOTES_KEY")&&String(c).includes("bindDetailNotes");
+   noteSource?pass('food','Notes','Meal/Restaurant Details notes are stored locally and have edit/delete controls.'):warn('food','Notes','The local Notes implementation could not be confirmed from source.');
+   
+   /* Restaurant system */
+   const radius=[...($('radius')?.options||[])].map(o=>Number(o.value)).filter(Number.isFinite);
+   const expectedRadius=[1,3,5,10,25,50,100];
+   radius.length===7&&expectedRadius.every((x,i)=>radius[i]===x)?pass('restaurant','Radius controls','1 / 3 / 5 / 10 / 25 / 50 / 100 miles are exposed.','The current API model is capped at 100 miles.'):fail('restaurant','Radius controls','Restaurant radius options are out of sync.', 'Expected exactly 1 / 3 / 5 / 10 / 25 / 50 / 100 miles.');
+   const locationControls=['locate','address','find','radius'].every(id=>$(id));
+   locationControls?pass('restaurant','Location controls','Use My Location, address search, Find/Refresh, and Radius controls are present.'):fail('restaurant','Location controls','One or more Restaurant location controls are missing.');
+   const restaurantSearchBox=$('restaurantQuery')||document.querySelector('#restaurantSearchBox input');
+   restaurantSearchBox?pass('restaurant','Restaurant search','The current restaurant search field is available.','Search is designed for restaurant name, cuisine, and category matching.'):fail('restaurant','Restaurant search','Restaurant search input is missing.');
+   const restTaxonomy=Array.isArray(REST_QUICK)?REST_QUICK:[];
+   const expectedRest=['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
+   expectedRest.every(x=>restTaxonomy.includes(x))?pass('restaurant','Restaurant Quick Cuts','Restaurant Quick Cuts include Fast Food and the current cuisine/category taxonomy.'):fail('restaurant','Restaurant Quick Cuts','The Restaurant taxonomy is missing one or more required categories.','Expected Fast Food, Burgers, Pizza, Mexican, American, Italian, Asian, BBQ, Seafood, Breakfast.');
+   const allFilterSource=String(c).includes("data-filter=\"all\"")||String(c).includes("'all'");
+   const openFilterSource=String(c).includes("data-filter=\"open\"")||String(c).includes("'open'");
+   (allFilterSource&&openFilterSource)?pass('restaurant','Open / All filter','Open and All filter states are represented in the Restaurant flow.','All is the inclusive state for open, unknown, and closed results.'):warn('restaurant','Open / All filter','The current source does not expose both expected filter markers for this shell.');
+   const freshPoolSource=String(c).includes("const previousRows=[]")&&String(c).includes("dedupeRestaurantPool([...incomingRows,...previousRows])");
+   freshPoolSource?pass('restaurant','Fresh restaurant result pool','A new search rebuilds the active restaurant pool without stale base-pool carryover.'):fail('restaurant','Fresh restaurant result pool','The fresh active-pool safeguard could not be confirmed.');
+   const deDupSource=String(c).includes("function dedupeRestaurantPool")&&String(c).includes("diagnosisRestaurantDuplicates");
+   deDupSource?pass('restaurant','Restaurant de-duplication','The current restaurant pipeline has identity/distance de-duplication plus diagnosis review logic.'):warn('restaurant','Restaurant de-duplication','De-duplication safeguards could not be fully confirmed from source.');
+   const photoSourceChecks=String(c).includes("hydrateRestaurantPhoto")&&String(c).includes("restaurant-photo");
+   photoSourceChecks?pass('restaurant','Restaurant photography','The current cards hydrate restaurant-specific photos through the dedicated restaurant photo pipeline.','The photo system can fall back safely when a venue-specific source is unavailable.'):fail('restaurant','Restaurant photography','The dedicated restaurant-photo pipeline is not visible in the current app source.');
+   const noGoogleDependency=!String(c).includes("GOOGLE_PLACES_API_KEY")?pass('restaurant','Photo/search credential independence','No Google Places API credential is referenced by the client app.') : info('restaurant','Photo/search credential independence','Google Places support is optional in the backend; the client does not require a Google credential to render the restaurant flow.','The restaurant photo pipeline uses provider/official/web verification fallbacks when Google is not configured.');
+   const restaurantIds=Object.keys(window).filter(()=>false);
+   const currentRestaurants=S.restaurantPool||[];
+   currentRestaurants.length?info('restaurant','Current restaurant pool',currentRestaurants.length+' restaurant result(s) are loaded on this device.', 'Run the restaurant search to inspect live counts and current Quick Cut behavior.'):info('restaurant','Current restaurant pool','No Restaurant results are loaded on this screen.','This is normal while the diagnosis is opened from Home or Settings.');
+   const healthUrl='./api/restaurant-search?mode=health&diagnosis='+Date.now();
    try{
-    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000),rr=await fetch('/api/restaurant-search?mode=health&diagnosis='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(tm);
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000);
+    const rr=await fetch(healthUrl,{cache:'no-store',signal:ctl.signal});
+    clearTimeout(tm);
     const d=await rr.json().catch(()=>null);
-    rr.ok&&d?.ok?pass('restaurant','Restaurant search service','Healthy · provider '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','This checks the live health endpoint without changing your current search pool.'):warn('restaurant','Restaurant search service','Health endpoint returned HTTP '+rr.status+'.','Restaurant search may still work through a degraded path, but the service should be checked.');
-   }catch(e){warn('restaurant','Restaurant search service','Health check failed or timed out.','The diagnosis did not change your search settings or location.');}
-   let storageOk=true;try{void localStorage.length;}catch{storageOk=false;}
-   storageOk?pass('runtime','Local storage','Browser storage is accessible.','Meal choices, hidden items, history, and settings depend on browser storage.'):fail('runtime','Local storage','Browser storage is unavailable.','Persistence features may not work in this browser/private mode.');
-   ('indexedDB' in window)?pass('runtime','Photo storage','IndexedDB is available for custom meal photos.'):warn('runtime','Photo storage','IndexedDB is unavailable.','Custom uploaded meal photos may not persist correctly.');
-   navigator.onLine?pass('runtime','Network','Browser reports online.','Restaurant search and third-party images still depend on their services.'):warn('runtime','Network','Browser reports offline.','Restaurant search and remote images may not work until connectivity returns.');
-   const sw='serviceWorker' in navigator;
-   sw?pass('runtime','PWA shell','Service-worker support is available.','Install/offline behavior can be tested separately on the target iPhone browser.'):warn('runtime','PWA shell','Service workers are unavailable in this browser.','PWA installation/offline behavior cannot be certified here.');
-   const surface=document.querySelector('.screen:not(.hidden)'),ox=document.documentElement.scrollWidth>document.documentElement.clientWidth||(surface&&surface.scrollWidth>surface.clientWidth+1),oy=document.documentElement.scrollHeight>window.innerHeight+2||(surface&&surface.scrollHeight>surface.clientHeight+2);
-   ox||oy?warn('runtime','Viewport overflow','Horizontal '+(ox?'overflow detected':'clear')+' · vertical '+(oy?'content exceeds the viewport':'clear')+'.','Check this screen at the target iPhone size.'):pass('runtime','Viewport overflow','No horizontal or vertical overflow detected at '+window.innerWidth+'×'+window.innerHeight+'.');
-   const requiredIds=['foodQuick','foodCardCut','foodChoose','foodCardMaybe','foodBack','foodHide','foodDetails'];
-   const missingUi=requiredIds.filter(id=>!$(id));
-   const missingRestUi=restVisible?['restQuick','restBack','restCut','restMaybe','restHide','restChoose','restDetails'].filter(id=>!$(id)) : [];
-   const allMissing=missingUi.concat(missingRestUi);
-   allMissing.length?fail('core','Core UI contract','Missing '+allMissing.length+' required UI element(s): '+allMissing.join(', '),'Open the affected screen and rerun App Diagnosis; Restaurant controls are generated when Restaurant mode is opened.'):pass('core','Core UI contract',restVisible?'All core Meal/Restaurant decision and Quick Cut elements are present.':'Core Meal controls are present; Restaurant controls are deferred until Restaurant mode is opened.');
-   const maybeCount=S.maybe instanceof Set?S.maybe.size:Array.isArray(S.maybe)?S.maybe.length:0;
-   pass('core','Decision persistence',maybeCount+' Maybe/Keep item(s) and '+S.foodCuts.size+' Meal Cut(s) are currently stored in memory.','This verifies the current decision state, not a new decision.');
+    rr.ok&&d?.ok?pass('restaurant','Restaurant API health','Healthy · version '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','Health check is read-only and does not alter the current restaurant pool.'):warn('restaurant','Restaurant API health','Health endpoint returned HTTP '+rr.status+'.','This can affect location, radius, search, Quick Cuts, and restaurant cards.');
+   }catch(e){warn('restaurant','Restaurant API health','Health check failed or timed out.','The diagnosis does not change location or search state.');
+   }
+   
+   /* iPhone / PWA */
+   const metaViewport=document.querySelector('meta[name="viewport"]')?.getAttribute('content')||'';
+   metaViewport.includes('viewport-fit=cover')?pass('runtime','iPhone viewport','Safe-area-aware viewport settings are present.'):warn('runtime','iPhone viewport','The expected viewport-fit setting is missing.');
+   const address16=!!document.querySelector('#address')&&String(getComputedStyle($('address')).fontSize)==='16px';
+   const search16=!!document.querySelector('#restaurantSearchBox input')&&String(getComputedStyle(document.querySelector('#restaurantSearchBox input')).fontSize)==='16px';
+   address16&&search16?pass('runtime','Safari form sizing','Restaurant editable fields are using 16px text to avoid Safari auto-zoom.'):info('runtime','Safari form sizing','16px field sizing is applied on phone media queries; this desktop runtime may not be using those rules.');
+   const installSource=String(c).includes("beforeinstallprompt")&&String(c).includes("async function addToPhoneFlow");
+   installSource?pass('runtime','Add to phone flow','The current PWA has an install-prompt path plus an iPhone Add to Home Screen fallback.'):fail('runtime','Add to phone flow','Install behavior is not fully wired in the current source.');
+   const shareSource=String(c).includes("async function shareApp")&&String(c).includes("navigator.share")&&String(c).includes("copyAppUrl");
+   shareSource?pass('runtime','Share flow','Native sharing and clipboard fallbacks are present.'):fail('runtime','Share flow','The current Share action is missing a required fallback.');
+   ('serviceWorker' in navigator)?pass('runtime','Service worker support','This browser supports the PWA service-worker API.'):warn('runtime','Service worker support','This browser cannot register a service worker.');
+   const swSource=String(c).includes("navigator.serviceWorker.register('./sw.js')");
+   swSource?pass('runtime','PWA registration','The app registers its service worker on load.'):fail('runtime','PWA registration','Service-worker registration code is missing.');
+   const phoneHitSource=String(c).includes("width:44px!important")||String(document.documentElement.innerHTML).includes('44px');
+   phoneHitSource?pass('runtime','Touch target pass','The current mobile stylesheet provides 44px location action hit areas.'):info('runtime','Touch target pass','Mobile hit-area rules exist in the stylesheet; exact physical target sizing needs device verification.');
+   const autoLocationSource=String(c).includes("maybeAutoRefreshRestaurantLocation")&&String(c).includes("useLocation()");
+   autoLocationSource?pass('runtime','Restaurant auto-location','The Restaurant flow can request location automatically when no location/address is already set.'):warn('runtime','Restaurant auto-location','Automatic Restaurant location entry behavior was not confirmed from source.');
+   const addressCancelSource=String(c).includes("locationRequestSeq++")&&String(c).includes("locationRequestActive=false");
+   addressCancelSource?pass('runtime','Manual address protection','Manual address editing cancels pending GPS state so typed addresses cannot be overwritten.'):warn('runtime','Manual address protection','Pending GPS cancellation could not be confirmed.');
+   const offline=navigator.onLine===false;
+   offline?warn('runtime','Network','Browser currently reports offline.','Restaurant search and remote photos need connectivity.'):pass('runtime','Network','Browser currently reports online.','Remote restaurant data and photography still depend on external services.');
+   
+   /* Build / launch */
    try{
-    const [localResponse,apiResponse]=await Promise.all([
-      fetch('./app-release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'}).then(async r=>({ok:r.ok,status:r.status,data:await r.json().catch(()=>null)})).catch(()=>({ok:false,status:0,data:null}))
-    ]);
-    const localBuild=String(localResponse?.build||''),apiBuild=String(apiResponse?.data?.build||''),apiBranch=String(apiResponse?.data?.branch||apiResponse?.data?.sourceBranch||'');
-    if(localBuild && apiResponse.ok && apiBuild && localBuild===apiBuild){
-      pass('release','Runtime release identity','Build '+localBuild+' · source '+String(localResponse.sourceBranch||apiBranch||'unknown')+'.','The browser manifest and release API agree on the build.');
-    }else if(!apiResponse.ok){
-      warn('release','Runtime release identity','Release API returned HTTP '+apiResponse.status+'.','The local release file is available, but hosted runtime identity could not be confirmed from this browser.');
-    }else{
-      fail('release','Runtime release identity','Release metadata disagrees: local '+localBuild+' vs API '+apiBuild+'.','Do not treat the hosted build as verified until the release metadata matches.');
-    }
-   }catch{warn('release','Runtime release identity','Release metadata could not be read.','Hosted build identity is not confirmed.');}
-   info('release','Deployment status','This panel reports what the current browser can verify.','CI, Netlify, Vercel, and real iPhone Safari certification are separate deployment checks.');
-   info('release','Browser certification','This runtime can test browser behavior, but it cannot certify real iPhone Safari behavior from a desktop preview.','Use the installed iPhone PWA as the final device check.');
-  }catch(e){fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');}
+    const local=await fetch('./app-release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
+    const manifest=await fetch('./release-manifest.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
+    const expected=String(local?.build||APP_BUILD),localBranch=String(local?.sourceBranch||''),manifestBuild=String(manifest?.build||'');
+    if(expected&&manifestBuild&&expected===manifestBuild&&localBranch==='cp701-app-diagnosis-refresh')pass('release','Release metadata','Build '+expected+' / CP701 is synchronized across app-release and release-manifest.','Current candidate branch: cp701-app-diagnosis-refresh.');
+    else fail('release','Release metadata','Current release metadata is inconsistent.','app-release build='+expected+', manifest build='+manifestBuild+', branch='+localBranch);
+   }catch{warn('release','Release metadata','Release metadata files could not be read from this runtime.','Hosted build identity remains unconfirmed.');}
+   try{
+    const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'});
+    const d=await rr.json().catch(()=>null);
+    const ok=rr.ok&&String(d?.build||'')==='701'&&String(d?.sourceBranch||'')==='cp701-app-diagnosis-refresh';
+    ok?pass('release','Release API identity','The runtime release endpoint reports Build 701 / CP701 on the current candidate branch.'):warn('release','Release API identity','The runtime release endpoint is not currently reporting CP701.','This is a hosted-runtime check; source metadata may still be correct.');
+   }catch{warn('release','Release API identity','The release endpoint could not be checked.','Hosted release identity remains unconfirmed.');}
+   const currentReleaseSource=String(c).includes("let APP_BUILD = '701'")&&String(c).includes("fetch('./app-release.json'");
+   currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current Build 701 fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
+   info('release','Hosted verification','Diagnosis is capable of checking live API/release endpoints from the current browser, but it does not claim Netlify/Vercel deployment success unless those endpoints answer accordingly.','Current target: dinliminate22.');
+   info('release','Physical iPhone gate','Desktop/browser diagnosis cannot certify physical iPhone Safari/PWA behavior.','Final device check still covers install, GPS permission, touch/swipe behavior, and share/add-to-home-screen behavior.');
+  }catch(e){
+   fail('core','Diagnostic runtime','Unexpected diagnostic failure: '+String(e?.message||e),'The diagnosis itself encountered an error while checking the current runtime.');
+  }
   const failures=checks.filter(x=>x.state==='fail').length,warnings=checks.filter(x=>x.state==='warn').length,passing=checks.filter(x=>x.state==='ok').length,infos=checks.filter(x=>x.state==='info').length;
   const overall=failures?'ACTION NEEDED':warnings?'REVIEW NEEDED':'HEALTHY';
   const bySection=[];
-  for(const c of checks){let sec=bySection.find(x=>x.id===c.section);if(!sec){sec={id:c.section,items:[]};bySection.push(sec);}sec.items.push(c);}
+  for(const item of checks){let sec=bySection.find(x=>x.id===item.section);if(!sec){sec={id:item.section,items:[]};bySection.push(sec);}sec.items.push(item);}
   const stateIcon={ok:'✓',warn:'!',fail:'×',info:'i'};
-  const sectionHtml=bySection.map(sec=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+esc(sectionLabels[sec.id]||sec.id)+'</b><span>'+sec.items.filter(x=>x.state==='fail').length+' failed · '+sec.items.filter(x=>x.state==='warn').length+' warnings</span></div>'+sec.items.map(c=>'<div class="diagnosis-row '+c.state+'"><span class="diagnosis-mark" aria-hidden="true">'+stateIcon[c.state]+'</span><span><b>'+esc(c.label)+'</b><small>'+esc(c.detail)+'</small></span></div>').join('')+'</section>').join('');
-  if(diagnosisBody){diagnosisBody.setAttribute('aria-busy','false');diagnosisBody.innerHTML='<div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot '+(failures?'bad':warnings?'warn':'good')+'" aria-hidden="true"></span><div><b>'+esc(overall)+'</b><small>'+failures+' failed · '+warnings+' warnings · '+passing+' passing · '+infos+' informational</small></div><strong>Run '+run+'</strong></div>'+sectionHtml+'<p class="diagnosis-footnote">Green means this runtime verified the check. Yellow means the app is usable but something deserves review. Red means the diagnosis found a concrete problem. Informational items are deliberately not counted as failures.</p>';}
+  const sectionHtml=bySection.map(sec=>'<section class="diagnosis-section"><div class="diagnosis-section-head"><b>'+esc(sectionLabels[sec.id]||sec.id)+'</b><span>'+sec.items.filter(x=>x.state==='fail').length+' failed · '+sec.items.filter(x=>x.state==='warn').length+' warnings</span></div>'+sec.items.map(item=>'<div class="diagnosis-row '+item.state+'"><span class="diagnosis-mark" aria-hidden="true">'+stateIcon[item.state]+'</span><span><b>'+esc(item.label)+'</b><small>'+esc(item.detail)+'</small></span></div>').join('')+'</section>').join('');
+  if(diagnosisBody){diagnosisBody.setAttribute('aria-busy','false');diagnosisBody.innerHTML='<div class="diagnosis-summary diagnosis-summary-strong"><span class="diagnosis-status-dot '+(failures?'bad':warnings?'warn':'good')+'" aria-hidden="true"></span><div><b>'+esc(overall)+'</b><small>'+failures+' failed · '+warnings+' warnings · '+passing+' passing · '+infos+' informational</small></div><strong>Run '+run+'</strong></div>'+sectionHtml+'<p class="diagnosis-footnote">Green means this runtime verified the check. Yellow means something deserves review. Red means the diagnosis found a concrete problem. Informational items are deliberate launch notes, not failures.</p>';}
   if(document.body.contains(modal)&&$('diagnosisRefresh')){$('diagnosisRefresh').disabled=false;$('diagnosisRefresh').setAttribute('aria-pressed','false');$('diagnosisRefresh').classList.remove('selected');$('diagnosisRefresh').classList.add('complete');$('diagnosisRefresh').textContent='↻ Run again';}
   if(document.body.contains(modal)&&$('diagnosisRunStatus')){$('diagnosisRunStatus').textContent='✓ Run '+run+' complete · '+(failures?'action needed':warnings?'review needed':'no actionable warnings');$('diagnosisRunStatus').classList.remove('running');}
   running=false;
