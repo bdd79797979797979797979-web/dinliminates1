@@ -792,9 +792,13 @@ function renderMaybeDeckToggle(kind){
  btn.setAttribute('aria-label',S.maybeDeck?'Viewing Maybe choices. Tap to show all choices.':'Viewing all choices. Tap to show Maybe choices.');
  btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
  btn.title=target;
- btn.innerHTML=S.maybeDeck
-  ? '<span class="deck-filter-maybe" aria-hidden="true">MAYBE</span>'
-  : '<span class="deck-filter-all" aria-hidden="true">ALL</span>';
+ if(kind==='restaurant'){
+  btn.innerHTML='<span class="deck-filter-all" aria-hidden="true">ALL</span><span class="deck-filter-maybe" aria-hidden="true">MAYBE</span>';
+}else{
+  btn.innerHTML=S.maybeDeck
+    ? '<span class="deck-filter-maybe" aria-hidden="true">MAYBE</span>'
+    : '<span class="deck-filter-all" aria-hidden="true">ALL</span>';
+}
  btn.classList.toggle('is-maybe',S.maybeDeck);
  btn.classList.toggle('is-all',!S.maybeDeck);
 }
@@ -1887,7 +1891,7 @@ const rows = restaurantPoolFiltered();
 renderRestaurantSearchControl();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
-if (countEl) countEl.textContent = rows.length + (rows.length === 1 ? ' choice' : ' choices');
+if (countEl) countEl.textContent = rows.length + ' ' + (rows.length === 1 ? 'Choice' : 'Choices');
 renderMaybeDeckToggle('restaurant');
 if (!rows.length) {
 const hasResults=!!S.restaurantPool.length;
