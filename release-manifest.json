@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 695,
-  "sourceBranch": "cp695-location-menu",
+  "build": 696,
+  "sourceBranch": "cp696-auto-restaurant-location",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP695"
+  "checkpoint": "CP696"
 }
