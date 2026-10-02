@@ -2608,34 +2608,60 @@ if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
 else manageFoodsView();
 };
 }
+function deletedFoodRows(){
+ const defaults=getDefaultFoods(),defaultIds=new Set(defaults.map(x=>String(x.id))),overrides=new Map((S.custom||[]).map(x=>[String(x.id),x]));
+ const built=defaults.filter(x=>(S.deleted||new Set()).has(String(x.id))).map(item=>{
+  const override=overrides.get(String(item.id)),source=override||item;
+  return Object.assign({},item,override||{},{builtInEdit:!!override,builtInId:String(item.id),deleted:true,quickCuts:Array.isArray(source.quickCuts)&&source.quickCuts.length?source.quickCuts:[String(source.category||item.category||'American')]});
+ });
+ const customs=(S.deletedCustomMeals||[]).filter(x=>!defaultIds.has(String(x.id))).map(x=>Object.assign({},x,{deleted:true,quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}));
+ return built.concat(customs);
+}
+async function deleteMealFromLibrary(id){
+ const row=allFoods().find(x=>String(x.id)===String(id));if(!row)return;
+ if(!await appConfirm('Delete '+row.name+'?','This removes the meal from decisions. You can restore it from Deleted Meals; built-in meals can also be recovered with Restore Defaults.','Delete Meal'))return;
+ const key=String(id),defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
+ S.deleted.add(key);S.hidden.delete(key);S.foodCuts.delete(key);S.maybe.delete(key);
+ if(!defaultIds.has(key)){
+  if(!S.deletedCustomMeals.some(x=>String(x.id)===key))S.deletedCustomMeals.push({...row});
+  const idx=S.custom.findIndex(x=>String(x.id)===key);if(idx>=0)S.custom.splice(idx,1);
+ }
+ buildFood();foodQuick();save();manageFoodsView();
+}
+function restoreDeletedMeal(id){
+ const key=String(id),defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
+ if(defaultIds.has(key))S.deleted.delete(key);
+ else{
+  const archived=S.deletedCustomMeals.find(x=>String(x.id)===key);
+  if(archived&&!S.custom.some(x=>String(x.id)===key))S.custom.push({...archived});
+  S.deletedCustomMeals=S.deletedCustomMeals.filter(x=>String(x.id)!==key);
+  S.deleted.delete(key);
+ }
+ buildFood();foodQuick();save();manageFoodsView();
+}
 function manageFoodsView() {
-const rows=allFoods();
-const defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
-const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Edit any meal, replace its photo, hide it from decisions, or manage your own additions. Changes stay on this device.</p></div>'+
-'<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
-'<div class="food-list">'+rows.map(item=>{
- const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
- const state=hidden?'Hidden':'Active';
- const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
- const primaryAction=hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>';
- return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(hidden?'is-hidden':'is-active')+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+primaryAction+'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button>'+(customOnly?'<button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>':'')+'</span></div>';
-}).join('')+'</div></div>';
-const modal=openModal('manageFoodsModal','Manage Meals',body);
-$('openFoodEditor').onclick=()=>foodEditor();
-modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{S.hidden.delete(btn.dataset.foodRestore);buildFood();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();});
-modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{S.hidden.add(btn.dataset.foodHide);buildFood();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();});
-modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{const row=allFoods().find(x=>String(x.id)===String(btn.dataset.foodEdit));if(row){modal.remove();$('manageFoodsModalBg')?.remove();foodEditor(row);}});
-modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=async()=>{
- const id=btn.dataset.foodDelete,row=S.custom.find(x=>x.id===id);
- if(!row)return;
- const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added meal and its stored photo from this device. This cannot be undone.','Delete Meal');
- if(!confirmed)return;
- const idx=S.custom.findIndex(x=>x.id===id);
- if(idx>=0)S.custom.splice(idx,1);
- S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
- await deleteStoredPhoto(id);
- buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
-});
+ const rows=allFoods(),deletedRows=deletedFoodRows();
+ const defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
+ const rowMarkup=(item,deleted=false)=>{
+  const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
+  const state=deleted?'Deleted':(hidden?'Hidden':'Active');
+  const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
+  const primary=deleted?'<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>':(hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>');
+  const extra=deleted?'':'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button><button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>';
+  return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+primary+extra+'</span></div>';
+ };
+ const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Edit any meal, replace its photo, hide it from decisions, or delete it. Deleted meals stay recoverable on this device.</p></div>'+
+ '<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
+ '<div class="food-list">'+rows.map(x=>rowMarkup(x)).join('')+'</div>'+
+ (deletedRows.length?'<section class="deleted-meals-section"><div class="deleted-meals-heading"><span class="manage-kicker">RECOVERY</span><h5>Deleted Meals</h5><p>Restore a deleted meal without changing the rest of your library.</p></div><div class="food-list">'+deletedRows.map(x=>rowMarkup(x,true)).join('')+'</div></section>':'')+
+ '</div>';
+ const modal=openModal('manageFoodsModal','Manage Meals',body);
+ $('openFoodEditor').onclick=()=>foodEditor();
+ modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{S.hidden.delete(btn.dataset.foodRestore);buildFood();save();manageFoodsView();});
+ modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{S.hidden.add(btn.dataset.foodHide);buildFood();save();manageFoodsView();});
+ modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{const row=allFoods().find(x=>String(x.id)===String(btn.dataset.foodEdit));if(row){modal.remove();$('manageFoodsModalBg')?.remove();foodEditor(row);}});
+ modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=()=>deleteMealFromLibrary(btn.dataset.foodDelete));
+ modal.querySelectorAll('[data-food-deleted-restore]').forEach(btn=>btn.onclick=()=>restoreDeletedMeal(btn.dataset.foodDeletedRestore));
 }
 function settingsActionButton(id,icon,title,note,extraClass=''){
  return '<button class="settings-action '+extraClass+'" id="'+id+'" type="button"><span class="settings-action-icon" aria-hidden="true">'+icon+'</span><span class="settings-action-copy"><b>'+title+'</b><small>'+note+'</small></span><span class="settings-action-chevron" aria-hidden="true">›</span></button>';
