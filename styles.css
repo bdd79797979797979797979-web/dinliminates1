@@ -5802,3 +5802,20 @@ button,input,select,textarea{
 @media(max-width:390px){
   .luxury-home .home-first-nudge{bottom:57px!important;font-size:8px!important}
 }
+
+
+/* CP758 — All/Maybe control: flat editorial text, fixed between Quick Cuts and Choices. */
+#food .quick-label,#restaurant .restaurant-choice-management{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;width:100%!important}
+#food .quick-label-right{display:contents!important}
+#food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{position:static!important;inset:auto!important;justify-self:end!important;align-self:center!important;width:auto!important;min-width:76px!important;height:24px!important;min-height:24px!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#6b6b68!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;font-size:9px!important;font-weight:850!important;letter-spacing:.09em!important;line-height:1!important;text-transform:uppercase!important;white-space:nowrap!important;transition:color .16s ease,opacity .16s ease,transform .12s ease!important}
+#food #foodMaybeDeck .deck-filter-label,#restaurant #restaurantMaybeDeck .deck-filter-label{display:inline-block!important;position:relative!important;padding:4px 0 5px!important;color:#77736d!important;font-size:9px!important;font-weight:900!important;line-height:1!important;letter-spacing:.08em!important}
+#food #foodMaybeDeck .deck-filter-divider,#restaurant #restaurantMaybeDeck .deck-filter-divider{color:#494742!important;font-size:10px!important;transform:translateY(-.5px)}
+#food #foodMaybeDeck.is-all .deck-filter-label-all,#restaurant #restaurantMaybeDeck.is-all .deck-filter-label-all,#food #foodMaybeDeck.is-maybe .deck-filter-label-maybe,#restaurant #restaurantMaybeDeck.is-maybe .deck-filter-label-maybe{color:#65dc94!important}
+#food #foodMaybeDeck.is-all .deck-filter-label-all::after,#restaurant #restaurantMaybeDeck.is-all .deck-filter-label-all::after,#food #foodMaybeDeck.is-maybe .deck-filter-label-maybe::after,#restaurant #restaurantMaybeDeck.is-maybe .deck-filter-label-maybe::after{content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;border-radius:1px;background:currentColor;box-shadow:0 0 8px rgba(101,220,148,.25)}
+#food #foodMaybeDeck:disabled,#restaurant #restaurantMaybeDeck:disabled{opacity:.32!important}
+#food #foodCount,#restaurant #restaurantCount{justify-self:end!important;align-self:center!important;margin:0!important;white-space:nowrap!important}
+#restaurant .restaurant-choice-management .quick-cuts-collapse-toggle{justify-self:start!important}
+@media(max-width:390px){
+#food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{min-width:70px!important;gap:5px!important}
+#food #foodMaybeDeck .deck-filter-label,#restaurant #restaurantMaybeDeck .deck-filter-label{font-size:8px!important}
+}
