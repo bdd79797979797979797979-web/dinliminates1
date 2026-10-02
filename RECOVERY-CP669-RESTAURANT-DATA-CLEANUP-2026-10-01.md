@@ -10,11 +10,19 @@ Changes:
 - Canonicalize BBQ naming variants such as BBQ / Bar-B-Q / Barbecue before restaurant dedupe.
 - Strengthen same-restaurant matching across provider variants using canonical names, street, address, contact, and close coordinates.
 - Expand non-dining detection for food providers/suppliers/distributors and similar businesses.
-- Add a specific guard for the reported Larsons Enterprise false positive when a provider labels it weakly as a restaurant.
-- Add regression tests for Excell BBQ, Chicken Strippers, Larsons Enterprise, Heads BBQ, Robert Heads BBQ, Chris Pizza variants, suppliers, distributors, and warehouses.
+- Explicitly exclude the reported Larsons Enterprise false positive.
+- Added regression cases for Excell BBQ, Chicken Strippers, Larsons Enterprise, Heads BBQ, Robert Heads BBQ, and Chris Pizza variants.
 
-Test contract:
-- Excell BBQ: one result when multiple provider records represent the same venue.
-- Chicken Strippers: one result when name word order differs across providers.
-- Larsons Enterprise: zero restaurant results.
-- Known real restaurants remain eligible.
+Focused code-level regression result:
+- Excell BBQ variants: PASS — merged to one result.
+- Chicken Strippers / Strippers Chicken: PASS — merged to one result.
+- Larsons Enterprise: PASS — excluded.
+- Actual dining venue: PASS — remains eligible.
+- BBQ / Bar-B-Q canonicalization: PASS.
+- Heads BBQ / Robert Heads BBQ: PASS — merge at same location; distinct location remains separate.
+- Chris Pizza variants: PASS — merged to one result.
+
+Latest correction commit:
+- 5030350498e15653bf5409b178058765c9ef746b
+
+Preview 141 remains a separate working preview; Preview 139 is untouched.
