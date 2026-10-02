@@ -1,19 +1,18 @@
-# CURRENT CHECKPOINT - BUILD 730 / CP730
+# CURRENT CHECKPOINT - BUILD 731 / CP731
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
 Base source: 58d7d826f0d6122e434a7e7f2fae8ee8d5654d95
-Current checkpoint: CP730
+Current checkpoint: CP731
 
-CP730 changes:
-- Fixed the hungry second-chance meal wheel to animate exactly one 360-degree revolution per tap.
-- Removed the prior 360-degree-plus-landing-offset logic that could make one tap look like almost two revolutions.
-- Randomizes the wheel segment order before each spin so the chosen meal still lands under the pointer without adding a second revolution.
-- Kept the existing anti-double-click spin guard and aria-busy state.
-- CP729 fixes remain: green Food/Restaurant choice counts, repaired Restaurant second Reveal, premium Home Dine In/Dine Out visuals, and labeled Add to phone/Share actions.
+CP731 changes:
+- Restaurant choice management is now one compact row: Quick Cuts | ALL/MAYBE | green Choices count.
+- Restaurant ALL/MAYBE visibly shows both options together; the active option is highlighted.
+- Restaurant choice count uses title-case Choice/Choices and stays green.
+- Restaurant location/address/radius controls remain above this management row.
+- CP730 hungry wheel one-turn fix remains preserved.
 
 Verification:
 - app.js syntax check: PASS.
-- Spin path verified to use current rotation + 360deg only.
-- Branch head includes CP730 wheel fix.
+- Restaurant management row source and styling verified.
