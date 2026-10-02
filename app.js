@@ -1858,11 +1858,26 @@ function bindCardButton(id,handler){
  const el=$(id);
  if(!el)return;
  el.setAttribute('type',el.getAttribute('type')||'button');
- el.onclick=e=>{
-  e.preventDefault();
-  e.stopPropagation();
-  try{const result=handler?.(e);if(result&&typeof result.catch==='function')result.catch(()=>{});}catch{}
+ el.style.touchAction='manipulation';
+ el.style.webkitUserSelect='none';
+ el.style.userSelect='none';
+ let lastActivation=0;
+ const activate=e=>{
+  const now=performance.now();
+  if(now-lastActivation<450)return;
+  lastActivation=now;
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  try{
+   const result=handler?.(e);
+   if(result&&typeof result.catch==='function')result.catch(()=>{});
+  }catch{}
  };
+ el.onpointerup=e=>{
+  if(e.pointerType&&e.button!=null&&e.button!==0)return;
+  activate(e);
+ };
+ el.onclick=e=>activate(e);
 }
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
 let restaurantQueryTimer = 0;
