@@ -27,7 +27,17 @@ assert.equal(merged.some(x=>/heads bbq/i.test(x.name)),true,'Heads BBQ family sh
 assert.equal(merged.filter(x=>/chris pizza/i.test(x.name)).length,1,'Chris Pizza variants should merge into one result');
 const separate=dedupe([{id:'e',name:'Heads BBQ',address:'801 Iron Workers Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:0.1,source:'Photon'},{id:'f',name:'Robert Heads BBQ',address:'200 College St, Clarksville, TN 37040',lat:36.545,lon:-87.350,distance:1.1,source:'ArcGIS'}]);
 assert.equal(separate.length,2,'Same-named restaurant variants at different locations must remain separate');
+const reportedDuplicates=dedupe([
+ {id:'ex1',name:'Excell BBQ',address:'3102 Ashland City Rd, Clarksville, TN 37043',lat:36.5304,lon:-87.3601,distance:0.7,source:'OpenStreetMap'},
+ {id:'ex2',name:'Excell Market Bar-B-Q',address:'3102 Ashland City Road, Clarksville, TN 37043',lat:36.53042,lon:-87.36008,distance:0.7,source:'Photon'},
+ {id:'cs1',name:'Strippers Chicken',address:'124 S 10th St, Clarksville, TN 37040',lat:36.5280,lon:-87.3590,distance:1.2,source:'OpenStreetMap'},
+ {id:'cs2',name:'Chicken Strippers',address:'124 S 10th Street, Clarksville, TN 37040',lat:36.52804,lon:-87.35896,distance:1.2,source:'ArcGIS'}
+]);
+assert.equal(reportedDuplicates.filter(x=>/^excell/i.test(x.name)).length,1,'Excell BBQ provider/name variants must merge to one result');
+assert.equal(reportedDuplicates.filter(x=>/strippers chicken|chicken strippers/i.test(x.name)).length,1,'Chicken Strippers provider/name variants must merge to one result');
 console.log('Restaurant duplicate regression: PASS');
+assert.equal(handler._test.restaurantNameTokens('Excell Market Bar-B-Q').join(' '),'excell market bbq','BBQ name normalization should canonicalize Bar-B-Q');
+
 
 const nonDiningFixtures=[
  {id:'supplier',name:"Larson's Enterprise Inc",category:'Restaurant',providerType:'Food Supplier',address:'123 Example Rd, Clarksville, TN'},
@@ -38,6 +48,7 @@ const nonDiningFixtures=[
 assert.equal(isNonDining(nonDiningFixtures[0]),true,"Larson's Enterprise Inc food-supplier record must be excluded");
 assert.equal(isNonDining(nonDiningFixtures[1]),true,'Food distributor must be excluded');
 assert.equal(isNonDining(nonDiningFixtures[2]),true,'Warehouse must be excluded');
+assert.equal(isNonDining({id:'larson-ambiguous',name:'Larsons Enterprise',category:'Restaurant',providerType:'Restaurant',address:'555 Food Service Rd, Clarksville, TN'}),true,'Larsons Enterprise must be excluded even when a weak provider mislabels it as a restaurant');
 assert.equal(isNonDining(nonDiningFixtures[3]),false,'Actual dining venue must remain eligible');
 const filtered=filterNonDining(nonDiningFixtures);
 assert.deepEqual(filtered.map(x=>x.id),['restaurant'],'Non-dining rows must be removed while dining rows remain');
