@@ -3265,3 +3265,16 @@ button,a,select{touch-action:manipulation}
  .about-meta{gap:5px}
  .about-meta p{padding:9px 7px}
 }
+
+/* CP694 — sleek note edit/delete controls. */
+#detailsModal .detail-notes-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 0 auto}
+#detailsModal .detail-notes-toggle{min-width:0}
+#detailsModal .detail-notes-delete{width:34px;height:34px;min-width:34px;border-radius:50%;display:grid;place-items:center;padding:0;background:#151514;border:1px solid #3b302b;color:#b9857d;font-size:18px;line-height:1;box-shadow:none}
+#detailsModal .detail-notes-delete:hover{border-color:#62423a;color:#d29b91;background:#191615}
+#detailsModal .detail-notes-delete:active{transform:scale(.93)}
+#detailsModal .detail-notes-delete span{display:block;transform:translateY(-.5px)}
+@media(max-width:390px){
+  #detailsModal .detail-notes-actions{gap:5px}
+  #detailsModal .detail-notes-delete{width:32px;height:32px;min-width:32px;font-size:17px}
+  #detailsModal .detail-notes-toggle{height:32px;min-height:32px;padding:0 10px}
+}
