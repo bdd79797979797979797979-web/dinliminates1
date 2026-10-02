@@ -1490,7 +1490,9 @@ btn.title=label;
 }
 function requestBrowserPosition(options={}) {
 return new Promise((resolve,reject)=>{
+ try{
   navigator.geolocation.getCurrentPosition(resolve,reject,options);
+ }catch(err){reject(err);}
 });
 }
 function locationMovedMiles(a,b) {
@@ -1512,67 +1514,86 @@ finally{clearTimeout(timer);if(reverseLocationController===ctl)reverseLocationCo
 }
 async function useLocation() {
 if (!navigator.geolocation) {
-$('status').textContent='Location is not available in this browser.';
-return;
+ $('status').textContent='Location is not available in this browser.';
+ $('locationSourceLabel').textContent='Location unavailable';
+ return false;
 }
-if(locationRequestActive)return;
+if(!window.isSecureContext){
+ $('status').textContent='Location requires a secure connection. Open the HTTPS app address.';
+ $('locationSourceLabel').textContent='Secure connection required';
+ return false;
+}
+if(locationRequestActive)return false;
 const seq=++locationRequestSeq;
 locationRequestActive=true;
 setLocationBusy(true);
 invalidateAddressSuggestions();
-$('status').textContent='Finding your location…';
+$('locationSourceLabel').textContent='Getting your location…';
+$('status').textContent='Allow location access when your browser asks.';
 try{
-const first=await requestBrowserPosition({enableHighAccuracy:false,timeout:6000,maximumAge:60000});
-if(seq!==locationRequestSeq)return;
-const firstLoc={lat:Number(first.coords.latitude),lon:Number(first.coords.longitude)};
-if(!Number.isFinite(firstLoc.lat)||!Number.isFinite(firstLoc.lon))throw new Error('Invalid location coordinates.');
-setLocation(firstLoc.lat,firstLoc.lon,'Current location','device');
-$('status').textContent='Location found. Searching restaurants…';
-const initialSearch=searchRestaurants();
-const labelPromise=reverseLocationLabel(firstLoc.lat,firstLoc.lon,seq);
-let fresh=null;
-try{
-const pos=await requestBrowserPosition({enableHighAccuracy:true,timeout:10000,maximumAge:0});
-if(seq===locationRequestSeq)fresh={lat:Number(pos.coords.latitude),lon:Number(pos.coords.longitude)};
-}catch{}
-await initialSearch.catch(()=>{});
-if(seq!==locationRequestSeq)return;
-const label=await labelPromise;
-if(label){
-S.location={...S.location,label};
-$('address').value=label;
-save();
-}
-if(fresh&&Number.isFinite(fresh.lat)&&Number.isFinite(fresh.lon)){
-const moved=locationMovedMiles(firstLoc,fresh);
-if(Number.isFinite(moved)&&moved>=0.1){
-const freshLabel=await reverseLocationLabel(fresh.lat,fresh.lon,seq);
-if(seq!==locationRequestSeq)return;
-setLocation(fresh.lat,fresh.lon,freshLabel||'Current location','device');
-$('status').textContent='Location updated. Refreshing restaurants…';
-await searchRestaurants().catch(()=>{});
-}else{
-S.locationFreshAt=Date.now();
-S.locationSource='device';
-renderLocationSource();
-save();
-}
-}
-if(seq===locationRequestSeq && !S.locationFreshAt)S.locationFreshAt=Date.now();
-if(seq===locationRequestSeq && !/^Location updated/.test($('status').textContent))$('status').textContent='Location ready.';
+ let permission='unknown';
+ try{
+  const p=await navigator.permissions?.query?.({name:'geolocation'});
+  permission=p?.state||'unknown';
+ }catch{}
+ if(permission==='denied')throw Object.assign(new Error('Location permission is blocked for this site. Enable Location in your browser site permissions, then try again.'),{code:1});
+ const attempts=[
+  {enableHighAccuracy:true,timeout:8500,maximumAge:0},
+  {enableHighAccuracy:false,timeout:10000,maximumAge:0},
+  {enableHighAccuracy:false,timeout:12000,maximumAge:120000}
+ ];
+ let position=null,lastError=null;
+ for(const options of attempts){
+  if(seq!==locationRequestSeq) return false;
+  try{position=await requestBrowserPosition(options);break;}catch(err){lastError=err;}
+ }
+ if(!position)throw lastError||new Error('Could not access your current location.');
+ const loc={lat:Number(position.coords.latitude),lon:Number(position.coords.longitude)};
+ if(!Number.isFinite(loc.lat)||!Number.isFinite(loc.lon))throw new Error('Your browser returned an invalid location.');
+ setLocation(loc.lat,loc.lon,'Current location','device');
+ $('locationSourceLabel').textContent='Using your current location';
+ $('status').textContent='Location found. Finding nearby restaurants…';
+ if(seq!==locationRequestSeq)return false;
+ const searchPromise=searchRestaurants();
+ const label=await reverseLocationLabel(loc.lat,loc.lon,seq).catch(()=>null);
+ if(seq!==locationRequestSeq)return false;
+ if(label){
+  S.location={...S.location,label};
+  $('address').value=label;
+  $('locationSourceLabel').textContent='Using your current location';
+  save();
+ }
+ await searchPromise;
+ if(seq!==locationRequestSeq)return false;
+ S.locationFreshAt=Date.now();
+ S.locationSource='device';
+ renderLocationSource();
+ $('status').textContent=S.restaurantPool.length?'Location ready.':'Location found, but no restaurants were returned.';
+ save();
+ return true;
 }catch(err){
-if(seq!==locationRequestSeq)return;
-const code=Number(err?.code);
-if(code===1)$('status').textContent='Location permission was denied. Enter an address instead.';
-else if(code===3)$('status').textContent='Location timed out. Enter an address instead.';
-else if(code===2)$('status').textContent='Location is temporarily unavailable. Enter an address instead.';
-else $('status').textContent=err?.message||'Could not access your location. Enter an address instead.';
+ if(seq!==locationRequestSeq)return false;
+ const code=Number(err?.code);
+ if(code===1){
+  $('locationSourceLabel').textContent='Location permission needed';
+  $('status').textContent=err?.message||'Location permission was denied. Enable Location for this site and try again.';
+ }else if(code===3){
+  $('locationSourceLabel').textContent='Location timed out';
+  $('status').textContent='Your browser could not get a fresh location. Try again or enter an address.';
+ }else if(code===2){
+  $('locationSourceLabel').textContent='Location unavailable';
+  $('status').textContent='Your device could not provide a location. Try again or enter an address.';
+ }else{
+  $('locationSourceLabel').textContent='Location unavailable';
+  $('status').textContent=err?.message||'Could not access your current location. Try again or enter an address.';
+ }
+ return false;
 }finally{
-if(seq===locationRequestSeq){
-locationRequestActive=false;
-setLocationBusy(false);
-renderLocationSource();
-}
+ if(seq===locationRequestSeq){
+  locationRequestActive=false;
+  setLocationBusy(false);
+  renderLocationSource();
+ }
 }
 }
 let autoRestaurantRefreshActive=false;
@@ -2067,7 +2088,7 @@ bg.id = id+'Bg';
 bg.className = 'modal-bg';
 const modal = document.createElement('section');
 modal.id = id;
-modal.className = 'modal'; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby',id+'Title'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3 id="'+id+'Title">'+esc(title)+'</h3><button class="menu" data-close aria-label="Close '+esc(title)+'">×</button></div>'+body;
+modal.className = 'modal'; if(['manageFoodsModal','historyModal','settingsModal'].includes(id)) modal.classList.add('utility-modal'); modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby',id+'Title'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3 id="'+id+'Title">'+esc(title)+'</h3><button class="menu" data-close aria-label="Close '+esc(title)+'">×</button></div>'+body;
 document.body.append(bg, modal);
 const close = () => {
 modal.remove(); bg.remove();
