@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 708,
-  "sourceBranch": "cp708-hero-photos-unified-button-press",
+  "build": 709,
+  "sourceBranch": "cp709-unified-decision-button-jump",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP708"
+  "checkpoint": "CP709"
 }
