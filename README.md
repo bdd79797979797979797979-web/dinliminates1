@@ -2,9 +2,11 @@
 
 Dinliminate is a phone-first dinner decision app built around fast food and restaurant elimination.
 
-Current build: Version 1.0, Build 707.
+Current build: Version 1.0, Build 708.
 
 Clean recovery baseline: `clean-cp704-2026-10-02`.
+
+Current audit checkpoint: CP708 — full-audit hardening with Restaurant Search and Open/All intentionally hidden.
 
 CP707 keeps Restaurant Search and Open/All hidden for now while the rest of the app is hardened.
 
@@ -15,7 +17,7 @@ Milestones:
 2. Live restaurant location/search pipeline
 3. Restaurant elimination + details
 4. History/settings
-5. Pass Around
+5. Winner, History, Notes & Settings
 6. Launch QA
 
 
@@ -33,3 +35,10 @@ Milestones:
 - Base recovery: cp703-dine-in-out-copy
 - Current release candidate stays off main until the exact release commit is fully verified.
 - Vercel is the official runtime for the release candidate; Netlify remains legacy/backup. Vercel deployment is currently blocked by the connected account build-rate limit.
+
+
+## CP708 full-audit hardening
+- Build 708 / CP708 is the current candidate.
+- Restaurant Search and Open/All remain intentionally hidden.
+- Active QA/CI contracts are synchronized to the current release and stale historical workflows have been removed.
+- The protected clean rollback baseline is `clean-cp704-2026-10-02`.
