@@ -14,7 +14,7 @@ Verified source-level state:
 - Restaurant Search and Open/All are intentionally hidden.
 - Restaurant location, radius, Quick Cuts, dedupe, photos, details, website/phone/directions remain present.
 - Build metadata is synchronized to 708 / CP708.
-- Service-worker shell cache is v675.
+- Service-worker shell cache is v676.
 - Historical obsolete GitHub Actions workflows have been removed from the active workflow directory.
 
 Release gates still open:
