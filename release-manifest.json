@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 704,
-  "sourceBranch": "cp704-hero-food-photos",
+  "build": 707,
+  "sourceBranch": "cp707-audit-fixes-except-hidden-restaurant-controls",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP704"
+  "checkpoint": "CP707"
 }
