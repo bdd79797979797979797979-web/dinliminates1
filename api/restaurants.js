@@ -1239,9 +1239,11 @@ if(mode==='search'){
  }else{
    primaryBatch=await withinBudget(primaryPromise,Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
  }
- const photonResult=wideSearch?{status:'fulfilled',value:{rows:[],errors:[]}}:(Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
- const arcgisResult=wideSearch
+ const photonResult=wideSearch
   ? (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Wide Photon provider timed out')})
+  : (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
+ const arcgisResult=wideSearch
+  ? {status:'fulfilled',value:{rows:[],errors:[]}}
   : (Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
  const googleResult=wideSearch
   ? {status:'fulfilled',value:{rows:[],errors:[]}}
@@ -1307,7 +1309,7 @@ if(mode==='search'){
    const phone=String(r.phone||'').trim();
    const classification=RESTAURANT_TAXONOMY.classifyRestaurant({...r,website,phone}); const canonicalCategory=classification.primary||r.category||'American'; const classifiedFastFood=classification.tags.includes('Fast Food'); const photo=restaurantPhotoMeta(r); return normalizeRestaurantHours({...r,category:canonicalCategory,fastFood:classifiedFastFood,quickCutTags:classification.tags,quickCutEvidence:classification.evidence,...photo,website,phone,websiteSource:r.website?'provider':(known?'known-brand':(cached?'official-search':'google-search-fallback')),phoneSource:phone?'provider':'google-search-fallback'},zone,checkedAt);
   });
- const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>RESTAURANT_TAXONOMY.classifyRestaurant(r).tags.includes('Fast Food')).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,discoveryMode:discoveryPlan.mode,discoveryReserveMs:discoveryPlan.reserveMs,discoveryGroups:discoveryPlan.groups.length,discoveryCoveragePoints:discoveryPlan.coveragePoints,providerSearchRadiusMiles:providerRadius,providerExpansionPoints:wideSearch?WIDE_ARCGIS_RING_POINTS+1:1,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
+ const data={ok:true,version:API_VERSION,googlePlacesConfigured:!!GOOGLE_KEY,radiusMiles:radius,searchQuery:searchTerm,total:rows.length,fastFoodCount:rows.filter(r=>RESTAURANT_TAXONOMY.classifyRestaurant(r).tags.includes('Fast Food')).length,timezone:zone,lat,lon,searchLatencyMs:Date.now()-startedAt,searchBudgetMs:SEARCH_BUDGET_MS,discoveryMode:discoveryPlan.mode,discoveryReserveMs:discoveryPlan.reserveMs,discoveryGroups:discoveryPlan.groups.length,discoveryCoveragePoints:discoveryPlan.coveragePoints,providerSearchRadiusMiles:providerRadius,providerExpansionPoints:wideSearch?WIDE_PHOTON_RING_POINTS+1:1,providers:{google:(googleOut.rows||[]).length,googleContact:(googleContactOut.rows||[]).length,photon:(photonOut.rows||[]).length,arcgis:(arcgisOut.rows||[]).length,overpass:(osmOut.rows||[]).length,contact:(contactOut.rows||[]).length},providerErrors:[...googleOut.errors,...photonOut.errors,...arcgisOut.errors,...osmOut.errors,...contactOut.errors,...googleContactOut.errors].slice(0,8),results:rows};
  cache.set(key,{t:Date.now(),data});return res.status(200).json(data)}
 return res.status(400).json({ok:false,message:'Unknown mode.'})
 }catch(e){console.error('dinliminate-'+API_VERSION,e);return res.status(502).json({ok:false,code:String(e?.code||'SERVICE'),message:String(e?.message||'Restaurant service unavailable.')})}}
