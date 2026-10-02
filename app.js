@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '646';
+let APP_BUILD = '664';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -219,38 +219,143 @@ async function hydrateRestaurantWebsite(row,scope){
   apply({officialPage:cachedPage,source:'cached-official-page'});
   return cachedPage;
  }
- let pending=restaurantWebsiteInflight.get(key);
- if(!pending){
-  const params=new URLSearchParams({
-   mode:'website',
-   name:String(row.name||''),
-   address:String(row.address||''),
-   brand:String(row.brand||''),
-   website:String(row.website||''),
-   phone:String(row.phone||row.nationalPhoneNumber||row['contact:phone']||'')
+  let pending=restaurantWebsiteInflight.get(key);
+  if(!pending){
+   const requestPresence=async(force=false)=>{
+    const params=new URLSearchParams({
+     mode:'website',
+     name:String(row.name||''),
+     address:String(row.address||''),
+     brand:String(row.brand||''),
+     website:String(row.website||''),
+     phone:String(row.phone||row.nationalPhoneNumber||row['contact:phone']||'')
+    });
+    if(force)params.set('refresh','1');
+    const response=await fetch('/api/restaurants?'+params.toString(),{cache:'no-store'});
+    if(!response.ok)throw new Error('Website resolver unavailable');
+    const data=await response.json();
+    const website=safeExternalUrl(data?.website);
+    const officialPage=safeExternalUrl(data?.officialPage);
+    if(website||officialPage){
+     row.website=website||row.website||'';
+     storeRestaurantWebsitePresence(row,{website,officialPage,source:String(data?.source||'official-search')});
+    }
+    return{website,officialPage,source:String(data?.source||'official-search')};
+   };
+   pending=(async()=>{
+    let presence=await requestPresence(false);
+    if(!presence.website&&!presence.officialPage){
+     await new Promise(resolve=>setTimeout(resolve,900));
+     try{presence=await requestPresence(true);}catch{}
+    }
+    return presence;
+   })().finally(()=>restaurantWebsiteInflight.delete(key));
+   restaurantWebsiteInflight.set(key,pending);
+  }
+  await cache.put(request,new Response(blob,{status:200,headers}));
+ }catch{}
+}
+function restaurantFallbackImage(row){
+ const labels=[row?.category,row?.cuisine,...(Array.isArray(row?.quickCutTags)?row.quickCutTags:[]),...((typeof restaurantCuisineTags==='function')?restaurantCuisineTags(row):[])].filter(Boolean);
+ const foodMap={
+  'Fast Food':QUICK_IMAGES.American,
+  Burgers:QUICK_IMAGES.American,
+  Pizza:QUICK_IMAGES.Italian,
+  Mexican:QUICK_IMAGES.Mexican,
+  American:QUICK_IMAGES.American,
+  Italian:QUICK_IMAGES.Italian,
+  Asian:QUICK_IMAGES.Asian,
+  BBQ:QUICK_IMAGES.Southern,
+  Seafood:QUICK_IMAGES.Seafood,
+  Breakfast:QUICK_IMAGES.Breakfast,
+  Southern:QUICK_IMAGES.Southern,
+  Healthy:QUICK_IMAGES.Healthy
+ };
+ for(const label of labels){
+  if(foodMap[label])return imageProxyUrl(foodMap[label]);
+  const normalized=String(label).trim().toLowerCase();
+  const found=Object.keys(foodMap).find(key=>key.toLowerCase()===normalized);
+  if(found)return imageProxyUrl(foodMap[found]);
+ }
+ return imageProxyUrl(QUICK_IMAGES.American);
+}
+function decodePhotoAttributions(raw){
+ const value=String(raw||'').trim();if(!value)return[];
+ try{
+  let b64=value.replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';
+  const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const data=JSON.parse(new TextDecoder().decode(bytes));
+  return Array.isArray(data)?data.filter(x=>x&&x.displayName&&x.uri).slice(0,5):[]
+ }catch{return[]}
+}
+function setRestaurantPhotoCredit(card,attributions){
+ const credit=card?.querySelector('.restaurant-photo-credit');if(!credit)return;
+ const safe=(attributions||[]).map(x=>({name:String(x.displayName||''),uri:safeExternalUrl(x.uri)})).filter(x=>x.name&&x.uri).slice(0,3);
+ if(!safe.length){credit.textContent='';credit.classList.remove('is-visible');return;}
+ credit.innerHTML='Photo by '+safe.map(x=>'<a href="'+esc(x.uri)+'" target="_blank" rel="noopener noreferrer">'+esc(x.name)+'</a>').join(', ');
+ credit.classList.add('is-visible');
+}
+async function hydrateRestaurantPhoto(row,scope){
+ if(!row)return;
+ const rowKey=String(row.id||row.canonicalId||'').trim();
+ if(!rowKey)return;
+ const imgs=[...document.querySelectorAll(scope+' img[data-restaurant-photo-key]')].filter(img=>img.dataset.restaurantPhotoKey===rowKey);
+ if(!imgs.length)return;
+ const cacheHit=restaurantPhotoCache.get(rowKey);
+ if(cacheHit?.url){
+  imgs.forEach(img=>{
+   if(!img.isConnected)return;
+   img.src=cacheHit.url;
+   img.dataset.restaurantPhotoLoaded='true';
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,cacheHit.attributions);
   });
+  return;
+ }
+ let pending=restaurantPhotoInflight.get(rowKey);
+ if(!pending){
+  const params=new URLSearchParams();
+  if(row.name)params.set('name',String(row.name));
+  if(row.address)params.set('address',String(row.address));
+  const website=safeExternalUrl(row.website);
+  if(website)params.set('website',website);
+  const officialWebsite=website||safeExternalUrl(knownRestaurantWebsite(row));
+  if(officialWebsite)params.set('officialWebsite',officialWebsite);
+  const source=String(row.source||'');
+  const osmPhoto=safeExternalUrl(row.photo);
+  if(source.startsWith('OpenStreetMap')&&osmPhoto){
+    params.set('osmExact','1');
+    params.set('osmImage',osmPhoto);
+  }
+  if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
+  if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
+  const requestUrl='/api/restaurant-photo?'+params.toString();
   pending=(async()=>{
-   const response=await fetch('/api/restaurants?'+params.toString(),{cache:'no-store'});
-   if(!response.ok)throw new Error('Website resolver unavailable');
-   const data=await response.json();
-   const website=safeExternalUrl(data?.website);
-   const officialPage=safeExternalUrl(data?.officialPage);
-   if(website||officialPage){
-    row.website=website||row.website||'';
-    storeRestaurantWebsitePresence(row,{website,officialPage,source:String(data?.source||'official-search')});
-   }
-   return{website,officialPage,source:String(data?.source||'official-search')};
-  })().finally(()=>restaurantWebsiteInflight.delete(key));
-  restaurantWebsiteInflight.set(key,pending);
+   const stored=await getPersistentRestaurantPhoto(row);
+   if(stored)return stored;
+   const res=await fetch(requestUrl,{cache:'no-store'});
+   if(!res.ok)throw new Error('Restaurant photo unavailable');
+   const blob=await res.blob();
+   if(!blob.type.startsWith('image/'))throw new Error('Restaurant photo response was not an image');
+   const attributions=decodePhotoAttributions(res.headers.get('X-Restaurant-Photo-Attributions'));
+   const sourceName=String(res.headers.get('X-Restaurant-Photo-Source')||'').trim();
+   await putPersistentRestaurantPhoto(row,blob,attributions,sourceName);
+   return {url:URL.createObjectURL(blob),attributions,source:sourceName};
+  })().then(data=>{
+   restaurantPhotoCache.set(rowKey,data);
+   if(data.source)row.photoSource=data.source;
+   return data;
+  }).finally(()=>restaurantPhotoInflight.delete(rowKey));
+  restaurantPhotoInflight.set(rowKey,pending);
  }
  try{
-  const presence=await pending;
-  apply(presence);
-  return presence.website||presence.officialPage||'';
- }catch{
-  apply({});
-  return '';
- }
+  const data=await pending;
+  imgs.forEach(img=>{
+   if(!img.isConnected)return;
+   img.src=data.url;
+   img.dataset.restaurantPhotoLoaded='true';
+   setRestaurantPhotoCredit(img.closest('.card,.restaurant-detail-hero')||img.parentElement,data.attributions);
+  });
+ }catch{}
 }
 
 function restaurantPhoneSearchUrl(row){
