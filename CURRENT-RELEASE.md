@@ -1,4 +1,14 @@
 
+## CP757 Home reference refinement — 2026-10-02
+- Softened the Dine In/Dine Out transition so the two full-bleed sections read as one cinematic composition.
+- Restored the requested one-time **Swipe until it’s revealed.** cue as a very small, low-contrast editorial line above the footer.
+- Kept the hero logo, Menu position, Meal Decisions Simplified headline, reveal copy, and transparent bottom utilities from CP756.
+- Home remains full-bleed with no rounded card UI or arrow affordances.
+- Build/cache bumped to CP757 / v757.
+
+## CP757 QA note
+Static/source verification is required before considering this the final Home checkpoint. Existing application decision logic was not intentionally modified.
+
 ## CP756 editorial Home finish — 2026-10-02
 - Matched the supplied Home reference more closely.
 - Large centered gold Dinliminate wordmark at the top; Menu remains top-right.
