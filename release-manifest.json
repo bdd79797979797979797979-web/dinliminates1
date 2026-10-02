@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 712,
-  "sourceBranch": "cp712-full-meal-editing",
+  "build": 713,
+  "sourceBranch": "cp713-custom-taxonomy-delete-recovery",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP712"
+  "checkpoint": "CP713"
 }
