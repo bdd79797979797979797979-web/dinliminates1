@@ -992,8 +992,8 @@ function sameRestaurant(x,r){
 
   // Primary identity rule: same/similar physical address + similar name.
   if(sameAddress&&sameNameFamily)return true;
-  if(addressScore>=0.90&&nameScore>=0.60)return true;
-  if(sameStreet&&nameScore>=0.60&&dist<=0.20)return true;
+  if(addressScore>=0.90&&sameNameFamily)return true;
+  if(sameStreet&&sameNameFamily&&dist<=0.20)return true;
 
   // Strong provider-independent identity signals.
   if(sameCanonicalIdentity)return true;
