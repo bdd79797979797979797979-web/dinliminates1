@@ -1,4 +1,15 @@
 
+## CP760 single-background / two-window Home — 2026-10-02
+- Reworked Home to use one single cinematic restaurant photograph across the entire Home canvas.
+- Converted Dine In and Dine Out into two smaller inset picture windows floating over that shared background.
+- Added refined gold framing, inner matte border, shadow, and subtle glass-like highlight to both windows.
+- Kept Menu fixed top-right and the large Dinliminate hero centered at top.
+- Kept **Meal Decisions Simplified** and exact reveal copy.
+- Kept Add to Phone / Share App subtle at the bottom.
+- Removed the stacked full-bleed section treatment from CP756/757.
+- Existing Home tap behavior remains unchanged.
+- Bumped build/cache to CP760 / v760.
+
 ## CP759 initial-paint layout fix — 2026-10-02
 - Corrected the static HTML for both Meals and Restaurants so **ALL · MAYBE** appears immediately rather than the legacy A/heart markup.
 - Corrected static Quick Cuts state to collapsed on first paint (aria-expanded=false; chip containers carry is-collapsed/aria-hidden).
