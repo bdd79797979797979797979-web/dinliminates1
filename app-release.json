@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 738,
+  "build": 743,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
-  "checkpoint": "CP738",
-  "deploymentTrigger": "CP738-deploy-2026-10-02"
+  "checkpoint": "CP743",
+  "deploymentTrigger": "CP743-radius-arcgis-key-2026-10-02"
 }
