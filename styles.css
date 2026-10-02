@@ -4989,13 +4989,14 @@ button,input,select,textarea{
 #food #foodCount,
 #restaurant #restaurantCount{
   color:#55d88a!important;
-  background:#123a26!important;
-  border:1px solid #2f7d50!important;
+  background:transparent!important;
+  border:0!important;
   font-size:10px!important;
   font-weight:900!important;
   letter-spacing:.02em!important;
   text-shadow:0 0 10px rgba(85,216,138,.18)!important;
-  box-shadow:0 4px 12px rgba(33,150,83,.14),inset 0 1px 0 rgba(255,255,255,.05)!important;
+  box-shadow:none!important;
+  padding:0!important;
 }
 #food .quick-label-right,
 #restaurant .quick-label-right{
