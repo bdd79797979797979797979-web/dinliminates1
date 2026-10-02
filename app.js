@@ -2343,7 +2343,32 @@ const y = cursor.getFullYear(), m = cursor.getMonth();
 const first = new Date(y,m,1).getDay(), last = new Date(y,m+1,0).getDate();
 const today = new Date();
 const todayKey = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-let body = '<div class="history-intro"><span class="history-kicker">YOUR DECISIONS</span><h4>History</h4><p>Browse previous meal and restaurant choices by date.</p></div><div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev" aria-label="Previous month">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext" aria-label="Next month">›</button></div><div class="cal-grid cal-grid-20" role="grid" aria-label="'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+' history">'; 
+const mealCount=history.filter(x=>x?.type==='food').length;
+const restaurantCount=history.filter(x=>x?.type==='restaurant').length;
+const totalCount=history.length;
+const tagCounts=new Map();
+history.filter(x=>x?.type==='food').forEach(entry=>{
+  const tags=Array.isArray(entry?.quickCuts)&&entry.quickCuts.length?entry.quickCuts:[entry?.category||entry?.cuisine];
+  [...new Set(tags.map(x=>String(x||'').trim()).filter(Boolean))].forEach(tag=>tagCounts.set(tag,(tagCounts.get(tag)||0)+1));
+});
+const topTag=[...tagCounts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]?.[0]||'—';
+const daySet=new Set(history.map(x=>String(x?.date||'')).filter(Boolean));
+let streak=0;
+for(let d=new Date(today.getFullYear(),today.getMonth(),today.getDate());daySet.has(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));){
+  streak++;
+  d.setDate(d.getDate()-1);
+}
+const statsMarkup='<section class="history-stats hidden" id="historyStats" aria-label="Your stats">'+
+'<div class="history-stats-head"><div><span class="history-stats-kicker">YOUR STATS</span><b>Decision snapshot</b></div><span class="history-stats-note">Saved on this device</span></div>'+
+'<div class="history-stat-grid">'+
+'<div class="history-stat"><span>Meals chosen</span><b>'+mealCount+'</b></div>'+
+'<div class="history-stat"><span>Restaurants chosen</span><b>'+restaurantCount+'</b></div>'+
+'<div class="history-stat"><span>Total decisions</span><b>'+totalCount+'</b></div>'+
+'<div class="history-stat"><span>Current streak</span><b>'+streak+' day'+(streak===1?'':'s')+'</b></div>'+
+'</div>'+
+'<div class="history-stat-wide"><span>Most-used meal Quick Cut</span><b>'+esc(topTag)+'</b></div>'+
+'</section>';
+let body = '<div class="history-intro"><div class="history-intro-copy"><span class="history-kicker">YOUR DECISIONS</span><h4>History</h4><p>Browse previous meal and restaurant choices by date.</p></div><button class="history-stats-toggle" id="historyStatsToggle" type="button" aria-expanded="false">Your Stats</button></div>'+statsMarkup+'<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev" aria-label="Previous month">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext" aria-label="Next month">›</button></div><div class="cal-grid cal-grid-20" role="grid" aria-label="'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+' history">'; 
 ['S','M','T','W','T','F','S'].forEach(d => body += '<span class="cal-d" role="columnheader">'+d+'</span>');
 for(let i=0;i<first;i++) body += '<span class="cal-empty" aria-hidden="true"></span>';
 for(let day=1;day<=last;day++) {
@@ -2369,6 +2394,12 @@ body += '</div>';
 const modal = openModal('historyModal','History',body);
 bindImageFallback('#historyModal img',FINAL_RESTAURANT_IMAGE,FINAL_RESTAURANT_IMAGE);
 for(const row of history.slice(0,30)) if(row?.type==='restaurant'&&row?.id) hydrateRestaurantPhoto(row,'#historyModal');
+$('historyStatsToggle').onclick=()=>{
+  const panel=$('historyStats'),btn=$('historyStatsToggle'); if(!panel||!btn)return;
+  const isHidden=panel.classList.toggle('hidden');
+  btn.setAttribute('aria-expanded',String(!isHidden));
+  btn.textContent=isHidden?'Your Stats':'Hide Stats';
+};
 $('calPrev').onclick = () => { cursor = new Date(y,m-1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 $('calNext').onclick = () => { cursor = new Date(y,m+1,1); modal.remove(); $('historyModalBg')?.remove(); render(); };
 modal.querySelectorAll('[data-history-id]').forEach(btn => btn.onclick = () => {
