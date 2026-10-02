@@ -249,7 +249,7 @@ const KNOWN_RESTAURANT_WEBSITES={
 };
 const officialWebsiteCache=new Map();
 const OFFICIAL_WEBSITE_CACHE_TTL=7*24*60*60*1000;
-const OFFICIAL_WEBSITE_NEGATIVE_TTL=24*60*60*1000;
+const OFFICIAL_WEBSITE_NEGATIVE_TTL=10*60*1000;
 const BLOCKED_WEBSITE_HOSTS=new Set([
  'google.com','www.google.com','bing.com','www.bing.com','yelp.com','www.yelp.com',
  'tripadvisor.com','www.tripadvisor.com','facebook.com','www.facebook.com',
@@ -306,6 +306,23 @@ function digitsOnly(value){return String(value||'').replace(/\D/g,'');}
 function htmlText(value){
  return String(value||'').replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/\s+/g,' ').trim();
 }
+async function fetchReaderPage(url,timeout=6500,maxBytes=1200000){
+ const page=safeWebsiteUrl(url);if(!page)return null;
+ const readerUrl='https://r.jina.ai/'+page;
+ const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
+ try{
+  const response=await fetch(readerUrl,{headers:{
+   Accept:'text/markdown,text/plain,*/*',
+   'User-Agent':'Mozilla/5.0 (compatible; Dinliminate/1.0; official-web-presence-resolver)'
+  },signal:ctl.signal});
+  if(!response.ok)return null;
+  const bytes=Buffer.from(await response.arrayBuffer());
+  if(bytes.length>maxBytes)return null;
+  return {url:page,finalUrl:page,html:bytes.toString('utf8'),reader:true};
+ }catch{return null}finally{clearTimeout(timer)}
+}
+
+
 async function fetchWebPage(url,timeout=3500,maxBytes=1200000){
  const page=safeWebsiteUrl(url);if(!page)return null;
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeout);
@@ -414,157 +431,42 @@ function extractGenericSearchResults(html,sourceHost=''){
 function directWebsiteDomainCandidates(name,address,brand=''){
  const nameWords=websiteBusinessTokens(name);
  const brandWords=websiteBusinessTokens(brand);
- const compact=(words)=>words.join('');
- const stripThe=(words)=>words.filter(x=>x!=='the');
  const addr=normalizeSearchQuery(address).split(' ').filter(Boolean);
- const city=addr.length?addr.slice(-3).find(x=>x.length>=4&&!/^\d+$/.test(x))||'':'';
- const state=addr.includes('tn')?'tn':'';
- const bases=[];
- for(const words of [stripThe(nameWords),stripThe(brandWords)]){
-  const core=compact(words);
-  if(core&&core.length>=5)bases.push(core);
-  if(core&&city)bases.push(core+city);
-  if(core&&state)bases.push(core+state);
-  if(core&&!core.endsWith('s'))bases.push(core+'s');
-  if(core&&city&&!core.endsWith('s'))bases.push(core+'s'+city);
- }
- return [...new Set(bases)]
-  .filter(x=>/^[a-z0-9]+$/.test(x))
-  .slice(0,10)
-  .flatMap(x=>['https://'+x+'.com']);
-}
-function extractBingDiscoveryResults(html){
- return extractGenericSearchResults(html,'bing.com');
-}
-function extractBingWebsiteResults(html){
- return extractBingDiscoveryResults(html).filter(x=>x.kind==='website').map(({url,title})=>({url,title}));
-}
-function extractExternalWebsiteLinks(html,sourceUrl=''){
- const out=[],seen=new Set(),sourceHost=websiteHost(sourceUrl);
- const add=(raw,text='')=>{
-  let href=decodeHtmlAttribute(raw).trim();if(!href)return;
-  try{
-   if(!/^https?:\/\//i.test(href))href=new URL(href,sourceUrl).toString();
-   const u=new URL(href);
-   if(u.hostname==='l.facebook.com'){
-    const redirected=u.searchParams.get('u')||u.searchParams.get('url');
-    if(redirected)href=decodeURIComponent(redirected);
-   }
-  }catch{return}
-  const safe=safeWebsiteUrl(href);if(!safe)return;
-  const host=websiteHost(safe);
-  if(!host||host===sourceHost||seen.has(safe))return;
-  seen.add(safe);
-  const label=normalizeSearchQuery(text);
-  let score=0;
-  if(/\b(?:website|official|site|homepage|order|menu)\b/i.test(label))score+=30;
-  if(host.split('.')[0].length>=5)score+=5;
-  out.push({url:safe,title:text,score});
+ const locationWords=new Set(addr.slice(-4).filter(x=>x.length>=3&&!/^\d+$/.test(x)));
+ const stopLocation=new Set(['sango','clarksville','pleasant','view','tn','kentucky','ky','fort','campbell']);
+ const variants=new Set();
+ const add=(words)=>{
+  const clean=words.filter(Boolean);
+  const core=clean.join('');
+  if(core.length>=5)variants.add(core);
  };
- const anchorRe=/<a\b[^>]*?href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/ig;
- let m;
- while((m=anchorRe.exec(String(html||'')))&&out.length<40)add(m[1],htmlText(m[2]));
- const plainRe=/(https?:\/\/[^\s"'<>]+)/ig;
- while((m=plainRe.exec(String(html||'')))&&out.length<50)add(m[1],'');
- return out.sort((a,b)=>b.score-a.score);
+ const seedSets=[nameWords.filter(x=>!stopLocation.has(x)),brandWords.filter(x=>!stopLocation.has(x))];
+ for(const words of seedSets){
+  add(words);
+  if(words.length>2)add(words.slice(0,-1));
+  if(words.length>3)add(words.filter((_,i)=>i!==words.length-1));
+  add(words.filter(x=>x!=='the'));
+ }
+ const city=[...locationWords].find(x=>!stopLocation.has(x));
+ const out=[];
+ for(const base of [...variants]){
+  for(const domain of [
+   base+'.com',
+   base+'tn.com',
+   base+'tn.net',
+   base+'restaurant.com',
+   base+'restaurants.com'
+  ]) out.push('https://'+domain);
+  if(city)out.push('https://'+base+city+'.com','https://'+base+city+'tn.com');
+ }
+ return [...new Set(out)].slice(0,20);
 }
-function websitePageScore(pageUrl,html,name,address,brand='',phone=''){
- const source=normalizeSearchQuery(htmlText(html).slice(0,1400000)+' '+pageUrl);
- const nameTokens=[...new Set(websiteBusinessTokens(name))];
- const brandTokens=[...new Set(websiteBusinessTokens(brand))];
- const allTokens=[...new Set([...nameTokens,...brandTokens])];
- const hits=allTokens.filter(t=>source.includes(t)).length;
- const ratio=allTokens.length?hits/allTokens.length:0;
- const nameHits=nameTokens.filter(t=>source.includes(t)).length;
- const nameRatio=nameTokens.length?nameHits/nameTokens.length:0;
- const brandHits=brandTokens.filter(t=>source.includes(t)).length;
- const brandRatio=brandTokens.length?brandHits/brandTokens.length:0;
- const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
- const addrNorm=normalizeSearchQuery(address);
- const addressTokens=addrNorm.split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
- const locationTokens=addressTokens.slice(-6);
- const locationHits=locationTokens.filter(x=>source.includes(x)).length;
- const cityTokens=addressTokens.slice(-3),cityHits=cityTokens.filter(x=>source.includes(x)).length;
- const host=websiteHost(pageUrl);
- const hostBrandHits=allTokens.filter(t=>host.includes(t)).length;
- const phoneDigits=digitsOnly(phone),sourceDigits=digitsOnly(html);
- const phoneMatch=phoneDigits.length>=7&&sourceDigits.includes(phoneDigits.slice(-Math.min(10,phoneDigits.length)));
- let score=0;
- score+=Math.min(38,nameRatio*38);
- score+=Math.min(20,brandRatio*20);
- if(number&&source.includes(number))score+=22;
- if(cityHits>=2)score+=14;else if(cityHits===1)score+=7;
- if(name&&source.includes(normalizeSearchQuery(name)))score+=18;
- if(hostBrandHits)score+=Math.min(22,hostBrandHits*11);
- if(phoneMatch)score+=28;
- if(/\b(?:about|locations|location|contact|menu|order|visit|hours)\b/.test(source))score+=6;
- return Math.round(score);
-}
-function verifiedWebsiteCandidate(page,name,address,brand='',phone=''){
- if(!page?.url||!page?.html||isBlockedWebsite(page.url))return null;
- const score=websitePageScore(page.url,page.html,name,address,brand,phone);
- const source=normalizeSearchQuery(htmlText(page.html).slice(0,1400000));
- const nameTokens=[...new Set(websiteBusinessTokens(name))];
- const brandTokens=[...new Set(websiteBusinessTokens(brand))];
- const nameRatio=nameTokens.length?nameTokens.filter(t=>source.includes(t)).length/nameTokens.length:0;
- const brandRatio=brandTokens.length?brandTokens.filter(t=>source.includes(t)).length/brandTokens.length:0;
- const identity=source.includes(normalizeSearchQuery(name))||nameRatio>=0.7||brandRatio>=0.8;
- const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
- const addrParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
- const locationHits=addrParts.slice(-6).filter(x=>source.includes(x)).length;
- const phoneDigits=digitsOnly(phone),sourceDigits=digitsOnly(page.html);
- const phoneMatch=phoneDigits.length>=7&&sourceDigits.includes(phoneDigits.slice(-Math.min(10,phoneDigits.length)));
- const location=(!number||source.includes(number)||locationHits>=2||phoneMatch);
- return identity&&location&&score>=66?{url:page.url,score}:null;
-}
-function websiteSearchHitScore(hit,name,address,brand='',phone=''){
- const title=normalizeSearchQuery([hit?.title,hit?.url].filter(Boolean).join(' '));
- const nameTokens=[...new Set(websiteBusinessTokens(name))];
- const brandTokens=[...new Set(websiteBusinessTokens(brand))];
- const allTokens=[...new Set([...nameTokens,...brandTokens])];
- const ratio=allTokens.length?allTokens.filter(t=>title.includes(t)).length/allTokens.length:0;
- const host=websiteHost(hit?.url);
- const hostBrandHits=allTokens.filter(t=>host.includes(t)).length;
- const exactName=name&&title.includes(normalizeSearchQuery(name));
- const addressNorm=normalizeSearchQuery(address);
- const addressParts=addressNorm.split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
- const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
- const cityHits=addressParts.slice(-3).filter(x=>title.includes(x)).length;
- const phoneDigits=digitsOnly(phone),titleDigits=digitsOnly(title);
- let score=ratio*36+(exactName?25:0)+hostBrandHits*20+(number&&title.includes(number)?18:0)+(cityHits?10:0)+(phoneDigits.length>=7&&titleDigits.includes(phoneDigits.slice(-7))?24:0);
- return Math.round(score);
-}
-function verifiedWebsiteSearchHit(hit,name,address,brand='',phone=''){
- if(!hit?.url||isBlockedWebsite(hit.url)||isDiscoveryHost(hit.url))return null;
- const score=websiteSearchHitScore(hit,name,address,brand,phone);
- const title=normalizeSearchQuery(hit.title||'');
- const allTokens=[...new Set([...websiteBusinessTokens(name),...websiteBusinessTokens(brand)])];
- const ratio=allTokens.length?allTokens.filter(t=>title.includes(t)).length/allTokens.length:0;
- const host=websiteHost(hit.url);
- const hostBrand=allTokens.some(t=>host.includes(t));
- const number=(String(address||'').match(/\b\d{1,6}\b/)||[])[0];
- const addressParts=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
- const cityHits=addressParts.slice(-3).filter(x=>title.includes(x)).length;
- const identity=title.includes(normalizeSearchQuery(name||''))||ratio>=0.75;
- const location=!number||title.includes(number)||cityHits>=1;
- return hostBrand&&identity&&location&&score>=70?{url:safeWebsiteUrl(hit.url),score}:null;
-}
-function officialPageSearchScore(hit,name,address,brand=''){
- if(!hit?.url||!isDiscoveryHost(hit.url))return 0;
- const title=normalizeSearchQuery(hit.title||'');
- const tokens=[...new Set([...websiteBusinessTokens(name),...websiteBusinessTokens(brand)])];
- const ratio=tokens.length?tokens.filter(t=>title.includes(t)).length/tokens.length:0;
- const exact=name&&title.includes(normalizeSearchQuery(name));
- const addr=normalizeSearchQuery(address).split(' ').filter(x=>x.length>=3&&!/^\d+$/.test(x));
- const cityHit=addr.slice(-3).some(x=>title.includes(x));
- return Math.round(ratio*60+(exact?25:0)+(cityHit?15:0));
-}
-async function discoverOfficialWebsite(name,address,brand='',phone=''){
+async function discoverOfficialWebsite(name,address,brand='',phone='',force=false){
  const key=normalizeSearchQuery([name,address,brand,phone].filter(Boolean).join('|'));
  if(!key)return {website:'',officialPage:'',source:'none'};
  const cached=officialWebsiteCache.get(key);
  const cacheTtl=cached?.url||cached?.officialPage?OFFICIAL_WEBSITE_CACHE_TTL:OFFICIAL_WEBSITE_NEGATIVE_TTL;
- if(cached&&Date.now()-cached.t<cacheTtl)return {website:cached.url||'',officialPage:cached.officialPage||'',source:cached.source||'cache'};
+ if(!force&&cached&&Date.now()-cached.t<cacheTtl)return {website:cached.url||'',officialPage:cached.officialPage||'',source:cached.source||'cache'};
  if(cached)officialWebsiteCache.delete(key);
  const known=knownRestaurantWebsite({name,brand});
  if(known){
@@ -576,10 +478,19 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
  // First try cheap, deterministic domain candidates. This avoids depending on
  // any particular search engine's HTML markup and is still protected by full
  // restaurant identity/address/phone verification before acceptance.
+  let readerAttempts=0;
+  const fetchVerifiedPage=async(url)=>{
+   const direct=await fetchWebPage(url,2600,900000);
+   if(direct)return direct;
+   if(readerAttempts>=6)return null;
+   readerAttempts++;
+   return fetchReaderPage(url,6500,1200000);
+  };
+
  const domainCandidates=directWebsiteDomainCandidates(name,address,brand)
    .map(url=>({url,title:'domain candidate',kind:'website'}));
  const candidateChecks=await Promise.allSettled(domainCandidates.map(async candidate=>{
-  const page=await fetchWebPage(candidate.url,2400,900000);
+  const page=await fetchVerifiedPage(candidate.url);
   const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
   return verified?{...verified,source:'domain-candidate'}:null;
  }));
@@ -621,7 +532,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
  }
  const directHits=results.filter(x=>x.kind==='website').sort((a,b)=>websiteSearchHitScore(b,name,address,brand,phone)-websiteSearchHitScore(a,name,address,brand,phone));
  const directChecks=await Promise.allSettled(directHits.slice(0,14).map(async hit=>{
-  const page=await fetchWebPage(hit.url,3000,1200000);
+  const page=await fetchVerifiedPage(hit.url);
   if(page){
    const verified=verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone);
    if(verified)return {...verified,source:'official-search'};
@@ -654,7 +565,7 @@ async function discoverOfficialWebsite(name,address,brand='',phone=''){
   }
  }
  const outboundChecks=await Promise.allSettled(outbound.slice(0,22).map(async candidate=>{
-  const page=await fetchWebPage(candidate.url,3000,1200000);
+  const page=await fetchVerifiedPage(candidate.url);
   const verified=page?verifiedWebsiteCandidate({...page,url:page.finalUrl||page.url},name,address,brand,phone):null;
   return verified?{...verified,source:candidate.source}:null;
  }));
@@ -674,7 +585,7 @@ async function resolveOfficialWebsite(row){
  if(direct)return {website:direct,officialPage:'',source:'provider'};
  const known=knownRestaurantWebsite(row);
  if(known)return {website:known,officialPage:'',source:'known-brand'};
- return discoverOfficialWebsite(row?.name,row?.address,row?.brand,row?.phone);
+ return discoverOfficialWebsite(row?.name,row?.address,row?.brand,row?.phone,!!row?.forceWebsiteRefresh);
 }
 function knownRestaurantWebsite(row){
  const name=norm(row?.name),brand=norm(row?.brand);
@@ -1046,9 +957,9 @@ if(mode==='suggest'){if(res.setHeader)res.setHeader('Cache-Control','public, max
 if(mode==='resolve'){const x=await geocode(q.get('q'));return res.status(200).json({ok:true,...x})}
 if(mode==='reverse'){const lat=n(q.get('lat')),lon=n(q.get('lon'));if(!validCoords(lat,lon))return res.status(400).json({ok:false,message:'Coordinates are invalid.'});if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');return res.status(200).json({ok:true,display:await reverse(lat,lon)})}
 if(mode==='website'){
- const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80);
+ const name=String(q.get('name')||'').trim().slice(0,160),address=String(q.get('address')||'').trim().slice(0,240),brand=String(q.get('brand')||'').trim().slice(0,160),providerWebsite=String(q.get('website')||'').trim().slice(0,700),phone=String(q.get('phone')||'').trim().slice(0,80),force=String(q.get('refresh')||'')==='1';
  if(!name)return res.status(400).json({ok:false,message:'Restaurant name is required.'});
- const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite,phone});
+ const result=await resolveOfficialWebsite({name,address,brand,website:providerWebsite,phone,forceWebsiteRefresh:force});
  if(res.setHeader)res.setHeader('Cache-Control','public, max-age=300, s-maxage=300, stale-while-revalidate=600');
  return res.status(200).json({ok:true,website:result.website||'',officialPage:result.officialPage||'',source:result.source||'none'});
 }
