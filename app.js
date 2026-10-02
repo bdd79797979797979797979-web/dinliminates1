@@ -71,6 +71,7 @@ locationFreshAt:null,
 winnerItem:null,
 winnerType:'food',
 schemaVersion:4,
+notes:{},
 restaurantTimezone:'',
 restaurantSearchOrigin:null,
 restaurantSearchKey:''
@@ -519,6 +520,37 @@ const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodE
 const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
 const allFoods = () => [...getDefaultFoods(), ...S.custom.map(x=>({...x,quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}))];
 const STORAGE_VERSION = 4;
+const ITEM_NOTES_KEY = 'dinliminate.item.notes.v1';
+function loadItemNotes(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(ITEM_NOTES_KEY)||'{}');
+  S.notes=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:{};
+ }catch{S.notes={};}
+}
+function saveItemNotes(){
+ try{
+  const clean={};
+  Object.entries(S.notes||{}).forEach(([key,value])=>{
+   const note=String(value??'').trim();
+   if(note)clean[key]=note.slice(0,1200);
+  });
+  S.notes=clean;
+  localStorage.setItem(ITEM_NOTES_KEY,JSON.stringify(clean));
+  return true;
+ }catch{return false;}
+}
+function itemNoteKey(item,type){
+ if(type==='restaurant'){
+  return 'restaurant:'+String(item?.canonicalId||restaurantCanonicalId(item)||item?.id||'unknown');
+ }
+ return 'food:'+String(item?.id||item?.name||'unknown');
+}
+function itemNote(item,type){return String((S.notes||{})[itemNoteKey(item,type)]||'').trim();}
+function setItemNote(item,type,note){
+ const key=itemNoteKey(item,type),value=String(note??'').trim();
+ if(value)S.notes[key]=value.slice(0,1200);else delete S.notes[key];
+ saveItemNotes();
+}
 const PHOTO_DB_NAME = 'dinliminate.photos';
 const PHOTO_STORE = 'images';
 let photoDbPromise = null;
@@ -606,6 +638,7 @@ return false;
 }
 }
 function load() {
+loadItemNotes();
 try {
 const raw = localStorage.getItem(KEY);
 if (!raw) return false;
@@ -2053,42 +2086,121 @@ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.foc
 queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
 return modal;
 }
+function bindDetailNotes(modal,item,type){
+ const noteKey=itemNoteKey(item,type);
+ const noteSection=modal.querySelector('#detailNotesSection');
+ const toggle=modal.querySelector('#detailNotesToggle');
+ const editor=modal.querySelector('#detailNotesEditor');
+ const field=modal.querySelector('#detailNotesInput');
+ const saveButton=modal.querySelector('#detailNotesSave');
+ const cancelButton=modal.querySelector('#detailNotesCancel');
+ const preview=modal.querySelector('#detailNotesPreview');
+ const empty=modal.querySelector('#detailNotesEmpty');
+ if(!noteSection||!toggle||!editor||!field||!saveButton||!cancelButton)return;
+ const render=()=>{
+  const note=String((S.notes||{})[noteKey]||'').trim();
+  if(preview)preview.textContent=note.replace(/\\s+/g,' ').trim();
+  if(empty)empty.classList.toggle('hidden',!!note);
+  if(preview)preview.classList.toggle('hidden',!note);
+  toggle.setAttribute('aria-label',note?'Edit note for '+item.name:'Add a note for '+item.name);
+  toggle.setAttribute('aria-expanded',(!editor.classList.contains('hidden')).toString());
+ };
+ toggle.onclick=()=>{
+  editor.classList.toggle('hidden');
+  const open=!editor.classList.contains('hidden');
+  if(open){field.value=String((S.notes||{})[noteKey]||'');window.setTimeout(()=>field.focus(),0);}
+  render();
+ };
+ saveButton.onclick=()=>{
+  setItemNote(item,type,field.value);
+  editor.classList.add('hidden');
+  render();
+ };
+ cancelButton.onclick=()=>{
+  field.value=String((S.notes||{})[noteKey]||'');
+  editor.classList.add('hidden');
+  render();
+ };
+ field.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();cancelButton.click();}
+ });
+ render();
+}
+
 function detailsSheet(item,type){
  if(item?.category==='Hungry')return;
- const image=imageProxyUrl(item.image||item.photo||item.photoFallback||(type==='restaurant'?restaurantFallbackImage(item):HUNGRY_IMAGE)),cat=type==='restaurant'?restaurantCategory(item):item.category||'',nut=item.nutrition||{};
- const nutrition=type==='food'&&item.nutrition?'<div class="nutrition-card"><div class="detail-section-title">Typical nutrition</div><div class="nutrition-grid"><div><b>'+esc(nut.calories)+' kcal</b><span>Calories</span></div><div><b>'+esc(nut.protein)+' g</b><span>Protein</span></div><div><b>'+esc(nut.carbs)+' g</b><span>Carbs</span></div><div><b>'+esc(nut.fat)+' g</b><span>Fat</span></div><div><b>'+esc(nut.sodium)+' mg</b><span>Sodium</span></div></div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></div>':'';
- const ingredients=type==='food'&&Array.isArray(item.ingredients)&&item.ingredients.length?'<div class="detail-section"><div class="detail-section-title">Ingredients</div><p class="detail-body-copy">'+esc(item.ingredients.join(' · '))+'</p></div>':'';
- const pm=item.menuItems||item.commonMenuItems||item.common_menu_items||[],menus=Array.isArray(pm)?pm.filter(Boolean):String(pm||'').split(/[|,;·]/).map(x=>x.trim()).filter(Boolean);
- const menu=type==='restaurant'&&menus.length?'<div class="detail-section"><div class="detail-section-title">Common menu items</div><p class="detail-body-copy">'+esc(menus.slice(0,8).join(' · '))+'</p></div>':'';
- const recipe=item.recipe?'<div class="detail-section"><div class="detail-section-title">Recipe / notes</div><p class="detail-body-copy">'+esc(item.recipe).replace(/\n/g,'<br>')+'</p></div>':'';
- if(type!=='restaurant'){
-   const actionBar=item?.category==='Hungry'?'':'<div class="detail-actions-row"><button class="detail-hide-action" id="detailHide" type="button" aria-label="Hide this meal"><span class="detail-hide-icon" aria-hidden="true">⌁</span><span>Hide this meal</span></button></div>';
-   const body='<div class="detail-grid"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+FINAL_FOOD_IMAGE+'" alt="'+esc(item.name)+'"><div class="detail-title-block"><span class="detail-kicker">DETAILS</span><h2>'+esc(item.name)+'</h2></div><p class="status">'+esc(item.category||'')+'</p>'+nutrition+ingredients+menu+recipe+actionBar+'</div>';
-   const modal=openModal('detailsModal','Details',body);bindImageFallback('#detailsModal img',foodPhoto(item),FINAL_FOOD_IMAGE);
-   const detailHide=$('detailHide'); if(detailHide) detailHide.onclick=async()=>{const hidden=await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
+ const isRestaurant=type==='restaurant';
+ const image=imageProxyUrl(item.image||item.photo||item.photoFallback||(isRestaurant?restaurantFallbackImage(item):HUNGRY_IMAGE));
+ const note=itemNote(item,type);
+ const notePreview=note.replace(/\\s+/g,' ').trim();
+ const notesSection='<section class="detail-section detail-notes-section" id="detailNotesSection"><div class="detail-section-head"><div><div class="detail-section-title">Notes</div><p class="detail-section-helper">Private to this device.</p></div><button class="detail-notes-toggle" id="detailNotesToggle" type="button" aria-expanded="false"><span class="detail-notes-toggle-icon" aria-hidden="true">✎</span><span> '+(note?'Edit note':'Add a note')+'</span></button></div><p class="detail-note-preview '+(note?'':'hidden')+'" id="detailNotesPreview">'+esc(notePreview)+'</p><p class="detail-notes-empty '+(note?'hidden':'')+'" id="detailNotesEmpty">Add a quick reminder, favorite, or thought.</p><div class="detail-notes-editor hidden" id="detailNotesEditor"><textarea id="detailNotesInput" maxlength="1200" rows="4" placeholder="Write a note about this '+(isRestaurant?'restaurant':'meal')+'…"></textarea><div class="detail-notes-editor-actions"><button class="secondary" id="detailNotesCancel" type="button">Cancel</button><button class="detail-notes-save" id="detailNotesSave" type="button">Save Note</button></div></div></section>';
+
+ if(!isRestaurant){
+   const cat=String(item.category||'Meal').trim();
+   const nut=item.nutrition||{};
+   const about=String(item.description||'').trim();
+   const ingredients=Array.isArray(item.ingredients)?item.ingredients.filter(Boolean):[];
+   const recipe=String(item.recipe||'').trim();
+   const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
+   const detailRows='<div class="detail-info-list">'+
+     '<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(cat)+'</strong></div>'+
+     (ingredients.length?'<div class="detail-info-row detail-info-row-stack"><span>Ingredients</span><strong>'+esc(ingredients.slice(0,16).join(' · '))+'</strong></div>':'')+
+     (recipe?'<div class="detail-info-row detail-info-row-stack"><span>Preparation</span><strong>'+esc(recipe).replace(/\n/g,'<br>')+'</strong></div>':'')+
+     '</div>';
+   const nutrition=Object.values(nut).some(v=>String(v??'').trim()!=='')?
+     '<section class="detail-section"><div class="detail-section-title">Typical nutrition · per serving</div><div class="nutrition-grid detail-nutrition-grid">'+
+     '<div><b>'+esc(nut.calories||'—')+'</b><span>Calories</span></div>'+
+     '<div><b>'+esc(nut.protein||'—')+' g</b><span>Protein</span></div>'+
+     '<div><b>'+esc(nut.carbs||'—')+' g</b><span>Carbs</span></div>'+
+     '<div><b>'+esc(nut.fat||'—')+' g</b><span>Fat</span></div>'+
+     '<div><b>'+esc(nut.sodium||'—')+' mg</b><span>Sodium</span></div>'+
+     '</div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></section>' : '';
+   const hide='<div class="detail-secondary-actions"><button class="detail-hide-action" id="detailHide" type="button" aria-label="Hide this meal"><span class="detail-hide-icon" aria-hidden="true">⌁</span><span>Hide Meal</span></button></div>';
+   const body='<div class="detail-unified detail-meal"><div class="detail-hero detail-meal-hero"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+FINAL_FOOD_IMAGE+'" alt="'+esc(item.name)+'"></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">MEAL</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+' · Meal</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+detailRows+'</section>'+nutrition+notesSection+hide+'</div>';
+   const modal=openModal('detailsModal','Details',body);
+   bindImageFallback('#detailsModal img',foodPhoto(item),FINAL_FOOD_IMAGE);
+   bindDetailNotes(modal,item,'food');
+   const detailHide=$('detailHide');
+   if(detailHide)detailHide.onclick=async()=>{const hidden=await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
    return;
  }
+
+ const cat=restaurantCategory(item);
  const detailPhone=String(item.phone||item.nationalPhoneNumber||item['contact:phone']||'').trim();
- const phoneRow=detailPhone?'<a class="restaurant-luxury-contact-row" href="'+esc(phoneHref(detailPhone))+'" aria-label="Call '+esc(item.name)+'"><span class="contact-label">Phone</span><strong>'+esc(detailPhone)+'</strong><span class="contact-arrow">↗</span></a>':'<a class="restaurant-luxury-contact-row restaurant-phone-fallback" href="'+esc(restaurantPhoneSearchUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Find '+esc(item.name)+' phone on Google"><span class="contact-label">Phone</span><strong>Find on Google</strong><span class="contact-arrow">↗</span></a>';
- const addressRow=item.address?'<div class="restaurant-luxury-contact-row"><span class="contact-label">Address</span><strong>'+esc(item.address)+'</strong></div>':'';
+ const phoneHrefValue=detailPhone?phoneHref(detailPhone):restaurantPhoneSearchUrl(item);
+ const phoneLabel=detailPhone?detailPhone:'Find phone number';
  const hours=String(item.opening_hours||'').trim();
  const hoursState=String(restaurantHourState(item)||'unknown').toLowerCase();
- const hoursLabel=hoursState==='open'?'Open now':(hoursState==='closed'?'Closed now':'Hours unknown');
- const hoursSchedule=hours ? '<div class="detail-section restaurant-hours-schedule"><div class="detail-section-title">Hours</div><p class="detail-body-copy">'+esc(hours)+'</p></div>' : '';
-  const detailWebsitePresentation=restaurantWebsitePresentation(item);
-  const detailWebsiteLabel=detailWebsitePresentation.kind==='website'?'Website':(detailWebsitePresentation.kind==='official-page'?'Official Page':'Search Website');
-  const detailWebsiteAria=detailWebsitePresentation.kind==='website'?'Open '+esc(item.name)+' website':detailWebsitePresentation.kind==='official-page'?'Open the official Facebook or Instagram page for '+esc(item.name):'Search '+esc(item.name)+' website';
-  const websiteAction='<a class="detail-icon-button detail-website-action" data-restaurant-website-key="'+esc(restaurantWebsiteRowKey(item))+'" href="'+esc(detailWebsitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+detailWebsiteAria+'" title="'+detailWebsiteLabel+'"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="sr-only">'+detailWebsiteLabel+'</span></a>';
- const directionsAction='<a class="detail-icon-button restaurant-detail-action detail-directions-action" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get Google Maps directions to '+esc(item.name)+'" title="Directions"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="sr-only">Directions</span></a>';
- const infoCards='<div class="restaurant-luxury-stat-grid"><div class="restaurant-luxury-stat"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+(item.cuisine?'<div class="restaurant-luxury-stat"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+(item.distance!=null?'<div class="restaurant-luxury-stat"><span>Distance</span><strong>'+Number(item.distance).toFixed(1)+' mi</strong></div>':'')+'<div class="restaurant-luxury-stat"><span>Hours</span><strong>'+esc(hoursLabel)+'</strong></div></div>';
- const contactSection='<div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Visit & contact</div><div class="restaurant-luxury-contact-card">'+phoneRow+addressRow+'</div><div class="restaurant-luxury-actions">'+websiteAction+directionsAction+'</div></div>';
- const restaurantHideAction='<div class="detail-actions-row restaurant-detail-hide-row"><button class="detail-hide-action" id="detailHideRestaurant" type="button" aria-label="Hide this restaurant"><span class="detail-hide-icon" aria-hidden="true">⌁</span><span>Hide this restaurant</span></button></div>';
- const detailImage=imageProxyUrl(item.image||item.photo||item.photoFallback||restaurantFallbackImage(item));
- const body='<div class="detail-grid restaurant-luxury-details"><div class="restaurant-detail-hero"><img class="history-detail-photo" src="'+esc(detailImage)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-detail-hero-shade"></div><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block restaurant-luxury-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="restaurant-luxury-subline">'+esc(cat)+(item.cuisine?' · '+esc(item.cuisine):'')+'</p></div><div class="detail-section restaurant-luxury-section"><div class="detail-section-title">Restaurant information</div>'+infoCards+'</div>'+contactSection+hoursSchedule+menu+restaurantHideAction+'</div>';
- const modal=openModal('detailsModal','Restaurant Details',body);bindImageFallback('#detailsModal img',detailImage,restaurantFallbackImage(item));
-const detailHideRestaurant=$('detailHideRestaurant'); if(detailHideRestaurant) detailHideRestaurant.onclick=async()=>{const hidden=await restaurantHide(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
-hydrateRestaurantPhoto(item,'#detailsModal');
-hydrateRestaurantWebsite(item,'#detailsModal');
+ const hoursLabel=hoursState==='open'?'Open now':hoursState==='closed'?'Closed now':'Hours unknown';
+ const address=String(item.address||'').trim();
+ const distance=Number.isFinite(Number(item.distance))?Number(item.distance).toFixed(1)+' mi away':'';
+ const about=String(item.description||'').trim();
+ const detailWebsitePresentation=restaurantWebsitePresentation(item);
+ const detailWebsiteLabel=detailWebsitePresentation.kind==='website'?'Website':(detailWebsitePresentation.kind==='official-page'?'Official Page':'Search Website');
+ const websiteAction='<a class="detail-icon-button restaurant-detail-action" href="'+esc(detailWebsitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(detailWebsiteLabel+' for '+item.name)+'" title="'+esc(detailWebsiteLabel)+'"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 10.5 18 6m0 0h-3.8M18 6v3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 13.5v3.25A1.25 1.25 0 0 1 15.75 18h-9.5A1.25 1.25 0 0 1 5 16.75v-9.5A1.25 1.25 0 0 1 6.25 6H9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="sr-only">'+esc(detailWebsiteLabel)+'</span></a>';
+ const callAction='<a class="detail-icon-button restaurant-detail-action" href="'+esc(phoneHrefValue)+'" '+(detailPhone?'':'target="_blank" rel="noopener noreferrer')+' aria-label="'+esc((detailPhone?'Call ':'Find phone for ')+item.name)+'" title="'+esc(detailPhone?'Call':'Find phone')+'"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 4.8 9.8 4a1.6 1.6 0 0 1 1.9.9l1.2 3a1.6 1.6 0 0 1-.4 1.7l-1.1 1a12.5 12.5 0 0 0 3.9 3.9l1-1.1a1.6 1.6 0 0 1 1.7-.4l3 1.2a1.6 1.6 0 0 1 .9 1.9l-.8 2.6a2.1 2.1 0 0 1-2.4 1.4C11.3 18.9 5.1 12.7 4 6.2a2.1 2.1 0 0 1 1.4-2.4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="sr-only">'+esc(detailPhone?'Call':'Find phone')+'</span></a>';
+ const directionsAction='<a class="detail-icon-button restaurant-detail-action" href="'+esc(restaurantDirectionsUrl(item))+'" target="_blank" rel="noopener noreferrer" aria-label="Get directions to '+esc(item.name)+'" title="Directions"><svg class="detail-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="sr-only">Directions</span></a>';
+ const infoRows='<div class="detail-info-list">'+
+   '<div class="detail-info-row"><span>Category</span><strong>'+esc(cat)+'</strong></div>'+
+   (item.cuisine?'<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+
+   (address?'<div class="detail-info-row detail-info-row-stack"><span>Location</span><strong>'+esc(address)+'</strong></div>':'')+
+   (distance?'<div class="detail-info-row"><span>Distance</span><strong>'+esc(distance)+'</strong></div>':'')+
+   '<div class="detail-info-row"><span>Status</span><strong class="detail-status-value status-'+esc(hoursState)+'">'+esc(hoursLabel)+'</strong></div>'+
+   '</div>';
+ const hoursSection=hours?'<section class="detail-section"><div class="detail-section-title">Hours</div><p class="detail-body-copy detail-hours-copy">'+esc(hours)+'</p></section>':'';
+ const contactRows='<div class="detail-info-list detail-contact-list">'+
+   '<a class="detail-info-row detail-info-row-link" href="'+esc(phoneHrefValue)+'" '+(detailPhone?'':'target="_blank" rel="noopener noreferrer')+'><span>Phone</span><strong>'+esc(phoneLabel)+'</strong><span class="detail-row-arrow">↗</span></a>'+
+   '</div>';
+ const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
+ const hide='<div class="detail-secondary-actions"><button class="detail-hide-action" id="detailHideRestaurant" type="button" aria-label="Hide this restaurant"><span class="detail-hide-icon" aria-hidden="true">⌁</span><span>Hide Restaurant</span></button></div>';
+ const body='<div class="detail-unified detail-restaurant"><div class="detail-hero detail-restaurant-hero"><img class="history-detail-photo" src="'+esc(image)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+' · '+esc(hoursLabel)+'</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+infoRows+'</section>'+hoursSection+'<section class="detail-section"><div class="detail-section-title">Contact</div>'+contactRows+'</section>'+notesSection+'<section class="detail-utility-actions"><a class="detail-utility-action" href="'+esc(detailWebsitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(detailWebsiteLabel+' for '+item.name)+'" title="'+esc(detailWebsiteLabel)+'">Website</a>'+callAction+directionsAction+'</section>'+hide+'</div>';
+ const modal=openModal('detailsModal','Restaurant Details',body);
+ bindImageFallback('#detailsModal img',image,restaurantFallbackImage(item));
+ bindDetailNotes(modal,item,'restaurant');
+ const detailHideRestaurant=$('detailHideRestaurant');
+ if(detailHideRestaurant)detailHideRestaurant.onclick=async()=>{const hidden=await restaurantHide(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
+ hydrateRestaurantPhoto(item,'#detailsModal');
+ hydrateRestaurantWebsite(item,'#detailsModal');
 }
 
 function historyImageSource(row){
@@ -2257,6 +2369,7 @@ const cats=[...FOOD_QUICK,'Other'];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
 const nut=item?.nutrition||{};
 const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
+const descriptionText=String(item?.description||'').trim();
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
 '<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. Your first selected category is the primary cuisine.</p><div class="quick-cut-editor-grid">'+cats.map(x=>'<label><input type="checkbox" name="editQuickCut" value="'+esc(x)+'" '+(existingCuts.includes(x)?'checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div></fieldset>'+
@@ -2267,8 +2380,9 @@ const body='<form class="add" id="foodEditorForm">'+
 '<label>Fat<input id="editFoodFat" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="25" value="'+esc(nut.fat??'')+'"><span>g</span></label>'+
 '<label>Sodium<input id="editFoodSodium" type="number" required min="0" step="1" inputmode="numeric" placeholder="1050" value="'+esc(nut.sodium??'')+'"><span>mg</span></label>'+
 '</div></div>'+
+'<label class="meal-editor-text-label">About this meal<textarea id="editFoodDescription" placeholder="A short description of the meal (optional)" rows="3">'+esc(descriptionText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
-'<label class="meal-editor-text-label">Recipe / notes<textarea id="editFoodRecipe" placeholder="Recipe, preparation steps, or notes (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
+'<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
 '<label class="file-label">Photo from iPhone/device<input id="editFoodFile" type="file" accept="image/*"></label>'+
 '<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !item.image.startsWith('data:')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
@@ -2305,6 +2419,7 @@ if(Object.values(nutritionValues).some(value=>value==='')){
  return;
 }
 const nutrition=nutritionValues;
+const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const photoInput=$('editFoodPhoto').value.trim();
 let photo=photoInput||(isEdit&&item?.image?item.image:'');
@@ -2323,16 +2438,16 @@ if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-const updated={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,ingredients,recipe};
+const updated={...S.custom[idx],id,name,primary:id===item.id?S.custom[idx].primary:id,category:cat,quickCuts,image:photo,description,ingredients,recipe};
 if(nutrition)updated.nutrition=nutrition; else delete updated.nutrition;
 S.custom[idx]=updated;
-if(id!==item.id) await deleteStoredPhoto(item.id);
+if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
 S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-const added={id,name,primary:id,category:cat,quickCuts,image:photo,ingredients,recipe};
+const added={id,name,primary:id,category:cat,quickCuts,image:photo,description,ingredients,recipe};
 if(nutrition)added.nutrition=nutrition;
 S.custom.push(added);
 }
@@ -2374,7 +2489,7 @@ const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added 
 if(!confirmed)return;
 const idx=S.custom.findIndex(x=>x.id===id);
 if(idx>=0)S.custom.splice(idx,1);
-S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);
+S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
 await deleteStoredPhoto(id);
 buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
@@ -2667,8 +2782,9 @@ home();
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
-try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem('dinliminate.swipeHint.v1');}catch{}
+S.notes={};saveItemNotes();
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[]; S.notes={}; saveItemNotes();
+try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem(ITEM_NOTES_KEY);}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
 }
