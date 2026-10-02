@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 752,
-  "sourceBranch": "cp752-home-cinematic",
+  "build": 753,
+  "sourceBranch": "cp753-swipe-hint-fix",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP752"
+  "checkpoint": "CP753"
 }
