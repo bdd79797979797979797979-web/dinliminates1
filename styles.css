@@ -3595,9 +3595,6 @@ button,input,select,textarea{
   min-height:44px!important;
 }
 
-/* CP707 — retire stale pre-icon Home helper selector. */
-.luxury-home #iphoneHelp{display:none!important;}
-
 /* CP707 — individual History calendar entry actions. */
 .history-calendar .cal-photo-wrap{position:relative;display:flex;align-items:stretch;justify-content:center;min-width:0;}
 .history-calendar .cal-photo-wrap .cal-photo-link{width:100%;}
