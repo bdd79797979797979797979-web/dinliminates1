@@ -93,9 +93,19 @@ const groups=Array.isArray(item.quickCuts)&&item.quickCuts.length?item.quickCuts
 for(const label of groups){if(QUICK_IMAGES[label])return QUICK_IMAGES[label];}
 return QUICK_IMAGES.American;
 }
+function customQuickCutByName(label){
+ const key=normKey(label);
+ return (S.customQuickCuts||[]).find(x=>normKey(x?.name)===key)||null;
+}
+function customQuickCutImage(label){
+ const item=customQuickCutByName(label),src=String(item?.image||'');
+ if(src&&!src.startsWith('idb:'))return imageProxyUrl(src);
+ return imageProxyUrl(QUICK_IMAGES.American);
+}
+function foodQuickImage(label){return QUICK_IMAGES[label]?imageProxyUrl(QUICK_IMAGES[label]):customQuickCutImage(label);}
 function foodPhotoFallback(item){
 const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCuts:[item?.category];
-for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);}
+for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);if(customQuickCutByName(label)?.image)return customQuickCutImage(label);}
 return imageProxyUrl(QUICK_IMAGES.American);
 }
 const KNOWN_RESTAURANT_WEBSITES={
@@ -615,6 +625,13 @@ if (data) { item.image=data; storedPhotoIds.add(item.id); changed=true; }
 else item.image=DEFAULT_FOOD_IMAGE;
 }
 }
+for (const item of (S.customQuickCuts||[])) {
+ const key='quickcut:'+String(item.id);
+ if(String(item.image||'').startsWith('idb:')){
+  const data=await getStoredPhoto(key);
+  if(data){item.image=data;storedPhotoIds.add(key);changed=true;}else item.image='';
+ }
+}
 if(changed && S.screen==='food'){ buildFood(); foodQuick(); drawFood(); }
 }
 function updateStorageIndicator() {
@@ -779,13 +796,14 @@ function foodQuick() {
  const existing=[...document.querySelectorAll('#foodQuick [data-food-quick]')].map(btn=>btn.dataset.foodQuick);
  if(existing.length!==labels.length||existing.some((x,i)=>x!==labels[i])){
   $('foodQuick').innerHTML = labels.map(label => {
-   const src=imageProxyUrl(QUICK_IMAGES[label] || QUICK_IMAGES.American);
+   const src=foodQuickImage(label);
    return '<button class="chip photo-chip" data-food-quick="'+esc(label)+'"><img class="quick-chip-photo" src="'+esc(src)+'" alt="'+esc(label)+' meal photo" draggable="false"><span>'+esc(label)+'</span></button>';
   }).join('');
   bindImageFallbackAttrs('[data-food-quick] img');
  }
  document.querySelectorAll('#foodQuick [data-food-quick]').forEach(btn => {
   const label=btn.dataset.foodQuick;
+  const img=btn.querySelector('.quick-chip-photo');if(img)img.src=foodQuickImage(label);
   btn.classList.toggle('cut',S.cutCats.has(label));
   btn.onclick = () => {
    S.cutCats.has(label) ? S.cutCats.delete(label) : S.cutCats.add(label);
