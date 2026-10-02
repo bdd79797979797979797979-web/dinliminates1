@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 758,
-  "sourceBranch":"cp758-all-maybe-placement",
-  "checkpoint":"CP758",
-  "deploymentTrigger":"CP758-all-maybe-placement-2026-10-02"
+  "build": 759,
+  "sourceBranch":"cp759-initial-layout-fix",
+  "checkpoint":"CP759",
+  "deploymentTrigger":"CP759-initial-layout-fix-2026-10-02"
 }
