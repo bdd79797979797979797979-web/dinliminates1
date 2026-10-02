@@ -838,31 +838,84 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
  const card=$(cardId);if(!card)return;
  const next=$(nextId);
  let downX=0,active=false,committed=false,hapticTriggered=false,pointerId=null,suppressClickUntil=0;
- card.style.touchAction='none';card.style.userSelect='none';card.style.webkitUserSelect='none';card.style.webkitTouchCallout='none';card.querySelectorAll('img').forEach(img=>{img.draggable=false;img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});});
- const reset=()=>{card.style.transition='';card.style.transform='';card.style.opacity='';card.dataset.swipe='';if(next)next.style.transform='scale(.96)';};
+ card.style.touchAction='none';
+ card.style.userSelect='none';
+ card.style.webkitUserSelect='none';
+ card.style.webkitTouchCallout='none';
+ card.querySelectorAll('img').forEach(img=>{
+  img.draggable=false;
+  img.addEventListener('dragstart',e=>e.preventDefault(),{passive:false});
+ });
+ const reset=()=>{
+  card.classList.remove('swipe-active');
+  card.style.transition='';
+  card.style.transform='';
+  card.style.opacity='1';
+  card.dataset.swipe='';
+  if(next)next.style.transform='scale(.96)';
+ };
+ const settleBack=()=>{
+  card.classList.remove('swipe-active');
+  card.style.transition='transform .18s cubic-bezier(.22,1,.36,1)';
+  card.style.transform='translate3d(0,0,0)';
+  card.style.opacity='1';
+  card.dataset.swipe='';
+  window.setTimeout(()=>{
+   if(!active&&!committed){
+    card.style.transition='';
+    card.style.transform='';
+   }
+  },190);
+ };
  const cleanup=()=>{
   try{if(pointerId!=null&&card.hasPointerCapture?.(pointerId))card.releasePointerCapture(pointerId);}catch{}
   pointerId=null;
  };
- const cancel=()=>{if(!active)return;active=false;committed=false;hapticTriggered=false;cleanup();reset();};
+ const cancel=()=>{
+  if(!active)return;
+  active=false;
+  committed=false;
+  hapticTriggered=false;
+  cleanup();
+  settleBack();
+ };
  const commit=(dx)=>{
   if(committed||!active)return;
-  committed=true;active=false;hapticTriggered=false;cleanup();suppressClickUntil=Date.now()+350;
-  card.style.transition='transform .16s ease,opacity .16s ease';
-  card.style.transform='translateX('+(dx<0?-520:520)+'px) rotate('+(dx<0?-18:18)+'deg)';
+  committed=true;
+  active=false;
+  hapticTriggered=false;
+  cleanup();
+  suppressClickUntil=Date.now()+350;
+  card.classList.remove('swipe-active');
+  card.style.transition='transform .18s cubic-bezier(.22,1,.36,1)';
+  card.style.opacity='1';
+  card.style.transform='translate3d('+(dx<0?-520:520)+'px,0,0) rotate('+(dx<0?-10:10)+'deg)';
   const action=dx<0?onCut:onMaybe;
-  window.setTimeout(()=>{reset();action();},100);
+  window.setTimeout(()=>{reset();action();},185);
  };
  const finish=(e)=>{
   if(!active)return;
   const dx=Number(e?.clientX||downX)-downX;
-  if(Math.abs(dx)>=90)commit(dx);else{active=false;cleanup();reset();}
+  if(Math.abs(dx)>=90)commit(dx);
+  else{
+   active=false;
+   cleanup();
+   settleBack();
+  }
  };
  card.onpointerdown=e=>{
   if(e.isPrimary===false)return;
   if(e.button!=null&&e.button!==0)return;
   if(e.target.closest?.('button,a,input,select'))return;
-  downX=e.clientX;active=true;committed=false;hapticTriggered=false;pointerId=e.pointerId;card.dataset.swipe='';
+  downX=e.clientX;
+  active=true;
+  committed=false;
+  hapticTriggered=false;
+  pointerId=e.pointerId;
+  card.dataset.swipe='';
+  card.classList.add('swipe-active');
+  card.style.transition='none';
+  card.style.opacity='1';
   try{card.setPointerCapture?.(e.pointerId);}catch{}
   if(e.cancelable)e.preventDefault();
  };
@@ -876,15 +929,14 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
     hapticTriggered=true;
     triggerSwipeHaptic();
    }
-   const snapX=Math.round(dx);
-   // Keep very slow drags translation-only so Safari does not resample a rotated photo.
+   // Follow the finger directly: no rounding, no transition, no opacity fade.
    const rotationStart=42;
-   const rotation=Math.abs(dx)<rotationStart?0:Math.round(((dx/30)*Math.min(1,(absX-rotationStart)/70))*10)/10;
+   const eased=Math.min(1,Math.max(0,(absX-rotationStart)/95));
+   const rotation=(dx<0?-1:1)*Math.min(10,eased*(3+absX*.045));
    card.style.transform=rotation===0
-     ? 'translate3d('+snapX+'px,0,0)'
-     : 'translate3d('+snapX+'px,0,0) rotate('+rotation+'deg)';
-   // Avoid a noticeable opacity change during slow swipes; color carries the direction cue.
-   card.style.opacity=String(Math.max(.92,1-absX/1800));
+     ? 'translate3d('+dx+'px,0,0)'
+     : 'translate3d('+dx+'px,0,0) rotate('+rotation.toFixed(2)+'deg)';
+   card.style.opacity='1';
    card.style.setProperty('--swipe-tint-alpha',String(Math.min(.18,absX/700)));
    card.dataset.swipe=dx<0?'cut':'maybe';
   }
