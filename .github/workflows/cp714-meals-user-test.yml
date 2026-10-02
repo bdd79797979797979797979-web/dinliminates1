@@ -4,6 +4,8 @@ on:
   push:
     branches: [cp714-manage-order-button-size-about-cleanup]
   workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 jobs:
   meals-user-test:
