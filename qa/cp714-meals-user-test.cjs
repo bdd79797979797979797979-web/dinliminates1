@@ -283,7 +283,6 @@ async function main() {
   const customEdit=page.locator('.manage-food-row').filter({hasText:'QA Custom Meal'}).first();
   await customEdit.locator('[data-food-edit]').click();
   await page.waitForTimeout(60);
-  const rename2=page.locator('[data-custom-qc-rename]').filter({has:undefined}).first();
   const qcInput=page.locator('[data-custom-qc-rename]').first();
   assert.strictEqual(await qcInput.inputValue(),'Favorites');
   await qcInput.fill('My Picks');
@@ -305,7 +304,8 @@ async function main() {
   log('Delete Custom Quick Cut + reassign');
   await customEdit.locator('[data-food-edit]').click();
   await page.waitForTimeout(60);
-  await page.locator('[data-custom-qc-delete]').filter({hasText:''}).first().click();
+  const deleteQc=page.locator('[data-custom-qc-delete]').first();
+  await deleteQc.click();
   await page.waitForTimeout(50);
   await confirm();
   await page.locator('input[name="editQuickCut"][value="Other"]').check();
