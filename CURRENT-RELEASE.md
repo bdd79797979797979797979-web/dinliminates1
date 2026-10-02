@@ -11,7 +11,7 @@ Status: candidate — not production
 ## CP708 full-audit hardening
 - Preserved Restaurant Search and Open/All as intentionally hidden UI.
 - Updated the offline build fallback to Build 708.
-- Advanced app/style asset queries and the service-worker shell cache to v675.
+- Advanced app/style asset queries to v675 and the service-worker shell cache to v676.
 - Removed the obsolete `#iphoneHelp` CSS selector.
 - Expanded visual surface smoke coverage beyond the old single Restaurant baseline.
 - Added current History/calendar deletion and hidden-control assertions to the release QA contract.
