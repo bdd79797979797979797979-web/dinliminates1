@@ -4905,3 +4905,81 @@ button,input,select,textarea{
 @media(max-width:390px){
   .swipe-hint{right:10px!important;bottom:77px!important}
 }
+
+
+/* CP728 — clearer Home utilities, elegant Dine In/Out visual identity, and green choice counts. */
+.luxury-home .home-icon-action{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+}
+.luxury-home .home-icon-label{
+  display:block!important;
+  font-size:7px!important;
+  line-height:1!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+  color:#c9c1b2!important;
+  white-space:nowrap!important;
+}
+.luxury-home .home-card-photo{
+  isolation:isolate;
+}
+.luxury-home .home-card-photo::before{
+  content:"";
+  position:absolute;
+  inset:-35% -65%;
+  z-index:1;
+  pointer-events:none;
+  transform:translateX(-55%) rotate(9deg);
+  background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,0) 44%,rgba(255,255,255,.34) 49%,rgba(255,255,255,0) 54%,transparent 61%);
+  mix-blend-mode:screen;
+  animation:homeCardSheen 5.8s ease-in-out infinite;
+}
+.luxury-home .food-choice .home-card-overlay{
+  background:
+    radial-gradient(circle at 74% 28%,rgba(247,197,103,.22),transparent 34%),
+    linear-gradient(90deg,rgba(20,12,7,.92) 0%,rgba(20,12,7,.58) 43%,rgba(10,9,8,.18) 100%),
+    linear-gradient(0deg,rgba(0,0,0,.72) 0%,transparent 62%);
+}
+.luxury-home .restaurant-choice .home-card-overlay{
+  background:
+    radial-gradient(circle at 82% 22%,rgba(117,224,255,.26),transparent 30%),
+    radial-gradient(circle at 62% 68%,rgba(215,109,255,.2),transparent 38%),
+    linear-gradient(90deg,rgba(8,7,16,.9) 0%,rgba(10,9,17,.5) 43%,rgba(7,8,12,.12) 100%),
+    linear-gradient(0deg,rgba(0,0,0,.66) 0%,transparent 62%);
+}
+.luxury-home .food-choice::after,
+.luxury-home .restaurant-choice::after{
+  border-color:rgba(255,255,255,.17)!important;
+  box-shadow:inset 0 1px 0 rgba(255,244,209,.18),0 0 28px rgba(247,197,103,.09);
+}
+.luxury-home .restaurant-choice::after{
+  box-shadow:inset 0 1px 0 rgba(223,244,255,.2),0 0 32px rgba(119,206,255,.1);
+}
+@keyframes homeCardSheen{
+  0%,20%{transform:translateX(-65%) rotate(9deg);opacity:0}
+  32%{opacity:.1}
+  48%{opacity:.62}
+  64%{transform:translateX(65%) rotate(9deg);opacity:.12}
+  100%{transform:translateX(65%) rotate(9deg);opacity:0}
+}
+.quick-label .count-inline{
+  color:#79d39a!important;
+  font-weight:900!important;
+  text-shadow:0 0 10px rgba(82,214,137,.12);
+}
+.count-inline{
+  color:#79d39a!important;
+}
+.history-choice-count{
+  color:#79d39a!important;
+}
+.hungry-wheel-copy small{
+  color:#79d39a!important;
+}
+.hungry-wheel-ring svg{
+  transition:transform 4.15s cubic-bezier(.12,.72,.11,1);
+}
