@@ -2473,7 +2473,7 @@ const body='<form class="add" id="foodEditorForm">'+
 '</div></div>'+
 '<label class="meal-editor-text-label">About this meal<textarea id="editFoodDescription" placeholder="A short description of the meal (optional)" rows="3">'+esc(descriptionText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
-'<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+
+'<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+(isEdit?'<section class="meal-editor-note-section"><div class="meal-editor-note-copy"><b>Add a note</b><small>Private to this device. Keep a reminder, favorite, or thought with this meal.</small></div><textarea id="editFoodNote" maxlength="1200" rows="3" placeholder="Write a note about this meal…">'+esc(itemNote(item,'food'))+'</textarea></section>':'')+
 '<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:') && !String(item.image).startsWith('data:image/')?item.image:'')+'">'+
 '<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
@@ -2567,6 +2567,7 @@ if(Object.values(nutritionValues).some(value=>value==='')){
 const nutrition=nutritionValues;
 const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+const editorNote=isEdit?String($('editFoodNote')?.value||'').trim():'';
 const photoInput=$('editFoodPhoto').value.trim();
 let photo=photoInput||(isEdit&&item?.image?String(item.image):'');
 if(!photo && !isEdit){
@@ -2612,6 +2613,7 @@ if(nutrition)added.nutrition=nutrition;
 S.custom.push(added);
 }
 if(!S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other')))S.cutCats.delete('Other');
+if(isEdit) setItemNote({id:(S.custom.find(x=>x.id===name.toLowerCase().replace(/[^a-z0-9]+/g,'-'))?.id||item?.id),name},'food',editorNote);
 buildFood(); foodQuick(); save(); modal.remove(); $('foodEditorModalBg')?.remove();
 if(S.screen==='food' && !isEdit){ show('food'); foodQuick(); drawFood(); }
 else manageFoodsView();
