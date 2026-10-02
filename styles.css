@@ -2407,3 +2407,132 @@ button,a,select{touch-action:manipulation}
     min-height:58px!important;
   }
 }
+
+
+/* CP685 — unify Restaurant location controls into one premium row.
+   Current Location → Address → Refresh/Search → Miles. */
+#restaurant .location-strip{
+  margin-top:3px!important;
+  padding:6px 7px 5px!important;
+  border-radius:14px!important;
+}
+#restaurant .location-main{
+  display:grid!important;
+  grid-template-columns:36px minmax(0,1fr) 36px 66px!important;
+  gap:5px!important;
+  align-items:center!important;
+  width:100%!important;
+}
+#restaurant .location-main .location-btn{
+  grid-column:1!important;
+  grid-row:1!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#0b0b0b!important;
+  color:#d7bd7b!important;
+  border:1px solid #c2a865!important;
+  box-shadow:0 6px 16px #0006!important;
+}
+#restaurant .location-main .location-btn:hover:not(:disabled){
+  border-color:#d2b978!important;
+  color:#e2cb92!important;
+  box-shadow:0 7px 18px #0007!important;
+}
+#restaurant .location-main .address-wrap{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-width:0!important;
+  width:100%!important;
+}
+#restaurant .location-main #address{
+  width:100%!important;
+  height:36px!important;
+  min-height:36px!important;
+  box-sizing:border-box!important;
+  border-radius:999px!important;
+  background:#191919!important;
+  color:#eee!important;
+  border:1px solid #303030!important;
+  padding:0 12px!important;
+  font-size:11px!important;
+}
+#restaurant .location-main #address::placeholder{color:#77736c!important}
+#restaurant .location-main #address:focus{
+  border-color:#806943!important;
+  box-shadow:0 0 0 2px #bfa16b22!important;
+}
+#restaurant .location-main .find{
+  grid-column:3!important;
+  grid-row:1!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#0b0b0b!important;
+  color:#d7bd7b!important;
+  border:1px solid #c2a865!important;
+  box-shadow:0 6px 16px #0006!important;
+}
+#restaurant .location-main .find:hover:not(:disabled){
+  border-color:#d2b978!important;
+  color:#e2cb92!important;
+  box-shadow:0 7px 18px #0007!important;
+}
+#restaurant .location-main .find .find-icon{width:16px!important;height:16px!important;color:currentColor!important}
+#restaurant .location-main .find .find-spinner{width:13px!important;height:13px!important}
+#restaurant .location-main .radius-select{
+  grid-column:4!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  height:36px!important;
+  min-height:36px!important;
+  box-sizing:border-box!important;
+  padding:0 8px!important;
+  border-radius:999px!important;
+  background:#151515!important;
+  color:#d7bd7b!important;
+  border:1px solid #40382d!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  text-align:center!important;
+}
+#restaurant .location-main .radius-select:hover{
+  border-color:#6a5a40!important;
+  background:#1a1917!important;
+}
+#restaurant .location-sub{display:none!important}
+#restaurant .location-source-label{display:none!important}
+@media(max-width:390px){
+  #restaurant .location-main{
+    grid-template-columns:36px minmax(0,1fr) 36px 62px!important;
+    gap:4px!important;
+  }
+  #restaurant .location-main #address{font-size:11px!important;padding-left:11px!important;padding-right:11px!important}
+  #restaurant .location-main .radius-select{font-size:10px!important;padding-left:6px!important;padding-right:6px!important}
+}
+@media(max-width:340px){
+  #restaurant .location-main{
+    grid-template-columns:34px minmax(0,1fr) 34px 58px!important;
+    gap:3px!important;
+  }
+  #restaurant .location-main .location-btn,
+  #restaurant .location-main .find{
+    width:34px!important;
+    min-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+  }
+  #restaurant .location-main #address{height:34px!important;min-height:34px!important}
+  #restaurant .location-main .radius-select{height:34px!important;min-height:34px!important;font-size:9px!important}
+}
