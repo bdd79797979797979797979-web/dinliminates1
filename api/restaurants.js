@@ -39,14 +39,29 @@ function isClearlyNonDiningBusiness(row){
   Array.isArray(row?.amenity)?row.amenity.join(' '):row?.amenity
  ].filter(Boolean).join(' '));
  if(!hay)return false;
- const nonDiningPattern=/\b(?:food supplier|food suppliers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\b/i;
+
+ const nonDiningPattern=/\b(?:food supplier|food suppliers|food provider|food providers|food distributor|food distributors|food distribution|food wholesaler|food wholesale|restaurant supply|restaurant supplies|foodservice|food service company|food service supplier|food service distributor|wholesale food|wholesale foods|grocery distributor|grocery distribution|produce supplier|produce distributors?|meat supplier|meat distributor|seafood supplier|seafood distributor|catering supplier|catering suppliers|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\b/i;
  if(nonDiningPattern.test(hay))return true;
+
+ // Explicitly reject the known food-provider false positive while allowing
+ // it back through only when the source itself says it is a dining venue.
+ const knownNonDiningName=/\b(?:larsons?|larson's)\s+enterprise(?:\s+(?:inc|llc|co|company))?\b/i;
+ if(knownNonDiningName.test(norm(row?.name||''))){
+   const diningType=/\b(?:restaurant|fast[_ ]?food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food truck|food court|food hall)\b/i;
+   const sourceType=[
+    row?.providerType,row?.primaryType,
+    Array.isArray(row?.types)?row.types.join(' '):row?.types,
+    row?.amenity
+   ].filter(Boolean).join(' ');
+   if(!diningType.test(sourceType))return true;
+ }
+
  const strongNonDiningType=/\b(?:supplier|distributor|wholesaler|warehouse|manufacturer|manufacturing|logistics|freight|trucking|industrial|contractor|plumbing|hvac)\b/i;
  const diningHay=norm([
   row?.name,row?.brand,row?.operator,row?.cuisine,row?.providerType,row?.primaryType,
   Array.isArray(row?.types)?row.types.join(' '):row?.types
  ].filter(Boolean).join(' '));
- const diningType=/\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food court|food hall)\b/i;
+ const diningType=/\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food truck|food court|food hall)\b/i;
  return strongNonDiningType.test(hay)&&!diningType.test(diningHay);
 }
 function filterNonDiningRows(rows){return (rows||[]).filter(row=>!isClearlyNonDiningBusiness(row))}
@@ -827,7 +842,11 @@ function applyGoogleContactPatches(rows,patches){
 function providerPriority(r){const s=String(r?.source||'');return s.startsWith('OpenStreetMap')?0:s.startsWith('Photon')?1:2}
 const RESTAURANT_NAME_VARIANT_BLOCKERS=new Set(['express','market','grill','kitchen','cafe','coffee','bar','deli','bakery','house','shop','and','at','inside','food','foods','eatery','restaurant','restaurants']);
 function restaurantNameTokens(value){
-  return norm(String(value||'').replace(/[’']s\\b/gi,' ')).split(' ').filter(Boolean);
+  let text=norm(String(value||'').replace(/[’']s\\b/gi,' '));
+  text=text.replace(/\\bbar(?:-?\\s*)?b(?:-?\\s*)?q\\b/g,'bbq');
+  text=text.replace(/\\bbarbecue\\b/g,'bbq');
+  text=text.replace(/\\bb\\s+q\\b/g,'bbq');
+  return text.split(' ').filter(Boolean);
 }
 function nameVariantMatch(a,b){
   const aa=restaurantNameTokens(a),bb=restaurantNameTokens(b);
@@ -890,27 +909,42 @@ function restaurantStreetKey(value){
 function addressHasStreetNumber(value){return /^\s*\d+[a-z]?\b/i.test(String(value||''));}
 function sameRestaurant(x,r){
   if(!x||!r)return false;
+
+  const canonicalX=restaurantNameTokens(x.name).join(' ');
+  const canonicalR=restaurantNameTokens(r.name).join(' ');
   const sameName=restaurantNameKey(x.name)===restaurantNameKey(r.name);
-  const variant=nameVariantMatch(x.name,r.name);
-  const sameNameFamily=sameName||variant;
+  const canonicalSame=!!canonicalX&&canonicalX===canonicalR;
+  const variant=nameVariantMatch(canonicalX,canonicalR);
+  const variantRaw=nameVariantMatch(x.name,r.name);
+  const sameNameFamily=sameName||canonicalSame||variant||variantRaw;
+
   const sameBrand=!!norm(x.brand)&&!!norm(r.brand)&&norm(x.brand)===norm(r.brand);
   const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
   const rowIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(r);
-  const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon) ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
+  const dist=Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&Number.isFinite(r.lat)&&Number.isFinite(r.lon)
+    ? miles(x.lat,x.lon,r.lat,r.lon) : Infinity;
+
   const ax=normAddress(x.address||''), ar=normAddress(r.address||'');
   const sameAddress=!!ax&&!!ar&&ax===ar;
   const conflictingAddress=!!ax&&!!ar&&!sameAddress;
   const sameStreet=!!restaurantStreetKey(x.address)&&restaurantStreetKey(x.address)===restaurantStreetKey(r.address);
   const partialAddress=!addressHasStreetNumber(x.address)||!addressHasStreetNumber(r.address);
-  const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))&&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
-  const sameNameStreet=sameStreet&&originDistanceClose&&partialAddress&&(variant||sameName);
+  const originDistanceClose=Number.isFinite(Number(x.distance))&&Number.isFinite(Number(r.distance))
+    &&Math.abs(Number(x.distance)-Number(r.distance))<=0.05;
   const sameCanonicalIdentity=!!identityKey&&identityKey===rowIdentityKey&&((sameAddress)||(sameStreet&&originDistanceClose&&partialAddress));
-  if(sameAddress && (sameNameFamily||sameBrand))return true;
+
+  // Strongest identity signals.
+  if(sameAddress&&(sameNameFamily||sameBrand))return true;
   if(sameCanonicalIdentity)return true;
-  if(sameNameStreet)return true;
-  if(sameName && !conflictingAddress && dist<=0.08)return true;
-  if(sameContact(x,r) && !conflictingAddress && dist<=0.12)return true;
-  if(variant && sameBrand && !conflictingAddress && dist<=0.12)return true;
+  if(sameContact(x,r)&&!conflictingAddress&&dist<=0.20)return true;
+
+  // Same business name/variant at the same street or very near the same point.
+  if(sameStreet&&sameNameFamily&&dist<=0.20)return true;
+  if(sameNameFamily&&!conflictingAddress&&dist<=0.20)return true;
+
+  // Preserve the existing provider/brand safeguards for distinct nearby venues.
+  if(sameName&&sameBrand&&!conflictingAddress&&dist<=0.20)return true;
+  if(variant&&sameBrand&&!conflictingAddress&&dist<=0.20)return true;
   return false;
 }
 function dedupe(rows){
