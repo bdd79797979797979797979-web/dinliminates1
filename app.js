@@ -2126,7 +2126,7 @@ const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
 return active.length?active:allFoods();
 }
 function showHungryWheelResult(item){
-const result=$('hungryWheelResult'),name=$('hungryWheelResultName'),img=$('hungryWheelResultImg'),choose=$('hungryWheelChoose'),spin=$('hungryWheelSpin');
+const panel=$('hungryWheelPanel'),result=$('hungryWheelResult'),name=$('hungryWheelResultName'),img=$('hungryWheelResultImg'),choose=$('hungryWheelChoose'),spin=$('hungryWheelSpin');
 if(name)name.textContent=item?.name||'';
 if(img){
  const src=foodPhoto(item);
@@ -2138,6 +2138,7 @@ if(img){
  };
 }
 result?.classList.remove('hidden');
+panel?.classList.add('has-landed');
 if(choose){choose.disabled=false;choose.classList.remove('hidden');}
 if(spin){spin.disabled=false;spin.textContent='Spin Again';}
 }
@@ -2238,6 +2239,7 @@ S.hungryWheelSpinning=true;
 if(spin)spin.disabled=true;
 $('hungryWheelChoose')?.classList.add('hidden');
 $('hungryWheelResult')?.classList.add('hidden');
+$('hungryWheelPanel')?.classList.remove('has-landed');
 svg.style.setProperty('--wheel-rotation',rotation+'deg');
 svg.classList.remove('is-spinning');
 void svg.offsetWidth;
@@ -2302,6 +2304,7 @@ if(hungry){
     startHungryRestaurantMystery();
   }else{
     renderHungryWheel();
+    $('hungryWheelPanel')?.classList.remove('has-landed');
     $('hungryWheelResult')?.classList.add('hidden');
     $('hungryWheelChoose')?.classList.add('hidden');
     const spinBtn=$('hungryWheelSpin');
