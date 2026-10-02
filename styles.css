@@ -538,7 +538,58 @@
 .card-phone{font-size:10px;text-underline-offset:2px}
 .card-card-actions .card-card-action{min-height:32px}
 .cal-more{position:absolute;right:5px;bottom:5px;padding:2px 5px;border-radius:999px;background:#000b;color:#fff;font-size:8px;font-weight:850}
-.swipe-hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:35;padding:8px 12px;border-radius:999px;background:#161513eF;border:1px solid #4a402f;color:#ded2bd;font-size:9px;font-weight:800;box-shadow:0 10px 25px #0009;pointer-events:none}
+.swipe-hint{
+  position:fixed!important;
+  left:auto!important;
+  right:max(12px,calc((100vw - 520px)/2 + 12px))!important;
+  bottom:102px!important;
+  transform:none!important;
+  z-index:9999!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:8px 10px 8px 11px!important;
+  border-radius:13px!important;
+  background:rgba(18,17,15,.94)!important;
+  border:1px solid #5a4b36!important;
+  color:#ded2bd!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  box-shadow:0 12px 28px #000b,inset 0 1px 0 #ffffff10!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+  cursor:pointer!important;
+  user-select:none!important;
+}
+.swipe-hint::before{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:11px;
+  border:1px solid #ffffff07;
+  pointer-events:none;
+}
+.swipe-hint-cut{color:#ef7469!important}
+.swipe-hint-mid{color:#c6bdb0!important}
+.swipe-hint-maybe{color:#79d099!important}
+.swipe-hint-dismiss{
+  margin-left:2px;
+  color:#8f887e!important;
+  font-size:13px!important;
+  line-height:.7!important;
+  font-weight:500!important;
+}
+.swipe-hint:active{transform:translateY(1px) scale(.97)!important}
+@media(max-width:390px){
+  .swipe-hint{
+    right:10px!important;
+    bottom:96px!important;
+    gap:6px!important;
+    padding:8px 9px 8px 10px!important;
+  }
+}
 
 /* CP134 — compact location-source indicator */
 .location-source-label{display:block;margin-top:3px;color:#68625a;font-size:8px;text-align:right;letter-spacing:.04em}
@@ -4907,9 +4958,7 @@ button,input,select,textarea{
 .swipe-hint-cut{color:#e06a61!important}
 .swipe-hint-mid{color:#bdb5a8!important}
 .swipe-hint-maybe{color:#79c892!important}
-@media(max-width:390px){
-  .swipe-hint{bottom:82px!important}
-}
+
 
 /* CP735 — extend winner fireworks duration. */
 .firework-burst.burst-1,
