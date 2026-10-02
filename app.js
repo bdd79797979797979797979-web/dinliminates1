@@ -835,9 +835,14 @@ function foodQuick() {
 function maybeShowSwipeHint(){
 try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;localStorage.setItem('dinliminate.swipeHint.v2','1');}catch{}
 document.querySelector('#swipeHint')?.remove();
-const el=document.createElement('div');el.id='swipeHint';el.className='swipe-hint';el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
+const el=document.createElement('button');
+el.id='swipeHint';
+el.type='button';
+el.className='swipe-hint';
+el.setAttribute('aria-label','Dismiss swipe directions');
+el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
+el.onclick=(event)=>{event.preventDefault();event.stopPropagation();el.remove();};
 document.body.appendChild(el);
-setTimeout(()=>el.remove(),2800);
 }
 function startFood() {
 S.foodActions = [];
@@ -2088,7 +2093,7 @@ burst.appendChild(p);
 el.appendChild(burst);
 }
 el.classList.remove('hidden');
-window.setTimeout(()=>el.classList.add('hidden'),2400);
+window.setTimeout(()=>el.classList.add('hidden'),4600);
 }
 function triggerWinnerMoment(hungry=false){
  const el=$('winner');if(!el)return;
