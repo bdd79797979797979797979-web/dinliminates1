@@ -791,8 +791,8 @@ function renderMaybeDeckToggle(kind){
  btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
  btn.title=target;
  btn.innerHTML=S.maybeDeck
-  ? '<span class="deck-filter-heart" aria-hidden="true">♥</span>'
-  : '<span class="deck-filter-all" aria-hidden="true">A</span>';
+  ? '<span class="deck-filter-maybe" aria-hidden="true">MAYBE</span>'
+  : '<span class="deck-filter-all" aria-hidden="true">ALL</span>';
  btn.classList.toggle('is-maybe',S.maybeDeck);
  btn.classList.toggle('is-all',!S.maybeDeck);
 }
