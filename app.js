@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '707';
+let APP_BUILD = '708';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -823,7 +823,7 @@ renderMaybeDeckToggle('food');
   const next=ni>=0?S.pool[ni]:null;nextCard.classList.toggle('hidden',!next);nextCard.style.display=next?'block':'none';
   if(next){const nimg=$('foodNextImg');nimg.src=foodPhoto(next);nimg.dataset.fallback=foodPhotoFallback(next);nimg.dataset.finalFallback=FINAL_FOOD_IMAGE;nimg.alt=next.name;nimg.referrerPolicy='no-referrer';nimg.loading='eager';nimg.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};nextCard.style.transform='scale(.96)';}
  }
- bindFoodSwipe();bindMaybeDeckToggle('food');$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);if($('foodCut'))$('foodCut').onclick=()=>foodCut();if($('foodMaybe'))$('foodMaybe').onclick=()=>foodMaybe();
+ bindFoodSwipe();bindMaybeDeckToggle('food');$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);bindCardButton('foodCut',()=>foodCut());bindCardButton('foodMaybe',()=>foodMaybe());bindCardButton('foodBack',foodBack);
 }
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
@@ -2929,9 +2929,9 @@ $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
 ['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
 ['#restStart .home-card-overlay','#restStart .home-card-copy','#restStart .arrow','#restStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();openRestaurant();},{capture:true});});
-$('foodCut').onclick = () => foodCut();
-$('foodMaybe').onclick = () => foodMaybe();
-$('foodBack').onclick = foodBack;
+bindCardButton('foodCut',()=>foodCut());
+bindCardButton('foodMaybe',()=>foodMaybe());
+bindCardButton('foodBack',foodBack);
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
 let drawerCloseTimer=0;
 const closeDrawer=()=>{
