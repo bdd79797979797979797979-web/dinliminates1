@@ -8,7 +8,8 @@ assert.equal(typeof filterNonDining,'function','non-dining row filter test hook 
 assert.equal(typeof knownWebsite,'function','known restaurant website test hook should exist');
 assert.equal(typeof nameSimilarity,'function','restaurant name similarity test hook should exist');
 assert.equal(typeof addressSimilarity,'function','restaurant address similarity test hook should exist');
-assert.equal(knownWebsite({name:"Camacho's Famous"}),'https://www.camachosfamous.com','Camacho\'s Famous must use its official website');
+assert.equal(knownWebsite({name:"McDonald's"}),'https://www.mcdonalds.com',"McDonald's should use its known official website");
+assert.equal(knownWebsite({name:'The Thirsty Goat'}),'https://www.thirstygoatsango.com','The Thirsty Goat should use its known official website');
 for(const name of ["McDonald's","Wendy's","Burger King","KFC","Taco Bell","Chick-fil-A","Chipotle"]) assert.equal(isFast(name),true,name+' should classify as Fast Food');
 for(const name of ["Applebee's","Ruby Tuesday","Olive Garden","Texas Roadhouse","Outback Steakhouse","Cracker Barrel","O'Charley's","Red Lobster","Panera Bread","The Thirsty Goat"]) assert.equal(isFast(name),false,name+' should not classify as Fast Food');
 const classify=handler._test.classifyRestaurant;
