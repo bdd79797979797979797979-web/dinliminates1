@@ -1,3 +1,27 @@
+# CURRENT RELEASE — BUILD 752 / CP752
+
+Date: 2026-10-02
+
+Current candidate branch: `cp752-home-cinematic`
+Recovery baseline: `cp751-plain-quickcuts-preview`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP752 cinematic Home
+- Preserved the Tinder-style meal/restaurant chooser flow and existing home actions.
+- Added a full-screen, dark candlelit dining background using a Pexels photo.
+- Refined the top Dinliminate wordmark treatment and kept the Menu control fixed at the top right.
+- Changed the Home headline to **Meal Decisions Simplified**.
+- Changed Dine In helper copy to **Tap to reveal your meal**.
+- Changed Dine Out helper copy to **Tap to reveal your restaurant**.
+- Reduced DINE IN / DINE OUT typography from the oversized treatment used in the concept while keeping it prominent.
+- Converted the two Home choices into larger cinematic photo panels with centered editorial typography.
+- Kept Add to Phone and Share App as subtle lower controls.
+- Bumped the service-worker shell cache and Home asset query to v752.
+
+## CP752 recovery
+This branch is a clean continuation of CP751. No restaurant-search, radius, Quick Cuts, swipe, winner, or Hungry-mode behavior was intentionally changed.
+
 # CURRENT RELEASE — BUILD 709 / CP709
 
 Date: 2026-10-02
