@@ -2209,7 +2209,29 @@ function revealHungryRestaurant(){
  const item=hungryRestaurantPick();
  if(!item){appToast('No restaurant options are available for a mystery pick.');return;}
  S.hungryRestaurantChoice=item;
- renderHungryRestaurantMystery(item,false);
+ const card=$('hungryMysteryCard'),reveal=$('hungryMysteryReveal'),result=$('hungryMysteryResult'),cover=card?.querySelector('.hungry-mystery-cover');
+ if(!card||!result){renderHungryRestaurantMystery(item,false);return;}
+ const img=$('hungryMysteryImg');
+ if(img){
+   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
+   img.src=src; img.alt=item.name||'Mystery restaurant'; img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+   img.onerror=function(){const fb=restaurantFallbackImage(item);if(this.src!==fb)this.src=fb;};
+ }
+ card.classList.remove('is-revealed');
+ card.classList.add('is-revealing');
+ cover?.classList.remove('hidden');
+ result.classList.add('hidden');
+ if(reveal){reveal.disabled=true;reveal.textContent='Revealing…';}
+ window.setTimeout(()=>{
+   if(S.hungryRestaurantChoice!==item)return;
+   card.classList.remove('is-revealing');
+   card.classList.add('is-revealed');
+   cover?.classList.add('hidden');
+   renderHungryRestaurantMystery(item,false);
+   const again=$('hungryMysteryAgain'),choose=$('hungryMysteryChoose');
+   if(again)again.disabled=hungryRestaurantPool().length<2;
+   if(choose)choose.focus?.();
+ },2800);
 }
 function tryAnotherHungryRestaurant(){
  const current=S.hungryRestaurantChoice;
@@ -2267,6 +2289,7 @@ S.hungryWheelSpinToken++;
 const detailsBtn=$('details');
 if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
 $('winner')?.classList.toggle('hungry-mode',hungry);
+$('winnerEyebrow')?.classList.toggle('hidden',hungry);
 $('winName').classList.toggle('hidden',hungry);
 const isRestaurantHungry=hungry&&S.winnerType==='restaurant';
 $('hungryWheelPanel')?.classList.toggle('hidden',!hungry||isRestaurantHungry);
