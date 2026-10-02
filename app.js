@@ -2753,24 +2753,25 @@ async function appDiagnosisView(existingModal){
    offline?warn('runtime','Network','Browser currently reports offline.','Restaurant search and remote photos need connectivity.'):pass('runtime','Network','Browser currently reports online.','Remote restaurant data and photography still depend on external services.');
    
    /* Build / launch */
+   let releaseExpectedBuild=String(APP_BUILD),releaseExpectedBranch='';
    try{
     const local=await fetch('./app-release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
     const manifest=await fetch('./release-manifest.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
-    const expected=String(local?.build||APP_BUILD),localBranch=String(local?.sourceBranch||''),manifestBuild=String(manifest?.build||'');
-    const manifestBranch=String(manifest?.sourceBranch||'');
-    if(expected&&manifestBuild&&expected===manifestBuild&&localBranch&&localBranch===manifestBranch)pass('release','Release metadata','Build '+expected+' is synchronized across app-release and release-manifest.','Current candidate branch: '+localBranch+'.');
-    else fail('release','Release metadata','Current release metadata is inconsistent.','app-release build='+expected+', manifest build='+manifestBuild+', app branch='+localBranch+', manifest branch='+manifestBranch);
+    releaseExpectedBuild=String(local?.build||APP_BUILD);
+    releaseExpectedBranch=String(local?.sourceBranch||'');
+    const manifestBuild=String(manifest?.build||''),manifestBranch=String(manifest?.sourceBranch||'');
+    if(releaseExpectedBuild&&manifestBuild&&releaseExpectedBuild===manifestBuild&&releaseExpectedBranch&&releaseExpectedBranch===manifestBranch)pass('release','Release metadata','Build '+releaseExpectedBuild+' is synchronized across app-release and release-manifest.','Current candidate branch: '+releaseExpectedBranch+'.');
+    else fail('release','Release metadata','Current release metadata is inconsistent.','app-release build='+releaseExpectedBuild+', manifest build='+manifestBuild+', app branch='+releaseExpectedBranch+', manifest branch='+manifestBranch);
    }catch{warn('release','Release metadata','Release metadata files could not be read from this runtime.','Hosted build identity remains unconfirmed.');}
    try{
     const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'});
     const d=await rr.json().catch(()=>null);
-    const ok=rr.ok&&String(d?.build||'')==='701'&&String(d?.sourceBranch||'')==='cp701-app-diagnosis-refresh';
     const runtimeBuild=String(d?.build||'');
     const runtimeBranch=String(d?.sourceBranch||'');
-    const runtimeMatches=rr.ok&&runtimeBuild===String(expected||APP_BUILD)&&(runtimeBranch===localBranch||!runtimeBranch);
-    runtimeMatches?pass('release','Release API identity','The runtime release endpoint matches the current build metadata.','Runtime Build '+runtimeBuild+(runtimeBranch?' · '+runtimeBranch:'')+'.'):warn('release','Release API identity','The runtime release endpoint does not match the current build metadata.','Runtime build='+runtimeBuild+', expected='+String(expected||APP_BUILD)+', branch='+runtimeBranch);
+    const runtimeMatches=rr.ok&&runtimeBuild===releaseExpectedBuild&&(runtimeBranch===releaseExpectedBranch||!runtimeBranch);
+    runtimeMatches?pass('release','Release API identity','The runtime release endpoint matches the current build metadata.','Runtime Build '+runtimeBuild+(runtimeBranch?' · '+runtimeBranch:'')+'.'):warn('release','Release API identity','The runtime release endpoint does not match the current build metadata.','Runtime build='+runtimeBuild+', expected='+releaseExpectedBuild+', branch='+runtimeBranch);
    }catch{warn('release','Release API identity','The release endpoint could not be checked.','Hosted release identity remains unconfirmed.');}
-   const const currentReleaseSource=APP_BUILD==='707'||typeof APP_BUILD!=='undefined';
+   const currentReleaseSource=APP_BUILD===releaseExpectedBuild;
    currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current release fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
    info('release','Hosted verification','Diagnosis is capable of checking live API/release endpoints from the current browser, but it does not claim Netlify/Vercel deployment success unless those endpoints answer accordingly.','Current target: dinliminate22.');
    info('release','Physical iPhone gate','Desktop/browser diagnosis cannot certify physical iPhone Safari/PWA behavior.','Final device check still covers install, GPS permission, touch/swipe behavior, and share/add-to-home-screen behavior.');
