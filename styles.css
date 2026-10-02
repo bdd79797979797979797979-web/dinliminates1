@@ -2657,3 +2657,10 @@ button,a,select{touch-action:manipulation}
   color:#7fd5ff!important;
   font-weight:800!important;
 }
+
+
+/* CP688 — make the Meal choice count use the same premium blue accent as Restaurants. */
+#food .count-inline{
+  color:#7fd5ff!important;
+  font-weight:800!important;
+}
