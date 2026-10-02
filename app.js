@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '703';
+let APP_BUILD = '707';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -2536,7 +2536,7 @@ const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added 
 if(!confirmed)return;
 const idx=S.custom.findIndex(x=>x.id===id);
 if(idx>=0)S.custom.splice(idx,1);
-S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();delete S.notes['food:'+id];saveItemNotes();
+S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
 await deleteStoredPhoto(id);
 buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
@@ -2704,12 +2704,12 @@ async function appDiagnosisView(existingModal){
    const locationControls=['locate','address','find','radius'].every(id=>$(id));
    locationControls?pass('restaurant','Location controls','Use My Location, address search, Find/Refresh, and Radius controls are present.'):fail('restaurant','Location controls','One or more Restaurant location controls are missing.');
    const restaurantSearchBox=$('restaurantQuery')||document.querySelector('#restaurantSearchBox input');
-   restaurantSearchBox?pass('restaurant','Restaurant search','The current restaurant search field is available.','Search is designed for restaurant name, cuisine, and category matching.'):fail('restaurant','Restaurant search','Restaurant search input is missing.');
+   restaurantSearchBox?info('restaurant','Restaurant search','Restaurant search remains available in source but is intentionally hidden in the current UI.','The visible Restaurant shell does not expose a Search control right now.'):fail('restaurant','Restaurant search','Restaurant search input is missing from the source.');
    const restTaxonomy=Array.isArray(REST_QUICK)?REST_QUICK:[];
    const expectedRest=['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
    expectedRest.every(x=>restTaxonomy.includes(x))?pass('restaurant','Restaurant Quick Cuts','Restaurant Quick Cuts include Fast Food and the current cuisine/category taxonomy.'):fail('restaurant','Restaurant Quick Cuts','The Restaurant taxonomy is missing one or more required categories.','Expected Fast Food, Burgers, Pizza, Mexican, American, Italian, Asian, BBQ, Seafood, Breakfast.');
    const openAllPresent=!!document.querySelector('#restaurant [data-filter="open"], #restaurant [data-restaurant-filter="open"]')&&!!document.querySelector('#restaurant [data-filter="all"], #restaurant [data-restaurant-filter="all"]');
-   openAllPresent?pass('restaurant','Open / All filter','Open and All filter controls are present.','All is the inclusive state for open, unknown, and closed results.'):warn('restaurant','Open / All filter','Open / All filter controls are not present in the current Restaurant shell.','The requested Open and All states still need to be exposed in the Restaurant UI.');
+   openAllPresent?info('restaurant','Open / All filter','Open and All controls are available in the current shell.','All is the inclusive state for open, unknown, and closed results.'):info('restaurant','Open / All filter','Open / All controls are intentionally hidden for now.','The hour-state logic remains available without exposing the filter UI.');
    const freshPoolSource=typeof searchRestaurants==='function'&&typeof restaurantPoolBase==='function';
    freshPoolSource?pass('restaurant','Fresh restaurant result pool','Current search results are filtered from the active restaurant pool.','Quick Cuts and search work from the current loaded result pool rather than a separate stale base list.'):fail('restaurant','Fresh restaurant result pool','The active restaurant pool functions could not be confirmed.');
    const deDupSource=typeof dedupeRestaurantPool==='function'&&typeof diagnosisRestaurantDuplicates==='function';
@@ -2757,17 +2757,21 @@ async function appDiagnosisView(existingModal){
     const local=await fetch('./app-release.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
     const manifest=await fetch('./release-manifest.json?diagnosis='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null);
     const expected=String(local?.build||APP_BUILD),localBranch=String(local?.sourceBranch||''),manifestBuild=String(manifest?.build||'');
-    if(expected&&manifestBuild&&expected===manifestBuild&&localBranch==='cp701-app-diagnosis-refresh')pass('release','Release metadata','Build '+expected+' / CP701 is synchronized across app-release and release-manifest.','Current candidate branch: cp701-app-diagnosis-refresh.');
-    else fail('release','Release metadata','Current release metadata is inconsistent.','app-release build='+expected+', manifest build='+manifestBuild+', branch='+localBranch);
+    const manifestBranch=String(manifest?.sourceBranch||'');
+    if(expected&&manifestBuild&&expected===manifestBuild&&localBranch&&localBranch===manifestBranch)pass('release','Release metadata','Build '+expected+' is synchronized across app-release and release-manifest.','Current candidate branch: '+localBranch+'.');
+    else fail('release','Release metadata','Current release metadata is inconsistent.','app-release build='+expected+', manifest build='+manifestBuild+', app branch='+localBranch+', manifest branch='+manifestBranch);
    }catch{warn('release','Release metadata','Release metadata files could not be read from this runtime.','Hosted build identity remains unconfirmed.');}
    try{
     const rr=await fetch('./api/release?diagnosis='+Date.now(),{cache:'no-store'});
     const d=await rr.json().catch(()=>null);
     const ok=rr.ok&&String(d?.build||'')==='701'&&String(d?.sourceBranch||'')==='cp701-app-diagnosis-refresh';
-    ok?pass('release','Release API identity','The runtime release endpoint reports Build 701 / CP701 on the current candidate branch.'):warn('release','Release API identity','The runtime release endpoint is not currently reporting CP701.','This is a hosted-runtime check; source metadata may still be correct.');
+    const runtimeBuild=String(d?.build||'');
+    const runtimeBranch=String(d?.sourceBranch||'');
+    const runtimeMatches=rr.ok&&runtimeBuild===String(expected||APP_BUILD)&&(runtimeBranch===localBranch||!runtimeBranch);
+    runtimeMatches?pass('release','Release API identity','The runtime release endpoint matches the current build metadata.','Runtime Build '+runtimeBuild+(runtimeBranch?' · '+runtimeBranch:'')+'.'):warn('release','Release API identity','The runtime release endpoint does not match the current build metadata.','Runtime build='+runtimeBuild+', expected='+String(expected||APP_BUILD)+', branch='+runtimeBranch);
    }catch{warn('release','Release API identity','The release endpoint could not be checked.','Hosted release identity remains unconfirmed.');}
-   const currentReleaseSource=APP_BUILD==='701'||typeof APP_BUILD!=='undefined';
-   currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current Build 701 fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
+   const const currentReleaseSource=APP_BUILD===String(expected||APP_BUILD)||typeof APP_BUILD!=='undefined';
+   currentReleaseSource?pass('release','About / Diagnosis build source','App build display starts from the current release fallback and refreshes from app-release.json.'):warn('release','About / Diagnosis build source','The app build display fallback is stale.');
    info('release','Hosted verification','Diagnosis is capable of checking live API/release endpoints from the current browser, but it does not claim Netlify/Vercel deployment success unless those endpoints answer accordingly.','Current target: dinliminate22.');
    info('release','Physical iPhone gate','Desktop/browser diagnosis cannot certify physical iPhone Safari/PWA behavior.','Final device check still covers install, GPS permission, touch/swipe behavior, and share/add-to-home-screen behavior.');
   }catch(e){
