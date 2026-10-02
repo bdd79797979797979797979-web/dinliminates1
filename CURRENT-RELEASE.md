@@ -1,4 +1,11 @@
 
+## CP759 initial-paint layout fix — 2026-10-02
+- Corrected the static HTML for both Meals and Restaurants so **ALL · MAYBE** appears immediately rather than the legacy A/heart markup.
+- Corrected static Quick Cuts state to collapsed on first paint (aria-expanded=false; chip containers carry is-collapsed/aria-hidden).
+- This prevents a flash of the broken/legacy control before JavaScript initializes.
+- No decision logic changed.
+- Build/cache bumped to CP759 / v759.
+
 ## CP758 All/Maybe placement — 2026-10-02
 - Fixed Meals and Restaurants so the All/Maybe control is placed between **Quick Cuts** and the green **Choices** count.
 - Replaced the old pill/A/heart visual with a flat **ALL · MAYBE** text control.
