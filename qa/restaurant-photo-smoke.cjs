@@ -69,7 +69,9 @@ assert.equal(assetGate.some(x=>/wendys-location-exterior/i.test(x.url)),true,'A 
 (async()=>{
   const originalFetch=global.fetch;
   const osmUrl='https://example.com/osm-venue.jpg';
+  let fetchCalls=0;
   global.fetch=async function(url){
+    fetchCalls++;
     const u=String(url);
     if(u===osmUrl){
       return {
@@ -90,12 +92,13 @@ assert.equal(assetGate.some(x=>/wendys-location-exterior/i.test(x.url)),true,'A 
     status=200;
     assert.equal(headers['X-Restaurant-Photo-Source'],'osm-exact-poi');
     assert.equal(body.length,5000);
+    assert.equal(fetchCalls,1,'Exact OSM photo should return before any web discovery requests');
   }finally{
     global.fetch=originalFetch;
   }
   console.log(JSON.stringify({
     ok:true,
-    cases:10,
+    cases:11,
     verified:[
       'no generic restaurant photo fallback',
       'provider venue photo metadata',
