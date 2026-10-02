@@ -2555,29 +2555,30 @@ const y = cursor.getFullYear(), m = cursor.getMonth();
 const first = new Date(y,m,1).getDay(), last = new Date(y,m+1,0).getDate();
 const today = new Date();
 const todayKey = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-const mealCount=history.filter(x=>x?.type==='food').length;
-const restaurantCount=history.filter(x=>x?.type==='restaurant').length;
-const totalCount=history.length;
-const tallyChosen=(type)=>{
+const countChosen=(type)=>{
  const counts=new Map();
- history.filter(x=>x?.type===type).forEach(x=>{
-   const name=String(x?.name||'').trim();
-   if(name)counts.set(name,(counts.get(name)||0)+1);
+ history.filter(x=>x?.type===type).forEach(entry=>{
+   const name=String(entry?.name||'').trim();
+   if(!name)return;
+   const key=normKey(name);
+   const prior=counts.get(key);
+   if(prior)prior.count++;
+   else counts.set(key,{name,count:1});
  });
- return [...counts.entries()]
-   .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))
-   .slice(0,5);
+ return [...counts.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)).slice(0,7);
 };
-const chosenMeals=tallyChosen('food');
-const chosenRestaurants=tallyChosen('restaurant');
-const choiceRows=(rows,emptyLabel)=>rows.length
- ? rows.map(([name,count],index)=>'<div class="history-choice-row"><span class="history-choice-rank">'+(index+1)+'</span><span class="history-choice-name">'+esc(name)+'</span><b class="history-choice-count">'+count+'×</b></div>').join('')
- : '<p class="history-stats-empty">'+emptyLabel+'</p>';
+const chosenMeals=countChosen('food');
+const chosenRestaurants=countChosen('restaurant');
+const statRows=(rows,empty)=>{
+ if(!rows.length)return '<p class="history-stats-empty">'+empty+'</p>';
+ return rows.map((row,index)=>'<div class="history-choice-row"><span class="history-choice-rank">'+String(index+1).padStart(2,'0')+'</span><span class="history-choice-name">'+esc(row.name)+'</span><b>'+row.count+'×</b></div>').join('');
+};
 const statsMarkup='<section class="history-stats hidden" id="historyStats" aria-label="Your stats">'+
-'<div class="history-stats-head"><div><span class="history-stats-kicker">YOUR STATS</span><b>What you choose most</b></div><span class="history-stats-note">'+totalCount+' decision'+(totalCount===1?'':'s')+'</span></div>'+
-'<div class="history-stats-totals"><span>'+mealCount+' meal'+(mealCount===1?'':'s')+'</span><span>'+restaurantCount+' restaurant'+(restaurantCount===1?'':'s')+'</span></div>'+
-'<div class="history-choice-section"><div class="history-choice-title">Meals chosen most</div><div class="history-choice-list">'+choiceRows(chosenMeals,'No meals chosen yet.')+'</div></div>'+
-'<div class="history-choice-section"><div class="history-choice-title">Restaurants chosen most</div><div class="history-choice-list">'+choiceRows(chosenRestaurants,'No restaurants chosen yet.')+'</div></div>'+
+'<div class="history-stats-head"><div><span class="history-stats-kicker">YOUR STATS</span><b>What you choose most</b></div><span class="history-stats-note">From your saved history</span></div>'+
+'<div class="history-stats-columns">'+
+'<div class="history-stats-group"><div class="history-stats-group-title">Meals</div>'+statRows(chosenMeals,'No meals chosen yet.')+'</div>'+
+'<div class="history-stats-group"><div class="history-stats-group-title">Restaurants</div>'+statRows(chosenRestaurants,'No restaurants chosen yet.')+'</div>'+
+'</div>'+
 '</section>';
 let body = '<div class="history-intro"><div class="history-intro-copy"><span class="history-kicker">YOUR DECISIONS</span><h4>History</h4><p>Browse previous meal and restaurant choices by date.</p></div><button class="history-stats-toggle" id="historyStatsToggle" type="button" aria-expanded="false">Your Stats</button></div>'+statsMarkup+'<div class="history-calendar"><div class="cal-nav"><button class="text-btn" id="calPrev" aria-label="Previous month">‹</button><b>'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+'</b><button class="text-btn" id="calNext" aria-label="Next month">›</button></div><div class="cal-grid cal-grid-20" role="grid" aria-label="'+cursor.toLocaleString(undefined,{month:'long',year:'numeric'})+' history">'; 
 ['S','M','T','W','T','F','S'].forEach(d => body += '<span class="cal-d" role="columnheader">'+d+'</span>');
