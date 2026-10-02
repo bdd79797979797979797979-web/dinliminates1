@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 704,
-  "sourceBranch": "cp704-hero-food-photos",
-  "checkpoint": "CP704"
+  "build": 707,
+  "sourceBranch": "cp707-audit-fixes-except-hidden-restaurant-controls",
+  "checkpoint": "CP707"
 }
