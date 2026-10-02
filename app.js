@@ -1824,6 +1824,13 @@ restaurantQuick();
 $('restaurantSearchBox')?.classList.add('hidden');
 $('restaurantQuery').value = '';
 maybeShowSwipeHint();
+
+// Restaurants should proactively request device location the first time the user enters
+// this screen, but never overwrite an active location or a typed address search.
+const hasTypedAddress=!!String($('address')?.value||'').trim();
+if(!S.location&&!hasTypedAddress) {
+ window.setTimeout(()=>{ if(S.screen==='restaurant'&&!S.location&&!String($('address')?.value||'').trim()) useLocation(); },80);
+}
 }
 function drawRestaurants() {
 const rows = restaurantPoolFiltered();
