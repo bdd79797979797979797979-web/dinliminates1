@@ -301,8 +301,8 @@ const restaurantPhotoInflight=new Map();
 const restaurantPhotoCache=new Map();
 const restaurantPhotoMissCache=new Map();
 const RESTAURANT_PHOTO_MISS_TTL=15*60*1000;
-const RESTAURANT_PHOTO_CACHE_NAME='dinliminate.restaurant.photos.v1';
-const RESTAURANT_PHOTO_CACHE_MAX_AGE=30*24*60*60*1000;
+const RESTAURANT_PHOTO_CACHE_NAME='dinliminate.restaurant.photos.v2';
+const RESTAURANT_PHOTO_CACHE_MAX_AGE=14*24*60*60*1000;
 const RESTAURANT_PHOTO_PREFETCH_COUNT=2;
 let restaurantPhotoStoragePromise=null;
 function restaurantPhotoCacheRequest(row){
@@ -439,6 +439,7 @@ async function loadRestaurantPhoto(row){
   }
   if(Number.isFinite(Number(row.lat)))params.set('lat',String(row.lat));
   if(Number.isFinite(Number(row.lon)))params.set('lon',String(row.lon));
+  params.set('resolver','710');
   const requestUrl='/api/restaurant-photo?'+params.toString();
   pending=(async()=>{
    const stored=await getPersistentRestaurantPhoto(row);
