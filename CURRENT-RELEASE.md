@@ -1,3 +1,32 @@
+# CURRENT RELEASE — BUILD 755 / CP755
+
+Date: 2026-10-02
+
+Current candidate branch: `cp755-premium-micro-polish`
+Recovery baseline: `cp754-quickcuts-closed-default`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP755 premium micro-polish
+- Added a subtle sheen to the plain **Quick Cuts** text control without bringing back the circle or arrow.
+- Removed the stubborn floating swipe-instruction treatment entirely.
+- Replaced it with a compact **in-card** first-use coach: **← Cut · Swipe · Maybe → · ×**.
+- The in-card coach is dismissible and disappears automatically with the first meaningful swipe or decision.
+- Added tactile press feedback to decision buttons and Home Dine In / Dine Out cards.
+- Added a subtle animated transition when live Choice counts change.
+- Added a restrained soft glow around Maybe controls.
+- Improved modal/details opening with a fast premium rise/fade and earlier image reveal.
+- Added a very subtle slow ambient-light animation to the Home cinematic background.
+- Added a one-time Home onboarding cue: **Swipe until it’s revealed.**
+- Kept Quick Cuts collapsed by default from CP754 and preserved saved user open/closed preferences.
+- Bumped app asset and service-worker cache versions to v755.
+
+## CP755 verification targets
+- Meals and Restaurants share the new in-card swipe coach.
+- No `#swipeHint` implementation remains in app or CSS.
+- Quick Cuts remains a plain text control.
+- Existing swipe thresholds, decision semantics, restaurant search/location/radius logic, winner/Hungry flow, and photo systems remain unchanged.
+
 # CURRENT RELEASE — BUILD 754 / CP754
 
 Date: 2026-10-02
