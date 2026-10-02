@@ -5271,3 +5271,191 @@ button,input,select,textarea{
 }
 
 .quick-section .quick-cuts-chevron{display:none!important;}
+
+/* CP752 — cinematic Home landing polish */
+.app:has(#home:not(.hidden)){
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(5,5,5,.66) 0%,rgba(7,6,5,.30) 24%,rgba(6,5,4,.52) 64%,rgba(5,5,5,.92) 100%),
+    url("/api/image?url=https%3A%2F%2Fimages.pexels.com%2Fphotos%2F6162883%2Fpexels-photo-6162883.jpeg%3Fcs%3Dsrgb%26dl%3Dpexels-luisbecerrafotografo-6162883.jpg%26fm%3Djpg") center center / cover no-repeat;
+  box-shadow:inset 0 0 110px rgba(0,0,0,.48);
+}
+.app:has(#home:not(.hidden))::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 19%,rgba(255,220,160,.09),transparent 28%),
+    linear-gradient(180deg,transparent 0%,rgba(0,0,0,.12) 42%,rgba(0,0,0,.42) 100%);
+  z-index:0;
+}
+.app:has(#home:not(.hidden)) > *{position:relative;z-index:1}
+.app:has(#home:not(.hidden)) .app-topbar{
+  background:transparent;
+}
+.app:has(#home:not(.hidden)) .app-topbar .brand{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:31px;
+  font-weight:700;
+  font-style:italic;
+  letter-spacing:-.055em;
+  color:#f1d79e;
+  -webkit-text-fill-color:#f1d79e;
+  text-shadow:0 3px 18px rgba(0,0,0,.62),0 0 28px rgba(226,177,92,.16);
+}
+.app:has(#home:not(.hidden)) .app-topbar #menu{
+  background:rgba(12,11,10,.52);
+  border-color:rgba(241,215,158,.36);
+  color:#f1d79e;
+  box-shadow:0 10px 28px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.luxury-home{
+  background:transparent!important;
+  justify-content:center;
+  padding:4px 0 max(8px,env(safe-area-inset-bottom));
+}
+.luxury-home .home-intro{
+  padding:0 8px;
+}
+.luxury-home .eyebrow{
+  display:none;
+}
+.luxury-home h1{
+  margin:0 auto;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1.55rem,6vw,2.25rem);
+  line-height:1.06;
+  font-weight:500;
+  font-style:italic;
+  letter-spacing:.01em;
+  color:#f7ead0;
+  -webkit-text-fill-color:#f7ead0;
+  text-shadow:0 3px 18px rgba(0,0,0,.66);
+}
+.luxury-home h1::before,
+.luxury-home h1::after{
+  content:"";
+  display:inline-block;
+  width:30px;
+  height:1px;
+  vertical-align:middle;
+  margin:0 10px;
+  background:linear-gradient(90deg,transparent,#d7b56f,transparent);
+}
+.luxury-home .sub{
+  margin:9px auto 0;
+  font-size:9px;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  color:rgba(247,241,229,.76);
+}
+.luxury-home .home-actions{
+  width:min(100%,430px);
+  margin:18px auto 0;
+  gap:10px;
+}
+.luxury-home .home-card-photo{
+  height:142px;
+  min-height:142px;
+  border-radius:22px;
+  border:1px solid rgba(255,244,214,.24);
+  box-shadow:0 22px 48px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.12);
+  background-position:center;
+}
+.luxury-home .home-card-photo::after{
+  border-radius:21px;
+  border-color:rgba(255,244,214,.12)!important;
+}
+.luxury-home .home-card-photo .home-card-overlay{
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.16) 28%,rgba(0,0,0,.68) 100%),
+    linear-gradient(90deg,rgba(0,0,0,.28),transparent 46%,rgba(0,0,0,.18));
+}
+.luxury-home .home-card-copy{
+  left:0;
+  right:0;
+  bottom:0;
+  padding:0 18px 18px;
+  align-items:center;
+  text-align:center;
+}
+.luxury-home .home-card-copy strong{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:29px;
+  line-height:1;
+  font-weight:600;
+  letter-spacing:.08em;
+  color:#f8e8c2;
+  text-shadow:0 3px 20px rgba(0,0,0,.72);
+}
+.luxury-home .home-card-copy>span{
+  margin-top:7px;
+  font-size:9px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:rgba(255,250,241,.92);
+  text-shadow:0 2px 13px rgba(0,0,0,.85);
+}
+.luxury-home .home-card-photo .arrow{
+  display:none;
+}
+.luxury-home .food-choice{
+  background-position:center 58%;
+}
+.luxury-home .restaurant-choice{
+  background-position:center 50%;
+}
+.luxury-home .home-foot{
+  margin-top:14px;
+  padding:0 0 2px!important;
+}
+.luxury-home .home-foot-actions{
+  gap:14px!important;
+}
+.luxury-home .home-icon-action{
+  background:rgba(11,10,9,.50)!important;
+  border-color:rgba(236,210,160,.28)!important;
+  color:#dfc58f!important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+@media(max-width:390px){
+  .app:has(#home:not(.hidden)) .app-topbar .brand{font-size:27px}
+  .luxury-home h1{
+    font-size:25px;
+  }
+  .luxury-home h1::before,
+  .luxury-home h1::after{
+    width:22px;
+    margin:0 7px;
+  }
+  .luxury-home .home-actions{
+    margin-top:14px;
+    gap:8px;
+  }
+  .luxury-home .home-card-photo{
+    height:124px;
+    min-height:124px;
+    border-radius:20px;
+  }
+  .luxury-home .home-card-copy{
+    padding-bottom:15px;
+  }
+  .luxury-home .home-card-copy strong{font-size:25px}
+  .luxury-home .home-card-copy>span{
+    font-size:8px;
+    letter-spacing:.13em;
+  }
+}
+@media(max-height:700px){
+  .luxury-home .home-card-photo{
+    height:116px;
+    min-height:116px;
+  }
+  .luxury-home .home-actions{
+    margin-top:13px;
+  }
+  .luxury-home .home-card-copy strong{font-size:24px}
+}
