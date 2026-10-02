@@ -3779,3 +3779,90 @@ button,input,select,textarea{
   .history-stats{padding:10px}
   .history-stat{min-height:52px}
 }
+
+
+/* CP719 — elevated History stats presentation. */
+.history-stats{
+  position:relative;
+  overflow:hidden;
+  padding:13px;
+  border:1px solid #39342c;
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 100% 0,#c6a46a12 0,transparent 34%),
+    linear-gradient(145deg,#1b1916,#11110f 68%);
+  box-shadow:0 16px 34px #0004,inset 0 1px 0 #ffffff08;
+}
+.history-stats:before{
+  content:"";
+  position:absolute;
+  left:14px;right:14px;top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#c6a46a66,transparent);
+}
+.history-stats-head{margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #2c2924}
+.history-stats-kicker{font-size:8px;letter-spacing:.2em;color:#bda77a}
+.history-stats-head b{font-size:14px;letter-spacing:-.02em;color:#f1ece4}
+.history-stats-note{font-size:8px;color:#77736b}
+.history-stat-hero{
+  position:relative;
+  min-height:84px;
+  display:grid;
+  align-content:center;
+  padding:12px 14px;
+  margin-bottom:8px;
+  border:1px solid #4a4032;
+  border-radius:14px;
+  background:linear-gradient(135deg,#211e19,#151411);
+  box-shadow:inset 0 1px 0 #fff1;
+}
+.history-stat-hero:after{
+  content:"";
+  position:absolute;
+  width:90px;height:90px;
+  right:-26px;top:-34px;
+  border-radius:50%;
+  border:1px solid #c6a46a22;
+}
+.history-stat-hero span{
+  font-size:8px;color:#888177;
+  text-transform:uppercase;letter-spacing:.1em;
+}
+.history-stat-hero b{
+  margin-top:2px;
+  font-size:31px;
+  line-height:1;
+  letter-spacing:-.065em;
+  color:#f4efe7;
+}
+.history-stat-hero small{margin-top:5px;font-size:8px;color:#777168}
+.history-stat-grid{grid-template-columns:1fr 1fr;gap:8px}
+.history-stat{
+  min-height:58px;
+  padding:9px 11px;
+  border:1px solid #302d27;
+  border-radius:13px;
+  background:linear-gradient(145deg,#161513,#111110);
+  box-shadow:inset 0 1px 0 #fff1;
+}
+.history-stat span{font-size:8px;color:#777168;letter-spacing:.08em}
+.history-stat b{font-size:18px;color:#eee9e1}
+.history-stat-wide{
+  position:relative;
+  min-height:44px;
+  margin-top:8px;
+  padding:10px 32px 10px 11px;
+  border:1px solid #3b342a;
+  border-radius:13px;
+  background:#151310;
+}
+.history-stat-wide>span:first-child{font-size:8px;color:#7d776e}
+.history-stat-wide b{font-size:12px;color:#d9c49d}
+.history-stat-arrow{
+  position:absolute;
+  right:11px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#8e7750!important;
+  font-size:17px!important;
+}
