@@ -2499,7 +2499,7 @@ const renderEditorQuickCuts=focusId=>{
    });
    if(S.cutCats.has(old)){S.cutCats.delete(old);S.cutCats.add(next);}
    save();buildFood();foodQuick();renderEditorQuickCuts(id);
- };
+ });
  host.querySelectorAll('[data-custom-qc-delete]').forEach(btn=>btn.onclick=async()=>{
    const id=btn.dataset.customQcDelete,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
    const name=String(qc.name||'Custom Quick Cut');
