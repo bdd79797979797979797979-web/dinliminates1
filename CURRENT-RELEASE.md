@@ -1,30 +1,29 @@
-# CURRENT RELEASE — BUILD 707 / CP707
+# CURRENT RELEASE — BUILD 708 / CP708
 
 Date: 2026-10-02
 
-Current candidate branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+Current candidate branch: `cp708-hero-photos-unified-button-press`
 Clean recovery baseline: `clean-cp704-2026-10-02`
-Prior audit checkpoints: CP705 / CP706
+Prior audit checkpoints: CP705 / CP706 / CP707
 Hosted test target: `dinliminate22`
 Status: candidate — not production
 
-## CP707 audit hardening
-- Repaired the Vercel release endpoint to use `app-release.json`.
-- Rebuilt App Diagnosis release checks so they compare current metadata dynamically instead of hardcoding CP701.
-- Updated the offline build fallback to Build 707.
-- Advanced the application/service-worker cache generation to v674.
-- Restored the selected Home tagline: “Beautifully swipe until it’s revealed.”
-- Made History calendar deletion per individual entry.
-- Removed a duplicate custom-meal note deletion call.
-- Restored 44px touch targets for Restaurant card utility controls.
-- Replaced stale active QA contracts with current Build 707 / r25 contracts.
-- Kept Restaurant Search and Open/All intentionally hidden as requested.
+## CP708 hero photos + button parity
+- Refreshed Dine In with a vibrant overhead gourmet spread using Pexels photo 37140465.
+- Refreshed Dine Out with a dramatic gourmet steak and grilled-vegetable image using Pexels photo 36850066.
+- Preserved Dine In / Reveal Your Meal and Dine Out / Reveal Your Restaurant.
+- Meal Back / Cut / Maybe now use the same `bindCardButton` activation path as Restaurant Back / Cut / Maybe for matching press/click behavior.
+- Restaurant Search and Open/All remain intentionally hidden.
+- Advanced the app.js cache query from v674 to v675.
+- Synchronized release identity to Build 708 / CP708.
 
-## Launch limitations still intentionally open
-- Restaurant Search UI remains hidden.
-- Restaurant Open/All UI remains hidden.
-- Physical iPhone Safari/PWA certification remains a device-only gate.
-- Netlify target `dinliminate22` still needs live hosted certification.
+## CP708 verification
+- Pexels lists both selected images as free to use. citeturn121582search0turn418483search1
+- Source preserves the existing `foodStart` and `restStart` IDs and entry copy.
+- Source now binds Meal Back / Cut / Maybe through the shared card-button activation helper.
+- No Google image/API credentials were added.
+
+---
 
 
 # CURRENT RELEASE — BUILD 704 / CP704
