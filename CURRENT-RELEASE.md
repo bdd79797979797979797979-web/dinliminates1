@@ -1,3 +1,33 @@
+# CURRENT RELEASE — BUILD 708 / CP708
+
+Date: 2026-10-02
+
+Current candidate branch: `cp708-full-audit-final-hardening`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Prior audit checkpoints: CP705 / CP706 / CP707
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP708 full-audit hardening
+- Preserved Restaurant Search and Open/All as intentionally hidden UI.
+- Updated the offline build fallback to Build 708.
+- Advanced app/style asset queries and the service-worker shell cache to v675.
+- Removed the obsolete `#iphoneHelp` CSS selector.
+- Expanded visual surface smoke coverage beyond the old single Restaurant baseline.
+- Added current History/calendar deletion and hidden-control assertions to the release QA contract.
+- Retained server-side validated-redirect protection for Restaurant website/photo fetching.
+- Removed obsolete historical GitHub Actions workflows that could run against current pull requests.
+- Synchronized release metadata and documentation to Build 708 / CP708.
+
+## Intentional UI deferrals
+- Restaurant Search remains hidden.
+- Restaurant Open/All remains hidden.
+
+## Remaining launch gates
+- Hosted `dinliminate22` runtime certification.
+- Physical iPhone Safari/PWA certification.
+- Final third-party image rights/source review.
+
 # CURRENT RELEASE — BUILD 707 / CP707
 
 Date: 2026-10-02
