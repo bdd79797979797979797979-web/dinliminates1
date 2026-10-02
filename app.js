@@ -14,7 +14,7 @@ const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<sv
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
 if(!RESTAURANT_TAXONOMY) throw new Error('Restaurant taxonomy failed to load.');
 const FOOD_QUICK = ['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack'];
-const foodQuickLabels=()=>S.custom.some(x=>Array.isArray(x.quickCuts)&&x.quickCuts.includes('Other'))?[...FOOD_QUICK,'Other']:FOOD_QUICK;
+const foodQuickLabels=()=>[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x?.name||'').trim()).filter(Boolean)];
 const REST_QUICK = [...RESTAURANT_TAXONOMY.tags];
 const QUICK_IMAGES = {
 Southern:'https://images.pexels.com/photos/2397401/pexels-photo-2397401.jpeg?auto=compress&cs=tinysrgb&w=700', // Meatloaf & Mashed Potatoes
@@ -53,6 +53,8 @@ maybe:new Set(),
 maybeDeck:false,
 foodMaybeRound:false,
 custom:[],
+customQuickCuts:[],
+deletedCustomMeals:[],
 pool:[],
 index:0,
 foodActions:[],
@@ -523,16 +525,17 @@ const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id 
 const allFoods = () => {
  const defaults=getDefaultFoods();
  const defaultIds=new Set(defaults.map(x=>String(x.id)));
+ const deletedIds=S.deleted||new Set();
  const overrides=new Map((S.custom||[]).map(x=>[String(x.id),x]));
- const merged=defaults.map(item=>{
+ const merged=defaults.filter(item=>!deletedIds.has(String(item.id))).map(item=>{
   const override=overrides.get(String(item.id));
   if(!override)return item;
   return Object.assign({},item,override,{builtInEdit:true,builtInId:String(item.id),quickCuts:Array.isArray(override.quickCuts)&&override.quickCuts.length?override.quickCuts:[override.category||item.category||'American']});
  });
- const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}));
+ const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))&&!deletedIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}));
  return merged.concat(customOnly);
 };
-const STORAGE_VERSION = 4;
+const STORAGE_VERSION = 5;
 const ITEM_NOTES_KEY = 'dinliminate.item.notes.v1';
 function loadItemNotes(){
  try{
@@ -636,9 +639,10 @@ pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
-saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION,
+saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
 restaurantTimezone:S.restaurantTimezone||'', restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound,
-custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image}))
+custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image})),
+customQuickCuts:(S.customQuickCuts||[]).map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has('quickcut:'+x.id))?'idb:quickcut:'+x.id:x.image}))
 };
 try {
 localStorage.setItem(KEY, JSON.stringify(data));
@@ -668,8 +672,8 @@ const legacyKeys=['cutPrimary','allCut','foodAllCut','savedRound','savedRoundTyp
 legacyKeys.forEach(key=>{try{delete d[key]}catch{}});
 Object.assign(S, d);
 legacyKeys.forEach(key=>{try{delete S[key]}catch{}});
-S.hidden = new Set([...(d.hidden || []), ...(Array.isArray(d.deleted) ? d.deleted : [])]);
-S.deleted = new Set();
+S.hidden = new Set(d.hidden || []);
+S.deleted = new Set(Array.isArray(d.deleted)?d.deleted:[]);
 S.hiddenRestaurants = d.hiddenRestaurants || {};
 S.cutCats = new Set(d.cutCats || []);
 S.foodCuts = new Set(d.foodCuts || []);
@@ -682,6 +686,8 @@ S.restaurantActions = Array.isArray(d.restaurantActions) ? d.restaurantActions :
 S.restaurantMaybeRound = !!d.restaurantMaybeRound;
 S.restaurantPool = Array.isArray(d.restaurantPool) ? d.restaurantPool : [];
 S.custom = Array.isArray(d.custom) ? d.custom : [];
+S.customQuickCuts = Array.isArray(d.customQuickCuts) ? d.customQuickCuts : [];
+S.deletedCustomMeals = Array.isArray(d.deletedCustomMeals) ? d.deletedCustomMeals : [];
 S.winnerType = d.winnerType || 'food';
 S.restaurantTimezone = String(d.restaurantTimezone||'');
 S.restaurantSearchOrigin = d.restaurantSearchOrigin && Number.isFinite(Number(d.restaurantSearchOrigin.lat)) && Number.isFinite(Number(d.restaurantSearchOrigin.lon)) ? {lat:Number(d.restaurantSearchOrigin.lat),lon:Number(d.restaurantSearchOrigin.lon)} : null;
@@ -705,7 +711,7 @@ window.scrollTo?.(0,0);
 function closeOverlays() {
 
 ['drawer','drawerBg','modal','modalBg'].forEach(id => $(id)?.classList.add('hidden'));
-['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg'].forEach(id => $(id)?.remove());
+['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg','resetRestoreModal','resetRestoreModalBg','settingsModal','settingsModalBg','historyModal','historyModalBg','aboutModal','aboutModalBg','iphoneModal','iphoneModalBg','detailsModal','detailsModalBg'].forEach(id => $(id)?.remove());
 clearSuggestions();
 }
 function home() {
@@ -2908,7 +2914,7 @@ else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToa
 }
 function resetRound(){
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
-S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.deleted.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
+S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
 home();
