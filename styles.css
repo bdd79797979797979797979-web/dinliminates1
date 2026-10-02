@@ -3514,3 +3514,74 @@ button,input,select,textarea{
     min-height:43px!important;
   }
 }
+
+/* CP702 — each saved note gets its own Edit and delete actions. */
+#detailsModal .detail-note-row{
+  display:flex;
+  align-items:stretch;
+  gap:8px;
+  margin-top:9px;
+}
+#detailsModal .detail-note-row .detail-note-preview{
+  flex:1 1 auto;
+  min-width:0;
+  margin:0;
+}
+#detailsModal .detail-note-row-actions{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+#detailsModal .detail-note-edit,
+#detailsModal .detail-notes-delete{
+  height:34px;
+  min-width:34px;
+  width:34px;
+  padding:0 7px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  background:#171615;
+  border:1px solid #3a342c;
+  color:#c7b28c;
+  box-shadow:none;
+  font-size:8.5px;
+  font-weight:900;
+  line-height:1;
+  transition:transform .14s ease,border-color .16s ease,color .16s ease,background .16s ease;
+}
+#detailsModal .detail-note-edit{
+  width:auto;
+  min-width:54px;
+}
+#detailsModal .detail-note-edit:hover{
+  color:#ead5aa;
+  border-color:#5c4d39;
+  background:#1c1a17;
+}
+#detailsModal .detail-notes-delete{
+  color:#b9857d;
+  border-color:#3b302b;
+  font-size:17px;
+}
+#detailsModal .detail-notes-delete:hover{
+  border-color:#62423a;
+  color:#d29b91;
+  background:#191615;
+}
+#detailsModal .detail-note-edit:active,
+#detailsModal .detail-notes-delete:active{
+  transform:scale(.94);
+}
+#detailsModal .detail-note-edit span:first-child{
+  font-size:11px;
+}
+@media(max-width:390px){
+  #detailsModal .detail-note-row{gap:6px}
+  #detailsModal .detail-note-row-actions{gap:4px}
+  #detailsModal .detail-note-edit{min-width:50px;height:32px}
+  #detailsModal .detail-notes-delete{width:32px;height:32px;min-width:32px}
+}
