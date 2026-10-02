@@ -2532,39 +2532,31 @@ else manageFoodsView();
 }
 function manageFoodsView() {
 const rows=allFoods();
-const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Add a meal, refine the deck, or restore a hidden favorite. Your custom meals stay on this device.</p></div>'+
+const defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
+const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Edit any meal, replace its photo, hide it from decisions, or manage your own additions. Changes stay on this device.</p></div>'+
 '<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
 '<div class="food-list">'+rows.map(item=>{
-const hidden=S.hidden.has(item.id), custom=S.custom.some(x=>x.id===item.id);
-const state=hidden?'Hidden':'Active';
-return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(hidden?'is-hidden':'is-active')+'">'+esc(state)+(custom?' · Custom':'')+'</small></span><span class="food-row-actions">'+
-(hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(item.id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(item.id)+'">Hide</button>')+
-(custom?'<button class="manage-row-action manage-edit" data-food-edit="'+esc(item.id)+'">Edit</button><button class="manage-row-action manage-delete" data-food-delete="'+esc(item.id)+'">Delete</button>':'')+
-'</span></div>';
+ const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
+ const state=hidden?'Hidden':'Active';
+ const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
+ const primaryAction=hidden?'<button class="manage-row-action manage-restore" data-food-restore="'+esc(id)+'">Restore</button>':'<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>';
+ return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(hidden?'is-hidden':'is-active')+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+primaryAction+'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button>'+(customOnly?'<button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>':'')+'</span></div>';
 }).join('')+'</div></div>';
 const modal=openModal('manageFoodsModal','Manage Meals',body);
 $('openFoodEditor').onclick=()=>foodEditor();
-modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{
-S.hidden.delete(btn.dataset.foodRestore); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
-modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{
-S.hidden.add(btn.dataset.foodHide); buildFood(); save(); modal.remove(); $('manageFoodsModalBg')?.remove(); manageFoodsView();
-});
-modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{
-const row=allFoods().find(x=>x.id===btn.dataset.foodEdit);
-if(row){modal.remove(); $('manageFoodsModalBg')?.remove(); foodEditor(row);}
-});
+modal.querySelectorAll('[data-food-restore]').forEach(btn=>btn.onclick=()=>{S.hidden.delete(btn.dataset.foodRestore);buildFood();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();});
+modal.querySelectorAll('[data-food-hide]').forEach(btn=>btn.onclick=()=>{S.hidden.add(btn.dataset.foodHide);buildFood();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();});
+modal.querySelectorAll('[data-food-edit]').forEach(btn=>btn.onclick=()=>{const row=allFoods().find(x=>String(x.id)===String(btn.dataset.foodEdit));if(row){modal.remove();$('manageFoodsModalBg')?.remove();foodEditor(row);}});
 modal.querySelectorAll('[data-food-delete]').forEach(btn=>btn.onclick=async()=>{
-const id=btn.dataset.foodDelete;
-const row=S.custom.find(x=>x.id===id);
-if(!row)return;
-const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added meal and its stored photo from this device. This cannot be undone.','Delete Meal');
-if(!confirmed)return;
-const idx=S.custom.findIndex(x=>x.id===id);
-if(idx>=0)S.custom.splice(idx,1);
-S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
-await deleteStoredPhoto(id);
-buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
+ const id=btn.dataset.foodDelete,row=S.custom.find(x=>x.id===id);
+ if(!row)return;
+ const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added meal and its stored photo from this device. This cannot be undone.','Delete Meal');
+ if(!confirmed)return;
+ const idx=S.custom.findIndex(x=>x.id===id);
+ if(idx>=0)S.custom.splice(idx,1);
+ S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
+ await deleteStoredPhoto(id);
+ buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
 }
 function settingsActionButton(id,icon,title,note,extraClass=''){
