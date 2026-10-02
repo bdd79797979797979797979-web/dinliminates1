@@ -411,6 +411,28 @@ function knownPublicPhotoPage(name){
  const hit=KNOWN_PUBLIC_PHOTO_PAGES.find(entry=>entry.names.some(n=>normalized===normalizeMatchText(n)||normalized.includes(normalizeMatchText(n))||normalizeMatchText(n).includes(normalized)));
  return hit?.url||'';
 }
+const KNOWN_RESTAURANT_PHOTOS=[
+ {names:["sweet p's southern style","sweet ps southern style"],image:'https://static.where-e.com/United_States/Tennessee/Sweet-Ps-Southern-Style_8c41d09a14d942d0ca25ab6076d3f05e.jpg',sourceUrl:'https://sweet-ps-southern-style.wheree.com/'},
+ {names:["gray smoke barbecue","gray smoke","gray's smoke"],image:'https://du9m0k402rjmo.cloudfront.net/images/P_23585/90a3488a-0fdb-47fa-9c6d-e76837ebc263.jpg',sourceUrl:'https://graysmokebarbecue.com/'},
+ {names:["cap's neighborhood bar & grill","caps neighborhood bar & grill","caps neighborhood bar and grill"],image:'https://clarksvillenow.sagacom.com/files/2024/05/CAPS-Neighborhood-Bar-Grill-7.jpg',sourceUrl:'https://clarksvillenow.com/local/caps-neighborhood-bar-grill-opens-family-friendly-spot-in-clarksville/'}
+];
+function knownRestaurantPhoto(name,address){
+ const normalized=normalizeMatchText(name);
+ if(!normalized||address&&!/\bclarksville\b/i.test(address))return null;
+ return KNOWN_RESTAURANT_PHOTOS.find(entry=>entry.names.some(n=>{
+  const key=normalizeMatchText(n);
+  return normalized===key||normalized.includes(key)||key.includes(normalized);
+ }))||null;
+}
+async function fastKnownRestaurantPhoto(name,address){
+ const hit=knownRestaurantPhoto(name,address);
+ if(!hit)return null;
+ try{
+  const media=await fetchImage(hit.image,{'Referer':hit.sourceUrl},2200);
+  return {media,source:'known-restaurant-photo',sourceUrl:hit.sourceUrl,sourceName:hostOf(hit.sourceUrl)};
+ }catch{}
+ return null;
+}
 async function fastKnownPublicPhoto(name,address,website){
  const hint=knownPublicPhotoPage(name);
  if(!hint)return null;
@@ -539,6 +561,9 @@ module.exports=async function handler(req,res){
       if(fastOfficial)return sendMedia(res,fastOfficial);
     }
 
+    const fastKnownRestaurant=await fastKnownRestaurantPhoto(name,address);
+    if(fastKnownRestaurant)return sendMedia(res,fastKnownRestaurant);
+
     const fastKnown=await fastKnownPublicPhoto(name,address,officialWebsite);
     if(fastKnown)return sendMedia(res,fastKnown);
 
@@ -605,6 +630,8 @@ module.exports._test={
   bingExactImageCandidates,
   exactImageFromBing,
   fastOfficialVenuePhoto,
+  knownRestaurantPhoto,
+  fastKnownRestaurantPhoto,
   knownPublicPhotoPage,
   fastKnownPublicPhoto
 };
