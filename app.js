@@ -2094,25 +2094,34 @@ function bindDetailNotes(modal,item,type){
  const noteKey=itemNoteKey(item,type);
  const noteSection=modal.querySelector('#detailNotesSection');
  const toggle=modal.querySelector('#detailNotesToggle');
+ const deleteButton=modal.querySelector('#detailNotesDelete');
  const editor=modal.querySelector('#detailNotesEditor');
  const field=modal.querySelector('#detailNotesInput');
  const saveButton=modal.querySelector('#detailNotesSave');
  const cancelButton=modal.querySelector('#detailNotesCancel');
  const preview=modal.querySelector('#detailNotesPreview');
  const empty=modal.querySelector('#detailNotesEmpty');
- if(!noteSection||!toggle||!editor||!field||!saveButton||!cancelButton)return;
+ if(!noteSection||!toggle||!deleteButton||!editor||!field||!saveButton||!cancelButton)return;
  const render=()=>{
   const note=String((S.notes||{})[noteKey]||'').trim();
-  if(preview)preview.textContent=note.replace(/\\s+/g,' ').trim();
+  if(preview)preview.textContent=note.replace(/\s+/g,' ').trim();
   if(empty)empty.classList.toggle('hidden',!!note);
   if(preview)preview.classList.toggle('hidden',!note);
+  deleteButton.classList.toggle('hidden',!note);
   toggle.setAttribute('aria-label',note?'Edit note for '+item.name:'Add a note for '+item.name);
   toggle.setAttribute('aria-expanded',(!editor.classList.contains('hidden')).toString());
  };
- toggle.onclick=()=>{
-  editor.classList.toggle('hidden');
-  const open=!editor.classList.contains('hidden');
-  if(open){field.value=String((S.notes||{})[noteKey]||'');window.setTimeout(()=>field.focus(),0);}
+ const openEditor=()=>{
+  editor.classList.remove('hidden');
+  field.value=String((S.notes||{})[noteKey]||'');
+  window.setTimeout(()=>field.focus(),0);
+  render();
+ };
+ toggle.onclick=openEditor;
+ deleteButton.onclick=()=>{
+  setItemNote(item,type,'');
+  field.value='';
+  editor.classList.add('hidden');
   render();
  };
  saveButton.onclick=()=>{
@@ -2137,7 +2146,7 @@ function detailsSheet(item,type){
  const image=imageProxyUrl(item.image||item.photo||item.photoFallback||(isRestaurant?restaurantFallbackImage(item):HUNGRY_IMAGE));
  const note=itemNote(item,type);
  const notePreview=note.replace(/\s+/g,' ').trim();
- const notesSection='<section class="detail-section detail-notes-section" id="detailNotesSection"><div class="detail-section-head"><div><div class="detail-section-title">Notes</div><p class="detail-section-helper">Private to this device.</p></div><button class="detail-notes-toggle" id="detailNotesToggle" type="button" aria-expanded="false"><span class="detail-notes-toggle-icon" aria-hidden="true">✎</span><span> '+(note?'Edit note':'Add a note')+'</span></button></div><p class="detail-note-preview '+(note?'':'hidden')+'" id="detailNotesPreview">'+esc(notePreview)+'</p><p class="detail-notes-empty '+(note?'hidden':'')+'" id="detailNotesEmpty">Add a quick reminder, favorite, or thought.</p><div class="detail-notes-editor hidden" id="detailNotesEditor"><textarea id="detailNotesInput" maxlength="1200" rows="4" placeholder="Write a note about this '+(isRestaurant?'restaurant':'meal')+'…"></textarea><div class="detail-notes-editor-actions"><button class="secondary" id="detailNotesCancel" type="button">Cancel</button><button class="detail-notes-save" id="detailNotesSave" type="button">Save Note</button></div></div></section>';
+ const notesSection='<section class="detail-section detail-notes-section" id="detailNotesSection"><div class="detail-section-head"><div><div class="detail-section-title">Notes</div><p class="detail-section-helper">Private to this device.</p></div><div class="detail-notes-actions"><button class="detail-notes-toggle" id="detailNotesToggle" type="button" aria-expanded="false"><span class="detail-notes-toggle-icon" aria-hidden="true">✎</span><span> '+(note?'Edit note':'Add a note')+'</span></button><button class="detail-notes-delete hidden" id="detailNotesDelete" type="button" aria-label="Delete note for '+esc(item.name)+'" title="Delete note"><span aria-hidden="true">×</span></button></div></div><p class="detail-note-preview '+(note?'':'hidden')+'" id="detailNotesPreview">'+esc(notePreview)+'</p><p class="detail-notes-empty '+(note?'hidden':'')+'" id="detailNotesEmpty">Add a quick reminder, favorite, or thought.</p><div class="detail-notes-editor hidden" id="detailNotesEditor"><textarea id="detailNotesInput" maxlength="1200" rows="4" placeholder="Write a note about this '+(isRestaurant?'restaurant':'meal')+'…"></textarea><div class="detail-notes-editor-actions"><button class="secondary" id="detailNotesCancel" type="button">Cancel</button><button class="detail-notes-save" id="detailNotesSave" type="button">Save Note</button></div></div></section>';
 
  if(!isRestaurant){
    const cat=String(item.category||'Meal').trim();
