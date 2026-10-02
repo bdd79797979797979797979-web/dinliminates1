@@ -732,12 +732,18 @@ S.schemaVersion = STORAGE_VERSION;
 return true;
 } catch { return false; }
 }
+function updateHomeScrollLock(screen){
+ const locked=screen==='home';
+ document.documentElement.classList.toggle('home-scroll-lock',locked);
+ document.body.classList.toggle('home-scroll-lock',locked);
+}
 function show(screen) {
 document.querySelectorAll('.screen').forEach(x => x.classList.add('hidden'));
 $(screen)?.classList.remove('hidden');
 S.screen = screen;
 $('globalBack')?.classList.add('hidden');
 $('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant' || screen === 'winner');
+updateHomeScrollLock(screen);
 window.scrollTo?.(0,0);
 }
 function closeOverlays() {
@@ -750,23 +756,7 @@ function home() {
 closeOverlays();
 S.screen = 'home';
 show('home');
-maybeShowHomeNudge();
 }
-function maybeShowHomeNudge(){
- const key='dinliminate.homeNudge.v1';
- try{if(localStorage.getItem(key))return;}catch{}
- const foot=document.querySelector('#home .home-foot');
- if(!foot||document.querySelector('#homeFirstNudge'))return;
- const nudge=document.createElement('div');
- nudge.id='homeFirstNudge';
- nudge.className='home-first-nudge';
- nudge.textContent='Swipe until it’s revealed.';
- foot.parentNode.insertBefore(nudge,foot);
- try{localStorage.setItem(key,'1')}catch{}
- window.setTimeout(()=>nudge.classList.add('is-faded'),4200);
- window.setTimeout(()=>nudge.remove(),4700);
-}
-
 function foodPool(){
  const base = allFoods().filter(item=>{
   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
@@ -3451,8 +3441,6 @@ const homeActionHandler = (event) => {
 document.addEventListener('click', homeActionHandler, true);
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
-['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
-['#restStart .home-card-overlay','#restStart .home-card-copy','#restStart .arrow','#restStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();openRestaurant();},{capture:true});});
 bindCardButton('foodCut',()=>foodCut());
 bindCardButton('foodMaybe',()=>foodMaybe());
 bindCardButton('foodBack',foodBack);
