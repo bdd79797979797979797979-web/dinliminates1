@@ -1,0 +1,32 @@
+name: CP628 Photo Test
+on:
+  push:
+    branches: [cp628-tripadvisor-exact-photo]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test exact restaurant photos
+        env:
+          BASE_URL: https://deploy-preview-109--dinliminate.netlify.app
+        run: |
+          node <<'NODE'
+          const base=process.env.BASE_URL;
+          let failures=0;
+          for(const [name,address] of [
+            ["McDonald's","724 Sango Rd, Clarksville, TN 37043"],
+            ["The Thirsty Goat","4044 US-41 ALT South, Clarksville, TN 37043"]
+          ]){
+            const r=await fetch(base+'/api/restaurant-photo?name='+encodeURIComponent(name)+'&address='+encodeURIComponent(address));
+            const type=(r.headers.get('content-type')||'').split(';')[0];
+            const source=r.headers.get('x-restaurant-photo-source')||'';
+            const sourceUrl=r.headers.get('x-restaurant-photo-source-url')||'';
+            const bytes=(await r.arrayBuffer()).byteLength;
+            console.log(JSON.stringify({name,status:r.status,type,source,sourceUrl,bytes}));
+            if(r.status!==200||!type.startsWith('image/'))failures++;
+            if(sourceUrl && name==="McDonald's" && !/tripadvisor/i.test(sourceUrl))failures++;
+          }
+          if(failures)process.exit(1);
+          NODE
