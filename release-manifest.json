@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 692,
-  "sourceBranch": "cp692-restaurant-meal-details",
+  "build": 693,
+  "sourceBranch": "cp693-premium-navigation",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
-  "netlify": "dinliminate112 preview",
-  "checkpoint": "CP692"
+  "netlify": "dinliminate22 preview",
+  "checkpoint": "CP693"
 }
