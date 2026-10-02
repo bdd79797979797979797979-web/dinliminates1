@@ -451,7 +451,7 @@ async function exactImageFromBing(name,address,website){
 }
 function sendMedia(res,found){
   res.setHeader?.('Content-Type',found.media.type);
-  res.setHeader?.('Cache-Control','public, max-age=86400, stale-while-revalidate=604800');
+  res.setHeader?.('Cache-Control','public, max-age=604800, stale-while-revalidate=2592000');
   res.setHeader?.('X-Content-Type-Options','nosniff');
   res.setHeader?.('X-Restaurant-Photo-Source',found.source);
   if(found.sourceUrl)res.setHeader?.('X-Restaurant-Photo-Source-URL',found.sourceUrl);
