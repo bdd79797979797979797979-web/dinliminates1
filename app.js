@@ -945,15 +945,27 @@ function restaurantNameTokensUI(value){
  return text.split(' ').filter(Boolean);
 }
 function restaurantNameFamily(value){return restaurantNameTokensUI(value).join(' ');}
+const RESTAURANT_NAME_GENERIC_UI=new Set([
+ 'market','markets','bar','bars','bbq','barbecue','bq','restaurant','restaurants','grill','grills',
+ 'kitchen','cafe','café','coffee','house','food','foods','eatery','deli','bakery','pizza','pizzeria'
+]);
+function restaurantNameCoreTokensUI(value){
+ return restaurantNameTokensUI(value).filter(t=>t.length>=4&&!RESTAURANT_NAME_GENERIC_UI.has(t));
+}
+function restaurantNameCoreMatchUI(a,b){
+ const aa=new Set(restaurantNameCoreTokensUI(a)),bb=new Set(restaurantNameCoreTokensUI(b));
+ if(!aa.size||!bb.size)return false;
+ return [...aa].some(t=>bb.has(t));
+}
 function restaurantNameSimilarityUI(a,b){
  const aa=restaurantNameTokensUI(a),bb=restaurantNameTokensUI(b);
  if(!aa.length||!bb.length)return 0;
  const as=new Set(aa),bs=new Set(bb);
  const shared=[...as].filter(t=>bs.has(t)).length;
  const shorter=Math.min(as.size,bs.size),union=new Set([...as,...bs]).size;
- if(!shared||!shorter||!union)return 0;
+ if(!shared||!shorter||!union)return restaurantNameCoreMatchUI(a,b)?1:0;
  const coverage=shared/shorter,jaccard=shared/union;
- return coverage>=0.75&&jaccard>=0.60?Math.max(coverage,jaccard):0;
+ return coverage>=0.75&&jaccard>=0.60?Math.max(coverage,jaccard):(restaurantNameCoreMatchUI(a,b)?1:0);
 }
 function restaurantAddressKeyUI(value){
  const raw=restaurantAddressFamily(value);
@@ -1021,11 +1033,13 @@ function dedupeRestaurantPool(rows){
    const sameName=!!name&&name===xn;
    const nameScore=restaurantNameSimilarityUI(name,xn);
    const sameNameFamily=sameName||nameScore>=0.60;
-   const sameAddr=restaurantAddressSimilarityUI(address,xa)>=0.90;
-   const sameStreet=restaurantAddressSimilarityUI(address,xa)>=0.72;
+   const sameAddrScore=restaurantAddressSimilarityUI(address,xa);
+   const sameAddr=sameAddrScore>=0.90;
+   const sameStreet=sameAddrScore>=0.72;
    const samePhysical=Number.isFinite(dist)&&dist<=0.15;
-   const sameAddressAndName=sameAddr&&sameNameFamily;
-   const sameStreetAndName=sameStreet&&sameNameFamily&&samePhysical;
+   const coreNameMatch=restaurantNameCoreMatchUI(name,xn);
+   const sameAddressAndName=sameAddr&&(sameNameFamily||coreNameMatch);
+   const sameStreetAndName=sameStreet&&(sameNameFamily||coreNameMatch)&&samePhysical;
    const sameNearbyAndName=samePhysical&&sameNameFamily&&(!address||!xa);
    const identityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(row);
    const existingIdentityKey=RESTAURANT_TAXONOMY.restaurantIdentityKey(x);
@@ -2611,7 +2625,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantAddressSimilarityUI,addressLooksComplete,locationMovedMiles,winner,recordHistory};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,addressLooksComplete,locationMovedMiles,winner,recordHistory};
 load();
 renderLocationSource();
 renderFindButton();
