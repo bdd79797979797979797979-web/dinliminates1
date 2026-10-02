@@ -543,7 +543,10 @@ function itemNoteKey(item,type){
  if(type==='restaurant'){
   return 'restaurant:'+String(item?.canonicalId||restaurantCanonicalId(item)||item?.id||'unknown');
  }
- return 'food:'+String(item?.id||item?.name||'unknown');
+ const directId=String(item?.sourceItemId||'').trim();
+ if(directId)return 'food:'+directId;
+ const found=allFoods().find(x=>normKey(x?.name)===normKey(item?.name));
+ return 'food:'+String(found?.id||item?.id||item?.name||'unknown');
 }
 function itemNote(item,type){return String((S.notes||{})[itemNoteKey(item,type)]||'').trim();}
 function setItemNote(item,type,note){
@@ -2132,7 +2135,7 @@ function detailsSheet(item,type){
  const isRestaurant=type==='restaurant';
  const image=imageProxyUrl(item.image||item.photo||item.photoFallback||(isRestaurant?restaurantFallbackImage(item):HUNGRY_IMAGE));
  const note=itemNote(item,type);
- const notePreview=note.replace(/\\s+/g,' ').trim();
+ const notePreview=note.replace(/\s+/g,' ').trim();
  const notesSection='<section class="detail-section detail-notes-section" id="detailNotesSection"><div class="detail-section-head"><div><div class="detail-section-title">Notes</div><p class="detail-section-helper">Private to this device.</p></div><button class="detail-notes-toggle" id="detailNotesToggle" type="button" aria-expanded="false"><span class="detail-notes-toggle-icon" aria-hidden="true">✎</span><span> '+(note?'Edit note':'Add a note')+'</span></button></div><p class="detail-note-preview '+(note?'':'hidden')+'" id="detailNotesPreview">'+esc(notePreview)+'</p><p class="detail-notes-empty '+(note?'hidden':'')+'" id="detailNotesEmpty">Add a quick reminder, favorite, or thought.</p><div class="detail-notes-editor hidden" id="detailNotesEditor"><textarea id="detailNotesInput" maxlength="1200" rows="4" placeholder="Write a note about this '+(isRestaurant?'restaurant':'meal')+'…"></textarea><div class="detail-notes-editor-actions"><button class="secondary" id="detailNotesCancel" type="button">Cancel</button><button class="detail-notes-save" id="detailNotesSave" type="button">Save Note</button></div></div></section>';
 
  if(!isRestaurant){
@@ -2214,6 +2217,7 @@ id:String(Date.now())+'-'+Math.random().toString(36).slice(2),
 date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
 type,
 name:item.name,
+sourceItemId:type==='food'?(item.id||''):'',
 image:item.image||item.photo||'',
 photoFallback:type==='restaurant'?(item.photoFallback||restaurantFallbackImage(item)):(item.photoFallback||''),
 photoSource:item.photoSource||'',
@@ -2489,7 +2493,7 @@ const confirmed=await appConfirm('Delete '+row.name+'?','This removes the added 
 if(!confirmed)return;
 const idx=S.custom.findIndex(x=>x.id===id);
 if(idx>=0)S.custom.splice(idx,1);
-S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();
+S.hidden.delete(id);S.foodCuts.delete(id);S.maybe.delete(id);delete S.notes['food:'+id];saveItemNotes();delete S.notes['food:'+id];saveItemNotes();
 await deleteStoredPhoto(id);
 buildFood();foodQuick();save();modal.remove();$('manageFoodsModalBg')?.remove();manageFoodsView();
 });
@@ -2782,8 +2786,7 @@ home();
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.notes={};saveItemNotes();
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[]; S.notes={}; saveItemNotes();
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem(ITEM_NOTES_KEY);}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
