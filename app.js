@@ -920,6 +920,23 @@ function milesBetween(lat1,lon1,lat2,lon2){
  const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
  return 2*R*Math.asin(Math.sqrt(z));
 }
+function restaurantAddressFamily(value){
+ const replacements={
+  street:'st',road:'rd',avenue:'ave',boulevard:'blvd',drive:'dr',lane:'ln',parkway:'pkwy',highway:'hwy',route:'rte',
+  circle:'cir',court:'ct',place:'pl',trail:'trl',terrace:'ter',north:'n',south:'s',east:'e',west:'w',
+  alabama:'al',alaska:'ak',arizona:'az',arkansas:'ar',california:'ca',colorado:'co',connecticut:'ct',delaware:'de',
+  florida:'fl',georgia:'ga',hawaii:'hi',idaho:'id',illinois:'il',indiana:'in',iowa:'ia',kansas:'ks',kentucky:'ky',
+  louisiana:'la',maine:'me',maryland:'md',massachusetts:'ma',michigan:'mi',minnesota:'mn',mississippi:'ms',
+  missouri:'mo',montana:'mt',nebraska:'ne',nevada:'nv','new-hampshire':'nh',newhampshire:'nh','new-jersey':'nj',
+  newjersey:'nj','new-mexico':'nm',newmexico:'nm','new-york':'ny',newyork:'ny',northcarolina:'nc',
+  'north-carolina':'nc','north-dakota':'nd',northdakota:'nd',ohio:'oh',oklahoma:'ok',oregon:'or',
+  pennsylvania:'pa',rhodeisland:'ri','rhode-island':'ri',southcarolina:'sc','south-carolina':'sc',
+  'south-dakota':'sd',southdakota:'sd',tennessee:'tn',tn:'tn',texas:'tx',utah:'ut',vermont:'vt',virginia:'va',
+  washington:'wa',westvirginia:'wv','west-virginia':'wv',wisconsin:'wi',wyoming:'wy',
+  'district-of-columbia':'dc',districtcolumbia:'dc',dc:'dc'
+ };
+ return normKey(value).split(' ').map(x=>replacements[x]||x).join(' ').replace(/\b(?:usa|united states)\b/g,'').replace(/\s+/g,' ').trim();
+}
 function restaurantNameTokensUI(value){
  const text=normKey(String(value||'').replace(/[’']s\b/gi,'s'))
    .replace(/\bbar\s+b\s+q\b/g,'bbq')
