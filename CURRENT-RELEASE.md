@@ -1,3 +1,19 @@
+# CURRENT RELEASE — BUILD 754 / CP754
+
+Date: 2026-10-02
+
+Current candidate branch: `cp754-quickcuts-closed-default`
+Recovery baseline: `cp753-swipe-hint-fix`
+Hosted test target: `dinliminate22`
+Status: candidate — not production
+
+## CP754 Quick Cuts default
+- Quick Cuts now start **collapsed by default** for both Meals and Restaurants when no saved preference exists.
+- Existing user preferences are preserved; opening or closing Quick Cuts continues to be remembered.
+- Tapping the Quick Cuts label remains the only action needed to show or hide the categories.
+- No Quick Cut filtering logic was changed.
+- Build metadata updated to CP754.
+
 # CURRENT RELEASE — BUILD 753 / CP753
 
 Date: 2026-10-02
