@@ -403,6 +403,34 @@ async function fastOfficialVenuePhoto(name,address,website){
  }catch{}
  return null;
 }
+const KNOWN_PUBLIC_PHOTO_PAGES=[
+ {names:['excell bbq','excell bar b q','excell market bar b q','excell market and bbq'],url:'https://www.visitclarksvilletn.com/listing/excell-bar-b-q/128/'}
+];
+function knownPublicPhotoPage(name){
+ const normalized=normalizeMatchText(name);
+ const hit=KNOWN_PUBLIC_PHOTO_PAGES.find(entry=>entry.names.some(n=>normalized===normalizeMatchText(n)||normalized.includes(normalizeMatchText(n))||normalizeMatchText(n).includes(normalized)));
+ return hit?.url||'';
+}
+async function fastKnownPublicPhoto(name,address,website){
+ const hint=knownPublicPhotoPage(name);
+ if(!hint)return null;
+ try{
+  const html=await fetchText(hint,{},2200,1500000);
+  if(!html||!pageMatchesRestaurant(html,name,address))return null;
+  const candidates=extractVenueImageCandidates(html,hint,name,address,website)
+    .filter(item=>item.score>=38&&item.score>0&&hasVenueSignal(item))
+    .slice(0,5);
+  const attempts=await Promise.allSettled(candidates.map(async candidate=>{
+   try{return {media:await fetchImage(candidate.url,{'Referer':hint},2400),candidate};}catch{return null;}
+  }));
+  for(const hit of attempts){
+   if(hit.status==='fulfilled'&&hit.value){
+    return {media:hit.value.media,source:'known-public-venue-page',sourceUrl:hint,sourceName:hostOf(hint)};
+   }
+  }
+ }catch{}
+ return null;
+}
 async function findVerifiedRestaurantPages(name,address,website){
   const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
   // Official-site discovery is the primary web path. Do it before broader
@@ -511,6 +539,9 @@ module.exports=async function handler(req,res){
       if(fastOfficial)return sendMedia(res,fastOfficial);
     }
 
+    const fastKnown=await fastKnownPublicPhoto(name,address,officialWebsite);
+    if(fastKnown)return sendMedia(res,fastKnown);
+
     const pages=await findVerifiedRestaurantPages(name,address,officialWebsite);
 
     // Tier 1: exact restaurant/location images from the restaurant's own website.
@@ -573,5 +604,7 @@ module.exports._test={
   structuredRestaurantMatches,
   bingExactImageCandidates,
   exactImageFromBing,
-  fastOfficialVenuePhoto
+  fastOfficialVenuePhoto,
+  knownPublicPhotoPage,
+  fastKnownPublicPhoto
 };
