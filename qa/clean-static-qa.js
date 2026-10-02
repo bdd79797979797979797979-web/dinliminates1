@@ -5,6 +5,7 @@ const css=fs.readFileSync('styles.css','utf8');
 const foodsSource=fs.readFileSync('data/foods.js','utf8');
 const taxonomy=fs.readFileSync('data/restaurant-taxonomy.js','utf8');
 const api=fs.readFileSync('api/restaurants.js','utf8');
+const restaurantPhotoApi=fs.readFileSync('api/restaurant-photo.js','utf8');
 const release=JSON.parse(fs.readFileSync('app-release.json','utf8'));
 const manifest=JSON.parse(fs.readFileSync('release-manifest.json','utf8'));
 const releaseApi=fs.readFileSync('api/release.js','utf8');
@@ -51,8 +52,9 @@ assert.ok(api.includes("const API_VERSION='r25'"),'Restaurant API must be r25');
 assert.ok(api.includes('MAX_RADIUS=100'),'Restaurant API must cap radius at 100 miles');
 assert.ok(api.includes('process.env.GOOGLE_PLACES_API_KEY')&&api.includes('process.env.GOOGLE_MAPS_API_KEY'),'Google Places support must remain optional, not required');
 assert.ok(api.includes('Photon')||api.includes('photon'),'No-credential discovery must retain non-Google providers');
+assert.ok(restaurantPhotoApi.includes("redirect:'manual'")&&restaurantPhotoApi.includes('fetchWithValidatedRedirects'),'Restaurant photo fetches must validate redirects before following them');
 
-assert.ok(sw.includes("const CACHE='dinliminate-shell-v675'"),'Service-worker shell cache must be advanced beyond v668');
+assert.ok(sw.includes("const CACHE='dinliminate-shell-v676'"),'Service-worker shell cache must be advanced beyond v668');
 assert.ok(sw.includes("'./app-release.json'")&&sw.includes("'./release-manifest.json'"),'Service worker must cache release metadata');
 assert.ok(css.includes('.luxury-home .home-icon-action')&&css.includes('.restaurant-card-utility'),'Premium Home and Restaurant utility styles must exist');
 assert.ok(css.includes('min-height:44px')&&css.includes('height:44px'),'Current utility hit-area rules must include 44px targets');
@@ -61,4 +63,4 @@ assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.incl
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
 console.log('Dinliminate CP708 static QA: PASS');
-console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r25',swCache:'v675',hiddenRestaurantSearch:true,hiddenOpenAll:true,visualSurfaceSmoke:true}));
+console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r25',swCache:'v676',hiddenRestaurantSearch:true,hiddenOpenAll:true,visualSurfaceSmoke:true}));
