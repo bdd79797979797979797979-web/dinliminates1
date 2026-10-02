@@ -2808,3 +2808,22 @@ button,a,select{touch-action:manipulation}
     margin-bottom:7px!important;
   }
 }
+
+
+/* CP691 — stable finger-to-card rendering and reliable tap targets. */
+#food .swipe-card-stack>.card,
+#restaurant .restaurant-card-stack>.card{
+  transform:translateZ(0);
+  contain:paint;
+}
+#food .swipe-card-stack>.card.swipe-active,
+#restaurant .restaurant-card-stack>.card.swipe-active{
+  transform:translateZ(0);
+}
+.unified-swipe-actions .round-action{
+  touch-action:manipulation!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+  cursor:pointer;
+}
