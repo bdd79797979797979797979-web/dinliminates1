@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 643,
-  "sourceBranch": "cp643-restaurant-photo-rebuild",
+  "build": 685,
+  "sourceBranch": "cp685-unified-restaurant-location-row",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "legacy/backup",
-  "checkpoint": "CP643"
+  "checkpoint": "CP685"
 }
