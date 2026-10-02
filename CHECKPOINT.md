@@ -1,3 +1,26 @@
+# CURRENT CHECKPOINT — BUILD 707 / CP707
+
+Date: 2026-10-02
+
+Working branch: `cp707-audit-fixes-except-hidden-restaurant-controls`
+Clean recovery baseline: `clean-cp704-2026-10-02`
+Audit checkpoints: CP705 / CP706
+Current checkpoint: CP707
+
+CP707 hardening completed:
+- Vercel release endpoint corrected to `app-release.json`.
+- App Diagnosis synchronized to dynamic current release metadata.
+- Home tagline restored.
+- Service-worker shell cache advanced to v674.
+- History calendar deletion made per-entry.
+- Restaurant utility hit areas restored to 44px.
+- Active QA contracts synchronized to Build 707 / API r25.
+- Restaurant Search and Open/All remain intentionally hidden.
+
+Recovery rule: use `clean-cp704-2026-10-02` for the untouched clean rollback baseline; use the CP707 branch for the hardened continuation.
+
+---
+
 # CURRENT CHECKPOINT — Build 197 / CP487–CP488
 
 Date: 2026-10-01
