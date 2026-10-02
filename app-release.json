@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 659,
-  "sourceBranch": "cp659-app-entry-fix",
-  "checkpoint": "CP659"
+  "build": 662,
+  "sourceBranch": "cp662-restore-location-flow",
+  "checkpoint": "CP662"
 }
