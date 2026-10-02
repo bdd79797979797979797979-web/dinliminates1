@@ -2189,7 +2189,7 @@ function renderHungryRestaurantMystery(item,covered=true){
    $('hungryMysteryResultMeta').textContent=meta;
    hydrateRestaurantPhoto(item,'#hungryRestaurantPanel');
  }
- if(again)again.classList.toggle('hidden',covered);
+ if(again){again.classList.toggle('hidden',covered);again.disabled=!covered&&hungryRestaurantPool().length<2;}
  if(choose)choose.classList.toggle('hidden',covered);
  if(reveal)reveal.classList.toggle('hidden',!covered);
 }
