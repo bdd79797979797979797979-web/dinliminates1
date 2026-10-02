@@ -472,6 +472,11 @@ async function findVerifiedRestaurantPages(name,address,website){
   const official=await officialRestaurantPages(name,address,website);
 
   const queries=[];
+  // Prefer reputable local tourism/publication pages before broad global directories.
+  // These pages are discovery sources; we still require exact restaurant/address
+  // verification before accepting a photo.
+  if(safeName&&safeAddress)queries.push('site:visitclarksvilletn.com "'+safeName+'" "'+safeAddress+'" restaurant');
+  if(safeName&&safeAddress)queries.push('site:clarksvillenow.com "'+safeName+'" "'+safeAddress+'" restaurant');
   if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
