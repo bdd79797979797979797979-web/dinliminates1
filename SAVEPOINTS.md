@@ -1,11 +1,12 @@
-# CURRENT SAVEPOINT - BUILD 732 / CP732
+# CURRENT SAVEPOINT - BUILD 734 / CP734
 
 Date: 2026-10-02
 
 Working branch: cp728-hungry-reveal-home-polish
 
 Completed:
-- Food and Restaurant choice counts returned to plain green text, matching the earlier appearance.
-- Restaurant row remains Quick Cuts | ALL/MAYBE | Choices.
+- Hungry wheel now preserves its resting visual rotation between spins.
+- One tap animates exactly one revolution from the current position.
+- No reverse animation after finish.
 
-Recovery target: CP732
+Recovery target: CP734
