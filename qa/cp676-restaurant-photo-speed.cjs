@@ -6,7 +6,6 @@ const photo=require('../api/restaurant-photo');
 const app=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
 const photoText=fs.readFileSync(path.join(__dirname,'..','api','restaurant-photo.js'),'utf8');
 
-const photo=require('../api/restaurant-photo');
 assert.equal(typeof photo._test?.fastOfficialVenuePhoto,'function','fast official photo helper should exist');
 assert.equal(typeof photo._test?.knownPublicPhotoPage,'function','known public photo hint helper should exist');
 assert.equal(typeof photo._test?.knownRestaurantPhoto,'function','known restaurant photo helper should exist');
