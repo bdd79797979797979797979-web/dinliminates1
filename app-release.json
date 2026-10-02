@@ -3,5 +3,6 @@
   "version": "1.0",
   "build": 738,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
-  "checkpoint": "CP738"
+  "checkpoint": "CP738",
+  "deploymentTrigger": "CP738-deploy-2026-10-02"
 }
