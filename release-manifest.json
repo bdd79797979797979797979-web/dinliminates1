@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 696,
-  "sourceBranch": "cp696-auto-restaurant-location",
+  "build": 697,
+  "sourceBranch": "cp697-address-credit-polish",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP696"
+  "checkpoint": "CP697"
 }
