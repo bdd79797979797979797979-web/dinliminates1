@@ -27,3 +27,6 @@ Proactive restaurant-photo reliability pass for the next Clarksville-area restau
 
 ## Recovery
 Use CP677 to revert this batch without affecting the earlier three-venue fix.
+
+## Netlify reconnection trigger
+The branch was touched after reconnecting Netlify to GitHub so the PR integration can create a fresh Deploy Preview.
