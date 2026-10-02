@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 697,
-  "sourceBranch": "cp697-address-credit-polish",
+  "build": 698,
+  "sourceBranch": "cp698-iphone-usage-pass",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP697"
+  "checkpoint": "CP698"
 }
