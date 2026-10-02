@@ -3375,6 +3375,7 @@ const openDrawer=()=>{
 const appMenu = $('menu'); if (appMenu) {appMenu.setAttribute('aria-expanded','false');appMenu.onclick = openDrawer;}
 const foodMenu = $('foodMenu'); if (foodMenu) {foodMenu.setAttribute('aria-expanded','false');foodMenu.onclick = openDrawer;}
 const restaurantMenu = $('restaurantMenu'); if (restaurantMenu) {restaurantMenu.setAttribute('aria-expanded','false');restaurantMenu.onclick = openDrawer;}
+const winnerMenu = $('winnerMenu'); if (winnerMenu) {winnerMenu.setAttribute('aria-expanded','false');winnerMenu.onclick = openDrawer;}
 const foodBackTop = $('foodBackTop'); if (foodBackTop) foodBackTop.onclick = home;
 const restaurantBackTop = $('restaurantBackTop'); if (restaurantBackTop) restaurantBackTop.onclick = home;
 $('drawerClose').onclick = closeDrawer;
