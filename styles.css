@@ -2808,3 +2808,48 @@ button,a,select{touch-action:manipulation}
     margin-bottom:7px!important;
   }
 }
+
+
+/* CP690 — smooth direct swipe tracking and reliable touch decision controls */
+.card,
+.card img{
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+}
+.card{
+  transform-origin:50% 50%!important;
+}
+.card[data-swipe-active="true"]{
+  transition:none!important;
+  opacity:1!important;
+  will-change:transform!important;
+}
+.restaurant-card-stack>#restaurantCard,
+#food .swipe-card-stack>#foodCard{
+  transform:translateZ(0);
+}
+.unified-swipe-actions{
+  position:relative!important;
+  z-index:30!important;
+  pointer-events:auto!important;
+}
+.unified-swipe-actions .round-action{
+  -webkit-tap-highlight-color:transparent!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  touch-action:manipulation!important;
+}
+.unified-swipe-actions .round-action:active{
+  transform:none!important;
+}
+.unified-swipe-actions .round-action.is-pressing{
+  transform:scale(.94)!important;
+}
+#restaurant .unified-swipe-actions .round-maybe,
+#restaurant .unified-swipe-actions .round-cut,
+#restaurant .unified-swipe-actions .round-back,
+#restaurant .unified-swipe-actions .round-show-maybe{
+  pointer-events:auto!important;
+  position:relative!important;
+  z-index:31!important;
+}
