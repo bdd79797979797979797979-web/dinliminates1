@@ -385,26 +385,32 @@ async function officialRestaurantPages(name,address,website){
 }
 async function findVerifiedRestaurantPages(name,address,website){
   const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
+  // Official-site discovery is the primary web path. Do it before broader
+  // search-engine work so a known restaurant website has first opportunity.
+  const official=await officialRestaurantPages(name,address,website);
+
   const queries=[];
-  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant photos exterior');
-  if(websiteHost&&safeName&&safeAddress)queries.push('site:'+websiteHost+' "'+safeName+'" "'+safeAddress+'"');
+  if(safeName&&safeAddress)queries.push('"'+safeName+'" "'+safeAddress+'" restaurant');
   if(safeName&&safeAddress)queries.push('site:tripadvisor.com "'+safeName+'" "'+safeAddress+'"');
   if(safeName&&safeAddress)queries.push('site:restaurantguru.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName&&safeAddress)queries.push('site:restaurantji.com "'+safeName+'" "'+safeAddress+'"');
-  if(safeName&&safeAddress)queries.push('site:usarestaurants.info "'+safeName+'" "'+safeAddress+'"');
-  const officialPromise=officialRestaurantPages(name,address,website);
-  const searchPages=await Promise.allSettled(queries.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q:q,mkt:'en-US',first:'1'}).toString(),{},3500,700000)));
+
+  const searchPages=await Promise.allSettled(
+    queries.map(q=>fetchText('https://www.bing.com/search?'+new URLSearchParams({q,mkt:'en-US',first:'1'}).toString(),{},2500,450000))
+  );
   const candidates=[];
   for(const page of searchPages){
     if(page.status!=='fulfilled')continue;
-    for(const url of extractBingWebResultUrls(page.value))if(!candidates.includes(url))candidates.push(url);
+    for(const url of extractBingWebResultUrls(page.value)){
+      if(!candidates.includes(url))candidates.push(url);
+    }
   }
-  const verified=await fetchVerifiedPages(candidates.slice(0,16),name,address);
-  const official=await officialPromise;
+  const verified=await fetchVerifiedPages(candidates.slice(0,8),name,address);
   const officialFromSearch=verified.filter(x=>websiteHost&&sameHost(x.url,websiteHost));
   const publicPages=verified.filter(x=>!websiteHost||!sameHost(x.url,websiteHost));
-  const officialMerged=[...official,...officialFromSearch].filter((x,i,a)=>a.findIndex(y=>y.url===x.url)===i).slice(0,12);
-  return {official:officialMerged,public:publicPages.slice(0,12)};
+  const officialMerged=[...official,...officialFromSearch]
+    .filter((x,i,a)=>a.findIndex(y=>y.url===x.url)===i)
+    .slice(0,8);
+  return {official:officialMerged,public:publicPages.slice(0,8)};
 }
 
 async function bingExactImageCandidates(name,address,website){
@@ -429,7 +435,7 @@ async function bingExactImageCandidates(name,address,website){
 
 async function exactImageFromBing(name,address,website){
   const candidates=await bingExactImageCandidates(name,address,website);
-  const checks=await Promise.allSettled(candidates.slice(0,10).map(async candidate=>{
+  const checks=await Promise.allSettled(candidates.slice(0,6).map(async candidate=>{
     const hostPage=candidate.hostPageUrl;
     if(hostPage){
       const verified=await verifiedRestaurantPage(hostPage,name,address);
@@ -467,6 +473,16 @@ module.exports=async function handler(req,res){
   const osmExact=q.osmExact==='1';
   if(!name)return json(res,400,{ok:false,error:'Restaurant name is required'});
   try{
+    // Tier 1: exact OSM POI photo. Return immediately when the restaurant
+    // record already contains an exact venue image; never make the user wait
+    // for search-engine discovery in this case.
+    if(osmExact&&/^https:\/\//i.test(osmImage)&&!isBlockedHost(osmImage)&&!BLOCKED_IMAGE_HINTS.test(osmImage)){
+      try{
+        const media=await fetchImage(osmImage,{'Referer':'https://www.openstreetmap.org/'},3500);
+        return sendMedia(res,{media,source:'osm-exact-poi'});
+      }catch{}
+    }
+
     const pages=await findVerifiedRestaurantPages(name,address,officialWebsite);
 
     // Tier 1: exact restaurant/location images from the restaurant's own website.
@@ -481,18 +497,6 @@ module.exports=async function handler(req,res){
       }
     }
 
-    // Tier 2: exact-location public restaurant pages.
-    for(const entry of pages.public){
-      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,officialWebsite)
-        .filter(item=>item.score>=65&&item.score>0&&hasVenueSignal(item));
-      const attempts=await Promise.allSettled(candidates.slice(0,8).map(async candidate=>{
-        try{return {media:await fetchImage(candidate.url,{'Referer':entry.url},4000)}}catch{return null}
-      }));
-      for(const hit of attempts)if(hit.status==='fulfilled'&&hit.value){
-        return sendMedia(res,{media:hit.value.media,source:'exact-public-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
-      }
-    }
-
     // Tier 3: exact-location image discovered by Bing Images, but only when
     // the image's host page verifies this exact restaurant and address.
     const bingImage=await exactImageFromBing(name,address,officialWebsite);
@@ -504,6 +508,19 @@ module.exports=async function handler(req,res){
         const media=await fetchImage(osmImage,{'Referer':'https://www.openstreetmap.org/'},4000);
         return sendMedia(res,{media,source:'osm-exact-poi'});
       }catch{}
+    }
+
+
+    // Tier 2: exact-location public restaurant pages.
+    for(const entry of pages.public){
+      const candidates=extractVenueImageCandidates(entry.html,entry.url,name,address,officialWebsite)
+        .filter(item=>item.score>=65&&item.score>0&&hasVenueSignal(item));
+      const attempts=await Promise.allSettled(candidates.slice(0,8).map(async candidate=>{
+        try{return {media:await fetchImage(candidate.url,{'Referer':entry.url},4000)}}catch{return null}
+      }));
+      for(const hit of attempts)if(hit.status==='fulfilled'&&hit.value){
+        return sendMedia(res,{media:hit.value.media,source:'exact-public-venue-page',sourceUrl:entry.url,sourceName:hostOf(entry.url)});
+      }
     }
 
     return json(res,404,{ok:false,error:'No verified venue photo was found from the allowed non-Google sources'});
