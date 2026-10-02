@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 750,
+  "build": 751,
   "sourceBranch": "cp728-hungry-reveal-home-polish",
-  "checkpoint": "CP750",
-  "deploymentTrigger": "CP750-refresh-asset-cache-versions-2026-10-02"
+  "checkpoint": "CP751",
+  "deploymentTrigger": "CP751-plain-quickcuts-toggle-2026-10-02"
 }
