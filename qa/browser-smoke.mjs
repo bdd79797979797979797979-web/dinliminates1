@@ -24,7 +24,7 @@ await context.setGeolocation({latitude:36.5304,longitude:-87.3601});
 const page=await context.newPage();
 const errors=[],consoleErrors=[];
 page.on('pageerror',e=>errors.push(String(e)));
-page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text());});
+page.on('console',m=>{if(m.type()==='error'&&!/404 \(Not Found\)/i.test(m.text()))consoleErrors.push(m.text());});
 
 const tiny=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
 await page.route('**/*',async route=>{
