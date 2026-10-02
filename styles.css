@@ -5159,3 +5159,15 @@ button,input,select,textarea{
   #food .quick-filter-toggle > span,
   #restaurant .quick-filter-toggle > span{width:14px!important;min-width:14px!important}
 }
+
+
+/* CP737 — keep Winner/Hungry hamburger in the same top-right position as all other screens. */
+#winner .winner-menu{
+  justify-self:end!important;
+  align-self:center!important;
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  margin:0!important;
+}
