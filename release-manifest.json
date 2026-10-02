@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 753,
-  "sourceBranch": "cp753-swipe-hint-fix",
+  "build": 754,
+  "sourceBranch": "cp754-quickcuts-closed-default",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP753"
+  "checkpoint": "CP754"
 }
