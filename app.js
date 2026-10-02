@@ -76,6 +76,7 @@ winnerType:'food',
 hungryWheelChoice:null,
 hungryWheelSpinning:false,
 hungryWheelRotation:0,
+hungryRestaurantChoice:null,
 hungryWheelSpinToken:0,
 schemaVersion:4,
 notes:{},
@@ -2143,6 +2144,79 @@ result?.classList.remove('hidden');
 if(choose){choose.disabled=false;choose.classList.remove('hidden');}
 if(spin){spin.disabled=false;spin.textContent='Spin Again';}
 }
+function hungryRestaurantPool(){
+ const raw=(S.restaurantPool||[]).filter(row=>{
+   if(!row)return false;
+   if(row._hidden||restaurantHidden(row))return false;
+   if(!restaurantMatchesQuery(row))return false;
+   return true;
+ });
+ const unique=dedupeRestaurantPool(raw);
+ return unique.length?unique:raw;
+}
+function hungryRestaurantPick(excludeId=null){
+ const pool=hungryRestaurantPool();
+ if(!pool.length)return null;
+ const candidates=excludeId==null?pool:pool.filter(row=>String(row.id)!==String(excludeId));
+ const source=candidates.length?candidates:pool;
+ return source[Math.floor(Math.random()*source.length)]||null;
+}
+function renderHungryRestaurantMystery(item,covered=true){
+ const card=$('hungryMysteryCard'),img=$('hungryMysteryImg'),result=$('hungryMysteryResult');
+ const choose=$('hungryMysteryChoose'),again=$('hungryMysteryAgain'),reveal=$('hungryMysteryReveal');
+ if(!card||!img||!result)return;
+ if(item){
+   const src=restaurantImage(item);
+   img.src=src;
+   img.alt=item.name||'Mystery restaurant';
+   img.onerror=function(){
+     const fb=restaurantFallbackImage(item);
+     if(this.src!==fb)this.src=fb;
+   };
+   img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+ }
+ card.classList.toggle('is-revealed',!covered);
+ const cover=card.querySelector('.hungry-mystery-cover');
+ if(cover)cover.classList.toggle('hidden',!covered);
+ result.classList.toggle('hidden',covered||!item);
+ if(item&&!covered){
+   $('hungryMysteryResultImg').src=restaurantImage(item);
+   $('hungryMysteryResultImg').alt=item.name||'Chosen restaurant';
+   $('hungryMysteryResultImg').dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+   $('hungryMysteryResultName').textContent=item.name||'';
+   const meta=[restaurantCategory(item),Number.isFinite(Number(item.distance))?Number(item.distance).toFixed(1)+' mi':String(item.address||'').split(',')[0]].filter(Boolean).join(' · ');
+   $('hungryMysteryResultMeta').textContent=meta;
+   hydrateRestaurantPhoto(item,'#hungryRestaurantPanel');
+ }
+ if(again)again.classList.toggle('hidden',covered);
+ if(choose)choose.classList.toggle('hidden',covered);
+ if(reveal)reveal.classList.toggle('hidden',!covered);
+}
+function startHungryRestaurantMystery(){
+ const countEl=$('hungryRestaurantCount');
+ const pool=hungryRestaurantPool();
+ if(countEl)countEl.textContent=pool.length?pool.length+' restaurants from your current search':'No restaurant options available';
+ S.hungryRestaurantChoice=null;
+ const img=$('hungryMysteryImg');
+ if(img){img.removeAttribute('src');img.alt='Mystery restaurant';}
+ renderHungryRestaurantMystery(null,true);
+ const reveal=$('hungryMysteryReveal');
+ if(reveal)reveal.disabled=!pool.length;
+}
+function revealHungryRestaurant(){
+ if(S.hungryRestaurantChoice)return;
+ const item=hungryRestaurantPick();
+ if(!item){appToast('No restaurant options are available for a mystery pick.');return;}
+ S.hungryRestaurantChoice=item;
+ renderHungryRestaurantMystery(item,false);
+}
+function tryAnotherHungryRestaurant(){
+ const current=S.hungryRestaurantChoice;
+ const next=hungryRestaurantPick(current?.id);
+ S.hungryRestaurantChoice=next;
+ if(next)renderHungryRestaurantMystery(next,true);
+ else appToast('No other restaurant options are available.');
+}
 function spinHungryWheel(){
 const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
 if(!svg||S.hungryWheelSpinning)return;
@@ -2186,14 +2260,20 @@ const hungry = item?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
+S.hungryRestaurantChoice=null;
 S.hungryWheelSpinToken++;
 const detailsBtn=$('details');
 if(detailsBtn){detailsBtn.classList.toggle('hidden',hungry);detailsBtn.setAttribute('aria-hidden',String(hungry));detailsBtn.disabled=hungry;}
 $('winner')?.classList.toggle('hungry-mode',hungry);
 $('winName').classList.toggle('hidden',hungry);
-$('hungryWheelPanel')?.classList.toggle('hidden',!hungry);
-$('hungryWheelPanel')?.setAttribute('aria-hidden',String(!hungry));
-$('hungryNote').textContent=hungry?"You eliminated everything. It’s either this or Fish Sticks.":'';
+const isRestaurantHungry=hungry&&S.winnerType==='restaurant';
+$('hungryWheelPanel')?.classList.toggle('hidden',!hungry||isRestaurantHungry);
+$('hungryWheelPanel')?.setAttribute('aria-hidden',String(!hungry||isRestaurantHungry));
+$('hungryRestaurantPanel')?.classList.toggle('hidden',!isRestaurantHungry);
+$('hungryRestaurantPanel')?.setAttribute('aria-hidden',String(!isRestaurantHungry));
+$('hungryNote').textContent=hungry
+ ? (S.winnerType==='restaurant'?"You eliminated everything. It’s either this or Waffle House.":"You eliminated everything. It’s either this or Fish Sticks.")
+ : '';
 $('hungryNote').classList.toggle('hidden',!hungry);
 $('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
 const winImg = $('winImg');
@@ -2218,11 +2298,15 @@ winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||'');
 if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
 triggerWinnerMoment(hungry);
 if(hungry){
-  renderHungryWheel();
-  $('hungryWheelResult')?.classList.add('hidden');
-  $('hungryWheelChoose')?.classList.add('hidden');
-  const spinBtn=$('hungryWheelSpin');
-  if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';}
+  if(isRestaurantHungry){
+    startHungryRestaurantMystery();
+  }else{
+    renderHungryWheel();
+    $('hungryWheelResult')?.classList.add('hidden');
+    $('hungryWheelChoose')?.classList.add('hidden');
+    const spinBtn=$('hungryWheelSpin');
+    if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';}
+  }
 }else{
   triggerCelebration();
   hydrateRestaurantPhoto(item,'#winner');
@@ -3320,6 +3404,14 @@ $('hungryWheelChoose').onclick = () => {
   S.hungryWheelChoice=null;
   winner(choice);
 };
+$('hungryMysteryReveal').onclick = revealHungryRestaurant;
+$('hungryMysteryAgain').onclick = tryAnotherHungryRestaurant;
+$('hungryMysteryChoose').onclick = () => {
+  const choice=S.hungryRestaurantChoice;
+  if(!choice)return;
+  S.hungryRestaurantChoice=null;
+  winner(choice);
+};
 $('details').onclick = () => S.winnerItem && detailsSheet(S.winnerItem, S.winnerType || 'food');
 $('share').onclick = shareWinner;
 $('restart').onclick = resetRound;
@@ -3331,7 +3423,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen=
 updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel};
+if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={hourStatus:(row,iso,zone)=>hourStatus(row,new Date(iso),zone),safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,restaurantHourState,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel,hungryRestaurantPool,hungryRestaurantPick,renderHungryRestaurantMystery,revealHungryRestaurant};
 load();
 renderLocationSource();
 renderFindButton();
