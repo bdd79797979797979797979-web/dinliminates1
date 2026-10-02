@@ -1,3 +1,20 @@
+# CP691 — Swipe Stability Candidate
+
+Date: 2026-10-02
+Current candidate branch: `cp691-swipe-stability`
+Recovery base: CP690 / `0084c9038458d8161da43e0e874d02fda4a22ff7`
+Build: **691**
+
+Swipe work:
+- Paint-synchronized finger tracking with `requestAnimationFrame`.
+- No drag-time transition/opacity interpolation.
+- Clean swipe completion and snap-back handling.
+- Reliable pointer-up + click fallback for Meal/Restaurant round controls.
+- Restaurant Maybe tap path hardened against missed and duplicate activation.
+- Preview target requested by user: `dinliminate112`.
+
+---
+
 # CURRENT RELEASE — BUILD 197 / CP487–CP488
 
 Date: 2026-10-01
