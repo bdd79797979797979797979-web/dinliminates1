@@ -383,6 +383,26 @@ async function officialRestaurantPages(name,address,website){
     return pages.slice(0,12);
   }catch{return []}
 }
+async function fastOfficialVenuePhoto(name,address,website){
+ const official=absoluteHttpsUrl(website);
+ if(!official||isBlockedHost(official))return null;
+ try{
+  const html=await fetchText(official,{},2200,1800000);
+  if(!html)return null;
+  const candidates=extractVenueImageCandidates(html,official,name,address,official)
+    .filter(item=>item.score>=45&&item.score>0&&hasVenueSignal(item))
+    .slice(0,6);
+  const attempts=await Promise.allSettled(candidates.map(async candidate=>{
+   try{return {media:await fetchImage(candidate.url,{'Referer':official},2600),candidate};}catch{return null;}
+  }));
+  for(const hit of attempts){
+   if(hit.status==='fulfilled'&&hit.value){
+    return {media:hit.value.media,source:'official-fast-path',sourceUrl:official,sourceName:hostOf(official)};
+   }
+  }
+ }catch{}
+ return null;
+}
 async function findVerifiedRestaurantPages(name,address,website){
   const safeName=String(name||'').replace(/"/g,''),safeAddress=String(address||'').replace(/"/g,''),websiteHost=hostOf(website);
   // Official-site discovery is the primary web path. Do it before broader
@@ -483,6 +503,14 @@ module.exports=async function handler(req,res){
       }catch{}
     }
 
+    // Fast path: when an official website is already known, inspect the
+    // homepage first and try its strongest venue images immediately. This
+    // avoids waiting for broader search/verification work in the common case.
+    if(officialWebsite){
+      const fastOfficial=await fastOfficialVenuePhoto(name,address,officialWebsite);
+      if(fastOfficial)return sendMedia(res,fastOfficial);
+    }
+
     const pages=await findVerifiedRestaurantPages(name,address,officialWebsite);
 
     // Tier 1: exact restaurant/location images from the restaurant's own website.
@@ -544,5 +572,6 @@ module.exports._test={
   sameHost,
   structuredRestaurantMatches,
   bingExactImageCandidates,
-  exactImageFromBing
+  exactImageFromBing,
+  fastOfficialVenuePhoto
 };
