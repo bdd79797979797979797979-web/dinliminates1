@@ -1,7 +1,7 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 712,
-  "sourceBranch": "cp712-full-meal-editing",
-  "checkpoint": "CP712"
+  "build": 713,
+  "sourceBranch": "cp713-custom-taxonomy-delete-recovery",
+  "checkpoint": "CP713"
 }
