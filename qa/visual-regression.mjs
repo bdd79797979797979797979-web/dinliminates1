@@ -48,4 +48,33 @@ const meanDelta=Math.abs(sig.mean-baseline.mean);
 assert.ok(diff<=24,'Restaurant start visual signature changed too much: '+diff+'/256 hex nibbles');
 assert.ok(meanDelta<=8,'Restaurant start visual brightness changed too much: '+meanDelta.toFixed(2));
 console.log(JSON.stringify({signature:sig,hexNibbleDiff:diff,meanDelta:+meanDelta.toFixed(2),shot}));
+
+const surfaceMode=process.argv.includes('--surface-smoke');
+async function surfaceSmoke(label,action,selector){
+  await page.goto('http://127.0.0.1:4176/?visual-surface='+encodeURIComponent(label));
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(150);
+  await action();
+  await page.waitForTimeout(220);
+  const geom=await page.evaluate(()=>({clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,innerHeight,scrollHeight:document.documentElement.scrollHeight}));
+  assert.equal(geom.scrollWidth,geom.clientWidth,label+' should not horizontally overflow');
+  assert.ok(geom.scrollHeight<=geom.innerHeight+2,label+' should fit the iPhone viewport');
+  const box=await page.locator(selector).boundingBox();
+  assert.ok(box&&box.width>80&&box.height>40,label+' key surface should have meaningful visible geometry');
+  const file='/tmp/dinliminate-visual-'+label+'.png';
+  await page.screenshot({path:file,fullPage:false});
+  const surface=PNG.sync.read(fs.readFileSync(file));
+  let total=0;
+  for(let i=0;i<surface.data.length;i+=4) total+=0.299*surface.data[i]+0.587*surface.data[i+1]+0.114*surface.data[i+2];
+  const mean=total/(surface.width*surface.height);
+  assert.ok(mean>2,label+' screenshot should not be visually blank');
+  console.log(JSON.stringify({surface:label,width:surface.width,height:surface.height,mean:+mean.toFixed(2)}));
+}
+if(surfaceMode){
+  await surfaceSmoke('home',async()=>{},'#home');
+  await surfaceSmoke('meal',async()=>page.locator('#foodStart').click(),'#foodCard');
+  await surfaceSmoke('winner',async()=>{await page.locator('#foodStart').click();await page.waitForTimeout(120);await page.locator('#foodChoose').click();},'#winner');
+  await surfaceSmoke('settings',async()=>{await page.locator('#menu').click();await page.waitForTimeout(220);await page.locator('#settings').click();},'#settingsModal');
+}
+
 await browser.close();server.close();
