@@ -83,6 +83,9 @@ assert.equal(isNonDining(nonDiningFixtures[1]),true,'Food distributor must be ex
 assert.equal(isNonDining(nonDiningFixtures[2]),true,'Warehouse must be excluded');
 assert.equal(isNonDining({id:'larson-ambiguous',name:'Larsons Enterprise',category:'Restaurant',providerType:'Restaurant',address:'555 Food Service Rd, Clarksville, TN'}),true,'Larsons Enterprise must be excluded even when a weak provider mislabels it as a restaurant');
 assert.equal(isNonDining(nonDiningFixtures[3]),false,'Actual dining venue must remain eligible');
+assert.equal(isNonDining({id:'larson-exact',name:'Larson Enterprises Inc',category:'Restaurant',providerType:'Restaurant',address:'555 Food Service Rd, Clarksville, TN'}),true,'Larson Enterprises Inc must be excluded as the reported food-provider false positive');
+assert.equal(isNonDining({id:'supplier-type',name:'Some Food Business',category:'Restaurant',providerType:'Food Supplier',address:'556 Example Rd, Clarksville, TN'}),true,'Food Supplier provider type must be excluded even when category is mislabelled');
+assert.equal(isNonDining({id:'equipment-type',name:'Commercial Kitchen Equipment',category:'Restaurant',providerType:'Commercial Kitchen Equipment',address:'557 Example Rd, Clarksville, TN'}),true,'Commercial kitchen supplier/equipment records must be excluded');
 const filtered=filterNonDining(nonDiningFixtures);
 assert.deepEqual(filtered.map(x=>x.id),['restaurant'],'Non-dining rows must be removed while dining rows remain');
 console.log('Restaurant non-dining business regression: PASS');
