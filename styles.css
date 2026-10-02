@@ -2335,3 +2335,75 @@ button,a,select{touch-action:manipulation}
   .unified-swipe-actions .round-show-maybe .deck-filter-heart{font-size:16px!important}
   .unified-swipe-actions .round-show-maybe .deck-filter-all{font-size:15px!important}
 }
+
+
+/* CP684 — fix Restaurant swipe-rail specificity conflict.
+   CP567 constrained #restaurant .swipe-actions to 255px, which caused
+   the fourth All/Maybe circle to overlap Cut/Maybe. The Restaurant rail
+   now explicitly inherits the same full-width centered four-slot layout
+   as Meals. */
+#restaurant .unified-swipe-actions{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:64px!important;
+  margin:13px auto 5px!important;
+  padding:0!important;
+  gap:10px!important;
+  box-sizing:border-box!important;
+}
+#restaurant .unified-swipe-actions .round-action,
+#restaurant .unified-swipe-actions .round-show-maybe{
+  position:static!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  margin:0!important;
+  transform:none!important;
+  flex:0 0 auto!important;
+}
+#restaurant .unified-swipe-actions .round-back{
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+}
+#restaurant .unified-swipe-actions .round-cut,
+#restaurant .unified-swipe-actions .round-maybe{
+  width:60px!important;
+  min-width:60px!important;
+  height:60px!important;
+  min-height:60px!important;
+}
+#restaurant .unified-swipe-actions .round-show-maybe{
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+}
+@media(max-width:390px){
+  #restaurant .unified-swipe-actions{
+    gap:8px!important;
+    min-height:60px!important;
+  }
+  #restaurant .unified-swipe-actions .round-back,
+  #restaurant .unified-swipe-actions .round-show-maybe{
+    width:42px!important;
+    min-width:42px!important;
+    height:42px!important;
+    min-height:42px!important;
+  }
+  #restaurant .unified-swipe-actions .round-cut,
+  #restaurant .unified-swipe-actions .round-maybe{
+    width:58px!important;
+    min-width:58px!important;
+    height:58px!important;
+    min-height:58px!important;
+  }
+}
