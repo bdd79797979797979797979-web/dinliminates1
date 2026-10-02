@@ -1,3 +1,15 @@
+## CP762 Home cleanup — 2026-10-02
+- Preserved the Home headline **Meal Decisions Simplified** exactly as requested.
+- Did not add the “Beautifully swipe until it’s revealed.” tagline.
+- Removed the floating Home swipe instruction from runtime and CSS.
+- Reduced DINE IN / DINE OUT activation to one button click path each.
+- Added a deterministic document-level Home scroll lock while the Home screen is active.
+- Removed the Home arrow markup; the two picture windows remain the primary tap targets.
+- Synchronized asset cache query versions to v762 and service-worker shell cache to v762.
+- Synchronized release metadata to Build 762 / CP762.
+- Recovery baseline: CP761 branch cp761-all-maybes-text-toggle.
+- Current branch: cp762-home-cleanup.
+
 
 ## CP760 single-background / two-window Home — 2026-10-02
 - Reworked Home to use one single cinematic restaurant photograph across the entire Home canvas.
