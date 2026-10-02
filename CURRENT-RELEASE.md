@@ -1,4 +1,13 @@
 
+## CP758 All/Maybe placement — 2026-10-02
+- Fixed Meals and Restaurants so the All/Maybe control is placed between **Quick Cuts** and the green **Choices** count.
+- Replaced the old pill/A/heart visual with a flat **ALL · MAYBE** text control.
+- Active mode uses a subtle green emphasis and underline; inactive mode stays muted.
+- The control remains disabled when no Maybe choices exist.
+- No decision semantics changed: All shows the normal deck; Maybe shows only the user-kept Maybe choices.
+- Quick Cuts remains collapsed by default.
+- Build/cache bumped to CP758 / v758.
+
 ## CP757 Home reference refinement — 2026-10-02
 - Softened the Dine In/Dine Out transition so the two full-bleed sections read as one cinematic composition.
 - Restored the requested one-time **Swipe until it’s revealed.** cue as a very small, low-contrast editorial line above the footer.
