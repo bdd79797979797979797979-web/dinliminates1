@@ -33,7 +33,7 @@ assert.ok(app.includes("let APP_BUILD = '774'"),'Offline release fallback must b
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
-assert.ok(app.includes("delete S.notes['food:'+id];saveItemNotes();")&&!app.includes("saveItemNotes();delete S.notes['food:'+id];saveItemNotes();"),'Custom meal delete must not duplicate note deletion');
+assert.ok(app.includes('function setItemNote(item,type,note)')&&app.includes('else delete S.notes[key]'),'Item note deletion must use the central note helper');
 assert.ok(app.includes('const runtimeBuild=String(d?.build||\'\');'),'Diagnosis must compare runtime release metadata dynamically');
 assert.ok(!app.includes("==='701'")&&!app.includes("cp701-app-diagnosis-refresh"),'Diagnosis must not hardcode CP701 release identity');
 
