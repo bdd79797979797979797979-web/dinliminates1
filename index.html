@@ -14,7 +14,7 @@
 <title>Dinliminate — Dinner Decisions Simplified</title>
 
 <link rel="preload" as="image" fetchpriority="high" href="./home-background.jpg">
-<link rel="stylesheet" href="./styles.css?v=813">
+<link rel="stylesheet" href="./styles.css?v=814">
 </head>
 <body>
 <main class="app">
@@ -162,6 +162,18 @@
     <span>YOUR PICKS ARE IN</span><b>Waiting for the Family.</b><small id="familyWaitingText">Your choices are saved. We’ll move everyone forward together.</small>
   </div>
 </div>
+<div class="family-winner hidden" id="familyWinner">
+  <div class="family-winner-celebration" id="familyWinnerCelebration" aria-hidden="true"></div>
+  <span class="family-winner-kicker">TONIGHT’S DINNER</span>
+  <h2 id="familyWinnerName"></h2>
+  <p>Decided together with Family Mode.</p>
+  <div class="family-winner-image-wrap"><img id="familyWinnerImg" alt=""></div>
+  <div class="family-winner-actions">
+    <button class="cut" id="familyWinnerDetails" type="button">Details</button>
+    <button class="secondary" id="familyWinnerShare" type="button">Share</button>
+    <button class="secondary" id="familyWinnerAgain" type="button">Decide Again</button>
+  </div>
+</div>
 </div>
 </section>
 
@@ -273,7 +285,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=813"></script>
+<script src="./app.js?v=814"></script>
 </main>
 </body>
 </html>
