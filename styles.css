@@ -7511,3 +7511,86 @@ button,input,select,textarea{
 @media(max-width:390px){
   #foodEditorForm .meal-time-editor-grid{grid-template-columns:1fr!important}
 }
+
+
+/* CP834 — Meal Time metadata follows the existing quiet library/detail treatment. */
+#manageFoodsModal .row-meal-time{
+  display:block!important;
+  margin-top:2px!important;
+  color:#aaa49a!important;
+  font-size:9px!important;
+  letter-spacing:.01em!important;
+}
+#detailsModal .detail-info-row strong{
+  color:#f0ece4;
+}
+#foodEditorForm .meal-time-option{
+  min-height:54px!important;
+}
+#foodEditorForm .meal-time-option span{
+  font-size:10px!important;
+  font-weight:800!important;
+  letter-spacing:.02em!important;
+  text-transform:uppercase!important;
+}
+#food .meal-time-chip{
+  min-width:max-content!important;
+}
+#food .meal-time-chip.is-active{
+  color:#e2c17f!important;
+  border-color:rgba(214,183,120,.78)!important;
+  background:rgba(44,37,27,.92)!important;
+  box-shadow:inset 0 0 0 1px rgba(214,183,120,.14),0 0 10px rgba(214,183,120,.07)!important;
+}
+
+/* CP834 — Family Mode keeps the Meal Time choice compact and in-family with its existing controls. */
+#familySetup .family-meal-time-controls{
+  display:grid!important;
+  gap:7px!important;
+  margin:10px 0!important;
+  padding:10px 11px!important;
+  border:1px solid #2f2c27!important;
+  border-radius:15px!important;
+  background:rgba(17,17,16,.72)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+#familySetup .family-meal-time-head{
+  display:grid!important;
+  gap:2px!important;
+}
+#familySetup .family-meal-time-head span{
+  color:#d8cdbd!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+}
+#familySetup .family-meal-time-head small{
+  color:#777169!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+}
+#familySetup .family-meal-time-options{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+}
+#familySetup .family-meal-time-option{
+  min-height:34px!important;
+  padding:0 6px!important;
+  border:1px solid #302d28!important;
+  border-radius:10px!important;
+  background:#151514!important;
+  color:#a7a096!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  line-height:1.1!important;
+}
+#familySetup .family-meal-time-option.is-active{
+  color:#e2c17f!important;
+  border-color:rgba(214,183,120,.72)!important;
+  background:rgba(44,37,27,.7)!important;
+  box-shadow:inset 0 0 0 1px rgba(214,183,120,.12)!important;
+}
+@media(max-width:390px){
+  #familySetup .family-meal-time-options{grid-template-columns:1fr!important}
+}
