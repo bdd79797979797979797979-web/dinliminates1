@@ -34,6 +34,29 @@ function providerSearchTerms(s){
 function searchRegexAlternatives(values){return '(?:'+values.map(searchRegex).filter(Boolean).join('|')+')';}
 function searchRegex(value){return normalizeSearchQuery(value).split(' ').filter(Boolean).map(word=>word.split('').map(ch=>escapeOverpassRegex(ch)).join('[^a-z0-9]*')).join('[^a-z0-9]+')}
 function isFastFoodName(name,brand='',operator=''){return FAST.test(String(name||'')+' '+String(brand||'')+' '+String(operator||''))}
+function isClearlyNonDiningBusiness(row){
+ const hay=norm([
+  row?.name,row?.brand,row?.operator,row?.category,row?.cuisine,
+  row?.providerType,row?.primaryType,
+  Array.isArray(row?.types)?row.types.join(' '):row?.types,
+  Array.isArray(row?.amenity)?row.amenity.join(' '):row?.amenity
+ ].filter(Boolean).join(' '));
+ if(!hay)return false;
+ const nonDiningPattern=/\b(?:food supplier|food suppliers|food provider|food providers|food vendor|food vendors|food distributor|food distributors|food distribution|food wholesaler|food wholesalers|food wholesale|restaurant supply|restaurant supplies|restaurant supplier|restaurant suppliers|restaurant equipment|foodservice|food service company|food service supplier|food service distributor|food service equipment|wholesale food|wholesale foods|wholesale grocery|grocery distributor|grocery distribution|produce supplier|produce suppliers|produce distributor|produce distributors|produce company|meat supplier|meat suppliers|meat distributor|meat distributors|meat processing|meat processor|seafood supplier|seafood suppliers|seafood distributor|seafood distributors|beverage distributor|beverage distributors|commercial kitchen|catering supplier|catering suppliers|food processing|food processor|food manufacturing|food manufacturer|vending supplier|vending services|warehouse|warehousing|distribution center|logistics|freight|trucking|industrial|manufacturing|manufacturer|plumbing|hvac|heating and cooling|construction company|contractor|equipment supplier|equipment rental|office supply|office supplies|auto parts|car dealership|real estate|insurance|bank|attorney|law firm|accounting|consulting|storage facility|self storage|daycare|school|church|hospital|pharmacy|dentist|doctor|medical center)\b/i;
+ if(nonDiningPattern.test(hay))return true;
+ const knownNonDiningName=/\b(?:larson|larsons|larson's)\s+enterprises?\b/i;
+ if(knownNonDiningName.test(norm(row?.name||'')))return true;
+ const strongNonDiningType=/\b(?:supplier|suppliers|distributor|distributors|wholesaler|wholesalers|warehouse|warehouses|manufacturer|manufacturers|manufacturing|processor|processing|logistics|freight|trucking|industrial|contractor|plumbing|hvac|equipment supplier|restaurant equipment|commercial kitchen)\b/i;
+ const diningHay=norm([
+  row?.name,row?.brand,row?.operator,row?.cuisine,row?.providerType,row?.primaryType,
+  Array.isArray(row?.types)?row.types.join(' '):row?.types
+ ].filter(Boolean).join(' '));
+ const diningType=/\b(?:restaurant|fast food|fast_food|pizzeria|diner|cafe|café|pub|tavern|bar|bistro|food truck|food court|food hall)\b/i;
+ const sourceTypeHay=norm([row?.providerType,row?.primaryType,Array.isArray(row?.types)?row.types.join(' '):row?.types,Array.isArray(row?.amenity)?row.amenity.join(' '):row?.amenity].filter(Boolean).join(' '));
+ if(strongNonDiningType.test(sourceTypeHay)&&!diningType.test(sourceTypeHay))return true;
+ return strongNonDiningType.test(hay)&&!diningType.test(diningHay);
+}
+function filterNonDiningRows(rows){return (rows||[]).filter(row=>!isClearlyNonDiningBusiness(row))}
 function miles(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(z))}
 async function json(url,opt={},timeout=9000){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),timeout);try{const r=await fetch(url,{...opt,signal:ctl.signal,headers:{Accept:'application/json','User-Agent':'Dinliminate/1.0',...(opt.headers||{})}});const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}if(!r.ok)throw new Error('HTTP '+r.status);return data}finally{clearTimeout(t)}}
 function rate(req,mode){const headers=req?.headers||{},client=String(headers['x-forwarded-for']||headers['client-ip']||headers['x-nf-client-connection-ip']||headers['cf-connecting-ip']||'anon').split(',')[0].trim()||'anon',key=mode+':'+client,now=Date.now(),old=buckets.get(key),max=(mode==='suggest'||mode==='reverse'||mode==='resolve')?40:(mode==='search'?MAX_SEARCH_PER_MINUTE:18);if(!old||now-old.t>60000){buckets.set(key,{t:now,c:1});return false}old.c++;return old.c>max}
