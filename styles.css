@@ -5724,7 +5724,6 @@ button,input,select,textarea{
   height:100svh!important;
   margin:0!important;
   padding:calc(env(safe-area-inset-top) + 74px) 14px max(18px,calc(env(safe-area-inset-bottom) + 18px))!important;
-  background:transparent!important;
   justify-content:center!important;
   overflow:hidden!important;
 }
@@ -5823,7 +5822,6 @@ button,input,select,textarea{
   z-index:50!important;
   height:58px!important;
   padding:0 2px!important;
-  background:transparent!important;
   box-shadow:none!important;
 }
 .app:has(#home:not(.hidden)) #home{
@@ -5833,7 +5831,6 @@ button,input,select,textarea{
   height:100svh!important;
   margin:0!important;
   padding:calc(env(safe-area-inset-top) + 72px) 0 max(18px,calc(env(safe-area-inset-bottom) + 18px))!important;
-  background:transparent!important;
   justify-content:center!important;
   overflow:hidden!important;
 }
@@ -5960,7 +5957,6 @@ button,input,select,textarea{
   padding:0!important;
   border:0!important;
   border-radius:0!important;
-  background:transparent!important;
   box-shadow:none!important;
   display:inline-flex!important;
   align-items:center!important;
