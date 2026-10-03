@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 776,
-  "sourceBranch": "cp776-full-pexels-home-background",
+  "build": 777,
+  "sourceBranch": "cp776-launch-full-pexels-home-background",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP776",
-  "deploymentTrigger": "CP776-launch-full-pexels-home-background-2026-10-02"
+  "checkpoint": "CP777",
+  "deploymentTrigger": "CP777-meals-all-maybes-wiring-2026-10-02"
 }
