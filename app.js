@@ -2871,6 +2871,46 @@ function bindDetailNotes(modal,item,type){
  render();
 }
 
+
+async function hydrateStoredPhotoImages(scope){
+ const selector=(scope||'')+' img[data-stored-photo-ref]';
+ const nodes=[...document.querySelectorAll(selector)];
+ for(const img of nodes){
+   const ref=String(img.dataset.storedPhotoRef||'');
+   if(!ref.startsWith('idb:'))continue;
+   const data=await getStoredPhoto(ref.slice(4));
+   if(data){img.src=data;img.dataset.storedPhotoResolved='true';}
+   else img.dataset.imageFallback='true';
+ }
+}
+function renderMealDetailPhotoGallery(item,initialIndex=0){
+ const host=$('mealDetailPhotoGallery'),photos=mealPhotoList(item);
+ if(!host||!photos.length)return;
+ let index=Math.max(0,Math.min(Number(initialIndex)||0,photos.length-1));
+ host.innerHTML='<div class="meal-detail-photo-frame"><img id="mealDetailPhotoImg" src="'+esc(photos[index].src.startsWith('idb:')?FINAL_FOOD_IMAGE:photos[index].src)+'" alt="'+esc(item.name||'Meal')+'"><div class="meal-detail-photo-overlay"><span class="meal-detail-photo-counter"></span><div class="meal-detail-photo-dots"></div></div></div>';
+ const img=$('mealDetailPhotoImg'),counter=host.querySelector('.meal-detail-photo-counter'),dots=host.querySelector('.meal-detail-photo-dots');
+ const render=()=>{
+   const photo=photos[index]||photos[0];
+   img.src=String(photo.src).startsWith('idb:')?FINAL_FOOD_IMAGE:photo.src;
+   img.alt=item.name||'Meal';
+   applyMealPhotoStyle(img,photo);
+   if(counter)counter.textContent=(index+1)+' / '+photos.length;
+   if(dots)dots.innerHTML=photos.map((p,i)=>'<button type="button" class="'+(i===index?'is-active':'')+'" data-meal-detail-dot="'+i+'" aria-label="Show photo '+(i+1)+'"></button>').join('');
+   dots?.querySelectorAll('[data-meal-detail-dot]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();index=Number(btn.dataset.mealDetailDot)||0;render();});
+ };
+ let downX=0,downY=0,tracking=false,pointerId=null;
+ img.onpointerdown=e=>{if(e.isPrimary===false)return;downX=e.clientX;downY=e.clientY;tracking=true;pointerId=e.pointerId;try{img.setPointerCapture?.(e.pointerId)}catch{}};
+ img.onpointerup=e=>{
+   if(!tracking||e.pointerId!==pointerId)return;
+   const dx=e.clientX-downX,dy=e.clientY-downY;tracking=false;pointerId=null;try{if(img.hasPointerCapture?.(e.pointerId))img.releasePointerCapture(e.pointerId)}catch{};
+   if(Math.abs(dx)>=35&&Math.abs(dx)>Math.abs(dy)){index=Math.max(0,Math.min(photos.length-1,index+(dx<0?1:-1)));render();e.preventDefault();}
+ };
+ img.onpointercancel=()=>{tracking=false;pointerId=null;};
+ img.draggable=false;
+ render();
+ bindImageFallback('#detailsModal #mealDetailPhotoImg',FINAL_FOOD_IMAGE,FINAL_FOOD_IMAGE);
+ return {getIndex:()=>index};
+}
 function detailsSheet(item,type){
  if(item?.category==='Hungry')return;
  const isRestaurant=type==='restaurant';
@@ -2885,6 +2925,8 @@ function detailsSheet(item,type){
    const about=String(item.description||'').trim();
    const ingredients=Array.isArray(item.ingredients)?item.ingredients.filter(Boolean):[];
    const recipe=String(item.recipe||'').trim();
+   const photos=mealPhotoList(item);
+   const selectedIndex=String(S.foodPhotoItemId||'')===String(item.id||'')?Number(S.foodPhotoIndex||0):0;
    const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
    const detailRows='<div class="detail-info-list">'+
      '<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(cat)+'</strong></div>'+
@@ -2899,15 +2941,15 @@ function detailsSheet(item,type){
      '<div><b>'+esc(nut.fat||'—')+' g</b><span>Fat</span></div>'+
      '<div><b>'+esc(nut.sodium||'—')+' mg</b><span>Sodium</span></div>'+
      '</div><p class="detail-note">'+esc(item.nutritionNote||'Typical estimate per serving.')+'</p></section>' : '';
-   const hide='<div class="detail-secondary-actions"><button class="detail-hide-action" id="detailHide" type="button" aria-label="Hide this meal"><span class="detail-hide-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M8.7 8.7A5 5 0 0 0 7 12c1.4 2.8 3.3 4.2 5 4.2 1 0 2-.3 2.8-.9M10.2 5.9C10.8 5.7 11.4 5.7 12 5.7c1.7 0 3.6 1.4 5 4.2.4.8.7 1.5.8 2.1M14.1 14.1A3 3 0 0 1 9.9 9.9" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Hide Meal</span></button></div>';
-   const body='<div class="detail-unified detail-meal"><div class="detail-hero detail-meal-hero"><img class="history-detail-photo" src="'+esc(image)+'" data-final-fallback="'+FINAL_FOOD_IMAGE+'" alt="'+esc(item.name)+'"></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">MEAL</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+' · Meal</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+detailRows+'</section>'+nutrition+notesSection+hide+'</div>';
+   const hide='<div class="detail-secondary-actions"><button class="detail-hide-action" id="detailHide" type="button" aria-label="Hide this meal"><span class="detail-hide-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M8.7 8.7A5 5 0 0 0 7 12c1.4 2.8 3.3 4.2 5 4.2 1 1 2-.3 2.8-.9M10.2 5.9C10.8 5.7 11.4 5.7 12 5.7c1.7 0 3.6 1.4 5 4.2.4.8.7 1.5.8 2.1M14.1 14.1A3 3 0 0 1 9.9 9.9" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Hide Meal</span></button></div>';
+   const body='<div class="detail-unified detail-meal"><div class="detail-hero detail-meal-hero"><div id="mealDetailPhotoGallery" class="meal-detail-photo-gallery"></div></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">MEAL</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+' · Meal</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+detailRows+'</section>'+nutrition+notesSection+hide+'</div>';
    const modal=openModal('detailsModal','Details',body);
-   bindImageFallback('#detailsModal img',foodPhoto(item),FINAL_FOOD_IMAGE);
+   renderMealDetailPhotoGallery(item,selectedIndex);
    bindDetailNotes(modal,item,'food');
    const detailHide=$('detailHide');
    if(detailHide)detailHide.onclick=async()=>{const hidden=await foodHideItem(item);if(hidden){modal.remove();$('detailsModalBg')?.remove();}};
    return;
- }
+}
 
  const cat=restaurantCategory(item);
  const detailPhone=String(item.phone||item.nationalPhoneNumber||item['contact:phone']||'').trim();
@@ -2946,7 +2988,8 @@ function detailsSheet(item,type){
 
 function historyImageSource(row){
  const fallback=row?.type==='restaurant'?restaurantFallbackImage(row):HUNGRY_IMAGE;
- return imageProxyUrl(row?.image||row?.photoFallback||fallback);
+ const image=String(row?.image||row?.photoFallback||fallback);
+ return image.startsWith('idb:')?fallback:imageProxyUrl(image);
 }
 async function recordHistory(item, type, options={}) {
 const history = readHistory();
@@ -3065,6 +3108,7 @@ body += history.length ? '<div class="history-toolbar"><span class="status">'+hi
 body += '</div>';
 const modal = openModal('historyModal','History',body);
 bindImageFallback('#historyModal img',FINAL_RESTAURANT_IMAGE,FINAL_RESTAURANT_IMAGE);
+hydrateStoredPhotoImages('#historyModal');
 for(const row of history.slice(0,30)) if(row?.type==='restaurant'&&row?.id) hydrateRestaurantPhoto(row,'#historyModal');
 $('historyStatsToggle').onclick=()=>{
   const panel=$('historyStats'),btn=$('historyStatsToggle'); if(!panel||!btn)return;
@@ -3085,12 +3129,14 @@ if (row) detailsSheet(row, row.type);
 if(history.length){
 $('historyClearAll').onclick=async()=>{
 if(!await appConfirm('Clear history?','This permanently removes all saved meal and restaurant decisions from this device.','Clear History'))return;
+for(const row of history)if(String(row?.image||'').startsWith('idb:'))deleteStoredPhoto(row.image.slice(4));
 writeHistory([]); modal.remove(); $('historyModalBg')?.remove(); render();
 };
 }
 modal.querySelectorAll('[data-history-delete]').forEach(btn => {
 const remove = (e) => {
 e.preventDefault(); e.stopPropagation();
+const removed=history.find(x=>x.id===btn.dataset.historyDelete);if(String(removed?.image||'').startsWith('idb:'))deleteStoredPhoto(removed.image.slice(4));
 writeHistory(history.filter(x => x.id !== btn.dataset.historyDelete));
 modal.remove(); $('historyModalBg')?.remove(); render();
 };
