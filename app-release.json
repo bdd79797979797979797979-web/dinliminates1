@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 782,
-  "sourceBranch": "cp782-launch-menu-fixed-top",
-  "checkpoint": "CP782",
-  "deploymentTrigger": "CP782-menu-fixed-top-2026-10-03"
+  "build": 783,
+  "sourceBranch": "cp783-launch-all-menu-buttons-locked",
+  "checkpoint": "CP783",
+  "deploymentTrigger": "CP783-all-menu-buttons-locked-2026-10-03"
 }
