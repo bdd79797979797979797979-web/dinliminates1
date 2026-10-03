@@ -6547,3 +6547,10 @@ button,input,select,textarea{
 .app-topbar .brand-mark{margin:0 auto!important}
 .app-topbar{justify-content:center!important}
 .decision-brand,.winner-brand{justify-self:center!important}
+
+/* CP801 — final Home wordmark specificity lock. */
+.app.home-active:has(#home:not(.hidden)) .app-topbar .brand{
+  font-size:20px!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+}
