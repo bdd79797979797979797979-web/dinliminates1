@@ -7758,3 +7758,32 @@ button,input,select,textarea{
   #foodEditorForm .meal-time-editor-grid{grid-template-columns:1fr!important;gap:6px!important}
   #foodEditorForm .meal-time-option{min-height:44px!important}
 }
+
+
+/* CP841 — right-anchor the Meals ALL / MAYBES control with its count immediately after it. */
+#food .quick-label{
+  grid-template-columns:auto auto minmax(0,1fr) auto!important;
+  gap:9px!important;
+}
+#food #foodMealTimeToggle{
+  grid-column:1!important;
+}
+#food #foodQuickToggle{
+  grid-column:2!important;
+}
+#food #foodMaybeDeck{
+  grid-column:3!important;
+  justify-self:end!important;
+}
+#food #foodCount{
+  grid-column:4!important;
+  justify-self:start!important;
+  white-space:nowrap!important;
+  margin-left:0!important;
+}
+@media(max-width:390px){
+  #food .quick-label{
+    grid-template-columns:auto auto minmax(0,1fr) auto!important;
+    gap:6px!important;
+  }
+}
