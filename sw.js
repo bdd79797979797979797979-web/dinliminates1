@@ -1,8 +1,9 @@
-const CACHE='dinliminate-shell-v786';
+const CACHE='dinliminate-shell-v802';
 const IMAGE_CACHE='dinliminate-images-v1';
+const HOME_DOOR='/api/image?url='+encodeURIComponent('https://images.pexels.com/photos/6162883/pexels-photo-6162883.jpeg?auto=compress&cs=tinysrgb&w=1800');
 const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./data/restaurant-taxonomy.js','./manifest.webmanifest','./app-release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png','./fallback-food.svg','./fallback-restaurant.svg'];
 self.addEventListener('install',event=>{
-  event.waitUntil(Promise.all([caches.open(CACHE).then(c=>c.addAll(SHELL)),caches.open(IMAGE_CACHE)]).then(()=>self.skipWaiting()));
+  event.waitUntil(Promise.all([caches.open(CACHE).then(c=>c.addAll(SHELL).then(()=>fetch(HOME_DOOR).then(r=>r.ok?c.put(HOME_DOOR,r.clone()):null).catch(()=>null))),caches.open(IMAGE_CACHE)]).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',event=>{
   event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==IMAGE_CACHE&&k!=='dinliminate.restaurant.photos.v2').map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
