@@ -1,0 +1,9 @@
+{
+  "name": "dinliminate",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0"
+  }
+}
