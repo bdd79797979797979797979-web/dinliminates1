@@ -7203,3 +7203,7 @@ button,input,select,textarea{
  .family-swipe-copy h3{font-size:27px}
  .family-round-action{min-height:58px}
 }
+
+/* CP812 — Family timing */
+.family-swipe-head-meta{display:grid;justify-items:end;gap:4px;padding-bottom:1px}
+.family-swipe-head-meta small{font-size:8px;color:#777;letter-spacing:.04em;white-space:nowrap}
