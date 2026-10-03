@@ -7409,3 +7409,79 @@ button,input,select,textarea{
   background:#d6b778!important;
   box-shadow:0 0 7px rgba(214,183,120,.24)!important;
 }
+
+
+/* CP829 — Meals: separate Quick Cuts from Meal Time Cuts without changing the restaurant rail. */
+#food .quick-label{
+  grid-template-columns:minmax(0,1fr) auto auto auto!important;
+}
+#food .food-quick-control{
+  appearance:none!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  padding:0!important;
+  margin:0!important;
+  color:#f1f1f1!important;
+  height:27px!important;
+  min-height:27px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.01em!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  cursor:pointer!important;
+  justify-self:start!important;
+  text-align:left!important;
+}
+#food .food-quick-control:hover{color:#fff!important}
+#food .quick-cuts-collapse-toggle{
+  grid-column:1!important;
+  grid-row:1!important;
+}
+#food #foodMealTimeToggle{
+  grid-column:2!important;
+  grid-row:1!important;
+}
+#food #foodMaybeDeck{
+  grid-column:3!important;
+  grid-row:1!important;
+}
+#food #foodCount{
+  grid-column:4!important;
+  grid-row:1!important;
+}
+#food .food-quick-rail{
+  max-height:90px!important;
+  opacity:1!important;
+  transform:translateY(0)!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  transition:max-height .28s ease,opacity .2s ease,transform .28s ease,padding .28s ease!important;
+}
+#food .food-quick-rail.is-rail-collapsed{
+  max-height:0!important;
+  min-height:0!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  opacity:0!important;
+  transform:translateY(-5px)!important;
+  pointer-events:none!important;
+}
+#food .meal-time-chip{
+  background:rgba(23,23,23,.94)!important;
+}
+#food .meal-time-chip.is-active{
+  color:#e2c17f!important;
+  border-color:rgba(214,183,120,.72)!important;
+  background:rgba(44,37,27,.9)!important;
+  box-shadow:inset 0 0 0 1px rgba(214,183,120,.15)!important;
+}
+#food #foodMealTimeToggle.is-filtered{
+  color:#e2c17f!important;
+}
+@media(max-width:390px){
+  #food .quick-label{gap:6px!important}
+  #food .food-quick-control{font-size:10px!important}
+}
