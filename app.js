@@ -3925,7 +3925,7 @@ function familySetupItems(){
   if(familySetupType==='meal'){
     return allFoods().filter(item=>item&&!S.hidden.has(item.id)&&!S.deleted.has(item.id));
   }
-  return restaurantPoolFiltered().filter(row=>row&&!row._hidden&&!row._cut);
+  return restaurantPoolBase().filter(row=>row&&!row._hidden&&!row._cut);
 }
 function familySetupRender(){
   const list=$('familySetupList'),count=$('familySetupCount'),note=$('familySetupNote');
