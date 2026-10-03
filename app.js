@@ -106,23 +106,6 @@ function imageProxyUrl(raw){
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
  try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
 }
-const HOME_DOOR_IMAGE='./home-background.jpg';
-const HOME_DOOR_PROXY=HOME_DOOR_IMAGE;
-function bindPersistentHomeBackground(){
- const img=$('homeBackgroundImage');
- if(!img||img.dataset.bound)return;
- img.dataset.bound='true';
- img.src=HOME_DOOR_PROXY;
- img.dataset.fallback=HOME_DOOR_IMAGE;
- img.referrerPolicy='no-referrer';
- img.loading='eager';
- img.fetchPriority='high';
- img.decoding='async';
- img.addEventListener('error',()=>{
-   const fallback=img.dataset.fallback||HOME_DOOR_IMAGE;
-   if(img.src!==fallback){img.src=fallback;}
- });
-}
 function foodPhoto(item){
 if(!item)return HUNGRY_IMAGE;
 const src=String(item.image||'');
