@@ -55,7 +55,7 @@ await page.locator('#restStart').click();
 await page.waitForTimeout(300);
 assert.equal(await page.locator('#restaurant').isVisible(),true);
 const restBack=await page.locator('#restaurant .decision-back').evaluate(el=>getComputedStyle(el).color);
-assert.ok(/242,s*213,s*155/.test(restBack)||restBack.includes('#f2d59b'),'Restaurant Back must be gold');
+assert.equal(restBack,foodTop.color,'Restaurant Back must use the same gold color as Meals Back: '+restBack);
 await page.locator('#restaurantBackTop').click();
 await page.waitForTimeout(120);
 const homeBg3=await page.evaluate(()=>getComputedStyle(document.querySelector('.app')).backgroundImage);
