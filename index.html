@@ -14,7 +14,7 @@
 <title>Dinliminate — Dinner Decisions Simplified</title>
 
 <link rel="preload" as="image" fetchpriority="high" href="./home-background.jpg">
-<link rel="stylesheet" href="./styles.css?v=810">
+<link rel="stylesheet" href="./styles.css?v=811">
 </head>
 <body>
 <main class="app">
@@ -118,7 +118,7 @@
         <div class="family-panel-title"><b>Family</b><span id="familyMemberCount">0 here</span></div>
         <div id="familyMemberList" class="family-member-list"></div>
       </div>
-      <p class="family-lobby-status" id="familyLobbyStatus" role="status" aria-live="polite"></p><div class="family-lobby-pulse" id="familyLobbyPulse"><span></span><b>Live family lobby</b></div><button id="familySetupOpen" class="family-primary family-host-only hidden" type="button">Set up dinner</button>
+      <p class="family-lobby-status" id="familyLobbyStatus" role="status" aria-live="polite"></p><div class="family-lobby-pulse" id="familyLobbyPulse"><span></span><b>Live family lobby</b></div><button id="familySetupOpen" class="family-primary family-host-only hidden" type="button">Set up dinner</button><button id="familyStartDecision" class="family-primary family-host-only hidden" type="button">Start deciding</button>
     </div>
   
 <div class="family-setup hidden" id="familySetup">
@@ -141,6 +141,26 @@
 
   <button id="familyLockSetup" class="family-primary" type="button">Lock choices</button>
   <p id="familySetupStatus" class="family-form-status" role="status" aria-live="polite"></p>
+</div>
+
+<div class="family-swipe hidden" id="familySwipe">
+  <div class="family-swipe-head"><div><span id="familySwipeStageKicker">FIRST PICKS</span><h2 id="familySwipeTitle">Make your picks.</h2></div><span id="familySwipeProgress">0 / 0</span></div>
+  <p class="family-swipe-note" id="familySwipeNote">Cut what you don’t want. Maybe means you’d be happy with it. Choose means you really want it.</p>
+  <div class="family-swipe-stage">
+    <div class="family-swipe-card" id="familySwipeCard">
+      <img id="familySwipeImg" alt="">
+      <div class="family-swipe-shade"></div>
+      <div class="family-swipe-copy"><small id="familySwipeCat"></small><h3 id="familySwipeName"></h3><span id="familySwipeMeta"></span></div>
+    </div>
+  </div>
+  <div class="family-swipe-actions">
+    <button class="family-round-action family-round-cut" id="familySwipeCut" type="button" aria-label="Cut">✕<small>Cut</small></button>
+    <button class="family-round-action family-round-maybe" id="familySwipeMaybe" type="button" aria-label="Maybe">♥<small>Maybe</small></button>
+    <button class="family-round-action family-round-choose" id="familySwipeChoose" type="button" aria-label="Choose">✓<small>Choose</small></button>
+  </div>
+  <div class="family-waiting hidden" id="familySwipeWaiting">
+    <span>YOUR PICKS ARE IN</span><b>Waiting for the Family.</b><small id="familyWaitingText">Your choices are saved. We’ll move everyone forward together.</small>
+  </div>
 </div>
 </div>
 </section>
@@ -253,7 +273,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=810"></script>
+<script src="./app.js?v=811"></script>
 </main>
 </body>
 </html>
