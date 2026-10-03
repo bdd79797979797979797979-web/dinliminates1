@@ -843,6 +843,7 @@ if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood()
 function serializeWinnerItem(item){
  if(!item||typeof item!=='object')return item;
  const out={...item};
+ delete out.photos;
  const ref=String(out._historyPhotoRef||'').trim();
  if(ref)out.image=ref;
  else if(String(out.image||'').startsWith('data:image/'))out.image=DEFAULT_FOOD_IMAGE;
@@ -858,6 +859,7 @@ restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:serializeWinnerItem(S.winnerItem), winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
 restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant},
+foodPhotoItemId:String(S.foodPhotoItemId||''),foodPhotoIndex:Number(S.foodPhotoIndex||0),
 mealPhotoVisits:S.mealPhotoVisits||{},
 custom:S.custom.map(serializeMealRecord),
 customQuickCuts:(S.customQuickCuts||[]).map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has('quickcut:'+x.id))?'idb:quickcut:'+x.id:x.image}))
@@ -913,6 +915,7 @@ S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
 S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
 S.mealPhotoVisits=(d.mealPhotoVisits&&typeof d.mealPhotoVisits==='object'&&!Array.isArray(d.mealPhotoVisits))?d.mealPhotoVisits:{};
+S.foodPhotoItemId=String(d.foodPhotoItemId||'');S.foodPhotoIndex=Math.max(0,Number(d.foodPhotoIndex)||0);
 S.foodPhotoItemId='';S.foodPhotoIndex=0;
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
@@ -4356,7 +4359,7 @@ function familyBuildSnapshot(){
   const items=familySetupItems();
   const pool=items.map(item=>({
     id:String(item.id), name:String(item.name||''), category:String(item.category||''), cuisine:String(item.cuisine||''),
-    image:String(item.image||item.photo||''), address:String(item.address||''), website:String(item.website||''), phone:String(item.phone||''),
+    image:/^https:\/\//i.test(String(item.image||item.photo||''))?String(item.image||item.photo||''):((familySetupType==='food')?foodPhotoFallback(item):restaurantFallbackImage(item)), address:String(item.address||''), website:String(item.website||''), phone:String(item.phone||''),
     distance:Number.isFinite(Number(item.distance))?Number(item.distance):null
   })).filter(item=>item.id&&item.name);
   return {
