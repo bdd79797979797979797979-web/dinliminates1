@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 830,
+  "build": 831,
   "sourceBranch": "cp827-final-deploy",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP830",
-  "deploymentTrigger": "CP830-explicit-meal-time-2026-10-03"
+  "checkpoint": "CP831",
+  "deploymentTrigger": "CP831-explicit-meal-time-model-2026-10-03"
 }
