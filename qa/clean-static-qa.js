@@ -15,7 +15,7 @@ new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Scrip
 assert.equal(release.build,786,'Current release must be Build 786');
 assert.equal(release.checkpoint,'CP786','Current release checkpoint must be CP786');
 assert.equal(manifest.build,786,'Release manifest build must be 786');
-assert.equal(manifest.checkpoint,'CP785','Release manifest checkpoint must be CP785');
+assert.equal(manifest.checkpoint,'CP786','Release manifest checkpoint must be CP785');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
