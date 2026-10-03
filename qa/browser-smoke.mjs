@@ -73,6 +73,14 @@ assert.equal(deckPos.foodPosition,'static','Meals ALL/MAYBES must stay in normal
 assert.equal(deckPos.restaurantPosition,'static','Restaurants ALL/MAYBES must stay in normal grid flow');
 assert.equal(deckPos.foodTransform,'none','Meals ALL/MAYBES must not inherit the legacy absolute transform');
 assert.equal(deckPos.restaurantTransform,'none','Restaurants ALL/MAYBES must not inherit the legacy absolute transform');
+const deckVisual=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck'),r=document.getElementById('restaurantMaybeDeck'),fc=getComputedStyle(f),rc=getComputedStyle(r),frect=f.getBoundingClientRect(),rrect=r.getBoundingClientRect();return {foodText:f.textContent.trim(),restaurantText:r.textContent.trim(),foodFont:fc.fontSize,restaurantFont:rc.fontSize,foodHeight:frect.height,restaurantHeight:rrect.height,foodWidth:frect.width,restaurantWidth:rrect.width};});
+assert.equal(deckVisual.foodText,'ALL · MAYBES','Meals filter must read ALL · MAYBES');
+assert.equal(deckVisual.restaurantText,'ALL · MAYBES','Restaurant filter must read ALL · MAYBES');
+assert.equal(deckVisual.foodFont,deckVisual.restaurantFont,'Meals and Restaurants filter typography must match');
+assert.ok(Math.abs(deckVisual.foodHeight-deckVisual.restaurantHeight)<1,'Meals and Restaurants filter heights must match');
+assert.ok(Math.abs(deckVisual.foodWidth-deckVisual.restaurantWidth)<1,'Meals and Restaurants filter widths must match');
+const counts=await page.evaluate(()=>({food:document.getElementById('foodCount')?.textContent.trim(),restaurant:document.getElementById('restaurantCount')?.textContent.trim()}));
+
 
 assert.equal(await page.locator('#home .sub').innerText(),'Swipe. Dinliminate. Enjoy.');
 assert.equal(await page.locator('#addToPhone').count(),1);
