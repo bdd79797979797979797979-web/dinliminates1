@@ -886,7 +886,8 @@ function maybeShowInCardSwipeCoach(){
  const coach=document.createElement('div');
  coach.className='swipe-card-coach';
  coach.setAttribute('role','note');
- coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. This lesson disappears after your first interaction.');\n const legacyDismiss=coach.querySelector('.swipe-card-coach-dismiss'); if(legacyDismiss) legacyDismiss.remove();
+ coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. This lesson disappears after your first interaction.');
+ const legacyDismiss=coach.querySelector('.swipe-card-coach-dismiss'); if(legacyDismiss) legacyDismiss.remove();
  coach.innerHTML='<span class="swipe-card-coach-cut">← Cut</span><span class="swipe-card-coach-mid">Swipe</span><span class="swipe-card-coach-maybe">Maybe →</span>';
  const close=event=>{event.preventDefault();event.stopPropagation();dismissInCardSwipeCoach();};
  coach.addEventListener('pointerup',close);
