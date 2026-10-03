@@ -7207,3 +7207,19 @@ button,input,select,textarea{
 /* CP812 — Family timing */
 .family-swipe-head-meta{display:grid;justify-items:end;gap:4px;padding-bottom:1px}
 .family-swipe-head-meta small{font-size:8px;color:#777;letter-spacing:.04em;white-space:nowrap}
+
+/* CP814 — Family winner */
+.family-winner{position:relative;padding:6px 8px 18px;text-align:left}
+.family-winner-kicker{display:block;font-size:10px;letter-spacing:.2em;color:#c6a46a;font-weight:850}
+.family-winner h2{font-size:43px;line-height:.93;letter-spacing:-.06em;margin:8px 0 8px;max-width:430px}
+.family-winner>p{font-size:11px;color:#858585;margin:0 0 13px}
+.family-winner-image-wrap{position:relative;overflow:hidden;border-radius:24px;border:1px solid #2a2a2a;background:#111}
+.family-winner-image-wrap img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.family-winner-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
+.family-winner-actions button{min-height:48px;border-radius:14px;font-weight:800}
+.family-winner-celebration{position:absolute;inset:5px 0 auto;height:90px;pointer-events:none;overflow:visible;z-index:2}
+.family-winner-celebration i{position:absolute;left:50%;top:54px;width:4px;height:9px;border-radius:3px;background:#e1c98e;opacity:0}
+.family-winner-celebration.is-celebrating i{animation:familySpark .9s cubic-bezier(.22,1,.36,1) forwards}
+.family-winner-celebration i:nth-child(3n){background:#e4e4e4}
+@keyframes familySpark{0%{transform:translate3d(0,0,0) rotate(0);opacity:0}12%{opacity:1}100%{transform:translate3d(var(--fx),var(--fy),0) rotate(var(--fr));opacity:0}}
+@media(max-width:390px){.family-winner h2{font-size:38px}.family-winner-image-wrap img{aspect-ratio:1}}
