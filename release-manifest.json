@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 785,
-  "sourceBranch": "cp785-launch-top-aligned-utility-modals",
+  "build": 786,
+  "sourceBranch": "cp786-launch-at-home-restaurant-labels",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP785",
-  "deploymentTrigger": "CP785-top-aligned-utility-modals-2026-10-03"
+  "checkpoint": "CP786",
+  "deploymentTrigger": "CP786-at-home-restaurant-labels-2026-10-03"
 }
