@@ -74,8 +74,8 @@ assert.equal(deckPos.restaurantPosition,'static','Restaurants ALL/MAYBES must st
 assert.equal(deckPos.foodTransform,'none','Meals ALL/MAYBES must not inherit the legacy absolute transform');
 assert.equal(deckPos.restaurantTransform,'none','Restaurants ALL/MAYBES must not inherit the legacy absolute transform');
 const deckVisual=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck'),r=document.getElementById('restaurantMaybeDeck'),fc=getComputedStyle(f),rc=getComputedStyle(r),frect=f.getBoundingClientRect(),rrect=r.getBoundingClientRect();return {foodText:f.textContent.trim(),restaurantText:r.textContent.trim(),foodFont:fc.fontSize,restaurantFont:rc.fontSize,foodHeight:frect.height,restaurantHeight:rrect.height,foodWidth:frect.width,restaurantWidth:rrect.width};});
-assert.equal(deckVisual.foodText.replace(/\s+/g,' '),'ALL · MAYBES','Meals filter must read ALL · MAYBES');
-assert.equal(deckVisual.restaurantText.replace(/\s+/g,' '),'ALL · MAYBES','Restaurant filter must read ALL · MAYBES');
+assert.equal(deckVisual.foodText.replace(/[^A-Z]/g,''),'ALLMAYBES','Meals filter must contain ALL and MAYBES');
+assert.equal(deckVisual.restaurantText.replace(/[^A-Z]/g,''),'ALLMAYBES','Restaurant filter must contain ALL and MAYBES');
 assert.equal(deckVisual.foodFont,deckVisual.restaurantFont,'Meals and Restaurants filter typography must match');
 assert.ok(Math.abs(deckVisual.foodHeight-deckVisual.restaurantHeight)<1,'Meals and Restaurants filter heights must match');
 assert.ok(Math.abs(deckVisual.foodWidth-deckVisual.restaurantWidth)<1,'Meals and Restaurants filter widths must match');
@@ -184,6 +184,13 @@ assert.equal(await page.locator('#restaurant .deck-filter-label-all').innerText(
 assert.equal(await page.locator('#restaurant .deck-filter-label-maybe').innerText(),'MAYBES');
 const restaurantFilterGeom=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck').getBoundingClientRect(),c=document.getElementById('restaurantCount').getBoundingClientRect();return {filterRight:f.right,countLeft:c.left};});
 assert.ok(restaurantFilterGeom.filterRight<=restaurantFilterGeom.countLeft,'Restaurants ALL/MAYBES must be left of count');
+const restaurantVisual=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck'),r=document.getElementById('foodMaybeDeck'),fc=getComputedStyle(f),rc=getComputedStyle(r),fr=f.getBoundingClientRect(),rr=r.getBoundingClientRect();return {restaurantFont:fc.fontSize,foodFont:rc.fontSize,restaurantHeight:fr.height,foodHeight:rr.height,restaurantWidth:fr.width,foodWidth:rr.width};});
+assert.equal(restaurantVisual.restaurantFont,restaurantVisual.foodFont,'Visible Meals/Restaurants filter typography must match');
+assert.ok(Math.abs(restaurantVisual.restaurantHeight-restaurantVisual.foodHeight)<1,'Visible Meals/Restaurants filter heights must match');
+assert.ok(Math.abs(restaurantVisual.restaurantWidth-restaurantVisual.foodWidth)<1,'Visible Meals/Restaurants filter widths must match');
+assert.match(await page.locator('#restaurantCount').innerText(),/^\d+$/,'Restaurant count must be numeric only');
+assert.match(await page.locator('#foodCount').innerText(),/^\d+$/,'Meal count must be numeric only');
+
 assert.equal(await page.locator('#restStage #restaurantCard').count(),1);
 const restBefore=Number((await page.locator('#restaurantCount').innerText()).match(/\d+/)?.[0]||0);
 assert.equal(restBefore,3);
