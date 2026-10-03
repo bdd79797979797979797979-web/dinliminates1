@@ -54,7 +54,7 @@ module.exports = async function handler(req, res) {
       'HOST_REQUIRED','ROUND_ACTIVE','NO_ROUND','ROUND_ALREADY_STARTED','ROUND_STATE_CHANGED',
       'INVALID_SNAPSHOT','INVALID_DATE','INVALID_ITEM','INVALID_CHOICE','INVALID_STAGE',
       'INVALID_DECISION_TYPE','ROUND_ACCESS','ROUND_STAGE','STAGE_EXPIRED','MEMBER_NOT_FOUND',
-      'CODE_UNAVAILABLE','UNAUTHORIZED'
+      'CODE_UNAVAILABLE','FAMILY_EXPIRED','UNAUTHORIZED'
     ]);
     const code = known.has(err && err.code) ? err.code : 'FAMILY_SERVER_ERROR';
     if (code === 'FAMILY_SERVER_ERROR') console.error('[family]', err);
