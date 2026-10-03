@@ -12,10 +12,10 @@ const sw=fs.readFileSync('sw.js','utf8');
 
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
-assert.equal(release.build,775,'Current release must be Build 775');
-assert.equal(release.checkpoint,'CP775','Current release checkpoint must be CP775');
-assert.equal(manifest.build,775,'Release manifest build must be 775');
-assert.equal(manifest.checkpoint,'CP775','Release manifest checkpoint must be CP775');
+assert.equal(release.build,776,'Current release must be Build 775');
+assert.equal(release.checkpoint,'CP776','Current release checkpoint must be CP775');
+assert.equal(manifest.build,776,'Release manifest build must be 775');
+assert.equal(manifest.checkpoint,'CP776','Release manifest checkpoint must be CP775');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
@@ -29,7 +29,7 @@ assert.ok(html.includes('styles.css?v=775')&&html.includes('app.js?v=775'),'Fron
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 
-assert.ok(app.includes("let APP_BUILD = '775'"),'Offline release fallback must be current');
+assert.ok(app.includes("let APP_BUILD = '776'"),'Offline release fallback must be current');
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
@@ -53,7 +53,7 @@ assert.ok(api.includes('MAX_RADIUS=100'),'Restaurant API must cap radius at 100 
 assert.ok(api.includes('process.env.GOOGLE_PLACES_API_KEY')&&api.includes('process.env.GOOGLE_MAPS_API_KEY'),'Google Places support must remain optional, not required');
 assert.ok(api.includes('Photon')||api.includes('photon'),'No-credential discovery must retain non-Google providers');
 
-assert.ok(sw.includes("const CACHE='dinliminate-shell-v775'"),'Service-worker shell cache must be current');
+assert.ok(sw.includes("const CACHE='dinliminate-shell-v776'"),'Service-worker shell cache must be current');
 assert.ok(sw.includes("'./app-release.json'")&&sw.includes("'./release-manifest.json'"),'Service worker must cache release metadata');
 assert.ok(css.includes('.luxury-home .home-icon-action')&&css.includes('.restaurant-card-utility'),'Premium Home and Restaurant utility styles must exist');
 assert.ok(css.includes('quick-section .quick-cuts-collapse-toggle::after')&&css.includes('cp774QuickCutsSheen'),'Quick Cuts must use the selected subtle sheen');
@@ -71,5 +71,5 @@ assert.ok(css.includes('min-height:44px')&&css.includes('height:44px'),'Current 
 assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.includes('passAround'),'Pass Around must remain absent from active UI/runtime');
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
-console.log('Dinliminate CP775 static QA: PASS');
+console.log('Dinliminate CP776 static QA: PASS');
 console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v775',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
