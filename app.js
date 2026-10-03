@@ -3675,7 +3675,6 @@ bindHungryWheelGesture();
 $('hungryWheelChoose').onclick = () => {
   const choice=S.hungryWheelChoice;
   if(!choice || S.hungryWheelSpinning)return;
-  S.hungryWheelChoice=null;
   winner(choice,'food');
 };
 $('hungryMysteryReveal').onclick = revealHungryRestaurant;
