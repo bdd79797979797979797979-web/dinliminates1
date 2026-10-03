@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 762,
-  "sourceBranch":"cp762-home-cleanup",
+  "build": 763,
+  "sourceBranch":"cp763-luxury-abstract-home-background",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint":"CP762"
+  "checkpoint":"CP763"
 }
