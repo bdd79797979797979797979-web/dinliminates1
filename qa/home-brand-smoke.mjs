@@ -22,7 +22,7 @@ const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(String(e)));
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
-await page.waitForTimeout(250);
+await page.waitForFunction(() => !!getComputedStyle(document.documentElement).getPropertyValue('--home-bg-image').trim(),{timeout:3000});
 assert.equal(errors.length,0,'Home must load without page errors: '+errors.join(' | '));
 
 async function homeState(label){
