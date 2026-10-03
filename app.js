@@ -886,11 +886,12 @@ function maybeShowInCardSwipeCoach(){
  const coach=document.createElement('div');
  coach.className='swipe-card-coach';
  coach.setAttribute('role','note');
- coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. Tap to dismiss.');
- coach.innerHTML='<span class="swipe-card-coach-cut">← Cut</span><span class="swipe-card-coach-mid">Swipe</span><span class="swipe-card-coach-maybe">Maybe →</span><button class="swipe-card-coach-dismiss" type="button" aria-label="Dismiss swipe instructions">×</button>';
+ coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. This lesson disappears after your first interaction.');
+ coach.innerHTML='<span class="swipe-card-coach-cut">← Cut</span><span class="swipe-card-coach-mid">Swipe</span><span class="swipe-card-coach-maybe">Maybe →</span>';
  const close=event=>{event.preventDefault();event.stopPropagation();dismissInCardSwipeCoach();};
  coach.addEventListener('pointerup',close);
  coach.addEventListener('click',close);
+ window.setTimeout(()=>coach.isConnected&&dismissInCardSwipeCoach(),5200);
  card.appendChild(coach);
 }
 function startFood() {
