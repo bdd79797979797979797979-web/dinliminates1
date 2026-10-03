@@ -6490,3 +6490,21 @@ button,input,select,textarea{
   background-position:center!important;
   background-repeat:no-repeat!important;
 }
+
+/* CP800 — tactile second-chance wheel: readable segments, color, manual flick, luxury landing. */
+.hungry-wheel-stage{touch-action:none;cursor:grab}
+.hungry-wheel-stage:active{cursor:grabbing}
+.hungry-wheel-ring svg{transition:transform 1.75s cubic-bezier(.12,.72,.11,1)}
+.hungry-wheel-ring svg.is-spinning{transition:transform 1.75s cubic-bezier(.12,.72,.11,1)}
+.hungry-wheel-ring svg.is-dragging{transition:none!important}
+.wheel-label{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;font-size:8.2px;font-weight:800;letter-spacing:-.02em;pointer-events:none}
+.wheel-segment{transition:filter .2s ease,opacity .2s ease}
+.wheel-segment.is-landed{filter:drop-shadow(0 0 9px #c6a46a88)}
+.wheel-center{filter:drop-shadow(0 0 9px #c6a46a44)}
+.hungry-wheel-pointer{border-top-color:#f3ead8}
+.hungry-wheel-pointer:before{content:"";position:absolute;left:-14px;top:-25px;width:28px;height:28px;border-radius:50%;background:#c6a46a12;filter:blur(3px)}
+.hungry-wheel-panel.has-landed .hungry-wheel-pointer{filter:drop-shadow(0 0 6px #c6a46a) drop-shadow(0 3px 4px #0009)}
+#hungryWheelResult{animation:wheelResultIn .42s cubic-bezier(.2,.8,.2,1)}
+@keyframes wheelResultIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
+.hungry-wheel-actions .cut{box-shadow:0 10px 28px #c6a46a2a}
+#celebration .firework-burst span{filter:drop-shadow(0 0 4px #c6a46a)}
