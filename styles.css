@@ -5651,3 +5651,229 @@ button,input,select,textarea{
   #restaurant .quick-filter-toggle > span,
   #restaurant .restaurant-all-maybe-toggle > span{font-size:8px!important}
 }
+
+
+/* CP768 — decisive window geometry cleanup. Later legacy rules are neutralized here. */
+/* Home fills the viewport with the existing CP755 dining image; no bottom black wash. */
+html,body{scroll-behavior:auto!important;}
+html:has(body .app #home:not(.hidden)),
+body:has(.app #home:not(.hidden)){
+  overflow:hidden!important;
+  height:100%!important;
+  min-height:100%!important;
+}
+.app:has(#home:not(.hidden)){
+  height:100svh!important;
+  min-height:100svh!important;
+  max-height:100svh!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(255,224,160,.07),transparent 30%),
+    url("/api/image?url=https%3A%2F%2Fimages.pexels.com%2Fphotos%2F6162883%2Fpexels-photo-6162883.jpeg%3Fcs%3Dsrgb%26dl%3Dpexels-luisbecerrafotografo-6162883.jpg%26fm%3Djpg") center center/cover no-repeat!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden))::after{
+  background:radial-gradient(circle at 50% 18%,rgba(255,224,160,.07),transparent 30%)!important;
+  opacity:1!important;
+}
+.luxury-home{
+  height:100%!important;
+  min-height:100%!important;
+  max-height:100%!important;
+  background:transparent!important;
+}
+/* Menu is a separate floating window directly below the Home hamburger. */
+.drawer{
+  position:fixed!important;
+  top:70px!important;
+  right:14px!important;
+  left:auto!important;
+  bottom:auto!important;
+  width:min(88vw,420px)!important;
+  height:auto!important;
+  max-height:calc(100svh - 84px)!important;
+  overflow:auto!important;
+  padding:18px 18px 20px!important;
+  border:1px solid rgba(229,210,171,.24)!important;
+  border-radius:24px!important;
+  background:radial-gradient(130% 70% at 100% 0%,#1b2730 0%,rgba(27,39,48,0) 54%),linear-gradient(165deg,#151515 0%,#0d0d0c 100%)!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.72),0 0 0 6px rgba(10,10,9,.25)!important;
+  transform:translateY(-8px) scale(.985)!important;
+  opacity:0!important;
+  z-index:210!important;
+}
+.drawer.is-open{
+  transform:translateY(0) scale(1)!important;
+  opacity:1!important;
+}
+.drawer-bg{
+  position:fixed!important;
+  inset:0!important;
+  z-index:209!important;
+  background:rgba(0,0,0,.54)!important;
+  backdrop-filter:blur(4px)!important;
+  -webkit-backdrop-filter:blur(4px)!important;
+}
+/* Utility windows open high and centered, beneath the hamburger area. */
+.utility-modal{
+  position:fixed!important;
+  top:70px!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:50%!important;
+  width:min(92vw,520px)!important;
+  height:auto!important;
+  max-height:calc(100svh - 84px)!important;
+  overflow:auto!important;
+  transform:translate(-50%,-8px) scale(.985)!important;
+  z-index:220!important;
+}
+.utility-modal.modal-open{
+  transform:translate(-50%,0) scale(1)!important;
+}
+.utility-modal.modal-closing{
+  transform:translate(-50%,-5px) scale(.99)!important;
+}
+/* Details is a true centered modal, not a bottom sheet. */
+#detailsModal{
+  position:fixed!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:50%!important;
+  width:min(92vw,520px)!important;
+  max-height:84svh!important;
+  height:auto!important;
+  border-radius:24px!important;
+  padding:16px 16px 18px!important;
+  transform:translate(-50%,-50%) scale(.985)!important;
+  z-index:230!important;
+  box-shadow:0 28px 90px rgba(0,0,0,.78)!important;
+}
+#detailsModal.modal-open,
+#detailsModal.details-modal.modal-open{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+#detailsModal.modal-closing,
+#detailsModal.details-modal.modal-closing{
+  transform:translate(-50%,-50%) scale(.99)!important;
+}
+/* Keep the final Details content animations from replacing the centering transform. */
+#detailsModal .detail-title-block,
+#detailsModal .detail-section,
+#detailsModal .detail-utility-actions,
+#detailsModal .detail-secondary-actions{
+  transform:none!important;
+}
+/* Meals: Quick Cuts | ALL · MAYBES | Choices count. */
+#food .quick-label{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  width:100%!important;
+  gap:8px!important;
+}
+#food .quick-label-right{
+  display:contents!important;
+}
+#food #foodMaybeDeck{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+#food #foodCount{
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+#restaurant .restaurant-choice-management{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  width:100%!important;
+  gap:8px!important;
+}
+#restaurant #restaurantMaybeDeck{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+#restaurant #restaurantCount{
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+/* Flat text only — no pill, circle, background, or border. */
+#food #foodMaybeDeck,
+#restaurant #restaurantMaybeDeck{
+  position:static!important;
+  inset:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  color:#8f8b84!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.05em!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+}
+#food #foodMaybeDeck > span,
+#restaurant #restaurantMaybeDeck > span{
+  display:inline!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#8f8b84!important;
+  line-height:1!important;
+}
+#food #foodMaybeDeck .deck-filter-divider,
+#restaurant #restaurantMaybeDeck .deck-filter-divider{color:#5f5b55!important}
+#food #foodMaybeDeck.is-all .deck-filter-label-all,
+#restaurant #restaurantMaybeDeck.is-all .deck-filter-label-all{color:#63d992!important}
+#food #foodMaybeDeck.is-maybe .deck-filter-label-maybe,
+#restaurant #restaurantMaybeDeck.is-maybe .deck-filter-label-maybe{
+  color:#7bdca0!important;
+  text-decoration:underline!important;
+  text-decoration-thickness:1px!important;
+  text-underline-offset:3px!important;
+}
+/* The coach lives inside the card and has no dismiss control. */
+.swipe-card-coach{
+  left:50%!important;
+  bottom:70px!important;
+  width:calc(100% - 24px)!important;
+  max-width:none!important;
+  min-height:28px!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  z-index:40!important;
+  pointer-events:auto!important;
+}
+.swipe-card-coach-dismiss{display:none!important}
+@media(max-width:390px){
+  .drawer{top:64px!important;right:10px!important;width:min(91vw,390px)!important;max-height:calc(100svh - 76px)!important}
+  .utility-modal{top:64px!important;max-height:calc(100svh - 76px)!important}
+  #detailsModal{width:min(94vw,520px)!important;max-height:88svh!important}
+  #food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{font-size:8px!important;gap:5px!important}
+  #food #foodMaybeDeck > span,#restaurant #restaurantMaybeDeck > span{font-size:8px!important}
+  .swipe-card-coach{bottom:66px!important;width:calc(100% - 18px)!important;font-size:7.8px!important}
+}
