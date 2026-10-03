@@ -5672,3 +5672,18 @@ button,input,select,textarea{
 #detailsModal.details-modal.modal-closing{
   transform:translate(-50%,-50%) scale(.99)!important;
 }
+
+
+/* CP775 — legacy instruction cleanup: only the card lesson can render, and old floating hints never display. */
+.swipe-hint,[data-swipe-instruction="true"]{display:none!important;visibility:hidden!important;pointer-events:none!important}
+.quick-label-right{display:contents!important}
+#food .quick-label,#restaurant .restaurant-choice-management{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;width:100%!important;gap:8px!important}
+#food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{grid-column:2!important;grid-row:1!important;justify-self:start!important}
+#food #foodCount,#restaurant #restaurantCount{grid-column:3!important;grid-row:1!important;justify-self:end!important}
+#food .quick-cuts-collapse-toggle,#restaurant .quick-cuts-collapse-toggle-restaurant{grid-column:1!important;grid-row:1!important;justify-self:start!important}
+
+/* CP775 — winner fireworks keep firing rather than fading after one short burst. */
+#winner #celebration:not(.hidden) .firework-burst.burst-1,
+#winner #celebration:not(.hidden) .firework-burst.burst-2,
+#winner #celebration:not(.hidden) .firework-burst.burst-3{animation-duration:5.4s!important;animation-iteration-count:infinite!important}
+#winner #celebration:not(.hidden) .firework-burst span{animation-duration:2.7s!important;animation-iteration-count:infinite!important}
