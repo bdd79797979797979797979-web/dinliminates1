@@ -58,6 +58,27 @@ await page.route('**/*',async route=>{
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(150);
 assert.equal(await page.locator('#home h1').innerText(),'Meal Decisions Simplified');
+assert.equal(await page.locator('#foodStart strong').innerText(),'AT HOME');
+assert.equal(await page.locator('#foodStart .home-card-copy>span').innerText(),'Your meal awaits');
+assert.equal(await page.locator('#restStart strong').innerText(),'RESTAURANT');
+assert.equal(await page.locator('#restStart .home-card-copy>span').innerText(),'Your table awaits');
+assert.equal(await page.locator('#home').locator('text=DINE IN').count(),0);
+assert.equal(await page.locator('#home').locator('text=DINE OUT').count(),0);
+const homeLuxury=await page.evaluate(()=>{
+ const root=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden))'));
+ const logo=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden)) .app-topbar .brand'));
+ const eyebrow=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden)) #home .home-intro .eyebrow'));
+ const headline=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden)) #home .home-intro h1'));
+ const card=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden)) #home .home-card-photo'));
+ const arrow=getComputedStyle(document.querySelector('.app:has(#home:not(.hidden)) #home .home-card-photo .arrow'));
+ return {logoBackground:logo.backgroundImage,logoColor:logo.color,eyebrowColor:eyebrow.color,eyebrowSpacing:eyebrow.letterSpacing,headlineShadow:headline.textShadow,cardBorder:card.borderTopColor,arrowBorder:arrow.borderTopColor,rootOverlay:root.position};
+});
+assert.ok(homeLuxury.logoBackground.includes('linear-gradient'),'Home logo must use the polished champagne gradient');
+assert.notEqual(homeLuxury.eyebrowColor,'rgb(255, 255, 255)','Home eyebrow must use the champagne accent');
+assert.ok(homeLuxury.eyebrowSpacing!=='normal','Home eyebrow must retain premium letter spacing');
+assert.notEqual(homeLuxury.headlineShadow,'none','Home headline must retain contrast shadow');
+assert.notEqual(homeLuxury.cardBorder,'rgba(255, 255, 255, 0.28)','Home photo-window border must use the warmer luxury finish');
+
 const menuBefore=await page.evaluate(()=>{const d=getComputedStyle(document.getElementById('drawer')),bg=getComputedStyle(document.getElementById('drawerBg'));return {drawerPos:d.position,drawerTop:d.top,drawerRight:d.right,drawerBottom:d.bottom,bgPos:bg.position};});
 assert.equal(menuBefore.drawerPos,'fixed','Home Menu drawer must be fixed to the viewport');
 assert.equal(menuBefore.drawerTop,'0px','Home Menu drawer must start at the top');
