@@ -337,7 +337,10 @@ async function leaveFamily(sessionToken){
   const members=await sql.query('select * from family_members where family_id=$1 and active=true order by joined_at asc',[family.family_id]);
   if(members.length<=1){
     await sql.query('update family_members set active=false,last_seen_at=now() where member_id=$1',[me.member_id]);
-    await sql.query('update family_rooms set member_count=0,host_member_id=null,updated_at=now(),last_activity_at=now() where family_id=$1',[family.family_id]);
+    if(family.active_round_id){
+      await sql.query("update family_rounds set status='ended',updated_at=now(),completed_at=now() where round_id=$1 and status not in ('complete','ended')",[family.active_round_id]);
+    }
+    await sql.query('update family_rooms set member_count=0,host_member_id=null,active_round_id=null,updated_at=now(),last_activity_at=now() where family_id=$1',[family.family_id]);
     return {ok:true,empty:true};
   }
   await sql.query('update family_members set active=false,role=\'member\',last_seen_at=now() where member_id=$1',[me.member_id]);
