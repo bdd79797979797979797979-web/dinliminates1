@@ -44,7 +44,7 @@ await page.route('**/*',async route=>{
       {id:'qa-restaurant-2',name:'Thirsty Goat',category:'Pizza',fastFood:false,cuisine:'pizza',address:'200 Main St, Clarksville, TN',lat:36.5320,lon:-87.3590,distance:0.2,website:'',opening_hours:'',openNow:true,photo:'https://images.unsplash.com/photo-1579684947550-22e945225d9a'},
       {id:'qa-restaurant-3',name:'Ruby Tuesday',category:'American',fastFood:false,cuisine:'american',address:'300 Main St, Clarksville, TN',lat:36.5350,lon:-87.3600,distance:0.4,website:'',opening_hours:'24/7',openNow:true,photo:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4'}
     ];
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'r25',radiusMiles:10,total:rows.length,fastFoodCount:1,timezone:'America/Chicago',results:rows})});
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'r27',radiusMiles:10,total:rows.length,fastFoodCount:1,timezone:'America/Chicago',results:rows})});
   }
   if(u.includes('/api/restaurant-photo')){
     return route.fulfill({status:200,contentType:'image/png',body:tiny});
@@ -82,6 +82,8 @@ assert.equal(await page.locator('#foodCard .swipe-card-coach').count(),1);
 assert.equal(await page.locator('#food .quick-section').getAttribute('class').then(x=>String(x||'')).then(x=>x.includes('is-collapsed')),true);
 assert.equal(await page.locator('#food .deck-filter-label-all').innerText(),'ALL');
 assert.equal(await page.locator('#food .deck-filter-label-maybe').innerText(),'MAYBES');
+const foodFilterGeom=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck').getBoundingClientRect(),c=document.getElementById('foodCount').getBoundingClientRect();return {filterRight:f.right,countLeft:c.left};});
+assert.ok(foodFilterGeom.filterRight<=foodFilterGeom.countLeft,'Meals ALL/MAYBES must be left of count');
 assert.equal(await page.locator('.swipe-hint').count(),0);
 assert.match(await page.locator('#foodCard .swipe-card-coach').innerText(),/← CUT.*SWIPE.*MAYBE →/s);
 const foodMaybeStyle=await page.locator('#foodMaybe').evaluate(el=>getComputedStyle(el,'::before').animationName);
@@ -93,6 +95,8 @@ assert.match(await page.locator('#foodMaybe').getAttribute('class'),/is-pressed/
 await page.locator('#foodMaybe').dispatchEvent('pointerup',{pointerType:'mouse',button:0});
 await page.waitForTimeout(400);
 assert.equal(Number((await page.locator('#foodCount').innerText()).match(/\d+/)?.[0]||0),foodBefore);
+assert.equal(await page.locator('#foodCard .swipe-card-coach').count(),0);
+assert.equal(await page.locator('.swipe-hint').count(),0);
 await page.locator('#foodCut').dispatchEvent('pointerdown',{pointerType:'mouse',button:0});
 assert.match(await page.locator('#foodCut').getAttribute('class'),/is-pressed/);
 await page.locator('#foodCut').dispatchEvent('pointerup',{pointerType:'mouse',button:0});
@@ -123,6 +127,19 @@ await page.locator('#detailNotesDelete').click();
 assert.equal(await page.locator('#detailNotesEmpty').isVisible(),true);
 await page.locator('#detailsModal [data-close]').click();
 await page.locator('#foodBackTop').click();
+await page.locator('#foodStart').click();
+await page.waitForTimeout(100);
+await page.locator('#foodChoose').click();
+await page.waitForTimeout(120);
+assert.equal(await page.locator('#winner').isVisible(),true);
+assert.equal(await page.locator('#celebration').isVisible(),true);
+assert.equal(await page.locator('#celebration .firework-burst').count(),3);
+const fireworkLoop=await page.locator('#celebration .firework-burst').first().evaluate(el=>getComputedStyle(el).animationIterationCount);
+assert.equal(fireworkLoop,'infinite');
+const fireworkRayLoop=await page.locator('#celebration .firework-burst span').first().evaluate(el=>getComputedStyle(el).animationIterationCount);
+assert.equal(fireworkRayLoop,'infinite');
+const fireworkDuration=await page.locator('#celebration .firework-burst span').first().evaluate(el=>getComputedStyle(el).animationDuration);
+assert.equal(fireworkDuration,'2.7s');
 await page.waitForTimeout(200);
 assert.equal(await page.locator('#homeFirstNudge').count(),0);
 await page.evaluate(()=>localStorage.removeItem('dinliminate.swipeHint.v4'));
@@ -137,6 +154,8 @@ assert.equal(await page.locator('#restaurant .swipe-card-coach').count(),1);
 assert.equal(await page.locator('#restaurant .deck-filter-all').count(),0);
 assert.equal(await page.locator('#restaurant .deck-filter-label-all').innerText(),'ALL');
 assert.equal(await page.locator('#restaurant .deck-filter-label-maybe').innerText(),'MAYBES');
+const restaurantFilterGeom=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck').getBoundingClientRect(),c=document.getElementById('restaurantCount').getBoundingClientRect();return {filterRight:f.right,countLeft:c.left};});
+assert.ok(restaurantFilterGeom.filterRight<=restaurantFilterGeom.countLeft,'Restaurants ALL/MAYBES must be left of count');
 assert.equal(await page.locator('#restStage #restaurantCard').count(),1);
 const restBefore=Number((await page.locator('#restaurantCount').innerText()).match(/\d+/)?.[0]||0);
 assert.equal(restBefore,3);
