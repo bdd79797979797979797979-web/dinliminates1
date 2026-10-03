@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 840,
-  "sourceBranch": "cp840-door-background-canonical",
+  "build": 841,
+  "sourceBranch": "cp841-all-maybe-right",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP840",
-  "deploymentTrigger": "CP840-canonical-door-background-2026-10-03"
+  "checkpoint": "CP841",
+  "deploymentTrigger": "CP841-all-maybe-right-2026-10-03"
 }
