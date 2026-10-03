@@ -11,7 +11,7 @@ const SEARCH_BUDGET_MS=12000;
 const WIDE_DISCOVERY_RESERVE_MS=700;
 const WIDE_RADIUS_THRESHOLD=50;
 const WIDE_PROVIDER_RADIUS_CAP=50;
-const WIDE_PRIMARY_TIMEBOX_MS=4500;
+const WIDE_PRIMARY_TIMEBOX_MS=8500;
 const WIDE_DISCOVERY_TIMEBOX_MS=6500;
 const OVERPASS_HTTP_TIMEOUT_MS=5200;
 const MAX_SEARCH_PER_MINUTE=60;
@@ -1163,7 +1163,12 @@ if(mode==='search'){
   ? wideRadiusOverpass(lat,lon,radius,searchTerm)
   : (searchTerm ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null);
  const primaryPromise=wideSearch
-  ? Promise.allSettled([photonWidePlaces(lat,lon,radius,searchTerm)])
+  ? Promise.allSettled([
+    photonPlaces(lat,lon,50,searchTerm),
+    arcgisPlaces(lat,lon,50,searchTerm),
+    searchTerm?googleSearchPlaces(lat,lon,50,searchTerm):googlePlaces(lat,lon,50),
+    photonWidePlaces(lat,lon,radius,searchTerm)
+  ])
   : Promise.allSettled([
     photonPlaces(lat,lon,providerRadius,searchTerm),
     arcgisPlaces(lat,lon,providerRadius,searchTerm),
@@ -1178,16 +1183,14 @@ if(mode==='search'){
  }else{
    primaryBatch=await withinBudget(primaryPromise,Math.max(1000,primaryBudget-(Date.now()-startedAt)),'Primary restaurant providers timed out');
  }
- const photonResult=wideSearch
-  ? (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Wide Photon provider timed out')})
-  : (Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
- const arcgisResult=wideSearch
-  ? {status:'fulfilled',value:{rows:[],errors:[]}}
-  : (Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
- const googleResult=wideSearch
-  ? {status:'fulfilled',value:{rows:[],errors:[]}}
-  : (Array.isArray(primaryBatch)?primaryBatch[2]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')});
+ const photonResult=Array.isArray(primaryBatch)?primaryBatch[0]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
+ const arcgisResult=Array.isArray(primaryBatch)?primaryBatch[1]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
+ const googleResult=Array.isArray(primaryBatch)?primaryBatch[2]:{status:'rejected',reason:new Error('Primary restaurant providers timed out')};
+ const widePhotonResult=wideSearch && Array.isArray(primaryBatch)?primaryBatch[3]:{status:'rejected',reason:new Error('Wide Photon provider not used')};
  const photonOut=photonResult.status==='fulfilled'?photonResult.value:{rows:[],errors:[String(photonResult.reason?.message||photonResult.reason||'Photon unavailable')]};
+ const widePhotonOut=widePhotonResult.status==='fulfilled'?widePhotonResult.value:{rows:[],errors:wideSearch?[String(widePhotonResult.reason?.message||widePhotonResult.reason||'Wide Photon unavailable')]:[]};
+ if(wideSearch)photonOut.rows=[...(photonOut.rows||[]),...(widePhotonOut.rows||[])];
+ if(wideSearch)photonOut.errors=[...(photonOut.errors||[]),...(widePhotonOut.errors||[])];
  const arcgisOut=arcgisResult.status==='fulfilled'?arcgisResult.value:{rows:[],errors:[String(arcgisResult.reason?.message||arcgisResult.reason||'ArcGIS unavailable')]};
  const googleOut=googleResult.status==='fulfilled'?googleResult.value:{rows:[],errors:[String(googleResult.reason?.message||googleResult.reason||'Google Places unavailable')]};
  const preliminary=filterNonDiningRows(dedupe([...(googleOut.rows||[]),...(photonOut.rows||[]),...(arcgisOut.rows||[])]));
