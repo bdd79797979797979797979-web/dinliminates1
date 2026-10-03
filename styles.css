@@ -7386,3 +7386,109 @@ button,input,select,textarea{
   object-fit:cover!important;
   object-position:center center!important;
 }
+
+
+/* CP824 — multi-photo meal surfaces. */
+.meal-photo-card-ui{
+ position:absolute!important;left:0!important;right:0!important;bottom:0!important;
+ z-index:6!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ min-height:32px!important;padding:8px 11px!important;
+ background:linear-gradient(180deg,transparent,rgba(7,7,7,.64))!important;
+ pointer-events:none!important;
+}
+.meal-photo-dots{display:flex!important;align-items:center!important;justify-content:center!important;gap:5px!important}
+.meal-photo-dots span{width:5px!important;height:5px!important;border-radius:50%!important;background:rgba(255,255,255,.48)!important;box-shadow:0 0 7px rgba(0,0,0,.35)!important}
+.meal-photo-dots span.is-active{width:6px!important;height:6px!important;background:#f3e7ce!important;box-shadow:0 0 7px rgba(198,164,106,.65)!important}
+.meal-photo-counter{
+ position:absolute!important;left:11px!important;bottom:8px!important;
+ font-size:8px!important;line-height:1!important;font-weight:800!important;letter-spacing:.08em!important;
+ color:rgba(255,255,255,.82)!important;text-shadow:0 1px 8px #000!important;
+}
+.meal-photo-done{
+ display:none!important;pointer-events:auto!important;position:absolute!important;right:10px!important;bottom:5px!important;
+ min-height:25px!important;padding:0 9px!important;border:1px solid rgba(198,164,106,.48)!important;border-radius:9px!important;
+ background:rgba(12,12,12,.54)!important;color:#f0e4cb!important;font-size:8px!important;font-weight:900!important;
+ backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+}
+.meal-photo-card-ui.is-browsing{background:linear-gradient(180deg,rgba(7,7,7,.06),rgba(7,7,7,.78))!important}
+.meal-photo-card-ui.is-browsing .meal-photo-dots{transform:translateX(-3px)!important}
+.meal-photo-card-ui.is-browsing .meal-photo-done{display:block!important}
+.card.meal-photo-browse-mode{box-shadow:0 22px 60px #000a!important}
+.card.meal-photo-browse-mode img{cursor:grab!important}
+.card.meal-photo-browse-mode img:active{cursor:grabbing!important}
+
+.meal-editor-photos-panel{
+ display:grid!important;gap:10px!important;margin-top:9px!important;padding:12px!important;
+ border:1px solid #332f2a!important;border-radius:16px!important;
+ background:linear-gradient(145deg,#171614,#11110f)!important;
+}
+.meal-photo-editor-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.meal-photo-editor-card{
+ min-width:0!important;border:1px solid #312d28!important;border-radius:14px!important;
+ overflow:hidden!important;background:linear-gradient(145deg,#1a1816,#11100f)!important;
+}
+.meal-photo-editor-preview{position:relative!important;height:116px!important;overflow:hidden!important;background:#121212!important}
+.meal-photo-editor-preview img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;transform-origin:center!important}
+.meal-photo-editor-meta{display:flex!important;justify-content:space-between!important;gap:6px!important;padding:7px 8px 2px!important}
+.meal-photo-index,.meal-photo-kind{font-size:8px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#847d74!important}
+.meal-photo-kind{color:#a7c2d0!important}
+.meal-photo-editor-tools{display:flex!important;flex-wrap:wrap!important;gap:5px!important;padding:5px 7px 8px!important}
+.meal-photo-tool{
+ min-height:26px!important;padding:0 7px!important;border:1px solid #3b352d!important;border-radius:8px!important;
+ background:#171615!important;color:#c8bfb3!important;font-size:8px!important;font-weight:900!important;
+}
+.meal-photo-tool:hover,.meal-photo-tool:focus-visible{border-color:#6d5b40!important;color:#f0e5d3!important;background:#1d1a16!important}
+.meal-photo-remove-tool{color:#c58e8e!important}
+.meal-photo-cover-tool{color:#dcc58f!important}
+.meal-photo-cover-badge{display:inline-flex!important;align-items:center!important;min-height:26px!important;padding:0 7px!important;border-radius:8px!important;background:rgba(198,164,106,.13)!important;border:1px solid rgba(198,164,106,.26)!important;color:#e1c992!important;font-size:8px!important;font-weight:900!important;letter-spacing:.08em!important}
+.meal-photo-empty{
+ padding:17px 10px!important;text-align:center!important;display:grid!important;gap:4px!important;
+ border:1px dashed #3c362f!important;border-radius:12px!important;background:#121110!important;
+}
+.meal-photo-empty span{font-size:10px!important;font-weight:850!important;color:#b9b1a6!important}
+.meal-photo-empty small{font-size:8px!important;color:#716c64!important}
+.meal-photo-add-button{
+ display:grid!important;grid-template-columns:auto 1fr auto!important;align-items:center!important;gap:8px!important;
+ min-height:43px!important;padding:0 11px!important;border-radius:12px!important;
+ border:1px solid rgba(169,137,86,.42)!important;background:linear-gradient(180deg,#1c1915,#141311)!important;
+ color:#d9c394!important;cursor:pointer!important;
+}
+.meal-photo-add-button>span{font-size:17px!important;line-height:1!important}
+.meal-photo-add-button>b{font-size:9px!important;letter-spacing:.1em!important;text-transform:uppercase!important}
+.meal-photo-add-button>small{font-size:8px!important;color:#777169!important}
+.meal-photo-add-button input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.meal-photo-url-label{display:grid!important;gap:5px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#827b72!important}
+.meal-photo-url-label input{margin-top:0!important}
+.meal-photo-crop-editor{display:grid!important;gap:10px!important}
+.meal-photo-crop-frame{
+ position:relative!important;height:min(52svh,360px)!important;border-radius:16px!important;overflow:hidden!important;
+ background:#0d0d0d!important;border:1px solid #312c27!important;
+}
+.meal-photo-crop-frame img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;transform-origin:center!important}
+.meal-photo-crop-hint{display:grid!important;gap:3px!important}
+.meal-photo-crop-hint b{font-size:10px!important;color:#d6c29a!important;text-transform:uppercase!important;letter-spacing:.1em!important}
+.meal-photo-crop-hint small{font-size:9px!important;line-height:1.35!important;color:#787168!important}
+.meal-photo-crop-editor>label{display:grid!important;gap:5px!important;font-size:8px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#8d867d!important}
+.meal-photo-crop-editor input[type=range]{width:100%!important;accent-color:#c6a46a!important}
+
+.meal-detail-photo-gallery{width:100%!important}
+.meal-detail-photo-frame{position:relative!important;overflow:hidden!important;border-radius:20px!important;background:#111!important;border:1px solid #2f2a24!important;box-shadow:0 24px 55px #000a!important}
+.meal-detail-photo-frame>img{display:block!important;width:100%!important;height:250px!important;object-fit:cover!important;transform-origin:center!important}
+.meal-detail-photo-overlay{
+ position:absolute!important;left:0!important;right:0!important;bottom:0!important;
+ display:flex!important;align-items:flex-end!important;justify-content:center!important;min-height:40px!important;padding:8px 11px!important;
+ background:linear-gradient(180deg,transparent,rgba(8,8,8,.7))!important;pointer-events:none!important;
+}
+.meal-detail-photo-counter{
+ position:absolute!important;left:11px!important;bottom:9px!important;
+ font-size:8px!important;line-height:1!important;font-weight:800!important;color:#eee!important;text-shadow:0 1px 8px #000!important;
+}
+.meal-detail-photo-dots{display:flex!important;gap:5px!important;pointer-events:auto!important}
+.meal-detail-photo-dots button{width:5px!important;height:5px!important;padding:0!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.42)!important}
+.meal-detail-photo-dots button.is-active{width:6px!important;height:6px!important;background:#f3e7ce!important;box-shadow:0 0 7px rgba(198,164,106,.55)!important}
+
+@media(max-width:430px){
+ .meal-photo-editor-gallery{grid-template-columns:1fr!important}
+ .meal-photo-editor-preview{height:154px!important}
+ .meal-detail-photo-frame>img{height:235px!important}
+}
