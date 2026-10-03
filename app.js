@@ -2710,8 +2710,10 @@ function historyImageSource(row){
  const fallback=row?.type==='restaurant'?restaurantFallbackImage(row):HUNGRY_IMAGE;
  return imageProxyUrl(row?.image||row?.photoFallback||fallback);
 }
-function recordHistory(item, type) {
+function recordHistory(item, type, options={}) {
 const history = readHistory();
+const familyRoundId=String(options.familyRoundId||'').trim();
+if(familyRoundId && history.some(x=>String(x?.familyRoundId||'')===familyRoundId)) return false;
 history.unshift({
 id:String(Date.now())+'-'+Math.random().toString(36).slice(2),
 date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
@@ -2734,9 +2736,12 @@ hoursState:item.hoursState||'',
 menuItems:Array.isArray(item.menuItems)?item.menuItems.slice(0,10):[],
 lat:Number.isFinite(Number(item.lat))?Number(item.lat):null,
 lon:Number.isFinite(Number(item.lon))?Number(item.lon):null,
-distance:Number.isFinite(Number(item.distance))?Number(item.distance):null
+distance:Number.isFinite(Number(item.distance))?Number(item.distance):null,
+familyRoundId:familyRoundId||null,
+familyMode:!!options.familyMode
 });
 writeHistory(history);
+return true;
 }
 function readHistory() {
 try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
@@ -4105,25 +4110,29 @@ $('familyStartDecision')?.addEventListener('click',async()=>{
   catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not start the dinner decision.','error');}
   finally{if(button){button.disabled=false;button.textContent='Start deciding';}}
 });
-/* CP814 — Family winner presentation */
-let familyWinnerRoundId='';
-function familyWinnerCelebrate(){
-  const box=$('familyWinnerCelebration'); if(!box)return;
-  box.innerHTML='';
-  for(let i=0;i<18;i++){
-    const spark=document.createElement('i');
-    spark.style.setProperty('--fx',String(((i*37)%160)-80)+'px');
-    spark.style.setProperty('--fy',String(-30-((i*29)%110))+'px');
-    spark.style.setProperty('--fr',String((i*43)%300)+'deg');
-    box.appendChild(spark);
-  }
-  box.classList.remove('is-celebrating'); void box.offsetWidth; box.classList.add('is-celebrating');
+const FAMILY_SAVED_ROUNDS_KEY='dinliminate.family.savedRounds.v1';
+function familySavedRoundsRead(){
+  try{const raw=JSON.parse(localStorage.getItem(FAMILY_SAVED_ROUNDS_KEY)||'[]');return Array.isArray(raw)?raw.map(String):[];}catch{return[];}
+}
+function familySavedRound(roundId){return familySavedRoundsRead().includes(String(roundId));}
+function familyMarkRoundSaved(roundId){
+  const id=String(roundId||'').trim();if(!id)return;
+  const rows=familySavedRoundsRead();if(rows.includes(id))return;
+  rows.unshift(id);try{localStorage.setItem(FAMILY_SAVED_ROUNDS_KEY,JSON.stringify(rows.slice(0,120)));}catch{}
+}
+function recordFamilyWinner(round){
+  const item=round?.winnerItem,id=String(round?.id||'');
+  if(!item||!id||familySavedRound(id))return false;
+  const type=round.decisionType==='restaurant'?'restaurant':'food';
+  const didRecord=recordHistory(item,type,{familyRoundId:id,familyMode:true});
+  if(didRecord!==false) familyMarkRoundSaved(id);
+  return didRecord!==false;
 }
 function familyRenderWinner(round){
-  const item=round?.winnerItem; if(!item)return;
-  const nextId=String(round.id||'');
-  const changed=familyWinnerRoundId!==nextId;
+  const item=round?.winnerItem;if(!item)return;
+  const nextId=String(round.id||''),changed=familyWinnerRoundId!==nextId;
   familyWinnerRoundId=nextId;
+  recordFamilyWinner(round);
   $('familyWinnerName').textContent=String(item.name||'Dinner is decided');
   $('familyWinnerImg').src=item.image?imageProxyUrl(item.image):HUNGRY_IMAGE;
   $('familyWinnerImg').alt=String(item.name||'Dinner winner');
