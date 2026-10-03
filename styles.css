@@ -6478,3 +6478,15 @@ button,input,select,textarea{
     font-size:18px!important;
   }
 }
+
+
+/* CP795 — permanent local home background.
+   The image is loaded from a bundled same-origin asset; gradients remain as fallback. */
+.luxury-home{
+  background:
+    linear-gradient(180deg,rgba(8,7,6,.38),rgba(8,7,6,.56)),
+    var(--home-bg-image,linear-gradient(180deg,#0c0c0c,#11100e 66%,#0c0c0c))!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
