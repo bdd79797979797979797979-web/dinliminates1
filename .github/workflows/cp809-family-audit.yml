@@ -1,0 +1,39 @@
+name: Dinliminate Family CP809 Audit
+
+on:
+  push:
+    branches:
+      - cp809-audit-family-lobby
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Syntax
+        run: node --check app.js && node --check api/family.js && node --check api/family-store.js
+      - name: Lobby contract
+        run: |
+          grep -q 'id="family"' index.html
+          grep -q 'id="familyMode"' index.html
+          grep -q 'id="familyCopyCode"' index.html
+          grep -q 'id="familyRotateCode"' index.html
+          grep -q 'id="familyMemberList"' index.html
+          grep -q 'familyPollTimer' app.js
+          grep -q "familyApi('state'" app.js
+          grep -q "familyApi('rotate-code'" app.js
+          echo "Family lobby contract OK"
+      - name: Cache versions
+        run: |
+          grep -q 'styles.css?v=809' index.html
+          grep -q 'app.js?v=809' index.html
+          grep -q "const CACHE='dinliminate-shell-v809'" sw.js
+          grep -q "sw.js?v=809" app.js
+          echo "CP809 cache versions OK"
+      - name: Baseline marker
+        run: grep -q 'CP806: 35e4ecd' RECOVERY-CP809-FAMILY-LOBBY-2026-10-03.md
