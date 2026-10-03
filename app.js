@@ -3764,4 +3764,105 @@ restaurantSearchOrigin:S.restaurantSearchOrigin ? {...S.restaurantSearchOrigin} 
 })
 };
 }
+/* CP808/CP809 — Family Mode client shell */
+const FAMILY_SESSION_KEY = 'dinliminate.family.v1';
+let familyPollTimer = 0;
+let familyPollBusy = false;
+
+function familySessionRead(){
+  try{ const raw=localStorage.getItem(FAMILY_SESSION_KEY); if(!raw)return null; const d=JSON.parse(raw); return d&&typeof d.token==='string'&&d.token?d:null; }catch{return null;}
+}
+function familySessionWrite(value){ try{localStorage.setItem(FAMILY_SESSION_KEY,JSON.stringify(value));}catch{} }
+function familySessionClear(){ try{localStorage.removeItem(FAMILY_SESSION_KEY);}catch{} }
+function familySetStatus(id,message,kind=''){ const el=$(id); if(!el)return; el.textContent=message||''; el.dataset.state=kind; }
+async function familyApi(action,payload={}){
+  const response=await fetch('./api/family',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({action,...payload})});
+  let data=null; try{data=await response.json();}catch{}
+  if(!response.ok||!data?.ok){const e=new Error(data?.message||'Family Mode could not complete that request.');e.code=data?.code||'FAMILY_REQUEST_FAILED';e.status=response.status;throw e;}
+  return data;
+}
+function familyShowEntry(){
+  $('familyEntry')?.classList.remove('hidden'); $('familyCreateForm')?.classList.add('hidden'); $('familyJoinForm')?.classList.add('hidden'); $('familyLobby')?.classList.add('hidden');
+  familySetStatus('familyCreateStatus',''); familySetStatus('familyJoinStatus','');
+}
+function familyShowCreate(){ $('familyEntry')?.classList.add('hidden'); $('familyCreateForm')?.classList.remove('hidden'); $('familyJoinForm')?.classList.add('hidden'); $('familyLobby')?.classList.add('hidden'); setTimeout(()=>$('familyCreateName')?.focus(),40); }
+function familyShowJoin(){ $('familyEntry')?.classList.add('hidden'); $('familyCreateForm')?.classList.add('hidden'); $('familyJoinForm')?.classList.remove('hidden'); $('familyLobby')?.classList.add('hidden'); setTimeout(()=>$('familyJoinCode')?.focus(),40); }
+function familyDisplayMemberList(members,me){
+  const box=$('familyMemberList'); if(!box)return; box.innerHTML='';
+  (Array.isArray(members)?members:[]).forEach(m=>{
+    const row=document.createElement('div'); row.className='family-member-row'+(m.role==='host'?' is-host':'');
+    row.innerHTML='<span class="family-member-avatar"></span><span class="family-member-copy"><b></b><small></small></span><span class="family-member-status"></span>';
+    row.querySelector('.family-member-avatar').textContent=(String(m.name||'?').trim().slice(0,1)||'?').toUpperCase();
+    row.querySelector('.family-member-copy b').textContent=String(m.name||'Family member');
+    row.querySelector('.family-member-copy small').textContent=m.role==='host'?'Host':'Member';
+    row.querySelector('.family-member-status').textContent=me&&m.id===me.id?'You':'Here';
+    box.appendChild(row);
+  });
+}
+function familyRenderState(data){
+  const family=data?.family,me=data?.me; if(!family||!me)return;
+  $('familyJoinCodeDisplay').textContent=family.joinCode||'—';
+  $('familyMemberCount').textContent=String(family.memberCount||0)+' here';
+  familyDisplayMemberList(data.members||[],me);
+  const active=!!data.activeRound;
+  $('familyLobbyTitle').textContent=active?'A dinner decision is underway.':'Ready when everyone’s here.';
+  $('familyRotateCode')?.classList.toggle('hidden',me.role!=='host');
+  const note=$('familyCodeNote'); if(note)note.textContent=me.role==='host'?'Share the code. You can regenerate it any time.':'You’re in. The host will set up dinner.';
+  familySetStatus('familyLobbyStatus',active?'A decision is already active. You’ll be included when the next one begins.':me.role==='host'?'You’re the host. Bring everyone in, then we’ll set up dinner.':'You’re in. Waiting for the host.');
+}
+async function familyRefreshState(){
+  const session=familySessionRead(); if(!session?.token)return null;
+  try{ const data=await familyApi('state',{token:session.token}); familySessionWrite({...session,family:data.family,member:data.me}); familyRenderState(data); return data; }
+  catch(err){ if(err.code==='UNAUTHORIZED')familySessionClear(); familySetStatus('familyLobbyStatus',err.message||'Could not reconnect to this Family.','error'); return null; }
+}
+function stopFamilyLobbyPolling(){ if(familyPollTimer){clearInterval(familyPollTimer);familyPollTimer=0;} }
+function startFamilyLobbyPolling(){
+  stopFamilyLobbyPolling();
+  familyPollTimer=setInterval(()=>{
+    if(S.screen==='family'&&!$('familyLobby')?.classList.contains('hidden')&&!familyPollBusy){ familyPollBusy=true; familyRefreshState().finally(()=>{familyPollBusy=false;}); }
+    else if(S.screen!=='family')stopFamilyLobbyPolling();
+  },4000);
+}
+async function familyCreate(){
+  const name=$('familyCreateName')?.value?.trim()||''; familySetStatus('familyCreateStatus','Creating…','busy');
+  try{const data=await familyApi('create',{displayName:name}); familySessionWrite({token:data.token,family:data.family,member:data.member}); $('familyCreateForm')?.classList.add('hidden'); $('familyLobby')?.classList.remove('hidden'); familyRenderState(data); familySetStatus('familyLobbyStatus','Family created. Share the code with everyone.'); startFamilyLobbyPolling();}
+  catch(err){familySetStatus('familyCreateStatus',err.message||'Could not create the Family.','error');}
+}
+async function familyJoin(){
+  const codeValue=$('familyJoinCode')?.value?.trim()||'',name=$('familyJoinName')?.value?.trim()||''; familySetStatus('familyJoinStatus','Joining…','busy');
+  try{const data=await familyApi('join',{joinCode:codeValue,displayName:name}); familySessionWrite({token:data.token,family:data.family,member:data.member}); $('familyJoinForm')?.classList.add('hidden'); $('familyLobby')?.classList.remove('hidden'); familyRenderState(data); familySetStatus('familyLobbyStatus','You’re in. Waiting for the Family.'); startFamilyLobbyPolling();}
+  catch(err){familySetStatus('familyJoinStatus',err.message||'Could not join that Family.','error');}
+}
+async function familyCopyCode(){
+  const codeText=$('familyJoinCodeDisplay')?.textContent?.trim()||''; if(!codeText||codeText==='—')return;
+  try{await navigator.clipboard.writeText(codeText);familySetStatus('familyLobbyStatus','Family code copied. Share it with everyone.');}catch{familySetStatus('familyLobbyStatus','Code: '+codeText);}
+}
+async function familyRotateCode(){
+  const session=familySessionRead();if(!session?.token)return;const b=$('familyRotateCode');if(b)b.disabled=true;
+  try{const data=await familyApi('rotate-code',{token:session.token});familySessionWrite({...session,family:{...(session.family||{}),joinCode:data.joinCode}});await familyRefreshState();familySetStatus('familyLobbyStatus','New code created. The old code no longer works.');}
+  catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not regenerate the code.','error');}finally{if(b)b.disabled=false;}
+}
+async function familyOpen(){
+  show('family'); const session=familySessionRead();
+  if(!session?.token){familyShowEntry();stopFamilyLobbyPolling();return;}
+  $('familyEntry')?.classList.add('hidden');$('familyCreateForm')?.classList.add('hidden');$('familyJoinForm')?.classList.add('hidden');$('familyLobby')?.classList.remove('hidden');
+  familyRenderState({family:session.family,me:session.member,members:[],activeRound:null}); await familyRefreshState(); startFamilyLobbyPolling();
+}
+function familyLeave(){stopFamilyLobbyPolling();familySessionClear();familyShowEntry();show('family');}
+
+$('familyMode')?.addEventListener('click',()=>{closeDrawer();window.setTimeout(familyOpen,190);});
+$('familyBackTop')?.addEventListener('click',home);
+$('familyMenu')?.addEventListener('click',openDrawer);
+$('familyCreateChoice')?.addEventListener('click',familyShowCreate);
+$('familyJoinChoice')?.addEventListener('click',familyShowJoin);
+$('familyCreateBack')?.addEventListener('click',familyShowEntry);
+$('familyJoinBack')?.addEventListener('click',familyShowEntry);
+$('familyCreateSubmit')?.addEventListener('click',familyCreate);
+$('familyJoinSubmit')?.addEventListener('click',familyJoin);
+$('familyLeave')?.addEventListener('click',familyLeave);
+$('familyCopyCode')?.addEventListener('click',familyCopyCode);
+$('familyRotateCode')?.addEventListener('click',familyRotateCode);
+$('familyCreateName')?.addEventListener('keydown',e=>{if(e.key==='Enter')familyCreate();});
+$('familyJoinName')?.addEventListener('keydown',e=>{if(e.key==='Enter')familyJoin();});
+$('familyJoinCode')?.addEventListener('input',e=>{const value=e.target.value.replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,6);e.target.value=value.length>3?value.slice(0,3)+' · '+value.slice(3):value;});
 })();
