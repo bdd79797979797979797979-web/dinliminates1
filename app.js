@@ -2514,7 +2514,7 @@ if(hungry){
     if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';spinBtn.setAttribute('aria-busy','false');}
   }
 }else{
-  triggerCelebration(chosenFromWheel);
+  if(!(chosenFromWheel && $('celebration') && !$('celebration').classList.contains('hidden')))triggerCelebration(chosenFromWheel);
   hydrateRestaurantPhoto(item,'#winner');
 }
 save();
