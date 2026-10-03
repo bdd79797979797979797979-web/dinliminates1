@@ -7650,3 +7650,11 @@ button,input,select,textarea{
 @media(prefers-reduced-motion:reduce){
   #food #foodMealTimeToggle::after{animation:none!important}
 }
+
+
+/* CP837 — final shared treatment for the two Meals filter labels. */
+#food .food-quick-control{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
