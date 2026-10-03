@@ -1097,7 +1097,8 @@ async function locationAccessFlow() {
   const closeModal=()=>modal.querySelector('[data-close]')?.click();
   $('locationNotNow')?.addEventListener('click',closeModal);
   $('locationAllow')?.addEventListener('click',()=>{closeModal();useLocation();});
-}\nasync function useLocation() {
+}
+async function useLocation() {
 if (!navigator.geolocation) {
 $('status').textContent='Location is not available in this browser.';
 return;
