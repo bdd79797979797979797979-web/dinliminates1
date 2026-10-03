@@ -889,8 +889,8 @@ function renderQuickCutsCollapse(kind){
   section.classList.toggle('is-collapsed',collapsed);
  }
  toggle.setAttribute('aria-expanded',String(!collapsed));
- toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+(kind==='food'?'Cuisine Cuts':'Quick Cuts'));
- toggle.title=collapsed?'Show '+(kind==='food'?'Cuisine Cuts':'Quick Cuts'):'Hide '+(kind==='food'?'Cuisine Cuts':'Quick Cuts');
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Cuisine Cuts');
+ toggle.title=collapsed?'Show Cuisine Cuts':'Hide Cuisine Cuts';
  chips.setAttribute('aria-hidden',String(collapsed));
 }
 function bindQuickCutsCollapse(kind){
@@ -2982,7 +2982,7 @@ const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n
 const descriptionText=String(item?.description||'').trim();
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
-'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Cuisine Cuts</legend><p class="meal-category-helper">Choose every cuisine category or food type you want this meal associated with. Custom adds a reusable Cuisine Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Times</legend><p class="meal-category-helper">Choose one or more Meal Times for this meal.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="checkbox" name="editMealTime" value="'+esc(label)+'" '+(existingMealTimes.has(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine Cuts</legend><p class="meal-category-helper">Choose every cuisine category or food type you want this meal associated with. Custom adds a reusable Cuisine Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Times</legend><p class="meal-category-helper">Choose one or more Meal Times for this meal.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="checkbox" name="editMealTime" value="'+esc(label)+'" '+(existingMealTimes.has(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
 '<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
 '<label>Calories<input id="editFoodCalories" type="number" required min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
 '<label>Protein<input id="editFoodProtein" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
@@ -3064,7 +3064,7 @@ const name=$('editFoodName').value.trim();
 const mealTimes=[...document.querySelectorAll('input[name="editMealTime"]:checked')].map(x=>String(x.value||'').trim()).filter(x=>MEAL_TIME_CUTS.includes(x));
 if(!mealTimes.length){appToast('Choose at least one Meal Time.');return;}
 let quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value);
-if(!quickCuts.length){appToast('Choose at least one cuisine or Cuisine Cut.');return;}
+if(!quickCuts.length){appToast('Choose at least one Cuisine Cut.');return;}
 const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0];
 quickCuts=[preferred,...quickCuts.filter(x=>x!==preferred)];
 const cat=preferred;
