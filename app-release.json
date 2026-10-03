@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 784,
-  "sourceBranch": "cp784-launch-root-unified-all-maybes",
-  "checkpoint": "CP784",
-  "deploymentTrigger": "CP784-root-unified-all-maybes-2026-10-03"
+  "build": 785,
+  "sourceBranch": "cp785-top-aligned-utility-modals",
+  "checkpoint": "CP785",
+  "deploymentTrigger": "CP785-top-aligned-utility-modals-2026-10-03"
 }
