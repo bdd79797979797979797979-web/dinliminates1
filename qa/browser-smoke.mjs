@@ -125,6 +125,7 @@ await page.locator('#detailsModal [data-close]').click();
 await page.locator('#foodBackTop').click();
 await page.waitForTimeout(200);
 assert.equal(await page.locator('#homeFirstNudge').count(),0);
+await page.evaluate(()=>localStorage.removeItem('dinliminate.swipeHint.v4'));
 
 await page.locator('#restStart').click();
 await page.waitForTimeout(600);
