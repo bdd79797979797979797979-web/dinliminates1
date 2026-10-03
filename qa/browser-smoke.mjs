@@ -182,10 +182,13 @@ assert.equal(await page.locator('#restaurant .deck-filter-label-all').innerText(
 assert.equal(await page.locator('#restaurant .deck-filter-label-maybe').innerText(),'MAYBES');
 const restaurantFilterGeom=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck').getBoundingClientRect(),c=document.getElementById('restaurantCount').getBoundingClientRect();return {filterRight:f.right,countLeft:c.left};});
 assert.ok(restaurantFilterGeom.filterRight<=restaurantFilterGeom.countLeft,'Restaurants ALL/MAYBES must be left of count');
-const restaurantVisual=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck'),r=document.getElementById('foodMaybeDeck'),fc=getComputedStyle(f),rc=getComputedStyle(r),fr=f.getBoundingClientRect(),rr=r.getBoundingClientRect();return {restaurantFont:fc.fontSize,foodFont:rc.fontSize,restaurantHeight:fr.height,foodHeight:rr.height,restaurantWidth:fr.width,foodWidth:rr.width};});
-assert.equal(restaurantVisual.restaurantFont,restaurantVisual.foodFont,'Visible Meals/Restaurants filter typography must match');
-assert.ok(Math.abs(restaurantVisual.restaurantHeight-restaurantVisual.foodHeight)<1,'Visible Meals/Restaurants filter heights must match');
-assert.ok(Math.abs(restaurantVisual.restaurantWidth-restaurantVisual.foodWidth)<1,'Visible Meals/Restaurants filter widths must match');
+const restaurantVisual=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck'),m=document.getElementById('foodMaybeDeck'),fc=getComputedStyle(f),mc=getComputedStyle(m);return {restaurantFont:fc.fontSize,foodFont:mc.fontSize,restaurantLine:fc.lineHeight,foodLine:mc.lineHeight,restaurantHeight:fc.height,foodHeight:mc.height,restaurantPad:fc.padding,foodPad:mc.padding,restaurantBorder:fc.borderWidth,foodBorder:mc.borderWidth,restaurantGap:fc.gap,foodGap:mc.gap};});
+assert.equal(restaurantVisual.restaurantFont,restaurantVisual.foodFont,'Meals and Restaurants filter typography must match');
+assert.equal(restaurantVisual.restaurantLine,restaurantVisual.foodLine,'Meals and Restaurants filter line-height must match');
+assert.equal(restaurantVisual.restaurantHeight,restaurantVisual.foodHeight,'Meals and Restaurants filter height must match');
+assert.equal(restaurantVisual.restaurantPad,restaurantVisual.foodPad,'Meals and Restaurants filter padding must match');
+assert.equal(restaurantVisual.restaurantBorder,restaurantVisual.foodBorder,'Meals and Restaurants filter border must match');
+assert.equal(restaurantVisual.restaurantGap,restaurantVisual.foodGap,'Meals and Restaurants filter spacing must match');
 assert.match(await page.locator('#restaurantCount').innerText(),/^\d+$/,'Restaurant count must be numeric only');
 assert.match(await page.locator('#foodCount').innerText(),/^\d+$/,'Meal count must be numeric only');
 
