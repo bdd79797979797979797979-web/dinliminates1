@@ -2235,6 +2235,235 @@ function showHungryWheelResult(item){
  if(choose){choose.disabled=false;choose.classList.remove('hidden');}
  if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
 }
+function hungryRestaurantPool(){
+ const raw=(S.restaurantPool||[]).filter(row=>{
+   if(!row)return false;
+   if(row._hidden||restaurantHidden(row))return false;
+   if(!restaurantMatchesQuery(row))return false;
+   if([...S.restaurantCuts].some(label=>restaurantQuickMatches(row,label)))return false;
+   return true;
+ });
+ const unique=dedupeRestaurantPool(raw);
+ return unique.length?unique:raw;
+}
+function hungryRestaurantPick(excludeId=null){
+ const pool=hungryRestaurantPool();
+ if(!pool.length)return null;
+ const candidates=excludeId==null?pool:pool.filter(row=>String(row.id)!==String(excludeId));
+ const source=candidates.length?candidates:pool;
+ const forced=Number(window.__DINLIMINATE_TEST_MYSTERY_INDEX);
+ const index=Number.isInteger(forced)&&forced>=0&&forced<source.length?forced:Math.floor(Math.random()*source.length);
+ return source[index]||null;
+}
+function renderHungryRestaurantMystery(item,covered=true){
+ const card=$('hungryMysteryCard'),img=$('hungryMysteryImg'),result=$('hungryMysteryResult');
+ const choose=$('hungryMysteryChoose'),again=$('hungryMysteryAgain'),reveal=$('hungryMysteryReveal');
+ if(!card||!img||!result)return;
+ if(item){
+   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
+   img.src=src;
+   img.alt=item.name||'Mystery restaurant';
+   img.onerror=function(){
+     const fb=restaurantFallbackImage(item);
+     if(this.src!==fb)this.src=fb;
+   };
+   img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+ }
+ card.classList.toggle('is-revealed',!covered);
+ const cover=card.querySelector('.hungry-mystery-cover');
+ if(cover)cover.classList.toggle('hidden',!covered);
+ result.classList.toggle('hidden',covered||!item);
+ if(item&&!covered){
+   $('hungryMysteryResultImg').src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
+   $('hungryMysteryResultImg').alt=item.name||'Chosen restaurant';
+   $('hungryMysteryResultImg').dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+   $('hungryMysteryResultName').textContent=item.name||'';
+   const meta=[restaurantCategory(item),Number.isFinite(Number(item.distance))?Number(item.distance).toFixed(1)+' mi':String(item.address||'').split(',')[0]].filter(Boolean).join(' · ');
+   $('hungryMysteryResultMeta').textContent=meta;
+   hydrateRestaurantPhoto(item,'#hungryRestaurantPanel');
+ }
+ if(again){const canAgain=hungryRestaurantPool().length>=2;again.classList.toggle('hidden',covered||!canAgain);again.disabled=false;}
+ if(choose)choose.classList.toggle('hidden',covered);
+ if(reveal)reveal.classList.toggle('hidden',!covered);
+}
+function startHungryRestaurantMystery(){
+ const countEl=$('hungryRestaurantCount');
+ const pool=hungryRestaurantPool();
+ if(countEl)countEl.textContent=pool.length?pool.length+' restaurants from your current search':'No restaurant options available';
+ S.hungryRestaurantChoice=null;
+ S.hungryRestaurantPendingChoice=null;
+ const img=$('hungryMysteryImg');
+ if(img){img.removeAttribute('src');img.alt='Mystery restaurant';}
+ renderHungryRestaurantMystery(null,true);
+ const reveal=$('hungryMysteryReveal');
+ if(reveal)reveal.disabled=!pool.length;
+}
+function revealHungryRestaurant(){
+ if(S.hungryRestaurantChoice)return;
+ const item=S.hungryRestaurantPendingChoice||hungryRestaurantPick();
+ if(!item){appToast('No restaurant options are available for a mystery pick.');return;}
+ S.hungryRestaurantChoice=item;
+ S.hungryRestaurantPendingChoice=null;
+ const card=$('hungryMysteryCard'),reveal=$('hungryMysteryReveal'),result=$('hungryMysteryResult'),cover=card?.querySelector('.hungry-mystery-cover');
+ if(!card||!result){renderHungryRestaurantMystery(item,false);return;}
+ const img=$('hungryMysteryImg');
+ if(img){
+   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
+   img.src=src; img.alt=item.name||'Mystery restaurant'; img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
+   img.onerror=function(){const fb=restaurantFallbackImage(item);if(this.src!==fb)this.src=fb;};
+ }
+ card.classList.remove('is-revealed');
+ card.classList.add('is-revealing');
+ cover?.classList.remove('hidden');
+ result.classList.add('hidden');
+ if(reveal){reveal.disabled=true;reveal.textContent='Revealing…';}
+ window.setTimeout(()=>{
+   if(S.hungryRestaurantChoice!==item)return;
+   card.classList.remove('is-revealing');
+   card.classList.add('is-revealed');
+   cover?.classList.add('hidden');
+   renderHungryRestaurantMystery(item,false);
+   const again=$('hungryMysteryAgain'),choose=$('hungryMysteryChoose');
+   if(again)again.disabled=hungryRestaurantPool().length<2;
+   if(choose)choose.focus?.();
+ },2800);
+}
+function tryAnotherHungryRestaurant(){
+ const current=S.hungryRestaurantChoice;
+ const next=hungryRestaurantPick(current?.id);
+ S.hungryRestaurantChoice=null;
+ S.hungryRestaurantPendingChoice=next;
+ renderHungryRestaurantMystery(null,true);
+ const reveal=$('hungryMysteryReveal');
+ if(reveal){
+   reveal.disabled=!next;
+   reveal.textContent='Reveal';
+   reveal.classList.remove('hidden');
+ }
+ if(!next)appToast('No other restaurant options are available.');
+}
+function wheelSegmentIndexForRotation(rotation,count){
+ const step=360/Math.max(1,count);
+ const local=(((-rotation)%360)+360)%360;
+ return ((Math.round(local/step-0.5)%count)+count)%count;
+}
+function finishHungryWheelRotation(item,rotation){
+ const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ S.hungryWheelRotation=rotation;
+ S.hungryWheelChoice=item||null;
+ S.hungryWheelLandedId=item?.id?String(item.id):null;
+ S.hungryWheelSpinning=false;
+ if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
+ svg?.style.setProperty('--wheel-resting-rotation',rotation+'deg');
+ svg?.style.setProperty('--wheel-rotation',rotation+'deg');
+ svg?.classList.remove('is-spinning','is-dragging');
+ showHungryWheelResult(item);
+ renderHungryWheel();
+ triggerSwipeHaptic();
+}
+function spinHungryWheel(){
+ const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ if(!svg||S.hungryWheelSpinning||S.hungryWheelDragging)return;
+ const pool=hungryWheelPool();
+ if(!pool.length){appToast('There are no meals available to spin.');return;}
+ const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
+ const item=Number.isInteger(forced)&&forced>=0&&forced<pool.length?pool[forced]:pool[Math.floor(Math.random()*pool.length)];
+ const display=sampleHungryWheel(pool,item,12);
+ S.hungryWheelDisplayItems=display;
+ const selectedIndex=Math.max(0,display.findIndex(x=>String(x.id)===String(item.id)));
+ renderHungryWheel();
+ const step=360/Math.max(1,display.length);
+ const targetBase=-(selectedIndex*step+step/2);
+ const current=S.hungryWheelRotation;
+ const turns=4+Math.floor(Math.random()*2);
+ const target=targetBase+360*Math.round((current-targetBase)/360)+360*turns;
+ const spinToken=++S.hungryWheelSpinToken;
+ S.hungryWheelChoice=item;
+ S.hungryWheelSpinning=true;
+ S.hungryWheelLandedId=null;
+ if(spin){spin.disabled=true;spin.setAttribute('aria-busy','true');spin.textContent='Spinning…';}
+ $('hungryWheelChoose')?.classList.add('hidden');
+ $('hungryWheelResult')?.classList.add('hidden');
+ $('hungryWheelPanel')?.classList.remove('has-landed');
+ svg.style.setProperty('--wheel-resting-rotation',current+'deg');
+ svg.style.setProperty('--wheel-rotation',target+'deg');
+ svg.classList.remove('is-spinning');
+ void svg.offsetWidth;
+ svg.classList.add('is-spinning');
+ const finish=()=>{
+   if(spinToken!==S.hungryWheelSpinToken)return;
+   finishHungryWheelRotation(item,target);
+ };
+ svg.addEventListener('transitionend',finish,{once:true});
+ window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
+}
+function wheelAngleFromEvent(event,stage){
+ const r=stage.getBoundingClientRect();
+ return Math.atan2(event.clientY-(r.top+r.height/2),event.clientX-(r.left+r.width/2))*180/Math.PI;
+}
+function wheelDelta(a,b){let d=a-b;while(d>180)d-=360;while(d<-180)d+=360;return d;}
+function bindHungryWheelGesture(){
+ const stage=document.querySelector('.hungry-wheel-stage'),svg=$('hungryWheel');
+ if(!stage||!svg||stage.dataset.gestureBound)return;
+ stage.dataset.gestureBound='true';
+ stage.addEventListener('pointerdown',event=>{
+   if(S.hungryWheelSpinning)return;
+   event.preventDefault();
+   stage.setPointerCapture?.(event.pointerId);
+   S.hungryWheelDragging=true;
+   S.hungryWheelDragAngle=wheelAngleFromEvent(event,stage);
+   S.hungryWheelDragRotation=S.hungryWheelRotation;
+   S.hungryWheelDragLastTime=performance.now();
+   S.hungryWheelDragVelocity=0;
+   svg.classList.add('is-dragging');
+   $('hungryWheelChoose')?.classList.add('hidden');
+   $('hungryWheelResult')?.classList.add('hidden');
+   S.hungryWheelLandedId=null;
+ });
+ stage.addEventListener('pointermove',event=>{
+   if(!S.hungryWheelDragging)return;
+   event.preventDefault();
+   const now=performance.now(),angle=wheelAngleFromEvent(event,stage),delta=wheelDelta(angle,S.hungryWheelDragAngle),dt=Math.max(8,now-S.hungryWheelDragLastTime);
+   S.hungryWheelDragAngle=angle;
+   S.hungryWheelDragRotation+=delta;
+   S.hungryWheelRotation=S.hungryWheelDragRotation;
+   S.hungryWheelDragVelocity=(delta/dt)*1000;
+   S.hungryWheelDragLastTime=now;
+   svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
+   svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
+ });
+ const end=event=>{
+   if(!S.hungryWheelDragging)return;
+   event.preventDefault();
+   S.hungryWheelDragging=false;
+   stage.releasePointerCapture?.(event.pointerId);
+   const display=Array.isArray(S.hungryWheelDisplayItems)&&S.hungryWheelDisplayItems.length?S.hungryWheelDisplayItems:hungryWheelPool().slice(0,12);
+   if(!display.length){svg.classList.remove('is-dragging');return;}
+   const velocity=Math.max(-900,Math.min(900,S.hungryWheelDragVelocity));
+   const momentum=Math.max(-900,Math.min(900,velocity*0.22));
+   const raw=S.hungryWheelRotation+momentum+(Math.abs(momentum)<90?(velocity>=0?8:-8):0);
+   const idx=wheelSegmentIndexForRotation(raw,display.length);
+   const step=360/display.length,targetBase=-(idx*step+step/2);
+   const target=targetBase+360*Math.round((raw-targetBase)/360);
+   const item=display[idx];
+   const token=++S.hungryWheelSpinToken;
+   S.hungryWheelChoice=item;
+   S.hungryWheelSpinning=true;
+   S.hungryWheelLandedId=null;
+   svg.classList.remove('is-dragging');
+   svg.style.setProperty('--wheel-rotation',target+'deg');
+   svg.classList.add('is-spinning');
+   $('hungryWheelSpin').disabled=true;
+   $('hungryWheelSpin').textContent='Settling…';
+   const finish=()=>{if(token!==S.hungryWheelSpinToken)return;finishHungryWheelRotation(item,target);};
+   svg.addEventListener('transitionend',finish,{once:true});
+   window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},2600);
+ };
+ stage.addEventListener('pointerup',end);
+ stage.addEventListener('pointercancel',end);
+}
+
+
 function cancelHungryWheelAnimation(){
  if(S.hungryWheelAnimationFrame){
    cancelAnimationFrame(S.hungryWheelAnimationFrame);
