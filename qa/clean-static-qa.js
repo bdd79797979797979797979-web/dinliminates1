@@ -13,9 +13,9 @@ const sw=fs.readFileSync('sw.js','utf8');
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
 assert.equal(release.build,784,'Current release must be Build 784');
-assert.equal(release.checkpoint,'CP784','Current release checkpoint must be CP784');
+assert.equal(release.checkpoint,'CP785','Current release checkpoint must be CP785');
 assert.equal(manifest.build,784,'Release manifest build must be 784');
-assert.equal(manifest.checkpoint,'CP784','Release manifest checkpoint must be CP784');
+assert.equal(manifest.checkpoint,'CP785','Release manifest checkpoint must be CP785');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
@@ -37,7 +37,7 @@ assert.ok(html.includes('class="deck-filter-toggle quick-filter-toggle all-maybe
 
 
 
-assert.ok(app.includes("let APP_BUILD = '784'"),'Offline release fallback must be current');
+assert.ok(app.includes("let APP_BUILD = '785'"),'Offline release fallback must be current');
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
@@ -69,6 +69,8 @@ assert.ok(css.includes('.swipe-card-coach')&&css.includes('pointer-events:none')
 assert.ok(css.includes('.swipe-hint,[data-swipe-instruction="true"]{display:none!important'),'Legacy floating swipe instruction selectors must be suppressed');
 assert.ok(css.includes('.round-action.is-pressed')&&css.includes('scale(.94)'),'Decision controls must use press-in feedback');
 assert.ok(css.includes('count-inline.count-updated'),'Choice count transition must exist');
+assert.ok(css.includes('top:calc(env(safe-area-inset-top) + 62px)!important;'),'Utility modals must open below the top header');
+assert.ok(css.includes('max-height:calc(100dvh - env(safe-area-inset-top) - 76px)!important;'),'Utility modals must preserve usable viewport height when top-aligned');
 assert.ok(css.includes('round-maybe::before')&&css.includes('cp774MaybeGlow'),'Maybe restrained glow must exist');
 assert.ok(css.includes('details-modal')&&css.includes('detail-hero .history-detail-photo'),'Details fast reveal styling must exist');
 assert.ok(css.includes('cp774HomeAmbient'),'Home ambient animation must remain subtle and isolated');
@@ -79,5 +81,5 @@ assert.ok(css.includes('min-height:44px')&&css.includes('height:44px'),'Current 
 assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.includes('passAround'),'Pass Around must remain absent from active UI/runtime');
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
-console.log('Dinliminate CP784 static QA: PASS');
+console.log('Dinliminate CP785 static QA: PASS');
 console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v784',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
