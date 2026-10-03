@@ -65,6 +65,12 @@ assert.equal(homeBg.homeShadow,'none','Dine In photo window must have no shadow'
 assert.equal(homeBg.overlay,0,'Dine In photo-window overlay must be removed');
 assert.ok(homeBg.appHeight>=homeBg.viewportHeight-1,'Home background canvas must cover the full viewport height');
 assert.ok(homeBg.appWidth>=homeBg.viewportWidth-1,'Home background canvas must cover the full viewport width');
+const deckPos=await page.evaluate(()=>{const a=getComputedStyle(document.getElementById('foodMaybeDeck')),r=getComputedStyle(document.getElementById('restaurantMaybeDeck'));return {foodPosition:a.position,foodTransform:a.transform,restaurantPosition:r.position,restaurantTransform:r.transform};});
+assert.equal(deckPos.foodPosition,'static','Meals ALL/MAYBES must stay in normal grid flow');
+assert.equal(deckPos.restaurantPosition,'static','Restaurants ALL/MAYBES must stay in normal grid flow');
+assert.equal(deckPos.foodTransform,'none','Meals ALL/MAYBES must not inherit the legacy absolute transform');
+assert.equal(deckPos.restaurantTransform,'none','Restaurants ALL/MAYBES must not inherit the legacy absolute transform');
+
 assert.equal(await page.locator('#home .sub').innerText(),'Swipe. Dinliminate. Enjoy.');
 assert.equal(await page.locator('#addToPhone').count(),1);
 assert.equal(await page.locator('#shareApp').count(),1);
