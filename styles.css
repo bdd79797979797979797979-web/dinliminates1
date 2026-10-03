@@ -7485,3 +7485,29 @@ button,input,select,textarea{
   #food .quick-label{gap:6px!important}
   #food .food-quick-control{font-size:10px!important}
 }
+
+
+/* CP830 — Meal Time field in every meal editor. */
+#foodEditorForm .meal-time-editor{
+  margin-top:10px!important;
+}
+#foodEditorForm .meal-time-editor-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+#foodEditorForm .meal-time-option{
+  cursor:pointer!important;
+}
+#foodEditorForm .meal-time-option input{
+  position:absolute!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+#foodEditorForm .meal-time-option:has(input:checked){
+  border-color:rgba(214,183,120,.78)!important;
+  background:rgba(44,37,27,.86)!important;
+  color:#e2c17f!important;
+  box-shadow:inset 0 0 0 1px rgba(214,183,120,.14)!important;
+}
+@media(max-width:390px){
+  #foodEditorForm .meal-time-editor-grid{grid-template-columns:1fr!important}
+}
