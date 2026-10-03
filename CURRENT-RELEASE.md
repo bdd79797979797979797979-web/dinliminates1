@@ -1,3 +1,22 @@
+# CURRENT RELEASE — BUILD 768 / CP768
+
+Date: 2026-10-02
+
+Current candidate branch: `cp768-window-geometry-cleanup`
+Recovery baseline: **CP767** `cp767-home-menu-details-flat-toggle`
+Hosted test target: `dinliminates1-ztym`
+Status: candidate
+
+## CP768 — window geometry cleanup
+- Preserved CP767 functionality.
+- Home background now fills the full viewport without the heavy bottom dark wash.
+- Main menu is a distinct floating window directly beneath the hamburger rather than an attached side/bottom panel.
+- Manage Meals, History, and Settings utility windows are anchored near the top of the viewport and centered.
+- Details is a true centered modal and retains its centering during animation.
+- Meals and Restaurants use a three-part **ALL · MAYBES | Choices** header layout; the All/Maybes control has no pill or circular chrome.
+- The in-card swipe coach has no X button and dismisses automatically after the first interaction or after a short timeout.
+- Recovery baseline: CP767.
+
 # CURRENT RELEASE — BUILD 767 / CP767
 
 Date: 2026-10-02
