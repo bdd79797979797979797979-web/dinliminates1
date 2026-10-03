@@ -6011,9 +6011,9 @@ body.home-scroll-lock{
 }
 .luxury-home .home-card-photo.is-pressed .home-card-copy{transform:none!important}
 @media(max-width:390px){
-  .luxury-home .home-actions{gap:17px!important}
+  .luxury-home .home-actions{gap:30px!important}
   .luxury-home .home-card-photo{width:84%!important}
 }
 @media(max-height:700px){
-  .luxury-home .home-actions{gap:14px!important}
+  .luxury-home .home-actions{gap:22px!important}
 }
