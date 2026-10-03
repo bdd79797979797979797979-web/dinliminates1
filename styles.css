@@ -6671,3 +6671,17 @@ button,input,select,textarea{
 
 /* CP802 — Home layer and nav must not be hidden by legacy :has() rules. */
 .app:has(#home:not(.hidden)) .home-background-layer{display:block!important}
+
+/* CP802 — final Home wordmark lock: exactly match Meals/Restaurants/Winner. */
+.app.home-active:has(#home:not(.hidden)) .app-topbar .brand{
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  background:linear-gradient(115deg,#fff8e8 8%,#e7c98f 42%,#e28a4f 70%,#fff2d5 96%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 22px #d5a25b18!important;
+  filter:none!important;
+}
