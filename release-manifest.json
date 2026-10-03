@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 783,
-  "sourceBranch": "cp783-launch-all-menu-buttons-locked",
+  "build": 784,
+  "sourceBranch": "cp784-launch-root-unified-all-maybes",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP783",
-  "deploymentTrigger": "CP783-all-menu-buttons-locked-2026-10-03"
+  "checkpoint": "CP784",
+  "deploymentTrigger": "CP784-root-unified-all-maybes-2026-10-03"
 }
