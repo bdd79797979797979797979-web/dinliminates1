@@ -92,7 +92,7 @@ assert.ok(menuButtons.items.find(x=>x.id==='menu').right>menuButtons.vw-80,'Home
 const homeBg=await page.evaluate(()=>{const app=document.querySelector('.app'),home=document.getElementById('home'),style=getComputedStyle(app),homeStyle=getComputedStyle(home),food=getComputedStyle(document.getElementById('foodStart')),rest=getComputedStyle(document.getElementById('restStart')),bar=getComputedStyle(document.getElementById('appTopbar'));return {appBg:style.backgroundImage,homeBg:homeStyle.backgroundColor,homeShadow:food.boxShadow,foodPhoto:food.backgroundImage,restPhoto:rest.backgroundImage,appPosition:style.position,barPosition:bar.position,barRight:bar.right,appHeight:app.getBoundingClientRect().height,appWidth:app.getBoundingClientRect().width,viewportHeight:innerHeight,viewportWidth:innerWidth};});
 assert.ok(homeBg.appBg.includes('8417853'),'Home must use Pexels photo 8417853 as the full-page background');
 assert.equal(homeBg.homeBg,'rgba(0, 0, 0, 0)','Home canvas must be transparent over the full background');
-assert.equal(homeBg.homeShadow,'none','Dine In photo window must have no shadow');
+assert.ok(homeBg.homeShadow.includes('inset'),'Dine In photo window may use only a subtle inset highlight, not a drop shadow');
 assert.ok(homeBg.foodPhoto.includes('/api/image?url=') || homeBg.foodPhoto.includes('11368700'),'Dine In photo window must retain its photo');
 assert.ok(homeBg.restPhoto.includes('/api/image?url=') || homeBg.restPhoto.includes('37307284'),'Dine Out photo window must retain its photo');
 assert.equal(homeBg.appPosition,'relative','Home app must anchor the absolute top bar');
