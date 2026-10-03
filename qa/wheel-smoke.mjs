@@ -41,7 +41,7 @@ assert.match(await page.locator('#hungryWheelCount').innerText(),/meals availabl
 const spin=page.locator('#hungryWheelSpin');
 await spin.click();
 assert.equal(await spin.isDisabled(),true,'Spin must lock while animating');
-await page.waitForTimeout(1900);
+await page.waitForFunction(() => !document.querySelector('#hungryWheelSpin')?.disabled,{timeout:7000});
 assert.equal(await page.locator('#hungryWheelResult').isVisible(),true,'Spin should land on a result');
 assert.equal(await spin.innerText(),'Spin Again');
 assert.equal(await page.locator('#hungryWheelChoose').isVisible(),true,'Choose button should appear after the wheel stops');
@@ -52,7 +52,7 @@ await page.evaluate(()=>{
  panel.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:7,clientX:300,clientY:570,pointerType:'touch'}));
  panel.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:7,clientX:300,clientY:570,pointerType:'touch'}));
 });
-await page.waitForTimeout(2100);
+await page.waitForFunction(() => !document.querySelector('#hungryWheelSpin')?.disabled,{timeout:5000});
 assert.equal(await page.locator('#hungryWheelResult').isVisible(),true,'Manual flick should settle to a result');
 assert.equal(await page.locator('#hungryWheelChoose').isVisible(),true,'Choose should remain available after manual flick');
 
