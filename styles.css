@@ -5790,3 +5790,21 @@ button,input,select,textarea{
   .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{font-size:21px!important}
   .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{font-size:10px!important}
 }
+
+/* CP777 — definitive Meals/Restaurants ALL · MAYBES wiring.
+   The legacy deck filter used absolute positioning; restore it to the shared grid flow. */
+#food .quick-label #foodMaybeDeck,
+#restaurant .restaurant-choice-management #restaurantMaybeDeck{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  margin:0!important;
+  align-self:center!important;
+}
+#food .quick-label #foodMaybeDeck:active,
+#restaurant .restaurant-choice-management #restaurantMaybeDeck:active{
+  transform:scale(.96)!important;
+}
