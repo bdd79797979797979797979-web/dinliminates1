@@ -6808,3 +6808,136 @@ button,input,select,textarea{
   from{opacity:0;transform:translate(-50%,18px)}
   to{opacity:1;transform:translate(-50%,0)}
 }
+
+
+/* CP804 — luxury restaurant mystery reveal */
+.hungry-mystery-copy{
+  margin-bottom:10px;
+}
+.hungry-mystery-copy span{
+  color:#9ebfca;
+}
+.hungry-mystery-copy b{
+  font-size:17px;
+  color:#f4efe7;
+}
+.hungry-mystery-copy small{
+  color:#746f66;
+}
+.hungry-mystery-card{
+  border-color:rgba(205,177,119,.44);
+  box-shadow:0 22px 48px #000b,inset 0 1px 0 #ffffff0b,0 0 28px rgba(205,177,119,.055);
+}
+.hungry-mystery-card:before{
+  content:"";
+  position:absolute;
+  inset:-35% -65%;
+  z-index:5;
+  pointer-events:none;
+  opacity:0;
+  transform:translateX(-72%) rotate(12deg);
+  background:linear-gradient(90deg,transparent 34%,rgba(245,232,200,.04) 44%,rgba(245,232,200,.32) 50%,rgba(146,183,195,.07) 57%,transparent 68%);
+}
+.hungry-mystery-card.is-revealing:before{
+  opacity:1;
+  animation:mysteryRevealSweep 1.55s cubic-bezier(.22,.72,.2,1) forwards;
+}
+@keyframes mysteryRevealSweep{
+  0%{transform:translateX(-72%) rotate(12deg)}
+  100%{transform:translateX(72%) rotate(12deg)}
+}
+.hungry-mystery-blur{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(202,174,116,.12),transparent 32%),
+    linear-gradient(180deg,rgba(4,5,6,.10),rgba(4,4,4,.70) 84%);
+  transition:opacity .8s ease;
+}
+.hungry-mystery-card.is-revealed .hungry-mystery-blur{
+  opacity:.18;
+}
+.hungry-mystery-cover{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(208,180,122,.12),transparent 27%),
+    linear-gradient(180deg,rgba(8,8,8,.78),rgba(8,8,8,.90));
+  transition:opacity .48s ease,transform .6s cubic-bezier(.2,.8,.2,1),filter .5s ease;
+}
+.hungry-mystery-cover.hidden{
+  opacity:0;
+  transform:scale(1.045);
+  filter:blur(3px);
+}
+.hungry-mystery-seal{
+  width:64px!important;
+  height:64px!important;
+  display:grid!important;
+  place-items:center!important;
+  border:1px solid rgba(211,181,121,.66)!important;
+  border-radius:50%!important;
+  color:#d8c195!important;
+  box-shadow:0 0 0 7px rgba(211,181,121,.045),0 0 30px rgba(211,181,121,.14),inset 0 1px 0 rgba(255,255,255,.06)!important;
+  background:radial-gradient(circle at 38% 30%,rgba(255,247,224,.10),rgba(120,143,150,.04) 60%,transparent 72%);
+}
+.hungry-mystery-seal svg{width:35px;height:35px}
+.hungry-mystery-cover b{
+  font-size:10px;
+  letter-spacing:.22em;
+}
+.hungry-mystery-cover small{
+  font-size:9px;
+  color:#928b80;
+}
+.hungry-mystery-result{
+  min-height:82px;
+  padding:8px;
+  margin:0 0 9px;
+  border-color:rgba(205,177,119,.38);
+  background:
+    radial-gradient(circle at 0 50%,rgba(205,177,119,.07),transparent 34%),
+    linear-gradient(145deg,#201d18,#121210);
+  box-shadow:inset 0 1px 0 #ffffff09,0 12px 28px #0005;
+}
+.hungry-mystery-result-image-wrap{
+  width:68px;
+  height:66px;
+}
+.hungry-mystery-result-copy span{
+  color:#bca273;
+  letter-spacing:.19em;
+}
+.hungry-mystery-result-copy b{
+  font-size:21px;
+  line-height:1;
+}
+.hungry-mystery-result-copy small{
+  color:#8b8479;
+}
+.hungry-mystery-actions{
+  gap:8px;
+}
+.hungry-mystery-actions #hungryMysteryReveal{
+  background:linear-gradient(180deg,#e5d2aa,#c4a263)!important;
+  color:#151411!important;
+  border:1px solid rgba(239,219,178,.70)!important;
+  box-shadow:0 9px 22px #0006,0 0 18px rgba(198,164,99,.10)!important;
+}
+.hungry-mystery-actions #hungryMysteryChoose{
+  background:linear-gradient(180deg,#e5d2aa,#c4a263)!important;
+  color:#151411!important;
+  border:1px solid rgba(239,219,178,.70)!important;
+  box-shadow:0 9px 22px #0006!important;
+}
+.hungry-mystery-actions #hungryMysteryAgain{
+  background:rgba(22,22,20,.74)!important;
+  color:#b6aea2!important;
+  border:1px solid #35312a!important;
+}
+.hungry-mystery-actions button:active{
+  transform:scale(.985);
+}
+@media(max-width:390px){
+  .hungry-mystery-copy b{font-size:16px}
+  .hungry-mystery-seal{width:58px!important;height:58px!important}
+  .hungry-mystery-seal svg{width:32px;height:32px}
+  .hungry-mystery-result-image-wrap{width:62px;height:60px}
+  .hungry-mystery-result-copy b{font-size:19px}
+}
