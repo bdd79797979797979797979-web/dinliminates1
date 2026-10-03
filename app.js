@@ -779,6 +779,15 @@ S.index = Math.max(0, Math.min(S.index, Math.max(0, S.pool.length - 1)));
 }
 function setMaybeDeck(kind, enabled){
  const next=!!enabled;
+ const hasMaybe=maybeDeckCount(kind)>0;
+ // Never enter Maybe mode when there are no Maybe choices.
+ if(next && !hasMaybe){
+  S.maybeDeck=false;
+  if(kind==='food'){S.foodMaybeRound=false;S.index=0;buildFood();drawFood();}
+  else{S.restaurantMaybeRound=false;S.restaurantIndex=0;drawRestaurants();}
+  renderMaybeDeckToggle(kind);save();
+  return;
+ }
  if(kind==='food'){
   S.maybeDeck=next; S.foodMaybeRound=next; S.index=0; buildFood(); drawFood();
  }else{
@@ -802,7 +811,9 @@ function renderMaybeDeckToggle(kind){
  const btn=$(id);if(!btn)return;
  const hasMaybe=maybeDeckCount(kind)>0;
  btn.dataset.mode=S.maybeDeck?'maybe':'all';
- btn.disabled=S.maybeDeck && !hasMaybe;
+ // In All mode with zero Maybes the control remains visibly bright but is
+ // inert; it must never route an empty deck into Hungry mode.
+ btn.disabled=!hasMaybe;
  const target=S.maybeDeck?'Show all choices':'Show Maybe choices';
  btn.setAttribute('aria-label',S.maybeDeck?'Viewing Maybe choices. Tap to show all choices.':'Viewing all choices. Tap to show Maybe choices.');
  btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
@@ -814,7 +825,11 @@ function renderMaybeDeckToggle(kind){
 function bindMaybeDeckToggle(kind){
  const id=kind==='food'?'foodMaybeDeck':'restaurantMaybeDeck';
  const btn=$(id);if(!btn)return;
- btn.onclick=()=>setMaybeDeck(kind,!S.maybeDeck);
+ btn.onclick=()=>{
+  const hasMaybe=maybeDeckCount(kind)>0;
+  if(!S.maybeDeck && !hasMaybe)return;
+  setMaybeDeck(kind,!S.maybeDeck);
+ };
  renderMaybeDeckToggle(kind);
 }
 function renderQuickCutsCollapse(kind){
