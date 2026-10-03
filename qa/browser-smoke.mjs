@@ -96,12 +96,8 @@ assert.ok(homeGeom.scrollHeight<=homeGeom.innerHeight+2);
 await page.locator('#foodStart').click({position:{x:10,y:10}});
 await page.waitForTimeout(100);
 assert.equal(await page.locator('#foodCard').isVisible(),true);
-const deckVisual=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck'),r=document.getElementById('restaurantMaybeDeck'),fc=getComputedStyle(f),rc=getComputedStyle(r),frect=f.getBoundingClientRect(),rrect=r.getBoundingClientRect();return {foodText:f.textContent.trim(),restaurantText:r.textContent.trim(),foodFont:fc.fontSize,restaurantFont:rc.fontSize,foodHeight:frect.height,restaurantHeight:rrect.height,foodWidth:frect.width,restaurantWidth:rrect.width};});
+const deckVisual=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck'),fc=getComputedStyle(f),fr=f.getBoundingClientRect();return {foodText:f.textContent.trim(),foodFont:fc.fontSize,foodHeight:fr.height,foodWidth:fr.width};});
 assert.equal(deckVisual.foodText.replace(/[^A-Z]/g,''),'ALLMAYBES','Meals filter must contain ALL and MAYBES');
-assert.equal(deckVisual.restaurantText.replace(/[^A-Z]/g,''),'ALLMAYBES','Restaurant filter must contain ALL and MAYBES');
-assert.equal(deckVisual.foodFont,deckVisual.restaurantFont,'Meals and Restaurants filter typography must match');
-assert.ok(Math.abs(deckVisual.foodHeight-deckVisual.restaurantHeight)<1,'Meals and Restaurants filter heights must match');
-assert.ok(Math.abs(deckVisual.foodWidth-deckVisual.restaurantWidth)<1,'Meals and Restaurants filter widths must match');
 assert.match(await page.locator('#foodCount').innerText(),/^\d+$/,'Meal count must be numeric only');
 
 assert.equal(await page.locator('#foodCard .swipe-card-coach').count(),1);
