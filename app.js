@@ -3993,6 +3993,7 @@ let familySwipeData=null;
 let familySwipeCurrent=null;
 let familySwipeBusy=false;
 let familySwipeSubmittedRoundId='';
+let familyDeadlineTimer=0;
 
 function familySwipeItems(data){
   const round=data?.activeRound; if(!round?.snapshot)return [];
@@ -4015,16 +4016,33 @@ function familyBeginSwipe(data){
   }
   familySwipeRender();
 }
+function familyDeadlineStart(round){
+  if(familyDeadlineTimer)clearInterval(familyDeadlineTimer);
+  familyDeadlineTimer=0;
+  const el=$('familySwipeDeadline');
+  const deadline=round?.stageDeadlineAt?new Date(round.stageDeadlineAt).getTime():0;
+  if(!el||!deadline){if(el)el.textContent='';return;}
+  const tick=()=>{
+    const remaining=Math.max(0,deadline-Date.now()),seconds=Math.ceil(remaining/1000);
+    const minutes=Math.floor(seconds/60),secs=String(seconds%60).padStart(2,'0');
+    const by=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(deadline));
+    el.textContent=remaining>0?'By '+by+' · '+minutes+':'+secs:'Time’s up · moving on';
+    if(remaining<=0){clearInterval(familyDeadlineTimer);familyDeadlineTimer=0;familyRefreshState();}
+  };
+  tick(); familyDeadlineTimer=setInterval(tick,1000);
+}
+
 function familySwipeRender(){
   const data=familySwipeData,items=familySwipeItems(data),round=data?.activeRound;
   if(!data||!round)return;
-  const total=Array.isArray(round.snapshot?.pool)?round.snapshot.pool.filter(x=>x&&x.id&&!new Set(round.snapshot?.hostExcluded||[]).has(String(x.id))).length:0;
+  familyDeadlineStart(round);
+  const excluded=new Set(Array.isArray(round.snapshot?.hostExcluded)?round.snapshot.hostExcluded.map(String):[]);
+  const total=Array.isArray(round.snapshot?.pool)?round.snapshot.pool.filter(x=>x&&x.id&&!excluded.has(String(x.id))).length:0;
   const voted=(data.myVotes||[]).filter(v=>v.stage==='initial').length;
   $('familySwipeProgress').textContent=Math.min(voted,total)+' / '+total;
   if(!items.length){
-    familySwipeCurrent=null;
-    $('familySwipeCard')?.classList.add('hidden');
-    $('familySwipeWaiting')?.classList.remove('hidden');
+    familySwipeCurrent=null; familyDeadlineStart({stageDeadlineAt:null});
+    $('familySwipeCard')?.classList.add('hidden'); $('familySwipeWaiting')?.classList.remove('hidden');
     $('familySwipeCut')?.setAttribute('disabled','disabled');$('familySwipeMaybe')?.setAttribute('disabled','disabled');$('familySwipeChoose')?.setAttribute('disabled','disabled');
     $('familyWaitingText').textContent='Your picks are saved. We’ll move everyone forward together.';
     if(round.id!==familySwipeSubmittedRoundId){
@@ -4033,13 +4051,13 @@ function familySwipeRender(){
     }
     return;
   }
-  $('familySwipeWaiting')?.classList.add('hidden');$('familySwipeCard')?.classList.remove('hidden');
+  $('familySwipeWaiting')?.classList.add('hidden'); $('familySwipeCard')?.classList.remove('hidden');
   $('familySwipeCut')?.removeAttribute('disabled');$('familySwipeMaybe')?.removeAttribute('disabled');$('familySwipeChoose')?.removeAttribute('disabled');
-  const item=items[0];familySwipeCurrent=String(item.id);
+  const item=items[0]; familySwipeCurrent=String(item.id);
   $('familySwipeImg').src=item.image?imageProxyUrl(item.image):foodPhotoFallback(item);
   $('familySwipeName').textContent=String(item.name||'Choice');
   $('familySwipeCat').textContent=String(item.category||item.cuisine||'');
-  $('familySwipeMeta').textContent=familySwipeData.activeRound.decisionType==='restaurant'&&item.distance!=null?Number(item.distance).toFixed(1)+' mi away':'';
+  $('familySwipeMeta').textContent=round.decisionType==='restaurant'&&item.distance!=null?Number(item.distance).toFixed(1)+' mi away':'';
   $('familySwipeTitle').textContent=round.currentStage===1?'Make your picks.':'Choose the finalists.';
   $('familySwipeStageKicker').textContent=round.currentStage===1?'FIRST PICKS':'FAMILY FINALISTS';
 }
