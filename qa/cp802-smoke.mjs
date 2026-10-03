@@ -62,12 +62,10 @@ const homeBg3=await page.evaluate(()=>getComputedStyle(document.querySelector('.
 assert.ok(homeBg3.includes('1758568938040-fb8b7275ca5f'),'Door background must persist after restaurant return');
 
 await page.evaluate(()=>{
- const panel=document.querySelector('#hungryWheelPanel');
- panel.classList.remove('hidden');
- panel.setAttribute('aria-hidden','false');
- window.__DINLIMINATE_TEST__.renderHungryWheel();
+ const item={id:'qa-hungry',name:'HUNGRY',category:'Hungry',image:''};
+ window.__DINLIMINATE_TEST__.winner(item,'food');
 });
-await page.waitForTimeout(100);
+await page.waitForTimeout(120);
 assert.equal(await page.locator('#hungryWheel .wheel-segment').count(),116,'Wheel must use all 116 active meals as slices');
 assert.equal(await page.locator('#hungryWheel .wheel-label').count(),0,'Wheel must contain no meal-name labels');
 assert.equal(await page.locator('#hungryWheel').locator('title').count(),0,'Wheel must contain no hidden meal-name titles');
