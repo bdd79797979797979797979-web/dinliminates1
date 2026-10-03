@@ -917,8 +917,8 @@ function renderMealTimeCuts(){
  chips.classList.toggle('is-rail-collapsed',collapsed);
  chips.setAttribute('aria-hidden',String(collapsed));
  toggle.setAttribute('aria-expanded',String(!collapsed));
- toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Timess');
- toggle.title=collapsed?'Show Meal Timess':'Hide Meal Timess';
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Times');
+ toggle.title=collapsed?'Show Meal Times':'Hide Meal Times';
  const filtered=!!S.mealTimeFilters?.size;
  toggle.classList.toggle('is-filtered',filtered);
  toggle.setAttribute('aria-pressed',filtered?'true':'false');
