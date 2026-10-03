@@ -63,6 +63,10 @@ assert.equal(menuBefore.drawerPos,'fixed','Home Menu drawer must be fixed to the
 assert.equal(menuBefore.drawerTop,'0px','Home Menu drawer must start at the top');
 assert.equal(menuBefore.drawerBottom,'auto','Home Menu drawer must not anchor to the bottom');
 assert.equal(menuBefore.bgPos,'fixed','Menu backdrop must be fixed to the viewport');
+const menuButtons=await page.evaluate(()=>['menu','foodMenu','restaurantMenu','winnerMenu'].map(id=>{const e=document.getElementById(id),r=e?.getBoundingClientRect();return {id,exists:!!e,left:r?.left??-1,right:r?.right??-1,top:r?.top??-1,bottom:r?.bottom??-1,width:r?.width??0,height:r?.height??0};}));
+for(const m of menuButtons){assert.ok(m.exists,m.id+' must exist');assert.ok(m.left>=0 && m.right<=innerWidth+1,m.id+' must stay inside viewport horizontally');assert.ok(m.top>=0 && m.bottom<=innerHeight+1,m.id+' must stay inside viewport vertically');}
+assert.ok(menuButtons.find(x=>x.id==='menu').right>innerWidth-80,'Home menu must remain near the top-right');
+
 
 const homeBg=await page.evaluate(()=>{const app=document.querySelector('.app'),home=document.getElementById('home'),style=getComputedStyle(app),homeStyle=getComputedStyle(home),food=getComputedStyle(document.getElementById('foodStart')),rest=getComputedStyle(document.getElementById('restStart')),bar=getComputedStyle(document.getElementById('appTopbar'));return {appBg:style.backgroundImage,homeBg:homeStyle.backgroundColor,homeShadow:food.boxShadow,foodPhoto:food.backgroundImage,restPhoto:rest.backgroundImage,appPosition:style.position,barPosition:bar.position,barRight:bar.right,appHeight:app.getBoundingClientRect().height,appWidth:app.getBoundingClientRect().width,viewportHeight:innerHeight,viewportWidth:innerWidth};});
 assert.ok(homeBg.appBg.includes('8417853'),'Home must use Pexels photo 8417853 as the full-page background');
