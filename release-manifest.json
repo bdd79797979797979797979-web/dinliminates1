@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 835,
+  "build": 837,
   "sourceBranch": "cp827-final-deploy",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP835",
-  "deploymentTrigger": "CP835-multiple-meal-times-2026-10-03"
+  "checkpoint": "CP837",
+  "deploymentTrigger": "CP837-meal-times-left-cuisine-cuts-right-2026-10-03"
 }
