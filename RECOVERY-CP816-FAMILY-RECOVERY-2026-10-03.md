@@ -16,3 +16,9 @@ CP816 completed
 
 Next
 - CP817: full Family Mode audit across source contracts, state isolation, timing, finalists, tiebreaks, winner persistence, and recovery behavior.
+
+Additional CP816.1 repair notes:
+- Round participants are frozen when Start deciding is pressed, allowing late family members to join during host setup.
+- Restaurant Family setup always uses the full active restaurant pool, not the personal Maybe deck.
+- A Family setup that excludes every option is rejected by the server.
+- CP816 client repair is cache-busted with 816-1 assets.
