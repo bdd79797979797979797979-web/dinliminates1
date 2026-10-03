@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 774,
-  "sourceBranch": "cp774-from-cp770-selected-polish",
+  "build": 775,
+  "sourceBranch": "cp775-legacy-wiring-fireworks",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP774",
-  "deploymentTrigger": "CP774-launch-selected-polish-2026-10-02"
+  "checkpoint": "CP775",
+  "deploymentTrigger": "CP775-legacy-wiring-fireworks-2026-10-02"
 }
