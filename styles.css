@@ -5901,3 +5901,12 @@ body:has(.app #home:not(.hidden)){
 #food .quick-cuts-collapse-toggle::before,#restaurant .quick-cuts-collapse-toggle::before{content:none!important;display:none!important}
 .swipe-card-coach button,.swipe-card-coach .swipe-card-coach-dismiss{display:none!important;visibility:hidden!important;pointer-events:none!important}
 @media(max-width:390px){.app:has(#home:not(.hidden)) .app-topbar .brand{font-size:20px!important}.app:has(#home:not(.hidden)) .app-topbar #menu{right:8px!important}.drawer{top:calc(env(safe-area-inset-top) + 58px)!important;right:10px!important;width:min(91vw,390px)!important;max-height:calc(100svh - 76px)!important}.utility-modal{top:calc(env(safe-area-inset-top) + 58px)!important;max-height:calc(100svh - 76px)!important}#detailsModal{width:min(94vw,520px)!important;max-height:88svh!important}}
+
+
+/* CP769 — restaurant card Website action alongside Details. */
+.restaurant-card-utility-group{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;gap:5px!important;margin-left:auto!important}
+.restaurant-card-utility{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;display:grid!important;place-items:center!important;padding:0!important;border:1px solid rgba(229,210,171,.18)!important;border-radius:10px!important;background:rgba(255,255,255,.045)!important;color:#d8d0c4!important;box-shadow:0 5px 14px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05)!important;text-decoration:none!important;transition:transform .14s ease,background .14s ease,border-color .14s ease!important}
+.restaurant-card-utility svg{width:16px!important;height:16px!important;display:block!important}
+.restaurant-card-utility:hover{background:rgba(255,255,255,.08)!important;border-color:rgba(229,210,171,.32)!important}
+.restaurant-card-utility:active{transform:scale(.94)!important}
+@media(max-width:390px){.restaurant-card-utility{width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;border-radius:9px!important}.restaurant-card-utility svg{width:15px!important;height:15px!important}.restaurant-card-utility-group{gap:4px!important}}
