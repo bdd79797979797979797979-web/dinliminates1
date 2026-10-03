@@ -87,6 +87,12 @@ hungryWheelChoice:null,
 hungryWheelSpinning:false,
 hungryWheelRotation:0,
 hungryWheelDisplayItems:null,
+hungryWheelLandedId:null,
+hungryWheelDragging:false,
+hungryWheelDragAngle:0,
+hungryWheelDragRotation:0,
+hungryWheelDragLastTime:0,
+hungryWheelDragVelocity:0,
 hungryRestaurantChoice:null,
 hungryRestaurantPendingChoice:null,
 hungryWheelSpinToken:0,
@@ -2137,11 +2143,13 @@ $('restaurantQuery').oninput=()=>{
  };
 }
 
-function triggerCelebration() {
+function triggerCelebration(goldOnly=false) {
 const el = $('celebration');
 if (!el) return;
 el.innerHTML = '';
-const colors = ['#ffb04a','#ffd76a','#f5f1e8','#ff6b57','#9ee7ff'];
+const colors = goldOnly
+ ? ['#c6a46a','#f1d894','#fff7df','#d8b86b','#fffaf0']
+ : ['#c6a46a','#f1d894','#f5f1e8','#ffb04a','#fffaf0'];
 for (let b=0;b<3;b++) {
 const burst = document.createElement('div');
 burst.className='firework-burst burst-'+(b+1);
@@ -2172,34 +2180,57 @@ function wheelPoint(cx,cy,r,angle){
 const rad=angle*Math.PI/180;
 return {x:cx+Math.cos(rad)*r,y:cy+Math.sin(rad)*r};
 }
+
+function sampleHungryWheel(pool,selected=null,count=12){
+ const source=[...(pool||[])].filter(Boolean);
+ if(!source.length)return [];
+ const target=String(selected?.id||'');
+ const others=source.filter(x=>String(x.id)!==target);
+ for(let i=others.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[others[i],others[j]]=[others[j],others[i]];}
+ const take=Math.min(count,source.length);
+ const chosen=others.slice(0,Math.max(0,take-(selected?1:0)));
+ if(selected){
+   const slot=Math.floor(Math.random()*Math.min(take,Math.max(1,chosen.length+1)));
+   chosen.splice(Math.min(slot,chosen.length),0,selected);
+ }
+ return chosen.slice(0,take);
+}
 function renderHungryWheel(){
-const svg=$('hungryWheel');
-const countEl=$('hungryWheelCount');
-if(!svg)return;
-const activeItems=allFoods().filter(item=>!S.hidden.has(String(item.id)));
-const basePool=activeItems.length?activeItems:allFoods();
-const displayIds=Array.isArray(S.hungryWheelDisplayItems)?S.hungryWheelDisplayItems.map(item=>String(item?.id||'')):null;
-const ordered=displayIds?.length
- ? displayIds.map(id=>basePool.find(item=>String(item.id)===id)).filter(Boolean)
- : [];
-const items=ordered.length===basePool.length?ordered:basePool;
-const pool=items.length?items:allFoods();
-if(countEl)countEl.textContent=pool.length+' meals on the wheel';
-const cx=180,cy=180,r=168,inner=34,step=360/Math.max(1,pool.length);
-const fills=['#22211e','#2b2924','#333028','#272624','#302d28','#242321'];
-svg.setAttribute('aria-label','Dinner wheel with '+pool.length+' available meals');
-svg.innerHTML=pool.map((item,index)=>{
-const start=-90+index*step, end=start+step-.14;
-const p1=wheelPoint(cx,cy,r,start),p2=wheelPoint(cx,cy,r,end);
-const q1=wheelPoint(cx,cy,inner,end),q2=wheelPoint(cx,cy,inner,start);
-const d='M '+p1.x.toFixed(2)+' '+p1.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+p2.x.toFixed(2)+' '+p2.y.toFixed(2)+' L '+q1.x.toFixed(2)+' '+q1.y.toFixed(2)+' A '+inner+' '+inner+' 0 0 0 '+q2.x.toFixed(2)+' '+q2.y.toFixed(2)+' Z';
-const escaped=esc(item.name||'Meal');
-return '<path d="'+d+'" fill="'+fills[index%fills.length]+'" stroke="#0b0b0b" stroke-width="1.1"><title>'+escaped+'</title></path>';
-}).join('')+
-'<circle cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.5"/>'+
-'<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
-svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
-svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
+ const svg=$('hungryWheel');
+ const countEl=$('hungryWheelCount');
+ if(!svg)return;
+ const activeItems=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+ const basePool=activeItems.length?activeItems:allFoods();
+ let items=Array.isArray(S.hungryWheelDisplayItems)
+   ? S.hungryWheelDisplayItems.map(item=>basePool.find(x=>String(x.id)===String(item?.id))).filter(Boolean)
+   : [];
+ if(items.length<Math.min(12,basePool.length)){
+   items=sampleHungryWheel(basePool,S.hungryWheelChoice,12);
+   S.hungryWheelDisplayItems=items;
+ }
+ const pool=items.length?items:basePool.slice(0,12);
+ if(countEl)countEl.textContent=basePool.length+' meals available · '+pool.length+' on the wheel';
+ const cx=180,cy=180,r=168,inner=35,step=360/Math.max(1,pool.length);
+ const fills=['#171716','#27323a','#3d3324','#eee7d8','#20272d','#4a3b27','#191918','#30404a','#5a482b','#ded5c3','#222a2e','#6a5530'];
+ svg.setAttribute('aria-label','Second-chance dinner wheel with '+basePool.length+' available meals');
+ svg.innerHTML=pool.map((item,index)=>{
+   const start=-90+index*step, end=start+step-.28;
+   const p1=wheelPoint(cx,cy,r,start),p2=wheelPoint(cx,cy,r,end);
+   const q1=wheelPoint(cx,cy,inner,end),q2=wheelPoint(cx,cy,inner,start);
+   const d='M '+p1.x.toFixed(2)+' '+p1.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+p2.x.toFixed(2)+' '+p2.y.toFixed(2)+' L '+q1.x.toFixed(2)+' '+q1.y.toFixed(2)+' A '+inner+' '+inner+' 0 0 0 '+q2.x.toFixed(2)+' '+q2.y.toFixed(2)+' Z';
+   const landed=String(S.hungryWheelLandedId||'')===String(item.id);
+   const fill=landed?'#c6a46a':fills[index%fills.length];
+   const textColor=['#eee7d8','#20272d','#191918'].includes(fill)?'#111':'#f5f1e8';
+   const escaped=esc(item.name||'Meal');
+   const mid=start+step/2, label=esc(String(item.name||'Meal').length>18?String(item.name||'Meal').slice(0,17)+'…':String(item.name||'Meal'));
+   const lp=wheelPoint(cx,cy,118,mid);
+   return '<path class="wheel-segment'+(landed?' is-landed':'')+'" data-wheel-index="'+index+'" d="'+d+'" fill="'+fill+'" stroke="#0b0b0b" stroke-width="1.4"><title>'+escaped+'</title></path>'+
+          '<text class="wheel-label" x="'+lp.x.toFixed(2)+'" y="'+lp.y.toFixed(2)+'" fill="'+textColor+'" transform="rotate('+(mid+90).toFixed(2)+' '+lp.x.toFixed(2)+' '+lp.y.toFixed(2)+')" text-anchor="middle" dominant-baseline="middle">'+label+'</text>';
+ }).join('')+
+ '<circle class="wheel-center" cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.7"/>'+
+ '<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
+ svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
+ svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
 }
 function hungryWheelPool(){
 const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
@@ -2329,47 +2360,129 @@ function tryAnotherHungryRestaurant(){
  }
  if(!next)appToast('No other restaurant options are available.');
 }
-function spinHungryWheel(){
-const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
-if(!svg||S.hungryWheelSpinning)return;
-const pool=hungryWheelPool();
-if(!pool.length){appToast('There are no meals available to spin.');return;}
-const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
-const selectedIndex=Number.isInteger(forced)&&forced>=0&&forced<pool.length?forced:Math.floor(Math.random()*pool.length);
-const item=pool[selectedIndex];
-const spinToken=++S.hungryWheelSpinToken;
-const step=360/pool.length;
-const currentMod=((S.hungryWheelRotation%360)+360)%360;
-const landingIndex=((Math.round(currentMod/step)%pool.length)+pool.length)%pool.length;
-const others=pool.filter(candidate=>String(candidate.id)!==String(item.id));
-others.splice(landingIndex,0,item);
-S.hungryWheelDisplayItems=others;
-renderHungryWheel();
-const rotation=S.hungryWheelRotation+360;
-svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
-S.hungryWheelRotation=rotation;
-S.hungryWheelChoice=item;
-S.hungryWheelSpinning=true;
-if(spin){spin.disabled=true;spin.setAttribute('aria-busy','true');}
-$('hungryWheelChoose')?.classList.add('hidden');
-$('hungryWheelResult')?.classList.add('hidden');
-$('hungryWheelPanel')?.classList.remove('has-landed');
-svg.style.setProperty('--wheel-rotation',rotation+'deg');
-svg.classList.remove('is-spinning');
-void svg.offsetWidth;
-svg.classList.add('is-spinning');
-const finish=()=>{
- if(spinToken!==S.hungryWheelSpinToken)return;
- svg.style.setProperty('--wheel-resting-rotation',rotation+'deg');
- svg.classList.remove('is-spinning');
- S.hungryWheelSpinning=false;
- if(spin)spin.setAttribute('aria-busy','false');
- showHungryWheelResult(item);
-};
-svg.addEventListener('transitionend',finish,{once:true});
-window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
+function wheelSegmentIndexForRotation(rotation,count){
+ const step=360/Math.max(1,count);
+ const local=(((-rotation)%360)+360)%360;
+ return Math.floor((local+step/2)/step)%count;
 }
+function finishHungryWheelRotation(item,rotation){
+ const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ S.hungryWheelRotation=rotation;
+ S.hungryWheelChoice=item||null;
+ S.hungryWheelLandedId=item?.id?String(item.id):null;
+ S.hungryWheelSpinning=false;
+ if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
+ svg?.style.setProperty('--wheel-resting-rotation',rotation+'deg');
+ svg?.style.setProperty('--wheel-rotation',rotation+'deg');
+ svg?.classList.remove('is-spinning','is-dragging');
+ showHungryWheelResult(item);
+ renderHungryWheel();
+ triggerSwipeHaptic();
+}
+function spinHungryWheel(){
+ const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ if(!svg||S.hungryWheelSpinning||S.hungryWheelDragging)return;
+ const pool=hungryWheelPool();
+ if(!pool.length){appToast('There are no meals available to spin.');return;}
+ const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
+ const item=Number.isInteger(forced)&&forced>=0&&forced<pool.length?pool[forced]:pool[Math.floor(Math.random()*pool.length)];
+ const display=sampleHungryWheel(pool,item,12);
+ S.hungryWheelDisplayItems=display;
+ const selectedIndex=Math.max(0,display.findIndex(x=>String(x.id)===String(item.id)));
+ renderHungryWheel();
+ const step=360/Math.max(1,display.length);
+ const targetBase=-(selectedIndex*step+step/2);
+ const current=S.hungryWheelRotation;
+ const turns=4+Math.floor(Math.random()*2);
+ const target=targetBase+360*Math.round((current-targetBase)/360)+360*turns;
+ const spinToken=++S.hungryWheelSpinToken;
+ S.hungryWheelChoice=item;
+ S.hungryWheelSpinning=true;
+ S.hungryWheelLandedId=null;
+ if(spin){spin.disabled=true;spin.setAttribute('aria-busy','true');spin.textContent='Spinning…';}
+ $('hungryWheelChoose')?.classList.add('hidden');
+ $('hungryWheelResult')?.classList.add('hidden');
+ $('hungryWheelPanel')?.classList.remove('has-landed');
+ svg.style.setProperty('--wheel-resting-rotation',current+'deg');
+ svg.style.setProperty('--wheel-rotation',target+'deg');
+ svg.classList.remove('is-spinning');
+ void svg.offsetWidth;
+ svg.classList.add('is-spinning');
+ const finish=()=>{
+   if(spinToken!==S.hungryWheelSpinToken)return;
+   finishHungryWheelRotation(item,target);
+ };
+ svg.addEventListener('transitionend',finish,{once:true});
+ window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
+}
+function wheelAngleFromEvent(event,stage){
+ const r=stage.getBoundingClientRect();
+ return Math.atan2(event.clientY-(r.top+r.height/2),event.clientX-(r.left+r.width/2))*180/Math.PI;
+}
+function wheelDelta(a,b){let d=a-b;while(d>180)d-=360;while(d<-180)d+=360;return d;}
+function bindHungryWheelGesture(){
+ const stage=document.querySelector('.hungry-wheel-stage'),svg=$('hungryWheel');
+ if(!stage||!svg||stage.dataset.gestureBound)return;
+ stage.dataset.gestureBound='true';
+ stage.addEventListener('pointerdown',event=>{
+   if(S.hungryWheelSpinning)return;
+   event.preventDefault();
+   stage.setPointerCapture?.(event.pointerId);
+   S.hungryWheelDragging=true;
+   S.hungryWheelDragAngle=wheelAngleFromEvent(event,stage);
+   S.hungryWheelDragRotation=S.hungryWheelRotation;
+   S.hungryWheelDragLastTime=performance.now();
+   S.hungryWheelDragVelocity=0;
+   svg.classList.add('is-dragging');
+   $('hungryWheelChoose')?.classList.add('hidden');
+   $('hungryWheelResult')?.classList.add('hidden');
+   S.hungryWheelLandedId=null;
+ });
+ stage.addEventListener('pointermove',event=>{
+   if(!S.hungryWheelDragging)return;
+   event.preventDefault();
+   const now=performance.now(),angle=wheelAngleFromEvent(event,stage),delta=wheelDelta(angle,S.hungryWheelDragAngle),dt=Math.max(8,now-S.hungryWheelDragLastTime);
+   S.hungryWheelDragAngle=angle;
+   S.hungryWheelDragRotation+=delta;
+   S.hungryWheelRotation=S.hungryWheelDragRotation;
+   S.hungryWheelDragVelocity=(delta/dt)*1000;
+   S.hungryWheelDragLastTime=now;
+   svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
+   svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
+ });
+ const end=event=>{
+   if(!S.hungryWheelDragging)return;
+   event.preventDefault();
+   S.hungryWheelDragging=false;
+   stage.releasePointerCapture?.(event.pointerId);
+   const display=Array.isArray(S.hungryWheelDisplayItems)&&S.hungryWheelDisplayItems.length?S.hungryWheelDisplayItems:hungryWheelPool().slice(0,12);
+   if(!display.length){svg.classList.remove('is-dragging');return;}
+   const velocity=Math.max(-900,Math.min(900,S.hungryWheelDragVelocity));
+   const momentum=Math.max(-900,Math.min(900,velocity*0.22));
+   const raw=S.hungryWheelRotation+momentum+(Math.abs(momentum)<90?(velocity>=0?8:-8):0);
+   const idx=wheelSegmentIndexForRotation(raw,display.length);
+   const step=360/display.length,targetBase=-(idx*step+step/2);
+   const target=targetBase+360*Math.round((raw-targetBase)/360);
+   const item=display[idx];
+   const token=++S.hungryWheelSpinToken;
+   S.hungryWheelChoice=item;
+   S.hungryWheelSpinning=true;
+   S.hungryWheelLandedId=null;
+   svg.classList.remove('is-dragging');
+   svg.style.setProperty('--wheel-rotation',target+'deg');
+   svg.classList.add('is-spinning');
+   $('hungryWheelSpin').disabled=true;
+   $('hungryWheelSpin').textContent='Settling…';
+   const finish=()=>{if(token!==S.hungryWheelSpinToken)return;finishHungryWheelRotation(item,target);};
+   svg.addEventListener('transitionend',finish,{once:true});
+   window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},2600);
+ };
+ stage.addEventListener('pointerup',end);
+ stage.addEventListener('pointercancel',end);
+}
+
 function winner(item, explicitType=null) {
+const chosenFromWheel=!!S.hungryWheelChoice && String(S.hungryWheelChoice.id)===String(item?.id);
 S.winnerItem = item;
 S.winnerType = explicitType || (S.screen === 'restaurant' ? 'restaurant' : 'food');
 if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
@@ -2379,6 +2492,7 @@ S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
 S.hungryWheelDisplayItems=null;
+S.hungryWheelLandedId=null;
 S.hungryRestaurantChoice=null;
 S.hungryRestaurantPendingChoice=null;
 S.hungryWheelSpinToken++;
@@ -2423,6 +2537,7 @@ if(hungry){
     startHungryRestaurantMystery();
   }else{
     renderHungryWheel();
+    bindHungryWheelGesture();
     $('hungryWheelPanel')?.classList.remove('has-landed');
     $('hungryWheelResult')?.classList.add('hidden');
     $('hungryWheelChoose')?.classList.add('hidden');
@@ -2430,7 +2545,7 @@ if(hungry){
     if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';}
   }
 }else{
-  triggerCelebration();
+  triggerCelebration(chosenFromWheel);
   hydrateRestaurantPhoto(item,'#winner');
 }
 save();
@@ -3386,6 +3501,7 @@ S.hungryWheelSpinning=false;
 S.hungryWheelChoice=null;
 S.hungryWheelRotation=0;
 S.hungryWheelDisplayItems=null;
+S.hungryWheelLandedId=null;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
@@ -3555,6 +3671,7 @@ $('hungryWheelSpin').onclick = (event) => {
  event?.stopPropagation?.();
  spinHungryWheel();
 };
+bindHungryWheelGesture();
 $('hungryWheelChoose').onclick = () => {
   const choice=S.hungryWheelChoice;
   if(!choice || S.hungryWheelSpinning)return;
