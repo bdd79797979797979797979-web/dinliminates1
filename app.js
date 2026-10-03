@@ -3212,6 +3212,14 @@ async function findOnlineMealPhoto(name) {
  }
 }
 
+async function cleanupMealPhotoStorage(previousPhotos,finalPhotos){
+ const keep=new Set((Array.isArray(finalPhotos)?finalPhotos:[]).map(p=>String(normalizeMealPhotoObject(p).storageKey||'')).filter(Boolean));
+ for(const raw of Array.isArray(previousPhotos)?previousPhotos:[]){
+  const p=normalizeMealPhotoObject(raw);
+  const key=String(p.storageKey||'');
+  if(key&&!keep.has(key)&&key.startsWith('meal:')){await deleteStoredPhoto(key);storedPhotoIds.delete(key);}
+ }
+}
 function foodEditor(item=null) {
 const isEdit=!!item;
 const defaultItem=isEdit?getDefaultFoods().find(x=>String(x.id)===String(item?.id)):null;
@@ -3220,7 +3228,17 @@ const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x.name||'').trim()).filter(Boolean)];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
-let editorPhotos=isEdit?mealPhotoList(item).map((p,i)=>normalizeMealPhotoObject({...p,crop:{...(p.crop||{})}},i,item)).slice(0,MAX_MEAL_PHOTOS):[];
+let editorPhotos=isEdit?mealPhotoList(item).map((p,i)=>normalizeMealPhotoObject({...p,kind:(isBuiltInEdit&&i===0&&!p.kind)?'curated':(p.kind||'personal'),crop:{...(p.crop||{})}},i,{...item,builtInEdit:isBuiltInEdit})).slice(0,MAX_MEAL_PHOTOS):[];
+if(isBuiltInEdit){
+ const curatedSrc=String(defaultItem?.image||'');
+ if(curatedSrc&&!editorPhotos.some(p=>String(p.src)===curatedSrc)){
+  editorPhotos.unshift({id:'curated-cover-'+String(item.id),src:curatedSrc,kind:'curated',storageKey:'',crop:{x:50,y:50,zoom:1}});
+  editorPhotos=editorPhotos.slice(0,MAX_MEAL_PHOTOS);
+ }else{
+  const curated=editorPhotos.find(p=>String(p.src)===curatedSrc);
+  if(curated)curated.kind='curated';
+ }
+}
 
 const nut=item?.nutrition||{};
 const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
@@ -3355,6 +3373,7 @@ $('editFoodFiles').onchange=async()=>{
  for(const file of files.slice(0,remaining)){
   try{
    const data=await readImageFile(file);if(!data)continue;
+   if(editorPhotos.some(p=>String(p.src)===String(data))){appToast('That photo is already added.');continue;}
    const id=makeMealPhotoId(),key=mealPhotoStorageKey(item?.id||'new-meal',id);
    const ok=await putStoredPhoto(key,data);
    if(!ok){appToast('Could not save that photo on this device.');continue;}
@@ -3394,7 +3413,7 @@ const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const editorNote=isEdit?String($('editFoodNote')?.value||'').trim():'';
 const photoInput=$('editFoodPhoto').value.trim();
-if(photoInput&&!editorPhotos.some(p=>String(p.src)===photoInput)){
+if(photoInput&&editorPhotos.length<MAX_MEAL_PHOTOS&&!editorPhotos.some(p=>String(p.src)===photoInput)){
  editorPhotos.unshift({id:makeMealPhotoId(),src:photoInput,kind:'personal',storageKey:'',crop:{x:50,y:50,zoom:1}});
  editorPhotos=editorPhotos.slice(0,MAX_MEAL_PHOTOS);
 }
@@ -3412,14 +3431,17 @@ if(isEdit&&isBuiltInEdit){
 const id=String(item.id);
 const idx=S.custom.findIndex(x=>String(x.id)===id);
 const previous=idx>=0?S.custom[idx]:null;
+const previousPhotos=previous?mealPhotoList(previous):[];
 let finalPhotos;
 try{finalPhotos=await persistMealPhotoCollection(editorPhotos,id);}catch(e){appToast(e.message||'Could not save the meal photos.');return;}
 const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,image:finalPhotos[0]?.src||defaultItem.image,photos:finalPhotos,description,ingredients,recipe,nutrition};
 if(idx>=0)S.custom[idx]=updated;else S.custom.push(updated);
+await cleanupMealPhotoStorage(previousPhotos,finalPhotos);
 S.maybe.delete(id); S.hidden.delete(id);
 } else if(isEdit){
 const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
+const previousPhotos=mealPhotoList(S.custom[idx]);
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 let finalPhotos;
@@ -3427,6 +3449,7 @@ try{finalPhotos=await persistMealPhotoCollection(editorPhotos,id,String(item.id)
 if(!finalPhotos.length)finalPhotos=[{id:'fallback',src:DEFAULT_FOOD_IMAGE,kind:'fallback',storageKey:'',crop:{x:50,y:50,zoom:1}}];
 const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:finalPhotos[0].src,photos:finalPhotos,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
+await cleanupMealPhotoStorage(previousPhotos,finalPhotos);
 if(id!==item.id){ const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
 S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
