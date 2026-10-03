@@ -5,6 +5,16 @@
 const getDefaultFoods = () => Array.isArray(window.DINLIMINATE_FOODS) ? window.DINLIMINATE_FOODS : [];
 const DEFAULT_FOOD_IMAGE = 'https://images.pexels.com/photos/16365767/pexels-photo-16365767.jpeg?auto=compress&cs=tinysrgb&w=1800';
 const $ = (id) => document.getElementById(id);
+function loadBundledHomeBackground(){
+  fetch('./home-background.b64',{cache:'force-cache'})
+    .then(r=>r.ok?r.text():'')
+    .then(b64=>{
+      const clean=String(b64||'').trim();
+      if(clean)document.documentElement.style.setProperty('--home-bg-image','url("data:image/jpeg;base64,'+clean+'")');
+    })
+    .catch(()=>{});
+}
+loadBundledHomeBackground();
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
