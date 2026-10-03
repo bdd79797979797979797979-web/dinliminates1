@@ -3804,12 +3804,24 @@ function familyRenderState(data){
   $('familyJoinCodeDisplay').textContent=family.joinCode||'—';
   $('familyMemberCount').textContent=String(family.memberCount||0)+' here';
   familyDisplayMemberList(data.members||[],me);
-  const active=!!data.activeRound;
-  $('familyLobbyTitle').textContent=active?'A dinner decision is underway.':'Ready when everyone’s here.';
+  const activeRound=data.activeRound||null;
+  const active=!!activeRound;
+  const roundMember=activeRound ? (data.roundMembers||[]).find(r=>r.memberId===me.id&&r.included) : null;
+  const included=!active||!!roundMember;
+  const swiping=active&&activeRound.status==='swiping'&&included;
+  $('familyLobby')?.classList.toggle('hidden',swiping);
+  $('familySetup')?.classList.add('hidden');
+  $('familySwipe')?.classList.toggle('hidden',!swiping);
+  $('familyLobbyTitle').textContent=activeRound?.status==='setup'?'Dinner setup is ready.':activeRound?.status==='swiping'?'Dinner is being decided.':active?'A dinner decision is underway.':'Ready when everyone’s here.';
   $('familyRotateCode')?.classList.toggle('hidden',me.role!=='host');
   $('familySetupOpen')?.classList.toggle('hidden',me.role!=='host'||active);
+  $('familyStartDecision')?.classList.toggle('hidden',me.role!=='host'||activeRound?.status!=='setup');
   const note=$('familyCodeNote'); if(note)note.textContent=me.role==='host'?'Share the code. You can regenerate it any time.':'You’re in. The host will set up dinner.';
-  familySetStatus('familyLobbyStatus',active?'A decision is already active. You’ll be included when the next one begins.':me.role==='host'?'You’re the host. Bring everyone in, then we’ll set up dinner.':'You’re in. Waiting for the host.');
+  if(swiping){ familyBeginSwipe(data); return; }
+  if(activeRound&&!included){ familySetStatus('familyLobbyStatus','This dinner decision already started. You’ll join the next one.'); }
+  else if(activeRound?.status==='setup'){ familySetStatus('familyLobbyStatus',me.role==='host'?'Setup is locked. Start deciding when everyone is ready.':'The host has dinner ready. Waiting for the start.'); }
+  else if(activeRound){ familySetStatus('familyLobbyStatus','A decision is underway. We’ll keep your Family together for the next one.'); }
+  else familySetStatus('familyLobbyStatus',me.role==='host'?'You’re the host. Bring everyone in, then set up dinner.':'You’re in. Waiting for the host.');
 }
 async function familyRefreshState(){
   const session=familySessionRead(); if(!session?.token)return null;
@@ -3820,10 +3832,11 @@ function stopFamilyLobbyPolling(){ if(familyPollTimer){clearInterval(familyPollT
 function startFamilyLobbyPolling(){
   stopFamilyLobbyPolling();
   familyPollTimer=setInterval(()=>{
-    if(S.screen==='family'&&!$('familyLobby')?.classList.contains('hidden')&&!familyPollBusy){ familyPollBusy=true; familyRefreshState().finally(()=>{familyPollBusy=false;}); }
+    if(S.screen==='family'&&!familyPollBusy){ familyPollBusy=true; familyRefreshState().finally(()=>{familyPollBusy=false;}); }
     else if(S.screen!=='family')stopFamilyLobbyPolling();
   },4000);
 }
+
 async function familyCreate(){
   const name=$('familyCreateName')?.value?.trim()||''; familySetStatus('familyCreateStatus','Creating…','busy');
   try{const data=await familyApi('create',{displayName:name}); familySessionWrite({token:data.token,family:data.family,member:data.member}); $('familyCreateForm')?.classList.add('hidden'); $('familyLobby')?.classList.remove('hidden'); familyRenderState(data); familySetStatus('familyLobbyStatus','Family created. Share the code with everyone.'); startFamilyLobbyPolling();}
@@ -3974,4 +3987,81 @@ $('familyTypeMeal')?.addEventListener('click',()=>familySetupChooseType('meal'))
 $('familyTypeRestaurant')?.addEventListener('click',()=>familySetupChooseType('restaurant'));
 $('familySetupAll')?.addEventListener('click',()=>{familySetupExcluded=new Set();familySetupRender();});
 $('familyLockSetup')?.addEventListener('click',familyLockSetup);
+/* CP811 — Family Mode shared swipe engine */
+let familySwipeBound=false;
+let familySwipeData=null;
+let familySwipeCurrent=null;
+let familySwipeBusy=false;
+let familySwipeSubmittedRoundId='';
+
+function familySwipeItems(data){
+  const round=data?.activeRound; if(!round?.snapshot)return [];
+  const excluded=new Set(Array.isArray(round.snapshot.hostExcluded)?round.snapshot.hostExcluded.map(String):[]);
+  const voted=new Set((data.myVotes||[]).filter(v=>v.stage==='initial').map(v=>String(v.itemId)));
+  return (Array.isArray(round.snapshot.pool)?round.snapshot.pool:[]).filter(item=>item&&item.id&&!excluded.has(String(item.id))&&!voted.has(String(item.id)));
+}
+function familyBeginSwipe(data){
+  const round=data?.activeRound; if(!round||round.status!=='swiping')return;
+  familySwipeData=data;
+  $('familySwipe')?.classList.remove('hidden');
+  $('familyLobby')?.classList.add('hidden');
+  $('familySetup')?.classList.add('hidden');
+  if(!familySwipeBound){
+    familySwipeBound=true;
+    bindSwipeCard('familySwipeCard',null,()=>familySwipeChoose('cut'),()=>familySwipeChoose('maybe'));
+    $('familySwipeCut')?.addEventListener('click',()=>familySwipeChoose('cut'));
+    $('familySwipeMaybe')?.addEventListener('click',()=>familySwipeChoose('maybe'));
+    $('familySwipeChoose')?.addEventListener('click',()=>familySwipeChoose('choose'));
+  }
+  familySwipeRender();
+}
+function familySwipeRender(){
+  const data=familySwipeData,items=familySwipeItems(data),round=data?.activeRound;
+  if(!data||!round)return;
+  const total=Array.isArray(round.snapshot?.pool)?round.snapshot.pool.filter(x=>x&&x.id&&!new Set(round.snapshot?.hostExcluded||[]).has(String(x.id))).length:0;
+  const voted=(data.myVotes||[]).filter(v=>v.stage==='initial').length;
+  $('familySwipeProgress').textContent=Math.min(voted,total)+' / '+total;
+  if(!items.length){
+    familySwipeCurrent=null;
+    $('familySwipeCard')?.classList.add('hidden');
+    $('familySwipeWaiting')?.classList.remove('hidden');
+    $('familySwipeCut')?.setAttribute('disabled','disabled');$('familySwipeMaybe')?.setAttribute('disabled','disabled');$('familySwipeChoose')?.setAttribute('disabled','disabled');
+    $('familyWaitingText').textContent='Your picks are saved. We’ll move everyone forward together.';
+    if(round.id!==familySwipeSubmittedRoundId){
+      familySwipeSubmittedRoundId=round.id;
+      familyApi('submit-stage',{token:familySessionRead()?.token,roundId:round.id,stage:'initial'}).catch(err=>{familySetStatus('familyLobbyStatus',err.message||'Could not submit your picks.','error');});
+    }
+    return;
+  }
+  $('familySwipeWaiting')?.classList.add('hidden');$('familySwipeCard')?.classList.remove('hidden');
+  $('familySwipeCut')?.removeAttribute('disabled');$('familySwipeMaybe')?.removeAttribute('disabled');$('familySwipeChoose')?.removeAttribute('disabled');
+  const item=items[0];familySwipeCurrent=String(item.id);
+  $('familySwipeImg').src=item.image?imageProxyUrl(item.image):foodPhotoFallback(item);
+  $('familySwipeName').textContent=String(item.name||'Choice');
+  $('familySwipeCat').textContent=String(item.category||item.cuisine||'');
+  $('familySwipeMeta').textContent=familySwipeData.activeRound.decisionType==='restaurant'&&item.distance!=null?Number(item.distance).toFixed(1)+' mi away':'';
+  $('familySwipeTitle').textContent=round.currentStage===1?'Make your picks.':'Choose the finalists.';
+  $('familySwipeStageKicker').textContent=round.currentStage===1?'FIRST PICKS':'FAMILY FINALISTS';
+}
+async function familySwipeChoose(choiceValue){
+  if(familySwipeBusy||!familySwipeCurrent||!familySwipeData?.activeRound)return;
+  familySwipeBusy=true;
+  const roundId=familySwipeData.activeRound.id,itemId=familySwipeCurrent,token=familySessionRead()?.token;
+  if(!token){familySwipeBusy=false;return;}
+  try{
+    await familyApi('vote',{token,roundId,stage:'initial',itemId,choice:choiceValue});
+    const currentVotes=Array.isArray(familySwipeData.myVotes)?familySwipeData.myVotes.slice():[];
+    currentVotes.push({stage:'initial',itemId,choice:choiceValue});
+    familySwipeData={...familySwipeData,myVotes:currentVotes};
+    familySwipeCurrent=null; familySwipeRender();
+  }catch(err){ familySetStatus('familyLobbyStatus',err.message||'Could not save that choice.','error'); }
+  finally{familySwipeBusy=false;}
+}
+$('familyStartDecision')?.addEventListener('click',async()=>{
+  const session=familySessionRead();if(!session?.token)return;
+  const button=$('familyStartDecision');if(button){button.disabled=true;button.textContent='Starting…';}
+  try{await familyApi('start-round',{token:session.token});await familyRefreshState();}
+  catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not start the dinner decision.','error');}
+  finally{if(button){button.disabled=false;button.textContent='Start deciding';}}
+});
 })();
