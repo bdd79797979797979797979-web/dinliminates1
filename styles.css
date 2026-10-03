@@ -7387,7 +7387,7 @@ button,input,select,textarea{
   object-position:center center!important;
 }
 
-/* CP827 — surgical recovery from CP823: visibly translucent menu glass. */
+/* CP827 — surgical recovery from CP823: visibly translucent menu glass. Deploy trigger. */
 .menu,
 .decision-menu,
 #winner .winner-menu,
