@@ -3985,6 +3985,7 @@ $('familyJoinCode')?.addEventListener('input',e=>{const value=e.target.value.rep
 /* CP810 — Family Mode host setup */
 let familySetupType='meal';
 let familySetupExcluded=new Set();
+let familySetupMealTimes=new Set();
 
 function familyDefaultDinnerTime(){
   const d=new Date(Date.now()+30*60*1000);
@@ -3994,12 +3995,25 @@ function familyDefaultDinnerTime(){
 }
 function familySetupItems(){
   if(familySetupType==='meal'){
-    return allFoods().filter(item=>item&&!S.hidden.has(item.id)&&!S.deleted.has(item.id));
+    return allFoods().filter(item=>{
+      if(!item||S.hidden.has(item.id)||S.deleted.has(item.id))return false;
+      if(familySetupMealTimes.size && !mealTimesFor(item).some(t=>familySetupMealTimes.has(t)))return false;
+      return true;
+    });
   }
   return restaurantPoolBase().filter(row=>row&&!row._hidden&&!row._cut);
 }
 function familySetupRender(){
   const list=$('familySetupList'),count=$('familySetupCount'),note=$('familySetupNote');
+  const mealTimeControls=$('familyMealTimeControls');
+  if(mealTimeControls){
+    mealTimeControls.classList.toggle('hidden',familySetupType!=='meal');
+    mealTimeControls.querySelectorAll('[data-family-meal-time]').forEach(btn=>{
+      const active=familySetupMealTimes.has(btn.dataset.familyMealTime);
+      btn.classList.toggle('is-active',active);
+      btn.setAttribute('aria-pressed',String(active));
+    });
+  }
   if(!list)return;
   const items=familySetupItems();
   const included=items.filter(item=>!familySetupExcluded.has(String(item.id))).length;
@@ -4026,7 +4040,7 @@ function familySetupRender(){
 }
 function familySetupChooseType(type){
   if(type!=='meal'&&type!=='restaurant')return;
-  familySetupType=type; familySetupExcluded=new Set();
+  familySetupType=type; familySetupExcluded=new Set(); familySetupMealTimes=new Set();
   document.querySelectorAll('[data-family-type]').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.familyType===type));
   familySetupRender();
 }
@@ -4036,7 +4050,7 @@ function familySetupOpen(){
   const family=session.family;
   if(family?.activeRoundId){ familySetStatus('familyLobbyStatus','Finish the current dinner decision before starting another.','error'); return; }
   $('familyLobby')?.classList.add('hidden'); $('familySetup')?.classList.remove('hidden');
-  familySetupType='meal'; familySetupExcluded=new Set();
+  familySetupType='meal'; familySetupExcluded=new Set(); familySetupMealTimes=new Set();
   document.querySelectorAll('[data-family-type]').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.familyType==='meal'));
   const time=$('familyDinnerTime'); if(time&&!time.value)time.value=familyDefaultDinnerTime();
   familySetupRender();
@@ -4054,6 +4068,7 @@ function familyBuildSnapshot(){
   const items=familySetupItems();
   const pool=items.map(item=>({
     id:String(item.id), name:String(item.name||''), category:String(item.category||''), cuisine:String(item.cuisine||''),
+    mealTimes:Array.isArray(item.mealTimes)?item.mealTimes.slice():mealTimesFor(item),
     image:String(item.image||item.photo||''), address:String(item.address||''), website:String(item.website||''), phone:String(item.phone||''),
     distance:Number.isFinite(Number(item.distance))?Number(item.distance):null
   })).filter(item=>item.id&&item.name);
@@ -4064,7 +4079,8 @@ function familyBuildSnapshot(){
     radius:Number($('radius')?.value||10),
     searchTerm:String(S.restaurantQuery||''),
     openState:'all',
-    quickCuts:familySetupType==='restaurant'?[...S.restaurantCuts]:[]
+    quickCuts:familySetupType==='restaurant'?[...S.restaurantCuts]:[],
+    mealTimes:familySetupType==='meal'?[...familySetupMealTimes]:[]
   };
 }
 async function familyLockSetup(){
@@ -4089,6 +4105,13 @@ $('familySetupBack')?.addEventListener('click',familySetupClose);
 $('familyTypeMeal')?.addEventListener('click',()=>familySetupChooseType('meal'));
 $('familyTypeRestaurant')?.addEventListener('click',()=>familySetupChooseType('restaurant'));
 $('familySetupAll')?.addEventListener('click',()=>{familySetupExcluded=new Set();familySetupRender();});
+document.querySelectorAll('[data-family-meal-time]').forEach(btn=>btn.addEventListener('click',()=>{
+  const value=String(btn.dataset.familyMealTime||'').trim();
+  if(!MEAL_TIME_CUTS.includes(value)||familySetupType!=='meal')return;
+  if(familySetupMealTimes.has(value))familySetupMealTimes.delete(value);else familySetupMealTimes.add(value);
+  familySetupExcluded=new Set();
+  familySetupRender();
+}));
 $('familyLockSetup')?.addEventListener('click',familyLockSetup);
 /* CP811 — Family Mode shared swipe engine */
 let familySwipeBound=false;
