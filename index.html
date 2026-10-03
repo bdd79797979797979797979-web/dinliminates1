@@ -14,7 +14,7 @@
 <title>Dinliminate — Dinner Decisions Simplified</title>
 
 <link rel="preload" as="image" fetchpriority="high" href="./home-background.jpg">
-<link rel="stylesheet" href="./styles.css?v=809">
+<link rel="stylesheet" href="./styles.css?v=810">
 </head>
 <body>
 <main class="app">
@@ -118,9 +118,31 @@
         <div class="family-panel-title"><b>Family</b><span id="familyMemberCount">0 here</span></div>
         <div id="familyMemberList" class="family-member-list"></div>
       </div>
-      <p class="family-lobby-status" id="familyLobbyStatus" role="status" aria-live="polite"></p><div class="family-lobby-pulse" id="familyLobbyPulse"><span></span><b>Live family lobby</b></div>
+      <p class="family-lobby-status" id="familyLobbyStatus" role="status" aria-live="polite"></p><div class="family-lobby-pulse" id="familyLobbyPulse"><span></span><b>Live family lobby</b></div><button id="familySetupOpen" class="family-primary family-host-only hidden" type="button">Set up dinner</button>
     </div>
+  
+<div class="family-setup hidden" id="familySetup">
+  <div class="family-setup-head"><button class="family-form-back" id="familySetupBack" type="button">‹</button><div><span>SET UP DINNER</span><b>Make the first cut.</b></div></div>
+  <div class="family-setup-intro">Only the host sees this setup. Everyone else joins after the choices are locked.</div>
+
+  <div class="family-type-toggle" role="group" aria-label="Decision type">
+    <button type="button" class="family-type-option is-active" id="familyTypeMeal" data-family-type="meal"><b>Meals</b><small>Choose from your meal ideas</small></button>
+    <button type="button" class="family-type-option" id="familyTypeRestaurant" data-family-type="restaurant"><b>Restaurants</b><small>Use the exact loaded restaurant results</small></button>
   </div>
+
+  <div class="family-time-card">
+    <div><span>DINNER BY</span><b>Keep us on time.</b><small>Dinliminate divides the decision time automatically.</small></div>
+    <input id="familyDinnerTime" type="time" aria-label="Dinner by time">
+  </div>
+
+  <div class="family-choice-header"><div><span>CHOICES</span><b id="familySetupCount">0 choices</b></div><button id="familySetupAll" class="family-link-button" type="button">Keep all</button></div>
+  <div class="family-choice-note" id="familySetupNote">Tap a choice to cut it before the Family starts.</div>
+  <div class="family-setup-list" id="familySetupList"></div>
+
+  <button id="familyLockSetup" class="family-primary" type="button">Lock choices</button>
+  <p id="familySetupStatus" class="family-form-status" role="status" aria-live="polite"></p>
+</div>
+</div>
 </section>
 
 <section class="screen hidden decision-screen" id="food">
@@ -231,7 +253,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=809"></script>
+<script src="./app.js?v=810"></script>
 </main>
 </body>
 </html>
