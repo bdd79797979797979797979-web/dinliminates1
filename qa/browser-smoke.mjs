@@ -58,6 +58,12 @@ await page.route('**/*',async route=>{
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(150);
 assert.equal(await page.locator('#home h1').innerText(),'Meal Decisions Simplified');
+const menuBefore=await page.evaluate(()=>{const d=getComputedStyle(document.getElementById('drawer')),bg=getComputedStyle(document.getElementById('drawerBg'));return {drawerPos:d.position,drawerTop:d.top,drawerRight:d.right,drawerBottom:d.bottom,bgPos:bg.position};});
+assert.equal(menuBefore.drawerPos,'fixed','Home Menu drawer must be fixed to the viewport');
+assert.equal(menuBefore.drawerTop,'0px','Home Menu drawer must start at the top');
+assert.equal(menuBefore.drawerBottom,'auto','Home Menu drawer must not anchor to the bottom');
+assert.equal(menuBefore.bgPos,'fixed','Menu backdrop must be fixed to the viewport');
+
 const homeBg=await page.evaluate(()=>{const app=document.querySelector('.app'),home=document.getElementById('home'),style=getComputedStyle(app),homeStyle=getComputedStyle(home),food=getComputedStyle(document.getElementById('foodStart')),rest=getComputedStyle(document.getElementById('restStart')),bar=getComputedStyle(document.getElementById('appTopbar'));return {appBg:style.backgroundImage,homeBg:homeStyle.backgroundColor,homeShadow:food.boxShadow,foodPhoto:food.backgroundImage,restPhoto:rest.backgroundImage,appPosition:style.position,barPosition:bar.position,barRight:bar.right,appHeight:app.getBoundingClientRect().height,appWidth:app.getBoundingClientRect().width,viewportHeight:innerHeight,viewportWidth:innerWidth};});
 assert.ok(homeBg.appBg.includes('8417853'),'Home must use Pexels photo 8417853 as the full-page background');
 assert.equal(homeBg.homeBg,'rgba(0, 0, 0, 0)','Home canvas must be transparent over the full background');
