@@ -77,7 +77,7 @@ assert.equal(await page.locator('#homeFirstNudge').isVisible(),true);
 assert.equal(await page.locator('#foodStart .home-card-copy strong').innerText(),'DINE IN');
 assert.equal(await page.locator('#restStart .home-card-copy strong').innerText(),'DINE OUT');
 const ambient=await page.evaluate(()=>getComputedStyle(document.querySelector('.app'),'::after').animationDuration);
-assert.equal(ambient,'16s');
+assert.equal(ambient,'0s');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight}));
 assert.equal(homeGeom.scrollWidth,homeGeom.clientWidth);
 assert.ok(homeGeom.scrollHeight<=homeGeom.innerHeight+2);
