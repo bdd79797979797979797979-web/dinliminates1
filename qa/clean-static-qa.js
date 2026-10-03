@@ -48,7 +48,7 @@ assert.equal(foods.filter(x=>x.quickCuts?.includes('Pork')).length,0,'Food Pork 
 for(const name of ['Lasagna','Vegetable Lasagna','Salisbury Steak','Stuffed Peppers','Health Shake','White Fish','Chicken Pot Pie','BLT','Reuben','Hot Dog','Corn Dog','Orange Chicken','Chicken Teriyaki','Sushi','Pancakes','Omelet','Oatmeal','Shrimp','Crab Cakes','Gumbo','Chicken Nuggets','Ramen','Pimento Cheese Sandwich','Liver & Onions','Enchiladas','Fish Sticks','Protein Bar']) assert(foods.some(x=>x.name===name),'Missing current meal: '+name);
 
 assert.ok(taxonomy.includes('Fast Food')&&taxonomy.includes('Burgers')&&taxonomy.includes('Pizza'),'Restaurant taxonomy must include current Quick Cuts');
-assert.ok(api.includes("const API_VERSION='r25'"),'Restaurant API must be r25');
+assert.ok(api.includes("const API_VERSION='r27'"),'Restaurant API must be r27');
 assert.ok(api.includes('MAX_RADIUS=100'),'Restaurant API must cap radius at 100 miles');
 assert.ok(api.includes('process.env.GOOGLE_PLACES_API_KEY')&&api.includes('process.env.GOOGLE_MAPS_API_KEY'),'Google Places support must remain optional, not required');
 assert.ok(api.includes('Photon')||api.includes('photon'),'No-credential discovery must retain non-Google providers');
