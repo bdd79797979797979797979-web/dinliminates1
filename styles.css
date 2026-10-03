@@ -5808,3 +5808,27 @@ button,input,select,textarea{
 #restaurant .restaurant-choice-management #restaurantMaybeDeck:active{
   transform:scale(.96)!important;
 }
+
+/* CP779 — refined modern Dinliminate wordmark.
+   Retain the original sans-serif identity; luxury comes from the champagne-metal finish. */
+.brand,
+.decision-brand,
+.winner-brand{
+  font-family:inherit!important;
+  font-weight:850!important;
+  letter-spacing:-.045em!important;
+  line-height:1!important;
+  color:transparent!important;
+  background:linear-gradient(180deg,#fff0c7 0%,#f1d395 34%,#c99f55 60%,#edcf8e 82%,#bd9144 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:0 1px 0 rgba(255,248,228,.16),0 3px 11px rgba(191,145,58,.12)!important;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.22))!important;
+}
+.brand{font-size:21px!important}
+.decision-brand,.winner-brand{font-size:20px!important}
+@media(max-width:390px){
+  .brand{font-size:21px!important}
+  .decision-brand,.winner-brand{font-size:19px!important}
+}
