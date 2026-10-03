@@ -4056,7 +4056,8 @@ function familySwipeRender(){
     $('familySwipeStageKicker').textContent=stage===1?'FIRST PICKS':'FAMILY FINALISTS';
     $('familySwipeTitle').textContent=stage===1?'Your picks are in.':'Final picks are in.';
     $('familyWaitingText').textContent=stage===1?'Your choices are saved. We’ll move everyone forward together.':'Your finalist choices are saved. We’ll make the final decision together.';
-    if(round.id!==familySwipeSubmittedRoundId || familySwipeSubmittedRoundId!==round.id+':'+voteStage){
+    const submissionKey=round.id+':'+voteStage;
+    if(familySwipeSubmittedRoundId!==submissionKey){
       familySwipeSubmittedRoundId=round.id+':'+voteStage;
       familyApi('submit-stage',{token:familySessionRead()?.token,roundId:round.id,stage:voteStage}).catch(err=>{familySetStatus('familyLobbyStatus',err.message||'Could not submit your picks.','error');});
     }
