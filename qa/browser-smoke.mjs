@@ -141,6 +141,8 @@ assert.equal(fireworkRayLoop,'infinite');
 const fireworkDuration=await page.locator('#celebration .firework-burst span').first().evaluate(el=>getComputedStyle(el).animationDuration);
 assert.equal(fireworkDuration,'2.7s');
 assert.equal(await page.locator('#winner').isVisible(),true);
+await page.waitForTimeout(5000);
+assert.equal(await page.locator('#celebration').isVisible(),true);
 await page.locator('#winnerBackTop').click();
 await page.waitForTimeout(200);
 assert.equal(await page.locator('#homeFirstNudge').count(),0);
