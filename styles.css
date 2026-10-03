@@ -7026,3 +7026,41 @@ button,input,select,textarea{
   #restaurant .restaurant-refine-tab{font-size:11px!important}
   #restaurant .restaurant-search-box input{height:33px!important}
 }
+
+
+/* CP806 — final Restaurant discovery spacing and translucent navigation */
+#restaurant .restaurant-refine-tabs{
+  gap:11px!important;
+}
+#restaurant .restaurant-refine-divider{
+  color:rgba(198,164,106,.52)!important;
+  font-size:11px!important;
+  font-weight:500!important;
+  line-height:1!important;
+  transform:translateY(-.5px);
+  user-select:none;
+  pointer-events:none;
+}
+#restaurant .restaurant-refine-tab{
+  color:#f0eee9!important;
+}
+#restaurant .restaurant-refine-tab.is-open{
+  color:#fffaf0!important;
+}
+.menu,#menu,#foodMenu,#restaurantMenu,#winnerMenu,
+.decision-menu,.winner-menu{
+  background:rgba(15,15,15,.24)!important;
+  border:1px solid rgba(214,192,153,.42)!important;
+  backdrop-filter:blur(14px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(125%)!important;
+  box-shadow:
+    0 9px 25px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+.menu span{
+  background:rgba(246,239,226,.94)!important;
+}
+@media(max-width:390px){
+  #restaurant .restaurant-refine-tabs{gap:9px!important}
+  #restaurant .restaurant-refine-divider{font-size:10px!important}
+}
