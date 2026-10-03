@@ -424,10 +424,6 @@ async function createRound(sessionToken, payload) {
     [family.family_id, me.member_id, 'setup', type, JSON.stringify(snapshot), dinnerTargetAt, expiresAt]
   ))[0];
 
-  const members = await sql.query('select member_id from family_members where family_id=$1 and active=true order by joined_at asc', [family.family_id]);
-  for (const m of members) {
-    await sql.query('insert into family_round_members (round_id,member_id,included) values ($1,$2,true) on conflict do nothing', [round.round_id, m.member_id]);
-  }
   await sql.query('update family_rooms set active_round_id=$1,updated_at=now(),last_activity_at=now() where family_id=$2', [round.round_id, family.family_id]);
   await event(sql, family.family_id, round.round_id, me.member_id, 'round_created', {decisionType:type});
   return publicRound(round);
@@ -441,6 +437,9 @@ async function startRound(sessionToken) {
   if (!round) fail('NO_ROUND', 'No dinner decision is ready to start.', 409);
   if (round.status !== 'setup') fail('ROUND_ALREADY_STARTED', 'This dinner decision has already started.', 409);
 
+  const activeMembers = await sql.query('select member_id from family_members where family_id=$1 and active=true order by joined_at asc', [family.family_id]);
+  if(activeMembers.length < 2) fail('FAMILY_TOO_SMALL','Family Mode needs at least 2 active members to start.',409);
+  await sql.query('insert into family_round_members (round_id,member_id,included) select $1,member_id,true from family_members where family_id=$2 and active=true on conflict do nothing', [round.round_id, family.family_id]);
   const plan = buildTimePlan(round.dinner_target_at);
   const deadline = new Date(Math.min(Date.now() + plan.initialMs, plan.targetMs - 2 * 60 * 1000));
   const updatedSnapshot = {...(round.snapshot || {}), timePlan:plan};
