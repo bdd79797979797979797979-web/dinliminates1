@@ -5687,3 +5687,106 @@ button,input,select,textarea{
 #winner #celebration:not(.hidden) .firework-burst.burst-2,
 #winner #celebration:not(.hidden) .firework-burst.burst-3{animation-duration:5.4s!important;animation-iteration-count:infinite!important}
 #winner #celebration:not(.hidden) .firework-burst span{animation-duration:2.7s!important;animation-iteration-count:infinite!important}
+
+
+/* CP776 — full-page Home photo canvas using Pexels photo 8417853. */
+:root{--cp776-home-photo:url("https://images.pexels.com/photos/8417853/pexels-photo-8417853.jpeg?auto=compress&cs=tinysrgb&w=1800")}
+.app:has(#home:not(.hidden)){
+  min-height:100svh!important;
+  padding:0!important;
+  background-image:var(--cp776-home-photo)!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:scroll!important;
+}
+.app:has(#home:not(.hidden))::before,.app:has(#home:not(.hidden))::after{
+  background:none!important;box-shadow:none!important;animation:none!important;opacity:0!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar{
+  position:absolute!important;
+  top:env(safe-area-inset-top)!important;
+  left:14px!important;
+  right:14px!important;
+  z-index:50!important;
+  height:58px!important;
+  padding:0 2px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar .brand-mark{position:relative!important;z-index:51!important}
+.app:has(#home:not(.hidden)) .app-topbar #menu{
+  position:absolute!important;right:2px!important;top:9px!important;z-index:51!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home{
+  position:relative!important;
+  z-index:2!important;
+  min-height:100svh!important;
+  height:100svh!important;
+  margin:0!important;
+  padding:calc(env(safe-area-inset-top) + 74px) 14px max(18px,calc(env(safe-area-inset-bottom) + 18px))!important;
+  background:transparent!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+.app:has(#home:not(.hidden)) #home .luxury-orb,
+.app:has(#home:not(.hidden)) #home .home-photo-rail{display:none!important}
+.app:has(#home:not(.hidden)) #home .home-intro,
+.app:has(#home:not(.hidden)) #home .home-actions,
+.app:has(#home:not(.hidden)) #home .home-foot{
+  position:relative!important;z-index:5!important;
+}
+.app:has(#home:not(.hidden)) #home .home-intro{margin-top:0!important}
+.app:has(#home:not(.hidden)) #home .home-intro .eyebrow{color:#fff!important}
+.app:has(#home:not(.hidden)) #home .home-intro h1,
+.app:has(#home:not(.hidden)) #home .home-intro .sub{
+  color:#fff!important;text-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-actions{
+  width:min(100%,430px)!important;
+  margin:26px auto 0!important;
+  gap:18px!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo{
+  min-height:92px!important;height:92px!important;
+  padding:0!important;
+  background-image:none!important;
+  background-color:transparent!important;
+  border:1px solid rgba(255,255,255,.50)!important;
+  border-radius:18px!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-overlay,
+.app:has(#home:not(.hidden)) #home .home-card-photo::before,
+.app:has(#home:not(.hidden)) #home .home-card-photo::after{
+  display:none!important;content:none!important;background:none!important;box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy{
+  position:relative!important;z-index:2!important;
+  padding:0 17px!important;
+  align-items:flex-start!important;justify-content:center!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{
+  color:#fff!important;font-size:24px!important;line-height:1!important;text-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{
+  color:#fff!important;font-size:11px!important;line-height:1.2!important;text-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .arrow{
+  right:17px!important;bottom:50%!important;transform:translateY(50%)!important;
+  width:auto!important;height:auto!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:none!important;
+  color:#fff!important;box-shadow:none!important;font-size:30px!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo.is-pressed{
+  transform:scale(.985)!important;filter:brightness(1.04)!important;box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-foot{margin-top:auto!important;padding:12px 0 0!important}
+@media(max-width:390px){
+  .app:has(#home:not(.hidden)) #home{padding-left:12px!important;padding-right:12px!important;padding-top:calc(env(safe-area-inset-top) + 70px)!important}
+  .app:has(#home:not(.hidden)) #home .home-actions{gap:14px!important;margin-top:20px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo{height:88px!important;min-height:88px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{font-size:21px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{font-size:10px!important}
+}
