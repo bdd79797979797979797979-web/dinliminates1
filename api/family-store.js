@@ -81,14 +81,17 @@ function sanitizeSnapshot(input, type) {
   }).filter(function(item) { return item.id && item.name; });
 
   if (!cleanPool.length) fail('INVALID_SNAPSHOT', 'Family rounds need at least one choice.');
+  const hostExcluded = Array.isArray(raw.hostExcluded)
+    ? Array.from(new Set(raw.hostExcluded.map(function(v){ return String(v).slice(0,160); }).filter(Boolean)))
+    : [];
+  const remaining = cleanPool.some(function(item){ return !hostExcluded.includes(String(item.id)); });
+  if (!remaining) fail('INVALID_SNAPSHOT', 'Keep at least one choice for the Family.');
 
   return {
     version: 1,
     decisionType: type,
     pool: cleanPool,
-    hostExcluded: Array.isArray(raw.hostExcluded)
-      ? Array.from(new Set(raw.hostExcluded.map(function(v){ return String(v).slice(0,160); }).filter(Boolean))).slice(0,150)
-      : [],
+    hostExcluded: hostExcluded.slice(0,150),
     location: raw.location && Number.isFinite(Number(raw.location.lat)) && Number.isFinite(Number(raw.location.lon))
       ? { lat: Number(raw.location.lat), lon: Number(raw.location.lon) } : null,
     radius: Math.max(1, Math.min(100, Number(raw.radius) || 10)),
