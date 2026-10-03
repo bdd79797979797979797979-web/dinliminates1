@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 786,
-  "sourceBranch": "cp786-launch-home-luxury-polish",
+  "build": 825,
+  "sourceBranch": "cp824-multi-photo-meals",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP786",
-  "deploymentTrigger": "CP786-home-luxury-polish-2026-10-03"
+  "checkpoint": "CP825",
+  "deploymentTrigger": "CP825-micro-polish-2026-10-03"
 }
