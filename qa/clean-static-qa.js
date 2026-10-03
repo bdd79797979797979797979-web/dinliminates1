@@ -12,9 +12,9 @@ const sw=fs.readFileSync('sw.js','utf8');
 
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
-assert.equal(release.build,776,'Current release must be Build 777');
+assert.equal(release.build,777,'Current release must be Build 777');
 assert.equal(release.checkpoint,'CP777','Current release checkpoint must be CP777');
-assert.equal(manifest.build,776,'Release manifest build must be 777');
+assert.equal(manifest.build,777,'Release manifest build must be 777');
 assert.equal(manifest.checkpoint,'CP777','Release manifest checkpoint must be CP777');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
