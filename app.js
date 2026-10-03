@@ -764,7 +764,7 @@ $(screen)?.classList.remove('hidden');
 S.screen = screen;
 document.querySelector('.app')?.classList.toggle('home-active',screen === 'home');
 $('globalBack')?.classList.add('hidden');
-$('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant' || screen === 'winner');
+$('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant' || screen === 'winner' || screen === 'family');
 window.scrollTo?.(0,0);
 }
 function closeOverlays() {
