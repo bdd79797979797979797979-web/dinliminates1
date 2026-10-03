@@ -25,11 +25,11 @@ assert.ok(html.includes('<strong>DINE IN</strong><span>Reveal your meal</span>')
 assert.ok(html.includes('<strong>DINE OUT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
-assert.ok(html.includes('styles.css?v=776')&&html.includes('app.js?v=776'),'Frontend asset cache-busting must be v777');
+assert.ok(html.includes('styles.css?v=777')&&html.includes('app.js?v=777'),'Frontend asset cache-busting must be v777');
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 
-assert.ok(app.includes("let APP_BUILD = '776'"),'Offline release fallback must be current');
+assert.ok(app.includes("let APP_BUILD = '777'"),'Offline release fallback must be current');
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
@@ -53,7 +53,7 @@ assert.ok(api.includes('MAX_RADIUS=100'),'Restaurant API must cap radius at 100 
 assert.ok(api.includes('process.env.GOOGLE_PLACES_API_KEY')&&api.includes('process.env.GOOGLE_MAPS_API_KEY'),'Google Places support must remain optional, not required');
 assert.ok(api.includes('Photon')||api.includes('photon'),'No-credential discovery must retain non-Google providers');
 
-assert.ok(sw.includes("const CACHE='dinliminate-shell-v776'"),'Service-worker shell cache must be current');
+assert.ok(sw.includes("const CACHE='dinliminate-shell-v777'"),'Service-worker shell cache must be current');
 assert.ok(sw.includes("'./app-release.json'")&&sw.includes("'./release-manifest.json'"),'Service worker must cache release metadata');
 assert.ok(css.includes('.luxury-home .home-icon-action')&&css.includes('.restaurant-card-utility'),'Premium Home and Restaurant utility styles must exist');
 assert.ok(css.includes('quick-section .quick-cuts-collapse-toggle::after')&&css.includes('cp774QuickCutsSheen'),'Quick Cuts must use the selected subtle sheen');
