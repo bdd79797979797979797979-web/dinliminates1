@@ -5638,3 +5638,12 @@ button,input,select,textarea{
   #food #foodMaybeDeck .deck-filter-divider,
   #restaurant #restaurantMaybeDeck .deck-filter-divider{font-size:8px!important}
 }
+
+
+/* CP774 — keep Details fully inside the viewport while allowing internal scroll. */
+#detailsModal{
+  max-height:84svh!important;
+  height:auto!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+}
