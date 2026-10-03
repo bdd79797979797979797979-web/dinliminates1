@@ -2715,6 +2715,7 @@ function detailsSheet(item,type){
    const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
    const detailRows='<div class="detail-info-list">'+
      '<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(cat)+'</strong></div>'+
+     '<div class="detail-info-row"><span>Meal Time</span><strong>'+esc(mealTimesFor(item).join(' · '))+'</strong></div>'+
      (ingredients.length?'<div class="detail-info-row detail-info-row-stack"><span>Ingredients</span><strong>'+esc(ingredients.slice(0,16).join(' · '))+'</strong></div>':'')+
      (recipe?'<div class="detail-info-row detail-info-row-stack"><span>Preparation</span><strong>'+esc(recipe).replace(/\n/g,'<br>')+'</strong></div>':'')+
      '</div>';
@@ -2793,6 +2794,7 @@ photoIsGeneric:item.photoIsGeneric!==false,
 category:item.category||restaurantCategory(item),
 cuisine:item.cuisine||'',
 quickCuts:type==='food'&&Array.isArray(item.quickCuts)?item.quickCuts.slice():[],
+mealTimes:type==='food'?mealTimesFor(item):[],
 address:item.address||'',
 phone:item.phone||item.nationalPhoneNumber||'',
 website:item.website||'',
@@ -3176,6 +3178,7 @@ function manageFoodsView() {
   const id=String(item.id),hidden=S.hidden.has(id),builtIn=defaultIds.has(id),customRecord=S.custom.find(x=>String(x.id)===id),edited=builtIn&&!!customRecord,customOnly=!builtIn&&!!customRecord;
   const state=deleted?'Deleted':(hidden?'Hidden':'Active');
   const stateLabel=state+(edited?' · Edited':(customOnly?' · Custom':''));
+  const mealTimeLabel=mealTimesFor(item).join(' · ');
   const primary=deleted
     ? '<button class="manage-row-action manage-restore" data-food-deleted-restore="'+esc(id)+'">Restore</button>'
     : hidden
@@ -3183,7 +3186,7 @@ function manageFoodsView() {
       : '<button class="manage-row-action manage-hide" data-food-hide="'+esc(id)+'">Hide</button>';
   const extra=deleted?'':'<button class="manage-row-action manage-edit" data-food-edit="'+esc(id)+'">Edit</button>';
   const deleteAction=deleted?'':'<button class="manage-row-action manage-delete" data-food-delete="'+esc(id)+'">Delete</button>';
-  return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small></span><span class="food-row-actions">'+extra+primary+deleteAction+'</span></div>';
+  return '<div class="food-row manage-food-row"><span class="manage-food-name"><b>'+esc(item.name)+'</b><small class="row-state '+(deleted?'is-deleted':(hidden?'is-hidden':'is-active'))+'">'+esc(stateLabel)+'</small><small class="row-meal-time">'+esc(mealTimeLabel)+'</small></span><span class="food-row-actions">'+extra+primary+deleteAction+'</span></div>';
  };
  const body='<div class="manage-meals-view"><div class="manage-hero"><span class="manage-kicker">MEAL LIBRARY</span><h4>Shape your choices.</h4><p>Edit any meal, replace its photo, hide it from decisions, or delete it. Deleted meals stay recoverable on this device.</p></div>'+
  '<button class="manage-add-action" id="openFoodEditor" type="button"><span class="manage-add-icon" aria-hidden="true">＋</span><span>Add Meal</span></button>'+
