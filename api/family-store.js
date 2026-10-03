@@ -178,6 +178,27 @@ async function joinFamily(codeValue, nameValue) {
   const member = (await sql.query('select * from family_members where member_id=$1', [memberId]))[0];
   return { family:publicFamily(nextFamily), member:publicMember(member), token:sessionToken };
 }
+function buildTimePlan(dinnerTargetAt){
+  const now=Date.now();
+  const target=dinnerTargetAt?new Date(dinnerTargetAt).getTime():now+25*60*1000;
+  const remaining=Math.max(8*60*1000,target-now);
+  const initialMs=Math.max(2*60*1000,Math.floor(remaining*0.46));
+  const finalistMs=Math.max(2*60*1000,Math.floor(remaining*0.32));
+  const finalMs=Math.max(2*60*1000,remaining-initialMs-finalistMs);
+  return {initialMs,finalistMs,finalMs,targetMs:target};
+}
+async function advanceInitialStageIfReady(sql,round){
+  if(!round||round.status!=='swiping')return round;
+  const members=await sql.query('select submitted_stage1_at from family_round_members where round_id=$1 and included=true',[round.round_id]);
+  const allSubmitted=members.length>0&&members.every(m=>!!m.submitted_stage1_at);
+  const expired=round.stage_deadline_at&&new Date(round.stage_deadline_at).getTime()<=Date.now();
+  if(!allSubmitted&&!expired)return round;
+  const updated=(await sql.query(
+    "update family_rounds set status='finalists',current_stage=1,stage_started_at=now(),stage_deadline_at=null,updated_at=now() where round_id=$1 and status='swiping' returning *",
+    [round.round_id]
+  ))[0];
+  return updated||round;
+}
 async function getFamilyState(sessionToken) {
   const sql = db();
   const me = await auth(sql, sessionToken);
@@ -193,6 +214,7 @@ async function getFamilyState(sessionToken) {
   if (family.active_round_id) {
     round = (await sql.query('select * from family_rounds where round_id=$1 and family_id=$2', [family.active_round_id, family.family_id]))[0] || null;
     if (round) {
+      round = await advanceInitialStageIfReady(sql, round);
       roundMembers = await sql.query(
         'select frm.*, fm.display_name, fm.role from family_round_members frm join family_members fm on fm.member_id=frm.member_id where frm.round_id=$1 order by frm.joined_at asc',
         [round.round_id]
@@ -252,14 +274,13 @@ async function startRound(sessionToken) {
   if (!round) fail('NO_ROUND', 'No dinner decision is ready to start.', 409);
   if (round.status !== 'setup') fail('ROUND_ALREADY_STARTED', 'This dinner decision has already started.', 409);
 
-  const target = round.dinner_target_at ? new Date(round.dinner_target_at).getTime() : Date.now() + 25 * 60 * 1000;
-  const remaining = Math.max(8 * 60 * 1000, target - Date.now());
-  const initialMs = Math.max(2 * 60 * 1000, Math.floor(remaining * 0.46));
-  const deadline = new Date(Math.min(Date.now() + initialMs, target - 2 * 60 * 1000));
+  const plan = buildTimePlan(round.dinner_target_at);
+  const deadline = new Date(Math.min(Date.now() + plan.initialMs, plan.targetMs - 2 * 60 * 1000));
+  const updatedSnapshot = {...(round.snapshot || {}), timePlan:plan};
 
   const updated = (await sql.query(
-    'update family_rounds set status=$1,current_stage=1,stage_started_at=now(),stage_deadline_at=$2,updated_at=now() where round_id=$3 and status=$4 returning *',
-    ['swiping', deadline, round.round_id, 'setup']
+    'update family_rounds set status=$1,current_stage=1,stage_started_at=now(),stage_deadline_at=$2,snapshot=$3::jsonb,updated_at=now() where round_id=$4 and status=$5 returning *',
+    ['swiping', deadline, JSON.stringify(updatedSnapshot), round.round_id, 'setup']
   ))[0];
   if (!updated) fail('ROUND_STATE_CHANGED', 'The dinner decision changed. Refresh and try again.', 409);
   await event(sql, family.family_id, round.round_id, me.member_id, 'round_started', {});
@@ -289,6 +310,7 @@ async function submitVote(sessionToken, payload) {
   );
   await sql.query('update family_members set last_seen_at=now() where member_id=$1', [me.member_id]);
   await sql.query('update family_round_members set last_seen_at=now() where round_id=$1 and member_id=$2', [roundId, me.member_id]);
+  await advanceInitialStageIfReady(sql, round);
   return {ok:true,roundId,stage:currentStage,itemId:item,choice:currentChoice};
 }
 async function markStageSubmitted(sessionToken, payload) {
@@ -303,6 +325,8 @@ async function markStageSubmitted(sessionToken, payload) {
   );
   if (!rows[0]) fail('ROUND_ACCESS', 'You are not part of this dinner decision.', 403);
   await sql.query('update family_round_members set ' + col + '=now(),last_seen_at=now() where round_id=$1 and member_id=$2', [roundId, me.member_id]);
+  const round=(await sql.query('select * from family_rounds where round_id=$1 and family_id=$2',[roundId,me.family_id]))[0];
+  if(round) await advanceInitialStageIfReady(sql, round);
   return {ok:true,roundId,stage:currentStage};
 }
 async function rotateCode(sessionToken) {
