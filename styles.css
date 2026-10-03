@@ -5685,7 +5685,7 @@ body:has(.app #home:not(.hidden)){
 /* Menu is a separate floating window directly below the Home hamburger. */
 .drawer{
   position:fixed!important;
-  top:70px!important;
+  top:calc(env(safe-area-inset-top) + 64px)!important;
   right:14px!important;
   left:auto!important;
   bottom:auto!important;
@@ -5717,7 +5717,7 @@ body:has(.app #home:not(.hidden)){
 /* Utility windows open high and centered, beneath the hamburger area. */
 .utility-modal{
   position:fixed!important;
-  top:70px!important;
+  top:calc(env(safe-area-inset-top) + 64px)!important;
   right:auto!important;
   bottom:auto!important;
   left:50%!important;
@@ -5870,8 +5870,8 @@ body:has(.app #home:not(.hidden)){
 }
 .swipe-card-coach-dismiss{display:none!important}
 @media(max-width:390px){
-  .drawer{top:64px!important;right:10px!important;width:min(91vw,390px)!important;max-height:calc(100svh - 76px)!important}
-  .utility-modal{top:64px!important;max-height:calc(100svh - 76px)!important}
+  .drawer{top:calc(env(safe-area-inset-top) + 58px)!important;right:10px!important;width:min(91vw,390px)!important;max-height:calc(100svh - 76px)!important}
+  .utility-modal{top:calc(env(safe-area-inset-top) + 58px)!important;max-height:calc(100svh - 76px)!important}
   #detailsModal{width:min(94vw,520px)!important;max-height:88svh!important}
   #food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{font-size:8px!important;gap:5px!important}
   #food #foodMaybeDeck > span,#restaurant #restaurantMaybeDeck > span{font-size:8px!important}
