@@ -34,3 +34,6 @@ Launch dependency
 
 Next source state
 - This checkpoint is suitable as the clean handoff point for final live database + hosted verification.
+
+Deployment trigger
+- 2026-10-03: CP817 deployment trigger commit; no app functionality changed.
