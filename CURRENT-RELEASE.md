@@ -1,3 +1,27 @@
+# CURRENT RELEASE — BUILD 767 / CP767
+
+Date: 2026-10-02
+
+Current candidate branch: `cp767-home-menu-details-flat-toggle`
+Recovery baseline: **CP766** `cp766-premium-micro-polish-full`
+Hosted test target: `dinliminates1-ztym`
+Status: candidate
+
+## CP767 — Home/menu/Details/ALL-MAYBES correction pass
+- Preserved the CP766 premium-polish base.
+- Restored Home headline to **Meal Decisions Simplified** and Home choices to **DINE IN / DINE OUT**.
+- Made Quick Cuts explicitly closed by default in initial markup and runtime state.
+- Renamed the in-card swipe coach implementation so no legacy `swipeHint` naming remains.
+- Strengthened the swipe coach so it is visibly contained inside the active card.
+- Raised the Home hamburger above the Home canvas so it is reliably tappable.
+- Anchored Manage Meals, History, and Settings utility panels near the top of the screen, directly below the top menu area.
+- Preserved horizontal centering for Details during open/close animation.
+- Replaced the Meals/Restaurant ALL-MAYBES pill treatment with flat **ALL · MAYBES** editorial text, positioned immediately beside the Choices count.
+- Build/cache identity synchronized to CP767 / v767.
+
+## Recovery
+CP766 remains the prior verified premium-polish checkpoint. CP765 remains the exact CP755 reset beneath it.
+
 # CURRENT RELEASE — BUILD 766 / CP766
 
 Date: 2026-10-02
