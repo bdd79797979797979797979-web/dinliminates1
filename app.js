@@ -3063,6 +3063,8 @@ const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x.name||'').trim()).filter(Boolean)];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
+let editorPhotos=isEdit?mealPhotoList(item).map((p,i)=>normalizeMealPhotoObject({...p,crop:{...(p.crop||{})}},i,item)).slice(0,MAX_MEAL_PHOTOS):[];
+
 const nut=item?.nutrition||{};
 const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
 const descriptionText=String(item?.description||'').trim();
@@ -3079,9 +3081,58 @@ const body='<form class="add" id="foodEditorForm">'+
 '<label class="meal-editor-text-label">About this meal<textarea id="editFoodDescription" placeholder="A short description of the meal (optional)" rows="3">'+esc(descriptionText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Ingredients<textarea id="editFoodIngredients" placeholder="One ingredient per line" rows="5">'+esc(ingredientsText)+'</textarea></label>'+
 '<label class="meal-editor-text-label">Recipe / preparation<textarea id="editFoodRecipe" placeholder="Preparation steps or recipe (optional)" rows="5">'+esc(item?.recipe||'')+'</textarea></label>'+(isEdit?'<section class="meal-editor-note-section"><div class="meal-editor-note-copy"><b>Add a note</b><small>Private to this device. Keep a reminder, favorite, or thought with this meal.</small></div><textarea id="editFoodNote" maxlength="1200" rows="3" placeholder="Write a note about this meal…">'+esc(itemNote(item,'food'))+'</textarea></section>':'')+
-'<div class="meal-editor-photo-section"><div class="meal-editor-photo-copy"><b>'+(isEdit?'Replace meal photo':'Photo from iPhone/device')+'</b><small>'+(isEdit?'Choose a new image to replace the current photo, or leave it unchanged.':'Upload a photo from your device, or paste a photo URL below.')+'</small></div><label class="file-label"><span>Choose image</span><input id="editFoodFile" type="file" accept="image/*"></label></div>'+'<input id="editFoodPhoto" placeholder="Photo URL (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:') && !String(item.image).startsWith('data:image/')?item.image:'')+'">'+
-'<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
+'<section class="meal-editor-photos-panel"><div class="meal-editor-photo-copy"><b>Photos</b><small>Up to 5 photos. The first photo is the Cover used on swipe cards, Quick Cuts, Winner, and History.</small></div><div class="meal-photo-editor-gallery" id="editMealPhotoGallery" aria-live="polite"></div><label class="meal-photo-add-button" title="Add photos"><span aria-hidden="true">＋</span><b>Add Photos</b><small>Up to 5</small><input id="editFoodFiles" type="file" accept="image/*" multiple></label><label class="meal-photo-url-label"><span>Add a photo URL</span><input id="editFoodPhoto" placeholder="https://… (optional)" inputmode="url" value="'+esc(item?.image && !String(item.image).startsWith('idb:') && !String(item.image).startsWith('data:image/')?item.image:'')+'"></label></section>'+'<button class="cut">'+(isEdit?'Save Meal':'Add Meal')+'</button></form>';
 const modal=openModal('foodEditorModal',isEdit?'Edit Meal':'Add Meal',body);
+function openMealPhotoCropEditor(photo,onDone){
+ const p=normalizeMealPhotoObject(photo),crop={...p.crop};
+ const body='<div class="meal-photo-crop-editor"><div class="meal-photo-crop-frame"><img id="mealPhotoCropPreview" src="'+esc(p.src)+'" alt=""></div><div class="meal-photo-crop-hint"><b>Move · Zoom</b><small>Use the controls to frame the photo for the meal card.</small></div><label>Horizontal<input id="mealPhotoCropX" type="range" min="0" max="100" step="1" value="'+crop.x+'"></label><label>Vertical<input id="mealPhotoCropY" type="range" min="0" max="100" step="1" value="'+crop.y+'"></label><label>Zoom<input id="mealPhotoCropZoom" type="range" min="1" max="2.2" step="0.01" value="'+crop.zoom+'"></label><button type="button" class="cut" id="mealPhotoCropDone">Done</button></div>';
+ const modal=openModal('mealPhotoCropModal','Adjust Photo',body);
+ const preview=$('mealPhotoCropPreview'),x=$('mealPhotoCropX'),y=$('mealPhotoCropY'),zoom=$('mealPhotoCropZoom');
+ const render=()=>{if(!preview)return;preview.style.objectPosition=(x?.value||50)+'% '+(y?.value||50)+'%';preview.style.transform='scale('+(zoom?.value||1)+')';};
+ [x,y,zoom].forEach(input=>input?.addEventListener('input',render));
+ $('mealPhotoCropDone')?.addEventListener('click',()=>{
+   photo.crop={x:Number(x?.value||50),y:Number(y?.value||50),zoom:Number(zoom?.value||1)};
+   modal.remove();$('mealPhotoCropModalBg')?.remove();onDone?.();
+ });
+ render();
+}
+
+const renderEditorPhotos=()=>{
+ const host=$('editMealPhotoGallery');if(!host)return;
+ if(!editorPhotos.length){host.innerHTML='<div class="meal-photo-empty"><span>No photos yet.</span><small>Add a photo from your device, or add a URL.</small></div>';return;}
+ host.innerHTML=editorPhotos.map((photo,index)=>{
+   const crop=photo.crop||{x:50,y:50,zoom:1};
+   const controls=[
+     index>0?'<button type="button" class="meal-photo-tool" data-meal-photo-up="'+esc(photo.id)+'" aria-label="Move photo earlier" title="Move earlier">↑</button>':'',
+     index<editorPhotos.length-1?'<button type="button" class="meal-photo-tool" data-meal-photo-down="'+esc(photo.id)+'" aria-label="Move photo later" title="Move later">↓</button>':'',
+     index>0?'<button type="button" class="meal-photo-tool meal-photo-cover-tool" data-meal-photo-cover="'+esc(photo.id)+'" aria-label="Set this photo as Cover">Set Cover</button>':'<span class="meal-photo-cover-badge">COVER</span>',
+     '<button type="button" class="meal-photo-tool" data-meal-photo-adjust="'+esc(photo.id)+'">Adjust</button>',
+     '<button type="button" class="meal-photo-tool meal-photo-remove-tool" data-meal-photo-remove="'+esc(photo.id)+'" '+(isBuiltInEdit&&photo.kind==='curated'?'disabled title="The curated Cover is retained"':'')+'>Remove</button>'
+   ].filter(Boolean).join('');
+   return '<div class="meal-photo-editor-card" data-meal-photo-card="'+esc(photo.id)+'"><div class="meal-photo-editor-preview"><img src="'+esc(photo.src)+'" alt="" style="object-position:'+crop.x+'% '+crop.y+'%;transform:scale('+crop.zoom+');"></div><div class="meal-photo-editor-meta"><span class="meal-photo-index">'+(index+1)+' / '+editorPhotos.length+'</span><span class="meal-photo-kind">'+(photo.kind==='curated'?'Curated':photo.kind==='fallback'?'Fallback':'Personal')+'</span></div><div class="meal-photo-editor-tools">'+controls+'</div></div>';
+ }).join('');
+ host.querySelectorAll('[data-meal-photo-up]').forEach(btn=>btn.onclick=()=>{
+   const i=editorPhotos.findIndex(p=>String(p.id)===String(btn.dataset.mealPhotoUp));if(i<=0)return;
+   [editorPhotos[i-1],editorPhotos[i]]=[editorPhotos[i],editorPhotos[i-1]];renderEditorPhotos();
+ });
+ host.querySelectorAll('[data-meal-photo-down]').forEach(btn=>btn.onclick=()=>{
+   const i=editorPhotos.findIndex(p=>String(p.id)===String(btn.dataset.mealPhotoDown));if(i<0||i>=editorPhotos.length-1)return;
+   [editorPhotos[i+1],editorPhotos[i]]=[editorPhotos[i],editorPhotos[i+1]];renderEditorPhotos();
+ });
+ host.querySelectorAll('[data-meal-photo-cover]').forEach(btn=>btn.onclick=()=>{
+   const i=editorPhotos.findIndex(p=>String(p.id)===String(btn.dataset.mealPhotoCover));if(i<=0)return;
+   const [picked]=editorPhotos.splice(i,1);editorPhotos.unshift(picked);renderEditorPhotos();
+ });
+ host.querySelectorAll('[data-meal-photo-remove]').forEach(btn=>btn.onclick=()=>{
+   const i=editorPhotos.findIndex(p=>String(p.id)===String(btn.dataset.mealPhotoRemove));if(i<0)return;
+   if(isBuiltInEdit&&editorPhotos[i].kind==='curated'){appToast('The curated Cover stays with this built-in meal.');return;}
+   editorPhotos.splice(i,1);renderEditorPhotos();
+ });
+ host.querySelectorAll('[data-meal-photo-adjust]').forEach(btn=>btn.onclick=()=>{
+   const photo=editorPhotos.find(p=>String(p.id)===String(btn.dataset.mealPhotoAdjust));if(photo)openMealPhotoCropEditor(photo,renderEditorPhotos);
+ });
+};
+renderEditorPhotos();
 const renderEditorQuickCuts=focusId=>{
  const host=$('editFoodQuickCuts');if(!host)return;
  const standard=[...FOOD_QUICK,'Other'];
@@ -3138,11 +3189,23 @@ const renderEditorQuickCuts=focusId=>{
  };
 };
 renderEditorQuickCuts();
-$('editFoodFile').onchange=async()=>{
-try {
-const data=await readImageFile($('editFoodFile').files?.[0]);
-if(data){ $('editFoodPhoto').value=data; appToast('New photo selected. Save the meal to apply it.'); }
-} catch(e) { appToast(e.message); }
+$('editFoodFiles').onchange=async()=>{
+ const files=[...($('editFoodFiles').files||[])];
+ if(!files.length)return;
+ const remaining=Math.max(0,MAX_MEAL_PHOTOS-editorPhotos.length);
+ if(!remaining){appToast('This meal already has 5 photos. Remove one before adding another.');$('editFoodFiles').value='';return;}
+ if(files.length>remaining)appToast('Only '+remaining+' more photo'+(remaining===1?'':'s')+' can be added.');
+ for(const file of files.slice(0,remaining)){
+  try{
+   const data=await readImageFile(file);if(!data)continue;
+   const id=makeMealPhotoId(),key=mealPhotoStorageKey(item?.id||'new-meal',id);
+   const ok=await putStoredPhoto(key,data);
+   if(!ok){appToast('Could not save that photo on this device.');continue;}
+   editorPhotos.push({id,src:data,kind:'personal',storageKey:key,crop:{x:50,y:50,zoom:1}});
+  }catch(e){appToast(e.message);}
+ }
+ renderEditorPhotos();
+ $('editFoodFiles').value='';
 };
 $('foodEditorForm').onsubmit=async e=>{
 e.preventDefault();
@@ -3174,28 +3237,27 @@ const description=String($('editFoodDescription').value||'').trim();
 const ingredients=String($('editFoodIngredients').value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 const editorNote=isEdit?String($('editFoodNote')?.value||'').trim():'';
 const photoInput=$('editFoodPhoto').value.trim();
-let photo=photoInput||(isEdit&&item?.image?String(item.image):'');
-if(!photo && !isEdit){
+if(photoInput&&!editorPhotos.some(p=>String(p.src)===photoInput)){
+ editorPhotos.unshift({id:makeMealPhotoId(),src:photoInput,kind:'personal',storageKey:'',crop:{x:50,y:50,zoom:1}});
+ editorPhotos=editorPhotos.slice(0,MAX_MEAL_PHOTOS);
+}
+if(!editorPhotos.length&&!isEdit){
   const saveButton=document.querySelector('#foodEditorForm button.cut');
   if(saveButton){saveButton.disabled=true;saveButton.dataset.originalLabel=saveButton.textContent;saveButton.textContent='Finding photo…';}
-  photo=await findOnlineMealPhoto(name);
+  const found=await findOnlineMealPhoto(name);
   if(saveButton){saveButton.disabled=false;saveButton.textContent=saveButton.dataset.originalLabel||'Add Meal';}
+  if(found)editorPhotos.push({id:makeMealPhotoId(),src:found,kind:'personal',storageKey:'',crop:{x:50,y:50,zoom:1}});
 }
-if(!photo)photo=DEFAULT_FOOD_IMAGE;
+if(!editorPhotos.length)editorPhotos.push({id:'fallback',src:DEFAULT_FOOD_IMAGE,kind:'fallback',storageKey:'',crop:{x:50,y:50,zoom:1}});
 let recipe=$('editFoodRecipe').value.trim();
 if(!name)return;
 if(isEdit&&isBuiltInEdit){
 const id=String(item.id);
 const idx=S.custom.findIndex(x=>String(x.id)===id);
 const previous=idx>=0?S.custom[idx]:null;
-if(photo.startsWith('data:image/')){
- const ok=await putStoredPhoto(id,photo);
- if(!ok){appToast('Could not save that photo on this device.');return;}
-
-}else if(String(photo).startsWith('idb:')){
- /* Existing device photo is intentionally preserved when no new upload was chosen. */
-}
-const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
+let finalPhotos;
+try{finalPhotos=await persistMealPhotoCollection(editorPhotos,id);}catch(e){appToast(e.message||'Could not save the meal photos.');return;}
+const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,image:finalPhotos[0]?.src||defaultItem.image,photos:finalPhotos,description,ingredients,recipe,nutrition};
 if(idx>=0)S.custom[idx]=updated;else S.custom.push(updated);
 S.maybe.delete(id); S.hidden.delete(id);
 } else if(isEdit){
@@ -3203,17 +3265,20 @@ const idx=S.custom.findIndex(x=>x.id===item.id);
 if(idx<0)return;
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
-if(photo.startsWith('data:image/')){const ok=await putStoredPhoto(id,photo);if(!ok){appToast('Could not save that photo on this device.');return;}}
-if(id!==item.id&&String(photo).startsWith('idb:')){const oldPhoto=await getStoredPhoto(item.id);if(oldPhoto){const ok=await putStoredPhoto(id,oldPhoto);if(!ok){appToast('Could not move the saved photo.');return;}photo=oldPhoto;}}
-const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:photo,description,ingredients,recipe,nutrition};
+let finalPhotos;
+try{finalPhotos=await persistMealPhotoCollection(editorPhotos,id,String(item.id));}catch(e){appToast(e.message||'Could not save the meal photos.');return;}
+if(!finalPhotos.length)finalPhotos=[{id:'fallback',src:DEFAULT_FOOD_IMAGE,kind:'fallback',storageKey:'',crop:{x:50,y:50,zoom:1}}];
+const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,image:finalPhotos[0].src,photos:finalPhotos,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
-if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
+if(id!==item.id){ const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
 S.maybe.delete(item.id); S.hidden.delete(item.id);
 } else {
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
-if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-const added={id,name,primary:id,category:cat,quickCuts,image:photo,description,ingredients,recipe};
+let finalPhotos;
+try{finalPhotos=await persistMealPhotoCollection(editorPhotos,id);}catch(e){appToast(e.message||'Could not save the meal photos.');return;}
+if(!finalPhotos.length)finalPhotos=[{id:'fallback',src:DEFAULT_FOOD_IMAGE,kind:'fallback',storageKey:'',crop:{x:50,y:50,zoom:1}}];
+const added={id,name,primary:id,category:cat,quickCuts,image:finalPhotos[0].src,photos:finalPhotos,description,ingredients,recipe};
 if(nutrition)added.nutrition=nutrition;
 S.custom.push(added);
 }
