@@ -25,7 +25,7 @@ assert.ok(html.includes('<strong>AT HOME</strong><span>Reveal your meal</span>')
 assert.ok(html.includes('<strong>RESTAURANT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
-assert.ok(html.includes('styles.css?v=785')&&html.includes('app.js?v=785'),'Frontend asset cache-busting must be v786');
+assert.ok(html.includes('styles.css?v=786')&&html.includes('app.js?v=786'),'Frontend asset cache-busting must be v786');
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 assert.ok(app.includes("const next=String(value);"),'Choice counts must use numeric-only labels');
