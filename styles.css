@@ -7594,3 +7594,59 @@ button,input,select,textarea{
 @media(max-width:390px){
   #familySetup .family-meal-time-options{grid-template-columns:1fr!important}
 }
+
+
+/* CP836 — final Meals header order: Meal Times left, Cuisine Cuts immediately right. */
+#food .quick-label{
+  display:grid!important;
+  grid-template-columns:auto auto auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:9px!important;
+}
+#food #foodMealTimeToggle{
+  grid-column:1!important;
+  grid-row:1!important;
+  justify-self:start!important;
+}
+#food #foodQuickToggle{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:start!important;
+}
+#food #foodMaybeDeck{
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:start!important;
+}
+#food #foodCount{
+  grid-column:4!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+#food #foodMealTimeToggle::after{
+  content:"";
+  position:absolute!important;
+  top:-30%!important;
+  left:-48%!important;
+  width:22%!important;
+  height:160%!important;
+  transform:skewX(-18deg)!important;
+  background:linear-gradient(90deg,transparent,rgba(255,238,194,.42),transparent)!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  mix-blend-mode:screen!important;
+  animation:cp774MealTimesSheen 9s ease-in-out infinite!important;
+}
+@keyframes cp774MealTimesSheen{
+  0%,65%,100%{left:-48%;opacity:0}
+  70%{opacity:.08}
+  78%{left:122%;opacity:.52}
+  83%{left:148%;opacity:0}
+}
+@media(max-width:390px){
+  #food .quick-label{grid-template-columns:auto auto auto minmax(0,1fr)!important;gap:6px!important}
+  #food .food-quick-control{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #food #foodMealTimeToggle::after{animation:none!important}
+}
