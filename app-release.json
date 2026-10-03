@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 768,
-  "sourceBranch": "cp768-window-geometry-cleanup",
-  "checkpoint": "CP768",
-  "deploymentTrigger": "CP768-window-geometry-cleanup-2026-10-02"
+  "build": 769,
+  "sourceBranch": "cp769-cp767-launch-fixes",
+  "checkpoint": "CP769",
+  "deploymentTrigger": "CP769-cp767-launch-fixes-2026-10-02"
 }
