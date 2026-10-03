@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 768,
-  "sourceBranch": "cp768-window-geometry-cleanup",
+  "build": 769,
+  "sourceBranch": "cp769-cp767-launch-fixes",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP768"
+  "checkpoint": "CP769"
 }
