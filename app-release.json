@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 781,
-  "sourceBranch": "cp781-launch-unified-all-maybes-count",
-  "checkpoint": "CP781",
-  "deploymentTrigger": "CP781-unified-all-maybes-count-2026-10-03"
+  "build": 782,
+  "sourceBranch": "cp782-launch-menu-fixed-top",
+  "checkpoint": "CP782",
+  "deploymentTrigger": "CP782-menu-fixed-top-2026-10-03"
 }
