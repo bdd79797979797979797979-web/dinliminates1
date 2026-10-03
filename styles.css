@@ -7169,3 +7169,37 @@ button,input,select,textarea{
 .family-setup-choice.is-cut .family-choice-state{color:#b7786e}
 .family-setup-empty{padding:25px 10px;color:#777;text-align:center;border:1px dashed #2a2a2a;border-radius:14px;font-size:11px}
 #familyLockSetup{margin-top:11px}
+
+/* CP811 — Family shared swipe */
+.family-swipe{padding:6px 8px 12px;display:flex;flex-direction:column;min-height:0}
+.family-swipe-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.family-swipe-head>div{display:grid;gap:5px}
+.family-swipe-head span,.family-swipe-waiting span{font-size:9px;letter-spacing:.18em;color:#c6a46a;font-weight:850}
+.family-swipe-head h2{font-size:29px;line-height:.96;letter-spacing:-.05em;margin:0}
+#familySwipeProgress{font-size:10px;color:#777;padding-bottom:2px}
+.family-swipe-note{font-size:10px;line-height:1.45;color:#777;margin:8px 2px 9px}
+.family-swipe-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.family-swipe-card{width:min(100%,430px);aspect-ratio:4/5;max-height:52svh;position:relative;border-radius:24px;overflow:hidden;background:#101010;border:1px solid #2a2a2a;touch-action:none;user-select:none}
+.family-swipe-card img{width:100%;height:100%;display:block;object-fit:cover}
+.family-swipe-shade{position:absolute;inset:32% 0 0;background:linear-gradient(transparent,#000e)}
+.family-swipe-copy{position:absolute;left:18px;right:18px;bottom:18px}
+.family-swipe-copy small{font-size:10px;color:#ddd}
+.family-swipe-copy h3{font-size:30px;line-height:1.02;letter-spacing:-.05em;margin:5px 0 3px}
+.family-swipe-copy span{font-size:10px;color:#aaa}
+.family-swipe-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:9px}
+.family-round-action{min-height:64px;border-radius:19px;border:1px solid #292929;display:grid;place-items:center;align-content:center;gap:1px;font-size:20px;font-weight:850}
+.family-round-action small{font-size:9px;font-weight:750;letter-spacing:.04em}
+.family-round-cut{background:#5b2b2a;color:#f2d8d3}
+.family-round-maybe{background:#233e2c;color:#d7eadb}
+.family-round-choose{background:#c6a46a;color:#111}
+.family-round-action:active{transform:scale(.985)}
+.family-round-action[disabled]{opacity:.4}
+.family-waiting{padding:30px 15px;border:1px solid rgba(198,164,106,.22);border-radius:20px;background:linear-gradient(145deg,rgba(198,164,106,.09),rgba(255,255,255,.025));display:grid;gap:7px;text-align:center}
+.family-waiting b{font-size:23px;letter-spacing:-.04em}
+.family-waiting small{font-size:10px;line-height:1.4;color:#777}
+@media(max-width:390px){
+ .family-swipe-note{margin-bottom:7px}
+ .family-swipe-card{max-height:48svh}
+ .family-swipe-copy h3{font-size:27px}
+ .family-round-action{min-height:58px}
+}
