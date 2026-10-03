@@ -14,7 +14,7 @@
 <title>Dinliminate — Dinner Decisions Simplified</title>
 
 <link rel="preload" as="image" fetchpriority="high" href="./home-background.jpg">
-<link rel="stylesheet" href="./styles.css?v=806">
+<link rel="stylesheet" href="./styles.css?v=807">
 </head>
 <body>
 <main class="app">
@@ -56,6 +56,71 @@
     </button>
   </div>
 </div>
+</section>
+
+
+<section class="screen hidden family-screen" id="family">
+  <div class="decision-bar family-bar">
+    <button id="familyBackTop" class="decision-back" type="button" aria-label="Back to home">‹</button>
+    <div class="decision-brand">Dinliminate</div>
+    <button id="familyMenu" class="menu decision-menu" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+
+  <div class="family-page" id="familyPage">
+    <div class="family-hero">
+      <span class="family-kicker">FAMILY MODE</span>
+      <h1>Dinner together.<br>Decided together.</h1>
+      <p>No accounts. No passwords. Just create or join and start deciding.</p>
+    </div>
+
+    <div class="family-entry" id="familyEntry">
+      <button class="family-entry-card" id="familyCreateChoice" type="button">
+        <span class="family-entry-icon" aria-hidden="true">＋</span>
+        <span><b>Create</b><small>Start a Family dinner decision</small></span>
+        <span class="family-entry-chevron" aria-hidden="true">›</span>
+      </button>
+      <button class="family-entry-card" id="familyJoinChoice" type="button">
+        <span class="family-entry-icon family-code-icon" aria-hidden="true">⌁</span>
+        <span><b>Join</b><small>Use a Family code from the host</small></span>
+        <span class="family-entry-chevron" aria-hidden="true">›</span>
+      </button>
+    </div>
+
+    <div class="family-form hidden" id="familyCreateForm">
+      <div class="family-form-head"><button class="family-form-back" id="familyCreateBack" type="button">‹</button><div><span>CREATE</span><b>Who’s deciding?</b></div></div>
+      <label for="familyCreateName">Your name</label>
+      <input id="familyCreateName" autocomplete="name" maxlength="40" placeholder="Enter your name">
+      <button class="family-primary" id="familyCreateSubmit" type="button">Create Family</button>
+      <p class="family-form-status" id="familyCreateStatus" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="family-form hidden" id="familyJoinForm">
+      <div class="family-form-head"><button class="family-form-back" id="familyJoinBack" type="button">‹</button><div><span>JOIN</span><b>Enter the Family code.</b></div></div>
+      <label for="familyJoinCode">Family code</label>
+      <input id="familyJoinCode" inputmode="text" autocomplete="one-time-code" autocapitalize="characters" maxlength="11" placeholder="K7P · 4Q2">
+      <label for="familyJoinName">Your name</label>
+      <input id="familyJoinName" autocomplete="name" maxlength="40" placeholder="Enter your name">
+      <button class="family-primary" id="familyJoinSubmit" type="button">Join Family</button>
+      <p class="family-form-status" id="familyJoinStatus" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="family-lobby hidden" id="familyLobby">
+      <div class="family-lobby-head">
+        <div><span class="family-kicker">FAMILY</span><h2 id="familyLobbyTitle">Ready when everyone’s here.</h2></div>
+        <button class="family-link-button" id="familyLeave" type="button">Leave</button>
+      </div>
+      <div class="family-code-panel">
+        <span>JOIN CODE</span>
+        <strong id="familyJoinCodeDisplay">—</strong>
+        <small>Share this code with your family.</small>
+      </div>
+      <div class="family-members-panel">
+        <div class="family-panel-title"><b>Family</b><span id="familyMemberCount">0/8</span></div>
+        <div id="familyMemberList" class="family-member-list"></div>
+      </div>
+      <p class="family-lobby-status" id="familyLobbyStatus" role="status" aria-live="polite"></p>
+    </div>
+  </div>
 </section>
 
 <section class="screen hidden decision-screen" id="food">
@@ -154,6 +219,7 @@
     <button class="drawer-row" id="manage" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 5.5h12M6 9.5h8M6 14.5h12M6 18.5h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span><b>Manage Meals</b><small>Add, edit, hide, delete, or restore</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
     <button class="drawer-row" id="history" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l2.8 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span><b>History</b><small>See your previous decisions</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
     <button class="drawer-row" id="settings" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7h12M6 12h12M6 17h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="7" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="12" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="17" r="1.9" fill="#171716" stroke="currentColor" stroke-width="1.5"/></svg></span><span><b>Settings</b><small>Tools, data, privacy, and app details</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
+    <button class="drawer-row" id="familyMode" type="button"><span class="drawer-row-main"><span class="drawer-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8.2" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="15.8" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.8 18c.4-3 2-4.5 4.4-4.5s4 1.5 4.4 4.5M11.4 18c.4-2.2 1.8-3.4 4.2-3.4 2.2 0 3.7 1.2 4.1 3.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span><b>Family Mode</b><small>Decide dinner together</small></span></span><span class="drawer-row-chevron" aria-hidden="true">›</span></button>
   </nav>
   <div class="drawer-footer">
     <div class="drawer-footer-rule"><span>DINLIMINATE</span><span>BUILD</span></div>
@@ -165,7 +231,7 @@
 
 <script src="./data/foods.js"></script>
 <script src="./data/restaurant-taxonomy.js"></script>
-<script src="./app.js?v=806"></script>
+<script src="./app.js?v=807"></script>
 </main>
 </body>
 </html>
