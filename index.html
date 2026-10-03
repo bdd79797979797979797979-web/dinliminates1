@@ -102,19 +102,28 @@
   <div class="hungry-wheel-actions"><button class="cut" id="hungryWheelSpin" type="button">Spin the Wheel</button><button class="secondary hidden" id="hungryWheelChoose" type="button">Choose This</button></div>
 </div>
 <div id="hungryRestaurantPanel" class="hungry-restaurant-panel hidden" aria-hidden="true">
-  <div class="hungry-mystery-copy"><span>MYSTERY PICK</span><b>Trust the mystery.</b><small id="hungryRestaurantCount"></small></div>
+  <div class="hungry-mystery-copy">
+    <span>MYSTERY PICK</span>
+    <b>Let fate choose tonight.</b>
+    <small id="hungryRestaurantCount"></small>
+  </div>
   <div class="hungry-mystery-stage">
     <div class="hungry-mystery-card" id="hungryMysteryCard">
       <div class="hungry-mystery-blur"></div>
       <img id="hungryMysteryImg" alt="" aria-hidden="true">
-      <div class="hungry-mystery-cover"><span>?</span><b>MYSTERY</b><small>Tap reveal</small></div>
+      <div class="hungry-mystery-cover">
+        <span class="hungry-mystery-seal" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M24 9v6M24 33v6M9 24h6M33 24h6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="m24 16 2.4 5.1L32 24l-5.6 2.9L24 32l-2.4-5.1L16 24l5.6-2.9L24 16Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        </span>
+        <b>MYSTERY</b><small>Tap to reveal</small>
+      </div>
     </div>
   </div>
   <div id="hungryMysteryResult" class="hungry-mystery-result hidden">
     <div class="hungry-mystery-result-image-wrap"><img id="hungryMysteryResultImg" alt=""></div>
-    <div class="hungry-mystery-result-copy"><span>THE MYSTERY IS…</span><b id="hungryMysteryResultName"></b><small id="hungryMysteryResultMeta"></small></div>
+    <div class="hungry-mystery-result-copy"><span>YOUR MYSTERY RESTAURANT</span><b id="hungryMysteryResultName"></b><small id="hungryMysteryResultMeta"></small></div>
   </div>
-  <div class="hungry-mystery-actions"><button class="cut" id="hungryMysteryReveal" type="button">Reveal</button><button class="secondary hidden" id="hungryMysteryChoose" type="button">Choose This</button><button class="secondary hidden" id="hungryMysteryAgain" type="button">Try Another</button></div>
+  <div class="hungry-mystery-actions"><button class="cut" id="hungryMysteryReveal" type="button">Reveal Restaurant</button><button class="secondary hidden" id="hungryMysteryChoose" type="button">Choose This</button><button class="secondary hidden" id="hungryMysteryAgain" type="button">Try Another</button></div>
 </div></div><img id="winImg" alt=""><div class="winner-actions"><button class="cut" id="details">Details</button><button class="secondary" id="share">Share</button><button class="secondary" id="restart">Start over</button></div></section>
 
 <div class="location-permission-bg hidden" id="locationPermissionBg" aria-hidden="true"></div>
