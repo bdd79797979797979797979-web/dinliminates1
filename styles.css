@@ -6170,3 +6170,72 @@ button,input,select,textarea{
     max-height:calc(100dvh - env(safe-area-inset-top) - 76px)!important;
   }
 }
+
+/* CP786 — restrained luxury Home finish.
+   Preserve the existing full-photo composition; only refine hierarchy, contrast,
+   and champagne-gold accents. */
+.app:has(#home:not(.hidden)) .app-topbar .brand{
+  background:linear-gradient(110deg,#fffdf6 0%,#f4e7c8 34%,#d9bd82 56%,#fff8e8 82%,#e9d39f 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 18px rgba(214,182,116,.16)!important;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));
+}
+.app:has(#home:not(.hidden)) #home .home-intro .eyebrow{
+  color:#e3ca92!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.20em!important;
+  text-shadow:0 2px 14px rgba(0,0,0,.82),0 0 14px rgba(214,182,116,.11)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-intro h1{
+  color:#fffaf1!important;
+  text-shadow:
+    0 2px 22px rgba(0,0,0,.78),
+    0 1px 0 rgba(217,189,130,.20)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-intro .sub{
+  color:#f0e7d8!important;
+  text-shadow:0 2px 14px rgba(0,0,0,.76)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo{
+  border-color:rgba(221,194,139,.48)!important;
+  box-shadow:inset 0 1px 0 rgba(255,248,226,.17)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{
+  color:#fff8e9!important;
+  text-shadow:
+    0 2px 13px rgba(0,0,0,.80),
+    0 1px 0 rgba(222,194,137,.18)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{
+  color:#f0e5d2!important;
+  text-shadow:0 2px 11px rgba(0,0,0,.78)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .arrow{
+  background:rgba(8,8,8,.50)!important;
+  border-color:rgba(223,194,137,.54)!important;
+  color:#f2d59b!important;
+  box-shadow:inset 0 1px 0 rgba(255,248,226,.10),0 4px 12px rgba(0,0,0,.36)!important;
+}
+.app:has(#home:not(.hidden))::after{
+  background:
+    radial-gradient(ellipse 78% 33% at 50% 27%,rgba(0,0,0,.16),transparent 72%),
+    linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.015) 22%,rgba(0,0,0,.04) 54%,rgba(0,0,0,.17) 100%)!important;
+  opacity:.88!important;
+  animation:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-first-nudge{
+  color:rgba(241,225,193,.88)!important;
+  text-shadow:0 2px 13px rgba(0,0,0,.82)!important;
+}
+@media(max-width:390px){
+  .app:has(#home:not(.hidden)) #home .home-intro .eyebrow{
+    font-size:9px!important;
+    letter-spacing:.18em!important;
+  }
+  .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{
+    letter-spacing:.01em!important;
+  }
+}
