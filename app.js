@@ -3805,27 +3805,33 @@ function familyRenderState(data){
   $('familyMemberCount').textContent=String(family.memberCount||0)+' here';
   familyDisplayMemberList(data.members||[],me);
   const activeRound=data.activeRound||null;
-  const active=!!activeRound;
-  const roundMember=activeRound ? (data.roundMembers||[]).find(r=>r.memberId===me.id&&r.included) : null;
-  const included=!active||!!roundMember;
-  const swiping=active&&activeRound.status==='swiping'&&included;
-  $('familyLobby')?.classList.toggle('hidden',swiping);
+  const completed=data.lastCompletedRound||((activeRound&&activeRound.status==='complete')?activeRound:null);
+  const roundMember=activeRound?(data.roundMembers||[]).find(r=>r.memberId===me.id&&r.included):null;
+  const included=!activeRound||!!roundMember;
+  const swiping=activeRound&&activeRound.status==='swiping'&&included;
+  const setupReady=activeRound&&activeRound.status==='setup';
+  const session=familySessionRead();
+  const dismissedCompleted=!!completed&&session?.dismissedWinnerRoundId===completed.id;
+  $('familyLobby')?.classList.toggle('hidden',!!swiping||(!activeRound&&!dismissedCompleted&&!completed));
   $('familySetup')?.classList.add('hidden');
   $('familySwipe')?.classList.toggle('hidden',!swiping);
-  $('familyLobbyTitle').textContent=activeRound?.status==='setup'?'Dinner setup is ready.':activeRound?.status==='swiping'?'Dinner is being decided.':active?'A dinner decision is underway.':'Ready when everyone’s here.';
+  $('familyWinner')?.classList.toggle('hidden',!(completed&&!dismissedCompleted&&!activeRound));
+  $('familyLobbyTitle').textContent=setupReady?'Dinner setup is ready.':swiping?'Dinner is being decided.':activeRound?'A dinner decision is underway.':'Ready when everyone’s here.';
   $('familyRotateCode')?.classList.toggle('hidden',me.role!=='host');
-  $('familySetupOpen')?.classList.toggle('hidden',me.role!=='host'||active);
-  $('familyStartDecision')?.classList.toggle('hidden',me.role!=='host'||activeRound?.status!=='setup');
+  $('familySetupOpen')?.classList.toggle('hidden',me.role!=='host'||!!activeRound);
+  $('familyStartDecision')?.classList.toggle('hidden',me.role!=='host'||!setupReady);
   const note=$('familyCodeNote'); if(note)note.textContent=me.role==='host'?'Share the code. You can regenerate it any time.':'You’re in. The host will set up dinner.';
   if(swiping){ familyBeginSwipe(data); return; }
+  if(completed&&!dismissedCompleted&&!activeRound){ familyRenderWinner(completed); return; }
   if(activeRound&&!included){ familySetStatus('familyLobbyStatus','This dinner decision already started. You’ll join the next one.'); }
-  else if(activeRound?.status==='setup'){ familySetStatus('familyLobbyStatus',me.role==='host'?'Setup is locked. Start deciding when everyone is ready.':'The host has dinner ready. Waiting for the start.'); }
+  else if(setupReady){ familySetStatus('familyLobbyStatus',me.role==='host'?'Setup is locked. Start deciding when everyone is ready.':'The host has dinner ready. Waiting for the start.'); }
   else if(activeRound){ familySetStatus('familyLobbyStatus','A decision is underway. We’ll keep your Family together for the next one.'); }
   else familySetStatus('familyLobbyStatus',me.role==='host'?'You’re the host. Bring everyone in, then set up dinner.':'You’re in. Waiting for the host.');
 }
+
 async function familyRefreshState(){
   const session=familySessionRead(); if(!session?.token)return null;
-  try{ const data=await familyApi('state',{token:session.token}); familySessionWrite({...session,family:data.family,member:data.me}); familyRenderState(data); return data; }
+  try{ const data=await familyApi('state',{token:session.token}); familySessionWrite({...session,family:data.family,member:data.me,lastWinnerItem:data.activeRound?.winnerItem||data.lastCompletedRound?.winnerItem||session.lastWinnerItem||null,lastDecisionType:data.activeRound?.decisionType||data.lastCompletedRound?.decisionType||session.lastDecisionType||'food'}); familyRenderState(data); return data; }
   catch(err){ if(err.code==='UNAUTHORIZED')familySessionClear(); familySetStatus('familyLobbyStatus',err.message||'Could not reconnect to this Family.','error'); return null; }
 }
 function stopFamilyLobbyPolling(){ if(familyPollTimer){clearInterval(familyPollTimer);familyPollTimer=0;} }
@@ -4096,4 +4102,51 @@ $('familyStartDecision')?.addEventListener('click',async()=>{
   catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not start the dinner decision.','error');}
   finally{if(button){button.disabled=false;button.textContent='Start deciding';}}
 });
+/* CP814 — Family winner presentation */
+let familyWinnerRoundId='';
+function familyWinnerCelebrate(){
+  const box=$('familyWinnerCelebration'); if(!box)return;
+  box.innerHTML='';
+  for(let i=0;i<18;i++){
+    const spark=document.createElement('i');
+    spark.style.setProperty('--fx',String(((i*37)%160)-80)+'px');
+    spark.style.setProperty('--fy',String(-30-((i*29)%110))+'px');
+    spark.style.setProperty('--fr',String((i*43)%300)+'deg');
+    box.appendChild(spark);
+  }
+  box.classList.remove('is-celebrating'); void box.offsetWidth; box.classList.add('is-celebrating');
+}
+function familyRenderWinner(round){
+  const item=round?.winnerItem; if(!item)return;
+  familyWinnerRoundId=String(round.id||'');
+  $('familyWinnerName').textContent=String(item.name||'Dinner is decided');
+  $('familyWinnerImg').src=item.image?imageProxyUrl(item.image):HUNGRY_IMAGE;
+  $('familyWinnerImg').alt=String(item.name||'Dinner winner');
+  familyWinnerCelebrate();
+}
+async function familyShareWinner(){
+  const name=$('familyWinnerName')?.textContent?.trim()||'Tonight’s dinner';
+  const text='Tonight’s dinner: '+name+'. Decided together with Dinliminate Family Mode.';
+  try{
+    if(navigator.share){await navigator.share({title:'Tonight’s Dinner',text});return;}
+    await navigator.clipboard.writeText(text);
+    familySetStatus('familyLobbyStatus','Winner text copied.');
+  }catch{}
+}
+function familyWinnerDetails(){
+  const name=$('familyWinnerName')?.textContent?.trim();
+  const session=familySessionRead();
+  const item=session?.lastWinnerItem;
+  if(item&&name){detailsSheet(item,session.family?.lastDecisionType||'food');}
+}
+async function familyDecideAgain(){
+  const session=familySessionRead();
+  if(session){familySessionWrite({...session,dismissedWinnerRoundId:familyWinnerRoundId,lastWinnerItem:null});}
+  $('familyWinner')?.classList.add('hidden');
+  $('familyLobby')?.classList.remove('hidden');
+  await familyRefreshState();
+}
+$('familyWinnerShare')?.addEventListener('click',familyShareWinner);
+$('familyWinnerAgain')?.addEventListener('click',familyDecideAgain);
+$('familyWinnerDetails')?.addEventListener('click',familyWinnerDetails);
 })();
