@@ -60,7 +60,11 @@ assert.equal(await page.locator('#food').isVisible(),true);
 const foodLogo=await page.locator('#food .decision-brand').evaluate(el=>{
  const c=getComputedStyle(el); return {size:c.fontSize,weight:c.fontWeight,spacing:c.letterSpacing,bg:c.backgroundImage};
 });
-assert.deepEqual(foodLogo,{size:'20px',weight:'850',spacing:'-0.05em',bg:logo1.logoBg},'Meals logo must match Home logo');
+assert.equal(foodLogo.size,'20px','Meals logo must match Home size');
+assert.equal(foodLogo.weight,'850','Meals logo must match Home weight');
+assert.equal(foodLogo.bg,logo1.logoBg,'Meals logo must match Home gradient');
+const effectiveSpacing = (v,size) => String(v).endsWith('em') ? parseFloat(v)*parseFloat(size) : parseFloat(v);
+assert.ok(Math.abs(effectiveSpacing(foodLogo.spacing,foodLogo.size)-effectiveSpacing(logo1.logoSpacing,logo1.logoSize))<0.01,'Meals logo letter spacing must visually match Home');
 
 await page.locator('#foodBackTop').click();
 await page.waitForTimeout(120);
