@@ -12,7 +12,7 @@ const WIDE_DISCOVERY_RESERVE_MS=700;
 const WIDE_RADIUS_THRESHOLD=50;
 const WIDE_PROVIDER_RADIUS_CAP=50;
 const WIDE_PRIMARY_TIMEBOX_MS=4500;
-const WIDE_DISCOVERY_TIMEBOX_MS=4500;
+const WIDE_DISCOVERY_TIMEBOX_MS=6500;
 const OVERPASS_HTTP_TIMEOUT_MS=5200;
 const MAX_SEARCH_PER_MINUTE=60;
 const GOOGLE_KEY=String(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY||'').trim();
@@ -1159,7 +1159,9 @@ if(mode==='search'){
  // redundant Overpass discovery pass. This prevents 100-mile provider result
  // caps from replacing nearby restaurants with a biased subset of the huge box.
  const providerRadius=wideSearch?Math.min(radius,WIDE_PROVIDER_RADIUS_CAP):radius;
- const discoveryPromise=searchTerm&&!wideSearch ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null;
+ const discoveryPromise=wideSearch
+  ? wideRadiusOverpass(lat,lon,radius,searchTerm)
+  : (searchTerm ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null);
  const primaryPromise=wideSearch
   ? Promise.allSettled([photonWidePlaces(lat,lon,radius,searchTerm)])
   : Promise.allSettled([
