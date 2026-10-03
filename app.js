@@ -2900,15 +2900,22 @@ function renderMealDetailPhotoGallery(item,initialIndex=0){
  let index=Math.max(0,Math.min(Number(initialIndex)||0,photos.length-1));
  host.innerHTML='<div class="meal-detail-photo-frame"><img id="mealDetailPhotoImg" src="'+esc(String(photos[index].src).startsWith('idb:')?FINAL_FOOD_IMAGE:photos[index].src)+'" alt="'+esc(item.name||'Meal')+'" data-stored-photo-ref="'+esc(String(photos[index].src).startsWith('idb:')?photos[index].src:'')+'">'+(photos.length>1?'<div class="meal-detail-photo-overlay"><span class="meal-detail-photo-counter"></span><div class="meal-detail-photo-dots"></div></div>':'')+'</div>';
  const img=$('mealDetailPhotoImg'),counter=host.querySelector('.meal-detail-photo-counter'),dots=host.querySelector('.meal-detail-photo-dots');
- const render=()=>{
+ let renderToken=0;
+ const render=async()=>{
+   const token=++renderToken;
    const photo=photos[index]||photos[0];
-   img.src=String(photo.src).startsWith('idb:')?FINAL_FOOD_IMAGE:photo.src;
-   img.dataset.storedPhotoRef=String(photo.src).startsWith('idb:')?photo.src:'';
+   const ref=String(photo.src).startsWith('idb:')?photo.src:'';
+   img.src=ref?FINAL_FOOD_IMAGE:photo.src;
+   img.dataset.storedPhotoRef=ref;
    img.alt=item.name||'Meal';
    applyMealPhotoStyle(img,photo);
    if(counter)counter.textContent=(index+1)+' / '+photos.length;
-   if(dots)dots.innerHTML=photos.map((p,i)=>'<button type="button" class="'+(i===index?'is-active':'')+'" data-meal-detail-dot="'+i+'" aria-label="Show photo '+(i+1)+'"></button>').join('');
+   if(dots)dots.innerHTML=photos.length>1?photos.map((p,i)=>'<button type="button" class="'+(i===index?'is-active':'')+'" data-meal-detail-dot="'+i+'" aria-label="Show photo '+(i+1)+'"></button>').join(''):'';
    dots?.querySelectorAll('[data-meal-detail-dot]').forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();index=Number(btn.dataset.mealDetailDot)||0;render();});
+   if(ref){
+     const data=await getStoredPhoto(ref.slice(4));
+     if(token===renderToken&&data){img.src=data;img.dataset.storedPhotoResolved='true';}
+   }
  };
  let downX=0,downY=0,tracking=false,pointerId=null;
  img.onpointerdown=e=>{if(e.isPrimary===false)return;downX=e.clientX;downY=e.clientY;tracking=true;pointerId=e.pointerId;try{img.setPointerCapture?.(e.pointerId)}catch{}};
