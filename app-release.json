@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 829,
+  "build": 830,
   "sourceBranch": "cp827-final-deploy",
-  "checkpoint": "CP829",
-  "deploymentTrigger": "CP829-meal-time-cuts-2026-10-03"
+  "checkpoint": "CP830",
+  "deploymentTrigger": "CP830-explicit-meal-time-2026-10-03"
 }
