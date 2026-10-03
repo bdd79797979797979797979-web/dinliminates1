@@ -3808,21 +3808,22 @@ function familyRenderState(data){
   const completed=data.lastCompletedRound||((activeRound&&activeRound.status==='complete')?activeRound:null);
   const roundMember=activeRound?(data.roundMembers||[]).find(r=>r.memberId===me.id&&r.included):null;
   const included=!activeRound||!!roundMember;
-  const swiping=activeRound&&activeRound.status==='swiping'&&included;
+  const stageSwipe=activeRound&&['swiping','final_swiping','tiebreak'].includes(activeRound.status)&&included;
   const setupReady=activeRound&&activeRound.status==='setup';
   const session=familySessionRead();
   const dismissedCompleted=!!completed&&session?.dismissedWinnerRoundId===completed.id;
-  $('familyLobby')?.classList.toggle('hidden',!!swiping||(!activeRound&&!dismissedCompleted&&!completed));
+  const showWinner=!!completed&&!dismissedCompleted&&(!activeRound||activeRound.status==='complete');
+  $('familyLobby')?.classList.toggle('hidden',!!stageSwipe||showWinner);
   $('familySetup')?.classList.add('hidden');
-  $('familySwipe')?.classList.toggle('hidden',!swiping);
-  $('familyWinner')?.classList.toggle('hidden',!(completed&&!dismissedCompleted&&!activeRound));
-  $('familyLobbyTitle').textContent=setupReady?'Dinner setup is ready.':swiping?'Dinner is being decided.':activeRound?'A dinner decision is underway.':'Ready when everyone’s here.';
+  $('familySwipe')?.classList.toggle('hidden',!stageSwipe);
+  $('familyWinner')?.classList.toggle('hidden',!showWinner);
+  $('familyLobbyTitle').textContent=setupReady?'Dinner setup is ready.':stageSwipe?'Dinner is being decided.':activeRound?'A dinner decision is underway.':'Ready when everyone’s here.';
   $('familyRotateCode')?.classList.toggle('hidden',me.role!=='host');
   $('familySetupOpen')?.classList.toggle('hidden',me.role!=='host'||!!activeRound);
   $('familyStartDecision')?.classList.toggle('hidden',me.role!=='host'||!setupReady);
   const note=$('familyCodeNote'); if(note)note.textContent=me.role==='host'?'Share the code. You can regenerate it any time.':'You’re in. The host will set up dinner.';
-  if(swiping){ familyBeginSwipe(data); return; }
-  if(completed&&!dismissedCompleted&&!activeRound){ familyRenderWinner(completed); return; }
+  if(stageSwipe){ familyBeginSwipe(data); return; }
+  if(showWinner){ familyRenderWinner(showWinner?completed:null); return; }
   if(activeRound&&!included){ familySetStatus('familyLobbyStatus','This dinner decision already started. You’ll join the next one.'); }
   else if(setupReady){ familySetStatus('familyLobbyStatus',me.role==='host'?'Setup is locked. Start deciding when everyone is ready.':'The host has dinner ready. Waiting for the start.'); }
   else if(activeRound){ familySetStatus('familyLobbyStatus','A decision is underway. We’ll keep your Family together for the next one.'); }
@@ -4004,15 +4005,16 @@ let familyDeadlineTimer=0;
 function familySwipeItems(data){
   const round=data?.activeRound; if(!round?.snapshot)return [];
   const stage=Number(round.currentStage)||1;
-  const source=stage===2&&Array.isArray(round.snapshot.finalists)
-    ? (Array.isArray(round.snapshot.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.finalists.map(String).includes(String(item.id)))
-    : (Array.isArray(round.snapshot.pool)?round.snapshot.pool:[]);
+  let source;
+  if(stage===2&&Array.isArray(round.snapshot.finalists)) source=(Array.isArray(round.snapshot.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.finalists.map(String).includes(String(item.id)));
+  else if(stage===3&&Array.isArray(round.snapshot.tiebreakItems)) source=(Array.isArray(round.snapshot.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.tiebreakItems.map(String).includes(String(item.id)));
+  else source=Array.isArray(round.snapshot.pool)?round.snapshot.pool:[];
   const excluded=new Set(Array.isArray(round.snapshot.hostExcluded)?round.snapshot.hostExcluded.map(String):[]);
-  const voted=new Set((data.myVotes||[]).filter(v=>(stage===1?'initial':'finalist')===v.stage).map(v=>String(v.itemId)));
+  const voted=new Set((data.myVotes||[]).filter(v=>(stage===1?'initial':stage===2?'finalist':'tiebreak')===v.stage).map(v=>String(v.itemId)));
   return source.filter(item=>item&&item.id&&!excluded.has(String(item.id))&&!voted.has(String(item.id)));
 }
 function familyBeginSwipe(data){
-  const round=data?.activeRound; if(!round||round.status!=='swiping')return;
+  const round=data?.activeRound; if(!round||!['swiping','final_swiping','tiebreak'].includes(round.status))return;
   familySwipeData=data;
   $('familySwipe')?.classList.remove('hidden');
   $('familyLobby')?.classList.add('hidden');
@@ -4048,43 +4050,44 @@ function familySwipeRender(){
   familyDeadlineStart(round);
   const stage=Number(round.currentStage)||1;
   const excluded=new Set(Array.isArray(round.snapshot?.hostExcluded)?round.snapshot.hostExcluded.map(String):[]);
-  const sourcePool=stage===2&&Array.isArray(round.snapshot?.finalists)
-    ? (Array.isArray(round.snapshot?.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.finalists.map(String).includes(String(item.id)))
-    : (Array.isArray(round.snapshot?.pool)?round.snapshot.pool:[]).filter(item=>item&&item.id&&!excluded.has(String(item.id)));
+  let sourcePool;
+  if(stage===2&&Array.isArray(round.snapshot?.finalists)) sourcePool=(Array.isArray(round.snapshot?.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.finalists.map(String).includes(String(item.id)));
+  else if(stage===3&&Array.isArray(round.snapshot?.tiebreakItems)) sourcePool=(Array.isArray(round.snapshot?.pool)?round.snapshot.pool:[]).filter(item=>round.snapshot.tiebreakItems.map(String).includes(String(item.id)));
+  else sourcePool=(Array.isArray(round.snapshot?.pool)?round.snapshot.pool:[]).filter(item=>item&&item.id&&!excluded.has(String(item.id)));
   const total=sourcePool.length;
-  const voteStage=stage===1?'initial':'finalist';
+  const voteStage=stage===1?'initial':stage===2?'finalist':'tiebreak';
   const voted=(data.myVotes||[]).filter(v=>v.stage===voteStage).length;
   $('familySwipeProgress').textContent=Math.min(voted,total)+' / '+total;
   if(!items.length){
     familySwipeCurrent=null; familyDeadlineStart({stageDeadlineAt:null});
-    $('familySwipeCard')?.classList.add('hidden'); $('familySwipeWaiting')?.classList.remove('hidden');
+    $('familySwipeCard')?.classList.add('hidden');$('familySwipeWaiting')?.classList.remove('hidden');
     $('familySwipeCut')?.setAttribute('disabled','disabled');$('familySwipeMaybe')?.setAttribute('disabled','disabled');$('familySwipeChoose')?.setAttribute('disabled','disabled');
-    $('familySwipeStageKicker').textContent=stage===1?'FIRST PICKS':'FAMILY FINALISTS';
-    $('familySwipeTitle').textContent=stage===1?'Your picks are in.':'Final picks are in.';
-    $('familyWaitingText').textContent=stage===1?'Your choices are saved. We’ll move everyone forward together.':'Your finalist choices are saved. We’ll make the final decision together.';
+    $('familySwipeStageKicker').textContent=stage===1?'FIRST PICKS':stage===2?'FAMILY FINALISTS':'ONE LAST DECISION';
+    $('familySwipeTitle').textContent=stage===1?'Your picks are in.':stage===2?'Final picks are in.':'One last pick.';
+    $('familyWaitingText').textContent=stage===1?'Your choices are saved. We’ll move everyone forward together.':stage===2?'Your finalist choices are saved. We’ll make the final decision together.':'Your last choice is saved. We’ll settle the tie.';
     const submissionKey=round.id+':'+voteStage;
     if(familySwipeSubmittedRoundId!==submissionKey){
-      familySwipeSubmittedRoundId=round.id+':'+voteStage;
+      familySwipeSubmittedRoundId=submissionKey;
       familyApi('submit-stage',{token:familySessionRead()?.token,roundId:round.id,stage:voteStage}).catch(err=>{familySetStatus('familyLobbyStatus',err.message||'Could not submit your picks.','error');});
     }
     return;
   }
-  $('familySwipeWaiting')?.classList.add('hidden'); $('familySwipeCard')?.classList.remove('hidden');
+  $('familySwipeWaiting')?.classList.add('hidden');$('familySwipeCard')?.classList.remove('hidden');
   $('familySwipeCut')?.removeAttribute('disabled');$('familySwipeMaybe')?.removeAttribute('disabled');$('familySwipeChoose')?.removeAttribute('disabled');
   const item=items[0]; familySwipeCurrent=String(item.id);
   $('familySwipeImg').src=item.image?imageProxyUrl(item.image):foodPhotoFallback(item);
   $('familySwipeName').textContent=String(item.name||'Choice');
   $('familySwipeCat').textContent=String(item.category||item.cuisine||'');
   $('familySwipeMeta').textContent=round.decisionType==='restaurant'&&item.distance!=null?Number(item.distance).toFixed(1)+' mi away':'';
-  $('familySwipeTitle').textContent=stage===1?'Make your picks.':'Choose the finalists.';
-  $('familySwipeStageKicker').textContent=stage===1?'FIRST PICKS':'FAMILY FINALISTS';
+  $('familySwipeTitle').textContent=stage===1?'Make your picks.':stage===2?'Choose the finalists.':'One last pick.';
+  $('familySwipeStageKicker').textContent=stage===1?'FIRST PICKS':stage===2?'FAMILY FINALISTS':'ONE LAST DECISION';
 }
 async function familySwipeChoose(choiceValue){
   if(familySwipeBusy||!familySwipeCurrent||!familySwipeData?.activeRound)return;
   familySwipeBusy=true;
   const round=familySwipeData.activeRound,roundId=round.id,itemId=familySwipeCurrent,token=familySessionRead()?.token;
   const stage=Number(round.currentStage)||1;
-  const voteStage=stage===1?'initial':'finalist';
+  const voteStage=stage===1?'initial':stage===2?'finalist':'tiebreak';
   if(!token){familySwipeBusy=false;return;}
   try{
     await familyApi('vote',{token,roundId,stage:voteStage,itemId,choice:choiceValue});
@@ -4118,11 +4121,13 @@ function familyWinnerCelebrate(){
 }
 function familyRenderWinner(round){
   const item=round?.winnerItem; if(!item)return;
-  familyWinnerRoundId=String(round.id||'');
+  const nextId=String(round.id||'');
+  const changed=familyWinnerRoundId!==nextId;
+  familyWinnerRoundId=nextId;
   $('familyWinnerName').textContent=String(item.name||'Dinner is decided');
   $('familyWinnerImg').src=item.image?imageProxyUrl(item.image):HUNGRY_IMAGE;
   $('familyWinnerImg').alt=String(item.name||'Dinner winner');
-  familyWinnerCelebrate();
+  if(changed)familyWinnerCelebrate();
 }
 async function familyShareWinner(){
   const name=$('familyWinnerName')?.textContent?.trim()||'Tonight’s dinner';
