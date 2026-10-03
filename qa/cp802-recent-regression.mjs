@@ -70,7 +70,7 @@ assert.equal(homeLayer.visibility,'visible');
 
 // Canonical top wordmark.
 const logoHome=await page.locator('#appTopbar .brand').evaluate(el=>{const c=getComputedStyle(el);return {size:c.fontSize,weight:c.fontWeight,spacing:c.letterSpacing,bg:c.backgroundImage}});
-assert.equal(logoHome.size,'20px');assert.equal(logoHome.weight,'850px');assert.equal(logoHome.spacing,'-1px'||'-0.05em');assert.notEqual(logoHome.bg,'none');
+assert.equal(logoHome.size,'20px');assert.equal(logoHome.weight,'850');assert.ok(['-1px','-0.05em'].includes(logoHome.spacing));assert.notEqual(logoHome.bg,'none');
 
 // Menu translucent; back arrow plain and gold.
 const menu=await page.locator('#menu').evaluate(el=>{const c=getComputedStyle(el);return {bg:c.backgroundColor,border:c.borderTopColor,r:c.borderRadius}});
