@@ -2,7 +2,7 @@
   "name": "Dinliminate",
   "version": "1.0",
   "build": 780,
-  "sourceBranch": "cp780-correct-full-home-background-photo-cards",
+  "sourceBranch": "cp780-launch-correct-full-home-background-photo-cards",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
