@@ -7386,3 +7386,26 @@ button,input,select,textarea{
   object-fit:cover!important;
   object-position:center center!important;
 }
+
+/* CP827 — surgical recovery from CP823: visibly translucent menu glass. */
+.menu,
+.decision-menu,
+#winner .winner-menu,
+.confirm-hero .menu,
+#menu,#foodMenu,#restaurantMenu,#winnerMenu{
+  background:rgba(0,0,0,.16)!important;
+  background-image:none!important;
+  border:1px solid rgba(214,183,120,.82)!important;
+  color:#e2c17f!important;
+  backdrop-filter:blur(12px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(125%)!important;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,248,226,.10),
+    0 0 14px rgba(214,183,120,.08)!important;
+}
+.menu span,
+#menu span,#foodMenu span,#restaurantMenu span,#winnerMenu span{
+  background:#d6b778!important;
+  box-shadow:0 0 7px rgba(214,183,120,.24)!important;
+}
