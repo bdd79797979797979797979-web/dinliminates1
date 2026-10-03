@@ -6544,47 +6544,6 @@ button,input,select,textarea{
   text-align:center!important;
 }
 
-/* CP802 — persistent Home door-photo layer. The image never leaves the DOM
-   when navigating through Meals, Restaurants, Winner, or back to Home. */
-.home-background-layer{
-  position:absolute!important;
-  inset:0!important;
-  z-index:0!important;
-  overflow:hidden!important;
-  background:#090909!important;
-  pointer-events:none!important;
-  opacity:0!important;
-  visibility:hidden!important;
-  transition:opacity .18s ease!important;
-}
-.home-background-layer img{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  object-position:center center!important;
-  display:block!important;
-}
-.home-background-layer::after{
-  content:""!important;
-  position:absolute!important;
-  inset:0!important;
-  background:
-    linear-gradient(180deg,rgba(5,4,3,.32),rgba(5,4,3,.50))!important;
-}
-.app.home-active .home-background-layer{
-  opacity:1!important;
-  visibility:visible!important;
-}
-.app.home-active:has(#home:not(.hidden)){
-  background-image:none!important;
-  background-color:#090909!important;
-}
-.app.home-active:has(#home:not(.hidden)) #home{
-  background:transparent!important;
-}
-
 /* CP802 — navigation: translucent menus; plain gold arrow-only backs. */
 .menu,#menu,#foodMenu,#restaurantMenu,#winnerMenu,
 .decision-menu,.winner-menu{
@@ -6654,9 +6613,6 @@ button,input,select,textarea{
   filter:drop-shadow(0 0 7px rgba(198,164,106,.85)) drop-shadow(0 3px 5px rgba(0,0,0,.55))!important;
 }
 #celebration .firework-burst span{filter:drop-shadow(0 0 5px rgba(198,164,106,.65))!important}
-
-/* CP802 — Home layer and nav must not be hidden by legacy :has() rules. */
-.app:has(#home:not(.hidden)) .home-background-layer{display:block!important}
 
 /* CP802 — final Home wordmark lock: exactly match Meals/Restaurants/Winner. */
 .app.home-active:has(#home:not(.hidden)) .app-topbar .brand{
@@ -7365,24 +7321,40 @@ button,input,select,textarea{
 }
 
 
-/* CP820 — Home uses the canonical ornate door image only. 
-   The local home-background.jpg is the single source for the full Home canvas.
-   Override all older Home background layers so stale/legacy Pexels or embedded
-   dining-table backgrounds can never appear on the front page. */
+/* CP824 recovery — Home has one authoritative background, directly on #home.
+   No separate image layer or historical full-page image is used. */
 .app:has(#home:not(.hidden)){
   background-image:none!important;
   background-color:#090909!important;
 }
 .app:has(#home:not(.hidden)) #home{
-  background:transparent!important;
+  background:
+    linear-gradient(180deg,rgba(5,4,3,.32),rgba(5,4,3,.50)),
+    url("./home-background.jpg")!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:scroll!important;
 }
-.app:has(#home:not(.hidden)) .home-background-layer{
-  opacity:1!important;
-  visibility:visible!important;
-  background:#090909!important;
+
+/* CP824 recovery — canonical gold/translucent menu treatment at the final cascade. */
+.menu,
+.decision-menu,
+#winner .winner-menu,
+.confirm-hero .menu,
+#menu,#foodMenu,#restaurantMenu,#winnerMenu{
+  background:rgba(0,0,0,.24)!important;
+  border:1px solid rgba(214,183,120,.82)!important;
+  color:#e2c17f!important;
+  backdrop-filter:blur(12px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(125%)!important;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,248,226,.10),
+    0 0 14px rgba(214,183,120,.08)!important;
 }
-.app:has(#home:not(.hidden)) .home-background-layer img{
-  content:url("./home-background.jpg")!important;
-  object-fit:cover!important;
-  object-position:center center!important;
+.menu span,
+#menu span,#foodMenu span,#restaurantMenu span,#winnerMenu span{
+  background:#d6b778!important;
+  box-shadow:0 0 7px rgba(214,183,120,.22)!important;
 }
