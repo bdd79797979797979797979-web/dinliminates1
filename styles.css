@@ -5553,3 +5553,88 @@ button,input,select,textarea{
   }
   .swipe-card-coach,.home-first-nudge{transition:none!important}
 }
+
+
+/* CP774 — text-only ALL · MAYBES control and matching Meals/Restaurants alignment. */
+#food .quick-label,
+#restaurant .restaurant-choice-management{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  width:100%!important;
+  gap:8px!important;
+}
+#food .quick-label-right{display:contents!important}
+#food #foodMaybeDeck,
+#restaurant #restaurantMaybeDeck{
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:end!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  width:auto!important;
+  min-width:0!important;
+  height:22px!important;
+  min-height:22px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  color:#8f8b84!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.05em!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+}
+#food #foodMaybeDeck .deck-filter-label-all,
+#food #foodMaybeDeck .deck-filter-label-maybe,
+#restaurant #restaurantMaybeDeck .deck-filter-label-all,
+#restaurant #restaurantMaybeDeck .deck-filter-label-maybe,
+#food #foodMaybeDeck .deck-filter-divider,
+#restaurant #restaurantMaybeDeck .deck-filter-divider{
+  display:inline!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  line-height:1!important;
+}
+#food #foodMaybeDeck .deck-filter-divider,
+#restaurant #restaurantMaybeDeck .deck-filter-divider{color:#5f5b55!important}
+#food #foodMaybeDeck.is-all .deck-filter-label-all,
+#restaurant #restaurantMaybeDeck.is-all .deck-filter-label-all{color:#63d992!important}
+#food #foodMaybeDeck.is-maybe .deck-filter-label-maybe,
+#restaurant #restaurantMaybeDeck.is-maybe .deck-filter-label-maybe{
+  color:#7bdca0!important;
+  text-decoration:underline!important;
+  text-decoration-thickness:1px!important;
+  text-underline-offset:3px!important;
+}
+#food #foodCount,
+#restaurant #restaurantCount{
+  grid-column:3!important;
+  grid-row:1!important;
+  justify-self:end!important;
+}
+@media(max-width:390px){
+  #food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{font-size:8px!important;gap:5px!important}
+  #food #foodMaybeDeck .deck-filter-label-all,
+  #food #foodMaybeDeck .deck-filter-label-maybe,
+  #restaurant #restaurantMaybeDeck .deck-filter-label-all,
+  #restaurant #restaurantMaybeDeck .deck-filter-label-maybe,
+  #food #foodMaybeDeck .deck-filter-divider,
+  #restaurant #restaurantMaybeDeck .deck-filter-divider{font-size:8px!important}
+}
