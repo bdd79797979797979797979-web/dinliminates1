@@ -85,7 +85,7 @@ notes:{},
 restaurantTimezone:'',
 restaurantSearchOrigin:null,
 restaurantSearchKey:'',
-quickCutsCollapsed:{food:false,restaurant:false}
+quickCutsCollapsed:{food:true,restaurant:true}
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
@@ -725,7 +725,7 @@ S.restaurantSearchOrigin = d.restaurantSearchOrigin && Number.isFinite(Number(d.
 S.restaurantSearchKey = String(d.restaurantSearchKey||'');
 S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
-S.quickCutsCollapsed = {food:!!d.quickCutsCollapsed?.food,restaurant:!!d.quickCutsCollapsed?.restaurant};
+S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
 S.schemaVersion = STORAGE_VERSION;
@@ -855,22 +855,25 @@ function foodQuick() {
  bindQuickCutsCollapse('food');
 }
 function dismissSwipeHint(){
- const el=document.querySelector('#swipeHint');
- if(!el)return;
- el.remove();
- try{localStorage.setItem('dinliminate.swipeHint.v2','1')}catch{}
+ document.querySelectorAll('.swipe-card-coach').forEach(el=>{
+  el.classList.add('is-dismissing');
+  window.setTimeout(()=>el.remove(),220);
+ });
+ try{localStorage.setItem('dinliminate.swipeHint.v4','1')}catch{}
+}
+function maybeShowInCardSwipeCoach(){
+ try{if(localStorage.getItem('dinliminate.swipeHint.v4'))return;}catch{}
+ const card=S.screen==='restaurant' ? $('restaurantCard') : $('foodCard');
+ if(!card || card.querySelector('.swipe-card-coach'))return;
+ const coach=document.createElement('div');
+ coach.className='swipe-card-coach';
+ coach.setAttribute('role','note');
+ coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. This lesson disappears after your first meaningful interaction.');
+ coach.innerHTML='<span class="swipe-card-coach-cut">← CUT</span><span class="swipe-card-coach-mid">· SWIPE ·</span><span class="swipe-card-coach-maybe">MAYBE →</span>';
+ card.appendChild(coach);
 }
 function maybeShowSwipeHint(){
-try{if(localStorage.getItem('dinliminate.swipeHint.v2'))return;}catch{}
-document.querySelector('#swipeHint')?.remove();
-const el=document.createElement('button');
-el.id='swipeHint';
-el.type='button';
-el.className='swipe-hint';
-el.setAttribute('aria-label','Dismiss swipe directions');
-el.innerHTML='<span class="swipe-hint-cut">← Cut</span><span class="swipe-hint-mid">Swipe</span><span class="swipe-hint-maybe">Maybe →</span>';
-el.onclick=(event)=>{event.preventDefault();event.stopPropagation();dismissSwipeHint();};
-document.body.appendChild(el);
+ maybeShowInCardSwipeCoach();
 }
 function startFood() {
 S.foodActions = [];
@@ -888,6 +891,17 @@ drawFood();
 save();
 maybeShowSwipeHint();
 }
+function setChoiceCount(el,count,singular='choice',plural='choices'){
+ const value=Number(count)||0;
+ const next=value+' '+(value===1?singular:plural);
+ if(!el||el.textContent===next)return;
+ el.textContent=next;
+ el.classList.remove('count-updated');
+ void el.offsetWidth;
+ el.classList.add('count-updated');
+ clearTimeout(el.__countPulseTimer);
+ el.__countPulseTimer=window.setTimeout(()=>el.classList.remove('count-updated'),380);
+}
 function foodChoiceIndex(rows,start,keepState=false){
  const len=rows.length;if(!len)return -1;
  for(let step=0;step<len;step++){const i=(start+step)%len;if(keepState?S.maybe.has(rows[i].id):!S.maybe.has(rows[i].id))return i;}
@@ -900,7 +914,7 @@ function drawFood(){
  img.src=foodPhoto(item);img.dataset.fallback=foodPhotoFallback(item);img.dataset.finalFallback=FINAL_FOOD_IMAGE;img.alt=item.name;img.referrerPolicy='no-referrer';img.loading='eager';
  img.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};
  const foodCard=$('foodCard');if(foodCard){foodCard.querySelector('.maybe-stamp')?.remove();if(S.maybe.has(item.id)){const stamp=document.createElement('span');stamp.className='maybe-stamp';stamp.setAttribute('aria-label','Marked Maybe');stamp.textContent='MAYBE';foodCard.appendChild(stamp);}}
-$('foodName').textContent=item.name;$('foodCat').textContent=item.category;$('foodCount').textContent=S.pool.length+(S.pool.length===1?' choice':' choices');
+$('foodName').textContent=item.name;$('foodCat').textContent=item.category;setChoiceCount($('foodCount'),S.pool.length);
 const foodBackButton=$('foodBack');if(foodBackButton){foodBackButton.disabled=S.foodActions.length===0;foodBackButton.setAttribute('aria-disabled',String(S.foodActions.length===0));}
 renderMaybeDeckToggle('food');
  const nextCard=$('foodNextCard');
@@ -910,7 +924,7 @@ renderMaybeDeckToggle('food');
   const next=ni>=0?S.pool[ni]:null;nextCard.classList.toggle('hidden',!next);nextCard.style.display=next?'block':'none';
   if(next){const nimg=$('foodNextImg');nimg.src=foodPhoto(next);nimg.dataset.fallback=foodPhotoFallback(next);nimg.dataset.finalFallback=FINAL_FOOD_IMAGE;nimg.alt=next.name;nimg.referrerPolicy='no-referrer';nimg.loading='eager';nimg.onerror=function(){const fb=this.dataset.fallback||'',final=this.dataset.finalFallback||FINAL_FOOD_IMAGE,current=this.currentSrc||this.src;if(fb&&current!==fb){this.src=fb;return;}if(final&&current!==final){this.dataset.imageFallback='true';this.src=final;}};nextCard.style.transform='scale(.96)';}
  }
- bindFoodSwipe();bindMaybeDeckToggle('food');$('foodDetails').onclick=()=>detailsSheet(item,'food');if($('foodChoose'))$('foodChoose').onclick=()=>winner(item);bindCardButton('foodCut',()=>foodCut());bindCardButton('foodMaybe',()=>foodMaybe());bindCardButton('foodBack',foodBack);
+ maybeShowInCardSwipeCoach();bindFoodSwipe();bindMaybeDeckToggle('food');bindCardButton('foodDetails',()=>detailsSheet(item,'food'));if($('foodChoose'))bindCardButton('foodChoose',()=>{dismissSwipeHint();winner(item)});bindCardButton('foodCut',()=>foodCut());bindCardButton('foodMaybe',()=>foodMaybe());bindCardButton('foodBack',foodBack);
 }
 
 function foodCommit(type,item){const unkept=S.pool.filter(x=>!S.maybe.has(x.id)).length;S.foodActions.push({type,id:item.id,primary:item.primary,index:S.index,maybeRound:!!S.foodMaybeRound,hadMaybe:S.maybe.has(item.id),recycleOnUndo:type==='cut'&&S.maybe.size>0&&unkept===1});}
@@ -1025,6 +1039,7 @@ function bindSwipeCard(cardId,nextId,onCut,onMaybe) {
   card.style.transition='transform .18s cubic-bezier(.22,1,.36,1)';
   card.style.opacity='1';
   card.style.transform='translate3d('+(dx<0?-520:520)+'px,0,0) rotate('+(dx<0?-10:10)+'deg)';
+  dismissSwipeHint();
   const action=dx<0?onCut:onMaybe;
   window.setTimeout(()=>{reset();action();},185);
  };
@@ -1927,7 +1942,7 @@ const rows = restaurantPoolFiltered();
 renderRestaurantSearchControl();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
-if (countEl) countEl.textContent = rows.length + ' ' + (rows.length === 1 ? 'Choice' : 'Choices');
+if (countEl) setChoiceCount(countEl,rows.length,'Choice','Choices');
 renderMaybeDeckToggle('restaurant');
 if (!rows.length) {
 const hasResults=!!S.restaurantPool.length;
@@ -1959,13 +1974,14 @@ const restBackButton=$('restBack');if(restBackButton){restBackButton.disabled=S.
 bindCardButton('restBack', restaurantBack);
 bindCardButton('restCut', () => restaurantCut(current));
 bindCardButton('restMaybe', () => restaurantMaybe(current));
-bindCardButton('restChoose', () => winner(current));
+bindCardButton('restChoose', () => {dismissSwipeHint();winner(current)});
 bindCardButton('restDetails', () => detailsSheet(current,'restaurant'));
 bindRestaurantSwipe(current);bindMaybeDeckToggle('restaurant');
 bindImageFallback('#restStage img',restaurantFallback(row),restaurantFallbackImage(row));
 hydrateRestaurantPhoto(row,'#restStage #restaurantCard');
 if(nextRow)hydrateRestaurantPhoto(nextRow,'#restStage #restaurantNextCard');
 prefetchRestaurantPhotos(rows,S.restaurantIndex,RESTAURANT_PHOTO_PREFETCH_COUNT);
+maybeShowInCardSwipeCoach();
 }
 function restaurantCut(row){
  dismissSwipeHint();
@@ -2007,18 +2023,29 @@ save();
 return true;
 }
 function bindCardButton(id,handler){
- const el=$(id);
- if(!el)return;
+ const el=$(id);if(!el)return;
+ const premiumDecision=/^(?:food|rest)(?:Cut|Maybe|Choose)$/.test(id);
+ let pressTimer=0;
  el.setAttribute('type',el.getAttribute('type')||'button');
  el.style.touchAction='manipulation';
  el.style.webkitUserSelect='none';
  el.style.userSelect='none';
+ const clearPress=()=>{
+  if(!premiumDecision)return;
+  clearTimeout(pressTimer);
+  pressTimer=window.setTimeout(()=>el.classList.remove('is-pressed'),150);
+ };
  if(!Number.isFinite(Number(el.__dinliminateLastActivation)))el.__dinliminateLastActivation=0;
+ el.onpointerdown=()=>{
+  if(premiumDecision){clearTimeout(pressTimer);el.classList.add('is-pressed');}
+ };
  const activate=e=>{
   const now=performance.now();
   const last=Number(el.__dinliminateLastActivation)||0;
   if(now-last<450)return;
   el.__dinliminateLastActivation=now;
+  if(premiumDecision)el.classList.add('is-pressed');
+  clearPress();
   e?.preventDefault?.();
   e?.stopPropagation?.();
   try{
@@ -2030,6 +2057,7 @@ function bindCardButton(id,handler){
   if(e.pointerType&&e.button!=null&&e.button!==0)return;
   activate(e);
  };
+ el.onpointercancel=clearPress;
  el.onclick=e=>activate(e);
 }
 function bindRestaurantSwipe(row){bindSwipeCard('restaurantCard','restaurantNextCard',()=>restaurantCut(row),()=>restaurantMaybe(row))}
@@ -2410,30 +2438,51 @@ function openModal(id, title, body) {
 const opener=document.activeElement;
 $(id)?.remove();
 $(id+'Bg')?.remove();
-const bg = document.createElement('div');
-bg.id = id+'Bg';
-bg.className = 'modal-bg';
-const modal = document.createElement('section');
-modal.id = id;
-modal.className = 'modal'; if(['manageFoodsModal','historyModal','settingsModal'].includes(id)) modal.classList.add('utility-modal'); modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby',id+'Title'); modal.setAttribute('tabindex','-1'); modal.innerHTML = '<div class="modal-head"><h3 id="'+id+'Title">'+esc(title)+'</h3><button class="menu" data-close aria-label="Close '+esc(title)+'">×</button></div>'+body;
-document.body.append(bg, modal);
-const close = () => {
-modal.remove(); bg.remove();
-if(opener&&typeof opener.focus==='function') queueMicrotask(()=>opener.focus());
-if (id === 'settingsModal') removeFoodOverlays();
-if (S.screen && $(S.screen)) show(S.screen);
+const bg=document.createElement('div');
+bg.id=id+'Bg';
+bg.className='modal-bg modal-bg-opening';
+const modal=document.createElement('section');
+modal.id=id;
+modal.className='modal modal-opening';
+if(['manageFoodsModal','historyModal','settingsModal'].includes(id))modal.classList.add('utility-modal');
+if(id==='detailsModal')modal.classList.add('details-modal');
+modal.setAttribute('role','dialog');
+modal.setAttribute('aria-modal','true');
+modal.setAttribute('aria-labelledby',id+'Title');
+modal.setAttribute('tabindex','-1');
+modal.innerHTML='<div class="modal-head"><h3 id="'+id+'Title">'+esc(title)+'</h3><button class="menu" data-close aria-label="Close '+esc(title)+'">×</button></div>'+body;
+document.body.append(bg,modal);
+requestAnimationFrame(()=>{
+ bg.classList.add('modal-bg-open');
+ modal.classList.add('modal-open');
+ modal.classList.remove('modal-opening');
+});
+let closed=false;
+const close=()=>{
+ if(closed)return;
+ closed=true;
+ modal.classList.remove('modal-open');
+ modal.classList.add('modal-closing');
+ bg.classList.remove('modal-bg-open');
+ bg.classList.add('modal-bg-closing');
+ window.setTimeout(()=>{
+  modal.remove();bg.remove();
+  if(opener&&typeof opener.focus==='function')queueMicrotask(()=>opener.focus());
+  if(id==='settingsModal')removeFoodOverlays();
+  if(S.screen&&$(S.screen))show(S.screen);
+ },150);
 };
-bg.onclick = close;
-modal.querySelector('[data-close]').onclick = close;
+bg.onclick=close;
+modal.querySelector('[data-close]').onclick=close;
 modal.addEventListener('keydown',e=>{
-if(e.key==='Escape'){e.preventDefault();close();return;}
-if(e.key==='Tab'){
-const f=[...modal.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled);
-if(!f.length)return;
-const first=f[0],last=f[f.length-1];
-if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
-}
+ if(e.key==='Escape'){e.preventDefault();close();return;}
+ if(e.key==='Tab'){
+  const f=[...modal.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled);
+  if(!f.length)return;
+  const first=f[0],last=f[f.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+ }
 });
 queueMicrotask(()=>modal.querySelector('[data-close]')?.focus());
 return modal;
@@ -3386,6 +3435,17 @@ const homeActionHandler = (event) => {
  else if(action==='share') shareApp();
 };
 document.addEventListener('click', homeActionHandler, true);
+function bindHomeCardPress(id){
+ const el=$(id);if(!el)return;
+ let timer=0;
+ const down=()=>{clearTimeout(timer);el.classList.add('is-pressed');};
+ const up=()=>{clearTimeout(timer);timer=window.setTimeout(()=>el.classList.remove('is-pressed'),140);};
+ el.addEventListener('pointerdown',down,{passive:true});
+ el.addEventListener('pointerup',up,{passive:true});
+ el.addEventListener('pointercancel',up,{passive:true});
+ el.addEventListener('pointerleave',up,{passive:true});
+}
+
 $('foodStart').onclick = startFood;
 $('restStart').onclick = openRestaurant;
 ['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
@@ -3394,6 +3454,7 @@ bindCardButton('foodCut',()=>foodCut());
 bindCardButton('foodMaybe',()=>foodMaybe());
 bindCardButton('foodBack',foodBack);
 document.querySelectorAll('[data-home]').forEach(btn => btn.onclick = home);
+bindHomeCardPress('foodStart');bindHomeCardPress('restStart');
 let drawerCloseTimer=0;
 const closeDrawer=()=>{
  clearTimeout(drawerCloseTimer);
