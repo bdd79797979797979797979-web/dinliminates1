@@ -7064,3 +7064,62 @@ button,input,select,textarea{
   #restaurant .restaurant-refine-tabs{gap:9px!important}
   #restaurant .restaurant-refine-divider{font-size:10px!important}
 }
+
+/* CP808 — Family Mode */
+.family-screen{overflow:hidden}
+.family-bar{flex:0 0 auto}
+.family-page{width:100%;max-width:480px;margin:0 auto;padding:4vh 6px 24px;overflow:auto}
+.family-hero{padding:4vh 8px 3vh}
+.family-kicker{font-size:10px;letter-spacing:.2em;font-weight:850;color:#c6a46a}
+.family-hero h1{font-size:clamp(38px,10vw,54px);line-height:.93;letter-spacing:-.06em;margin:10px 0 14px}
+.family-hero p{color:#9a9a9a;line-height:1.45;max-width:390px;margin:0}
+.family-entry{display:grid;gap:10px;padding:8px}
+.family-entry-card{width:100%;min-height:88px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:linear-gradient(145deg,rgba(31,30,27,.82),rgba(13,13,13,.8));box-shadow:0 16px 38px rgba(0,0,0,.22);color:#f4f0e8;display:grid;grid-template-columns:46px 1fr 24px;gap:12px;align-items:center;text-align:left;padding:16px}
+.family-entry-card:active{transform:scale(.992)}
+.family-entry-card>b{font-size:18px}
+.family-entry-card span:nth-child(2){display:grid;gap:3px}
+.family-entry-card span:nth-child(2) b{font-size:18px}
+.family-entry-card span:nth-child(2) small{font-size:12px;color:#8f8f8f}
+.family-entry-icon{width:44px;height:44px;border-radius:15px;border:1px solid rgba(198,164,106,.25);background:rgba(255,255,255,.045);display:grid;place-items:center;color:#d9bc82;font-size:25px}
+.family-code-icon{font-size:21px}
+.family-entry-chevron{font-size:28px;color:#777;justify-self:end}
+.family-form{padding:16px 14px 0}
+.family-form-head{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+.family-form-head>div{display:grid;gap:3px}
+.family-form-head span{font-size:9px;letter-spacing:.18em;color:#c6a46a;font-weight:850}
+.family-form-head b{font-size:22px;letter-spacing:-.03em}
+.family-form-back{background:none;color:#c6a46a;font-size:28px;padding:0;width:30px;height:34px}
+.family-form label{display:block;font-size:11px;color:#858585;margin:14px 1px 7px}
+.family-form input{width:100%;height:48px;border-radius:14px;border:1px solid #303030;background:#171717;color:#f2f2f2;padding:0 13px;outline:none}
+.family-form input:focus{border-color:rgba(198,164,106,.65);box-shadow:0 0 0 3px rgba(198,164,106,.08)}
+.family-primary{width:100%;height:50px;margin-top:16px;border-radius:15px;background:#c6a46a;color:#101010;font-weight:850}
+.family-form-status,.family-lobby-status{min-height:20px;font-size:11px;color:#777;line-height:1.4;margin:10px 2px}
+.family-form-status[data-state="error"],.family-lobby-status[data-state="error"]{color:#db9d93}
+.family-form-status[data-state="busy"]{color:#c6a46a}
+.family-lobby{padding:12px 8px}
+.family-lobby-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.family-lobby-head h2{font-size:30px;line-height:.98;letter-spacing:-.05em;margin:8px 0 0;max-width:340px}
+.family-link-button{background:none;color:#bca16e;padding:7px 0;font-size:12px}
+.family-code-panel{margin-top:18px;border:1px solid rgba(198,164,106,.24);border-radius:20px;background:linear-gradient(145deg,rgba(198,164,106,.09),rgba(255,255,255,.025));padding:17px}
+.family-code-panel span{display:block;font-size:9px;letter-spacing:.18em;color:#8e8e8e;font-weight:800}
+.family-code-panel strong{display:block;font-size:34px;letter-spacing:.12em;margin:8px 0 3px;color:#efe1c6}
+.family-code-panel small{font-size:11px;color:#777}
+.family-members-panel{margin-top:12px;border:1px solid #292929;border-radius:18px;background:#131313;padding:13px}
+.family-panel-title{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#d2d2d2;margin-bottom:6px}
+.family-panel-title span{color:#777}
+.family-member-list{display:grid}
+.family-member-row{min-height:53px;border-top:1px solid #242424;display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center}
+.family-member-row:first-child{border-top:0}
+.family-member-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#222;color:#d5c199;font-size:11px;font-weight:800}
+.family-member-copy{display:grid;gap:2px}
+.family-member-copy b{font-size:13px}
+.family-member-copy small{font-size:10px;color:#6e6e6e}
+.family-member-status{font-size:10px;color:#777}
+.family-member-row.is-host .family-member-status{color:#c6a46a}
+@media(max-width:390px){
+ .family-page{padding-top:1vh}
+ .family-hero{padding-top:2vh}
+ .family-hero h1{font-size:40px}
+ .family-entry-card{min-height:82px}
+ .family-lobby-head h2{font-size:26px}
+}
