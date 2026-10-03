@@ -3684,6 +3684,16 @@ async function appDiagnosisView(existingModal){
    const legacy=foods.filter(x=>/stouffer|frozen dinner/i.test(String(x?.name||'')));
    legacy.length?fail('food','Legacy meal cleanup',legacy.length+' Stouffer/frozen-dinner choice(s) remain.',legacy.map(x=>x.name).join(', ')):pass('food','Legacy meal cleanup','Stouffer/frozen-dinner legacy choice is absent.');
    const foodSourceChecks=typeof foodCut==='function'&&typeof foodMaybe==='function'&&typeof foodBack==='function'&&typeof bindCardButton==='function';
+
+   const mealPhotoSourceChecks=typeof mealPhotoList==='function'&&typeof selectedMealCardPhoto==='function'&&typeof bindMealCardPhotoBrowser==='function'&&typeof renderMealDetailPhotoGallery==='function'&&typeof putStoredPhoto==='function';
+   mealPhotoSourceChecks?pass('food','Meal photo system','Meals support up to '+MAX_MEAL_PHOTOS+' photos with a Cover, device photo storage, in-card browsing, and Details gallery.','The primary decision swipe remains separate from photo browsing.'):fail('food','Meal photo system','The multi-photo meal architecture is incomplete.','Expected the photo collection, IndexedDB storage, card browser, and Details gallery.');
+   const customPhotoLimit=S.custom.every(item=>mealPhotoList(item).length<=MAX_MEAL_PHOTOS);
+   customPhotoLimit?pass('food','Five-photo limit','Custom and edited meals never expose more than '+MAX_MEAL_PHOTOS+' photos.'):fail('food','Five-photo limit','At least one saved meal exceeds the '+MAX_MEAL_PHOTOS+'-photo limit.');
+   const photoStorageNames=typeof PHOTO_DB_NAME==='string'&&PHOTO_DB_NAME==='dinliminate.photos'&&typeof PHOTO_STORE==='string'&&PHOTO_STORE==='images';
+   photoStorageNames?pass('food','Photo storage','Uploaded meal photos use the existing device-side IndexedDB image store.'):warn('food','Photo storage','The device-side photo storage contract could not be confirmed.');
+   const photoBrowseSource=String(bindMealCardPhotoBrowser?.toString?.()||'');
+   photoBrowseSource.includes('meal-photo-browse-mode')&&photoBrowseSource.includes('foodPhotoIndex')?pass('food','Photo browse interaction','Tap-to-browse and horizontal photo navigation are isolated from the Cut/Maybe gesture.'):warn('food','Photo browse interaction','The source could not fully confirm isolated photo browsing.');
+
    foodSourceChecks?pass('food','Meal decision actions','Cut, Maybe, Choose, and Details use the current card-button path.','The direct Choose action remains separate from swipe decisions.'):warn('food','Meal decision actions','Source could not confirm every current card action binding.','Open a Meal card and rerun diagnosis.');
    const chooseCardActions=document.querySelectorAll('.choose-card-action');
    chooseCardActions.length?pass('food','Choose-this placement','Direct Choose actions are present on the current card layout.','They remain separated from the larger Cut/Maybe controls.'):info('food','Choose-this placement','The current card is not rendered on this screen, so direct Choose placement is deferred until a Meal card is open.');
@@ -4133,7 +4143,7 @@ window.addEventListener('online',()=>{if(S.screen==='restaurant')maybeAutoRefres
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen==='restaurant')maybeAutoRefreshRestaurantLocation();});
 updateOffline();
 bindHomeImageFallbacks();
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=817').catch(() => {}));
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=829').catch(() => {}));
 if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel,hungryRestaurantPool,hungryRestaurantPick,renderHungryRestaurantMystery,revealHungryRestaurant};
 bindPersistentHomeBackground();
 load();
@@ -4536,6 +4546,7 @@ $('familyStartDecision')?.addEventListener('click',async()=>{
   catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not start the dinner decision.','error');}
   finally{if(button){button.disabled=false;button.textContent='Start deciding';}}
 });
+const familyWinnerSaveInflight=new Map();
 const FAMILY_SAVED_ROUNDS_KEY='dinliminate.family.savedRounds.v1';
 function familySavedRoundsRead(){
   try{const raw=JSON.parse(localStorage.getItem(FAMILY_SAVED_ROUNDS_KEY)||'[]');return Array.isArray(raw)?raw.map(String):[];}catch{return[];}
@@ -4549,10 +4560,17 @@ function familyMarkRoundSaved(roundId){
 async function recordFamilyWinner(round){
   const item=round?.winnerItem,id=String(round?.id||'');
   if(!item||!id||familySavedRound(id))return false;
+  const existing=familyWinnerSaveInflight.get(id);if(existing)return existing;
   const type=round.decisionType==='restaurant'?'restaurant':'food';
-  const didRecord=await recordHistory(item,type,{familyRoundId:id,familyMode:true});
-  if(didRecord!==false) familyMarkRoundSaved(id);
-  return didRecord!==false;
+  const task=(async()=>{
+    try{
+      const didRecord=await recordHistory(item,type,{familyRoundId:id,familyMode:true});
+      if(didRecord!==false) familyMarkRoundSaved(id);
+      return didRecord!==false;
+    }finally{familyWinnerSaveInflight.delete(id);}
+  })();
+  familyWinnerSaveInflight.set(id,task);
+  return task;
 }
 async function familyRenderWinner(round){
   const item=round?.winnerItem;if(!item)return;
