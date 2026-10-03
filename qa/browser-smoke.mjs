@@ -58,6 +58,13 @@ await page.route('**/*',async route=>{
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(150);
 assert.equal(await page.locator('#home h1').innerText(),'Meal Decisions Simplified');
+const homeBg=await page.evaluate(()=>{const app=document.querySelector('.app'),home=document.getElementById('home'),style=getComputedStyle(app),homeStyle=getComputedStyle(home);return {appBg:style.backgroundImage,homeBg:homeStyle.backgroundColor,homeShadow:getComputedStyle(document.getElementById('foodStart')).boxShadow,overlay:document.querySelector('#foodStart .home-card-overlay')?.getBoundingClientRect().width??0,appHeight:app.getBoundingClientRect().height,appWidth:app.getBoundingClientRect().width,viewportHeight:innerHeight,viewportWidth:innerWidth};});
+assert.ok(homeBg.appBg.includes('8417853'),'Home must use Pexels photo 8417853 as the full-page background');
+assert.equal(homeBg.homeBg,'rgba(0, 0, 0, 0)','Home canvas must be transparent over the full background');
+assert.equal(homeBg.homeShadow,'none','Dine In photo window must have no shadow');
+assert.equal(homeBg.overlay,0,'Dine In photo-window overlay must be removed');
+assert.ok(homeBg.appHeight>=homeBg.viewportHeight-1,'Home background canvas must cover the full viewport height');
+assert.ok(homeBg.appWidth>=homeBg.viewportWidth-1,'Home background canvas must cover the full viewport width');
 assert.equal(await page.locator('#home .sub').innerText(),'Swipe. Dinliminate. Enjoy.');
 assert.equal(await page.locator('#addToPhone').count(),1);
 assert.equal(await page.locator('#shareApp').count(),1);
