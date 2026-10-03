@@ -103,8 +103,8 @@ function imageProxyUrl(raw){
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
  try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
 }
-const HOME_DOOR_IMAGE='https://images.pexels.com/photos/6162883/pexels-photo-6162883.jpeg?auto=compress&cs=tinysrgb&w=1800';
-const HOME_DOOR_PROXY=imageProxyUrl(HOME_DOOR_IMAGE);
+const HOME_DOOR_IMAGE='./home-background.jpg';
+const HOME_DOOR_PROXY=HOME_DOOR_IMAGE;
 function bindPersistentHomeBackground(){
  const img=$('homeBackgroundImage');
  if(!img||img.dataset.bound)return;
