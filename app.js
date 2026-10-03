@@ -2363,7 +2363,7 @@ function tryAnotherHungryRestaurant(){
 function wheelSegmentIndexForRotation(rotation,count){
  const step=360/Math.max(1,count);
  const local=(((-rotation)%360)+360)%360;
- return Math.floor((local+step/2)/step)%count;
+ return ((Math.round(local/step-0.5)%count)+count)%count;
 }
 function finishHungryWheelRotation(item,rotation){
  const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
