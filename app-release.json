@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 780,
-  "sourceBranch": "cp780-launch-correct-full-home-background-photo-cards",
-  "checkpoint": "CP780",
-  "deploymentTrigger": "CP780-correct-full-home-background-photo-cards-2026-10-02"
+  "build": 781,
+  "sourceBranch": "cp781-unified-all-maybes-count",
+  "checkpoint": "CP781",
+  "deploymentTrigger": "CP781-unified-all-maybes-count-2026-10-03"
 }
