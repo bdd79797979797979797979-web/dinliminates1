@@ -12,9 +12,9 @@ const sw=fs.readFileSync('sw.js','utf8');
 
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
-assert.equal(release.build,785,'Current release must be Build 785');
+assert.equal(release.build,786,'Current release must be Build 786');
 assert.equal(release.checkpoint,'CP785','Current release checkpoint must be CP785');
-assert.equal(manifest.build,785,'Release manifest build must be 785');
+assert.equal(manifest.build,786,'Release manifest build must be 786');
 assert.equal(manifest.checkpoint,'CP785','Release manifest checkpoint must be CP785');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
@@ -25,11 +25,14 @@ assert.ok(html.includes('<strong>DINE IN</strong><span>Reveal your meal</span>')
 assert.ok(html.includes('<strong>DINE OUT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
-assert.ok(html.includes('styles.css?v=785')&&html.includes('app.js?v=785'),'Frontend asset cache-busting must be v785');
+assert.ok(html.includes('styles.css?v=785')&&html.includes('app.js?v=785'),'Frontend asset cache-busting must be v786');
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 assert.ok(app.includes("const next=String(value);"),'Choice counts must use numeric-only labels');
 assert.ok(html.includes('id="foodMaybeDeck"')&&html.includes('id="restaurantMaybeDeck"'),'Meals and Restaurants must both have the shared ALL · MAYBES control');
+assert.ok(html.includes('<strong>AT HOME</strong><span>Choose your meal</span>'),'Home meal choice must read AT HOME');
+assert.ok(html.includes('<strong>RESTAURANT</strong><span>Choose where to eat</span>'),'Home restaurant choice must read RESTAURANT');
+assert.ok(!html.includes('<strong>DINE IN</strong>')&&!html.includes('<strong>DINE OUT</strong>'),'Legacy DINE IN/DINE OUT home labels must not return');
 assert.ok(!html.includes('food-all-maybe-toggle')&&!html.includes('restaurant-all-maybe-toggle'),'No screen-specific All-Maybes class may remain in source markup');
 assert.ok(!html.includes('class="deck-filter-all"')&&!html.includes('class="deck-filter-maybe"'),'Source markup must not start with legacy A/heart All-Maybes symbols');
 assert.ok(html.includes('class="deck-filter-toggle quick-filter-toggle all-maybe-toggle" id="foodMaybeDeck" type="button"')&&html.includes('id="foodMaybeDeck"')&&html.includes('<span class="deck-filter-label-all" aria-hidden="true">ALL</span><span class="deck-filter-divider" aria-hidden="true">·</span><span class="deck-filter-label-maybe" aria-hidden="true">MAYBES</span>'),'Meals All-Maybes source markup must be canonical');
@@ -61,7 +64,7 @@ assert.ok(api.includes('MAX_RADIUS=100'),'Restaurant API must cap radius at 100 
 assert.ok(api.includes('process.env.GOOGLE_PLACES_API_KEY')&&api.includes('process.env.GOOGLE_MAPS_API_KEY'),'Google Places support must remain optional, not required');
 assert.ok(api.includes('Photon')||api.includes('photon'),'No-credential discovery must retain non-Google providers');
 
-assert.ok(sw.includes("const CACHE='dinliminate-shell-v785'"),'Service-worker shell cache must be current');
+assert.ok(sw.includes("const CACHE='dinliminate-shell-v786'"),'Service-worker shell cache must be current');
 assert.ok(sw.includes("'./app-release.json'")&&sw.includes("'./release-manifest.json'"),'Service worker must cache release metadata');
 assert.ok(css.includes('.luxury-home .home-icon-action')&&css.includes('.restaurant-card-utility'),'Premium Home and Restaurant utility styles must exist');
 assert.ok(css.includes('quick-section .quick-cuts-collapse-toggle::after')&&css.includes('cp774QuickCutsSheen'),'Quick Cuts must use the selected subtle sheen');
@@ -82,4 +85,4 @@ assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.incl
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
 console.log('Dinliminate CP785 static QA: PASS');
-console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v785',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
+console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v786',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
