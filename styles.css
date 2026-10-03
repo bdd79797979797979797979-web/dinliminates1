@@ -7123,3 +7123,13 @@ button,input,select,textarea{
  .family-entry-card{min-height:82px}
  .family-lobby-head h2{font-size:26px}
 }
+
+/* CP809 — Family Mode live lobby */
+.family-code-actions{display:flex;gap:7px;margin-top:10px}
+.family-mini-button{min-height:33px;padding:0 11px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.045);color:#d8d8d8;font-size:10px;font-weight:800}
+.family-mini-button:active{transform:scale(.985)}
+.family-mini-button:disabled{opacity:.55}
+.family-host-only:not(.hidden){display:inline-flex}
+.family-lobby-status{margin-top:12px}
+.family-lobby-pulse{display:flex;align-items:center;gap:8px;color:#696969;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.family-lobby-pulse span{width:6px;height:6px;border-radius:50%;background:#8cb7a5;box-shadow:0 0 0 4px rgba(140,183,165,.08)}
