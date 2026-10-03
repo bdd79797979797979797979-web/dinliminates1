@@ -1961,7 +1961,7 @@ const rows = restaurantPoolFiltered();
 renderRestaurantSearchControl();
 updateRestaurantStatus();
 const countEl = $('restaurantCount');
-if (countEl) setChoiceCount(countEl,rows.length,'Choice','Choices');
+if (countEl) setChoiceCount(countEl,rows.length);
 renderMaybeDeckToggle('restaurant');
 if (!rows.length) {
 const hasResults=!!S.restaurantPool.length;
