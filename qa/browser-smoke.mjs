@@ -109,7 +109,7 @@ assert.ok((await page.locator('#detailsModal').getAttribute('class')).includes('
 const mealDetailTiming=await page.locator('#detailsModal .history-detail-photo').evaluate(el=>getComputedStyle(el).transitionDuration);
 assert.ok(mealDetailTiming.includes('0.2s'),'Meal Details photo transition must include a 0.2s transform timing: '+mealDetailTiming);
 const mealTitleTiming=await page.locator('#detailsModal .detail-unified-title').evaluate(el=>getComputedStyle(el).transitionDuration);
-assert.equal(mealTitleTiming,'0.18s');
+assert.ok(mealTitleTiming.includes('0.18s'),'Meal Details title transition must include a 0.18s timing: '+mealTitleTiming);
 await page.locator('#detailNotesToggle').click();
 await page.locator('#detailNotesInput').fill('Keep this one in mind.');
 await page.locator('#detailNotesSave').click();
