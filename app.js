@@ -4179,6 +4179,8 @@ async function familyDecideAgain(){
   $('familyWinner')?.classList.add('hidden');
   $('familyLobby')?.classList.remove('hidden');
   await familyRefreshState();
+  const refreshed=familySessionRead();
+  if(refreshed?.member?.role==='host' && !refreshed?.family?.activeRoundId) familySetupOpen();
 }
 $('familyWinnerShare')?.addEventListener('click',familyShareWinner);
 $('familyWinnerAgain')?.addEventListener('click',familyDecideAgain);
