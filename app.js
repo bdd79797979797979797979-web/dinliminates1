@@ -82,7 +82,6 @@ hungryRestaurantPendingChoice:null,
 hungryWheelSpinToken:0,
 schemaVersion:4,
 notes:{},
-restaurantTimezone:'',
 restaurantSearchOrigin:null,
 restaurantSearchKey:'',
 quickCutsCollapsed:{food:true,restaurant:true}
@@ -1433,50 +1432,6 @@ const a=names.indexOf(m[1]),b=names.indexOf(m[2]);
 return a<=b ? day>=a&&day<=b : day>=a||day<=b;
 });
 }
-function localClockForZone(zone,now=new Date()){
-const opts={timeZone:zone||undefined,hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit'};
-try{
-const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',opts).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
-const dayIndex={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[parts.weekday];
-let hour=Number(parts.hour); if(hour===24)hour=0;
-return {day:Number.isFinite(dayIndex)?dayIndex:new Date().getDay(),minute:hour*60+Number(parts.minute||0)};
-}catch{return {day:new Date().getDay(),minute:new Date().getHours()*60+new Date().getMinutes()};}
-}
-function parseTime(t){
-const m=String(t||'').match(/^(\d{1,2}):?(\d{2})$/);if(!m)return NaN;
-const h=Number(m[1]),min=Number(m[2]);return (h>=0&&h<24&&min>=0&&min<60)?h*60+min:NaN;
-}
-function hourStatus(row,now=new Date(),zoneOverride=''){
-if(row&&typeof row.openNow==='boolean')return row.openNow?'open':'closed';
-const raw=String(row?.opening_hours||'').trim();
-if(!raw)return 'unknown';
-const low=raw.toLowerCase();
-if(low==='24/7'||low==='open')return 'open';
-if(low==='closed'||low==='off')return 'closed';
-const clock=localClockForZone(zoneOverride||S.restaurantTimezone,now),day=clock.day,minute=clock.minute;
-let matched=false;
-for(const block of raw.split(';')){
-const part=block.trim();if(!part)continue;
-const dm=part.match(/^((?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?(?:,(?:Su|Mo|Tu|We|Th|Fr|Sa)(?:-(?:Su|Mo|Tu|We|Th|Fr|Sa))?)*)\s+(.+)$/i);
-const daySpec=dm?dm[1]:null,timeSpec=dm?dm[2]:part;
-const ranges=[...timeSpec.matchAll(/(\d{1,2}:?\d{2})-(\d{1,2}:?\d{2})/g)];
-if(!ranges.length)continue;
-matched=true;
-for(const r of ranges){
-const a=parseTime(r[1]),b=parseTime(r[2]);if(!Number.isFinite(a)||!Number.isFinite(b))continue;
-if(b>=a){
-if((!daySpec||dayMatches(daySpec,day)) && minute>=a && minute<=b)return 'open';
-}else{
-const sameDay=(!daySpec||dayMatches(daySpec,day)) && minute>=a;
-const previousDay=(!daySpec||dayMatches(daySpec,(day+6)%7)) && minute<=b;
-if(sameDay||previousDay)return 'open';
-}
-}
-}
-return matched ? 'closed' : 'unknown';
-}
-function explicitClosed(row) { return hourStatus(row) === 'closed'; }
-const RESTAURANT_SEARCH_ALIASES = RESTAURANT_TAXONOMY.aliases;
 function restaurantCategorySearchMatches(row,tag){
  const tags=restaurantCuisineTags(row);
  if(tag==='Burgers')return tags.includes('Burgers')||tags.includes('Fast Food');
@@ -1563,6 +1518,29 @@ const labels={device:'Using your location',last:'Last used location',address:'Us
 el.textContent=labels[S.locationSource]||labels.none;
 el.classList.toggle('is-ready',S.locationSource==='device'||S.locationSource==='address');
 renderFindButton();
+}
+function displayRestaurantLocationLabel(value,originalQuery=''){
+ const raw=String(value||'').trim().replace(/\s+/g,' ');
+ const query=String(originalQuery||'').trim().replace(/\s+/g,' ');
+ if(query && !addressLooksComplete(query)) return query;
+ if(!raw)return query||'Current location';
+ const parts=raw.split(',').map(x=>x.trim()).filter(Boolean);
+ const stateIndex=parts.findIndex(x=>/^(Tennessee|TN|Kentucky|KY|Georgia|GA|Alabama|AL|Illinois|IL|Missouri|MO)$/i.test(x));
+ if(stateIndex>=1){
+  const stateMap={tennessee:'TN',tn:'TN',kentucky:'KY',ky:'KY',georgia:'GA',ga:'GA',alabama:'AL',al:'AL',illinois:'IL',il:'IL',missouri:'MO',mo:'MO'};
+  const state=stateMap[parts[stateIndex].toLowerCase()]||parts[stateIndex];
+  const city=parts[stateIndex-1];
+  let street='';
+  for(let i=0;i<stateIndex;i++){
+    const p=parts[i];
+    if(/^\d+[a-z]?$/i.test(p)&&parts[i+1]){street=p+' '+parts[i+1];break;}
+    if(/^\d+\s+/i.test(p)){street=p;break;}
+  }
+  if(!street && stateIndex>=2 && !/^\d/.test(parts[stateIndex-2])) street=parts[stateIndex-2];
+  if(street && city && street!==city)return street+', '+city+', '+state;
+  if(city)return city+', '+state;
+ }
+ return parts.slice(0,3).join(', ');
 }
 function setLocation(lat, lon, label, source='address') {
 S.location = {lat, lon, label};
@@ -1682,8 +1660,9 @@ try{
  const label=await reverseLocationLabel(loc.lat,loc.lon,seq).catch(()=>null);
  if(seq!==locationRequestSeq)return false;
  if(label){
-  S.location={...S.location,label};
-  $('address').value=label;
+  const visibleLabel=displayRestaurantLocationLabel(label,'');
+  S.location={...S.location,label:visibleLabel};
+  $('address').value=visibleLabel;
   $('locationSourceLabel').textContent='Using your current location';
   save();
  }
@@ -1818,7 +1797,7 @@ box.querySelectorAll('[data-suggestion]').forEach((btn, i) => {
     const row = rows[i];
     suggestionIndex = -1;
     invalidateAddressSuggestions();
-    setLocation(row.lat, row.lon, row.display,'address');
+    setLocation(row.lat, row.lon, displayRestaurantLocationLabel(row.display,$('address').value),'address');
     $('status').textContent = 'Location selected. Searching restaurants…';
     await searchRestaurants();
   };
@@ -1884,7 +1863,7 @@ const rr = await fetchRestaurantEndpoint('/api/restaurant-search?mode=resolve&q=
 const rd = await responseJson(rr,'Could not locate that address. Please try another address.');
 if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !rd.ok) throw new Error(rr.status===429 ? 'Address lookup is temporarily busy. Please try again.' : (rd.message || 'Could not locate that address.'));
-loc = {lat:rd.lat, lon:rd.lon, label:rd.display}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = rd.display;
+const visibleLabel=displayRestaurantLocationLabel(rd.display,q); loc = {lat:rd.lat, lon:rd.lon, label:visibleLabel}; S.location = loc; S.locationSource='address'; renderLocationSource(); $('address').value = visibleLabel;
 }
 const radius = Math.min(100,Math.max(1,Number($('radius').value)||10));
 const searchTerm = String(S.restaurantQuery||'').trim().slice(0,100);
@@ -1894,7 +1873,6 @@ const rr = await fetchRestaurantEndpoint('/api/restaurant-search?mode=search&lat
 const d = await responseJson(rr,'Restaurant search returned an invalid response. Please try again.');
 if (searchSeq !== restaurantSearchSeq) return;
 if (!rr.ok || !d.ok) throw new Error(rr.status===429 ? 'Restaurant search is temporarily busy. Please try again.' : (d.message || 'Restaurant search failed.'));
-S.restaurantTimezone = String(d.timezone||'');
 S.restaurantSearchDegraded = !!(d.providerErrors?.length);
 S.restaurantSearchLatencyMs = Number(d.searchLatencyMs)||0;
 S.restaurantSearchQuery = String(d.searchQuery||searchTerm||'');
@@ -1903,7 +1881,7 @@ S.restaurantSearchBudgetMs = Number(d.searchBudgetMs)||12000;
  // Do not carry the previous pool forward: stale rows can survive provider-side
  // dedupe/filter fixes and reappear as duplicate or non-restaurant cards.
  const previousRows=[];
-const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), hoursState:restaurantHourState(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
+const incomingRows=(d.results || []).map(row => ({...row, providerId:row.id, canonicalId:restaurantCanonicalId(row), _maybe:false, _cut:false, _hidden:false})).filter(row=>{
  const dist=milesBetween(row.lat,row.lon,loc.lat,loc.lon);
  return Number.isFinite(dist) && dist<=radius+0.001;
 });
@@ -2604,8 +2582,6 @@ function detailsSheet(item,type){
  const phoneHrefValue=detailPhone?phoneHref(detailPhone):restaurantPhoneSearchUrl(item);
  const phoneLabel=detailPhone?detailPhone:'Find phone number';
  const hours=String(item.opening_hours||'').trim();
- const hoursState=String(restaurantHourState(item)||'unknown').toLowerCase();
- const hoursLabel=hoursState==='open'?'Open now':hoursState==='closed'?'Closed now':'Hours unknown';
  const address=String(item.address||'').trim();
  const distance=Number.isFinite(Number(item.distance))?Number(item.distance).toFixed(1)+' mi away':'';
  const about=String(item.description||'').trim();
@@ -2619,7 +2595,6 @@ function detailsSheet(item,type){
    (item.cuisine?'<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(item.cuisine)+'</strong></div>':'')+
    (address?'<div class="detail-info-row detail-info-row-stack"><span>Location</span><strong>'+esc(address)+'</strong></div>':'')+
    (distance?'<div class="detail-info-row"><span>Distance</span><strong>'+esc(distance)+'</strong></div>':'')+
-   '<div class="detail-info-row"><span>Status</span><strong class="detail-status-value status-'+esc(hoursState)+'">'+esc(hoursLabel)+'</strong></div>'+
    '</div>';
  const hoursSection=hours?'<section class="detail-section"><div class="detail-section-title">Hours</div><p class="detail-body-copy detail-hours-copy">'+esc(hours)+'</p></section>':'';
  const contactRows='<div class="detail-info-list detail-contact-list">'+
@@ -2627,7 +2602,7 @@ function detailsSheet(item,type){
    '</div>';
  const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
  const hide='<div class="detail-secondary-actions"><button class="detail-hide-action" id="detailHideRestaurant" type="button" aria-label="Hide this restaurant"><span class="detail-hide-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5 19 19M8.7 8.7A5 5 0 0 0 7 12c1.4 2.8 3.3 4.2 5 4.2 1 0 2-.3 2.8-.9M10.2 5.9C10.8 5.7 11.4 5.7 12 5.7c1.7 0 3.6 1.4 5 4.2.4.8.7 1.5.8 2.1M14.1 14.1A3 3 0 0 1 9.9 9.9" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Hide Restaurant</span></button></div>';
- const body='<div class="detail-unified detail-restaurant"><div class="detail-hero detail-restaurant-hero"><img class="history-detail-photo" src="'+esc(image)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+' · '+esc(hoursLabel)+'</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+infoRows+'</section>'+hoursSection+'<section class="detail-section"><div class="detail-section-title">Contact</div>'+contactRows+'</section>'+notesSection+'<section class="detail-utility-actions"><a class="detail-utility-action" href="'+esc(detailWebsitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(detailWebsiteLabel+' for '+item.name)+'" title="'+esc(detailWebsiteLabel)+'">Website</a>'+callAction+directionsAction+'</section>'+hide+'</div>';
+ const body='<div class="detail-unified detail-restaurant"><div class="detail-hero detail-restaurant-hero"><img class="history-detail-photo" src="'+esc(image)+'" data-restaurant-photo-key="'+esc(item.id||item.canonicalId||'')+'" data-final-fallback="'+esc(restaurantFallbackImage(item))+'" alt="'+esc(item.name)+'"><div class="restaurant-photo-credit" aria-live="polite"></div></div><div class="detail-title-block detail-unified-title"><span class="detail-kicker">RESTAURANT</span><h2>'+esc(item.name)+'</h2><p class="detail-subline">'+esc(cat)+'</p></div>'+aboutSection+'<section class="detail-section"><div class="detail-section-title">Details</div>'+infoRows+'</section>'+hoursSection+'<section class="detail-section"><div class="detail-section-title">Contact</div>'+contactRows+'</section>'+notesSection+'<section class="detail-utility-actions"><a class="detail-utility-action" href="'+esc(detailWebsitePresentation.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(detailWebsiteLabel+' for '+item.name)+'" title="'+esc(detailWebsiteLabel)+'">Website</a>'+callAction+directionsAction+'</section>'+hide+'</div>';
  const modal=openModal('detailsModal','Restaurant Details',body);
  bindImageFallback('#detailsModal img',image,restaurantFallbackImage(item));
  bindDetailNotes(modal,item,'restaurant');
@@ -3424,7 +3399,7 @@ function resetRestoreView(){
 async function resetAppDataFlow(){
 if(!await appConfirm('Reset all app data?', 'This permanently removes custom meals, history, hidden choices, saved round state, and device-stored app preferences.', 'Reset Everything'))return;
 S.hidden.clear(); S.deleted.clear(); S.deletedCustomMeals=[]; S.customQuickCuts=[]; S.hiddenRestaurants={}; S.cutCats.clear(); S.foodCuts.clear(); S.maybe.clear(); S.foodMaybeRound=false; S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
-S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantTimezone=''; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
+S.pool=[]; S.restaurantPool=[]; S.index=0; S.restaurantIndex=0; S.foodActions=[]; S.restaurantActions=[]; S.winnerItem=null; S.winnerType='food'; S.location=null; S.locationSource='none'; S.locationFreshAt=null; S.restaurantSearchOrigin=null; S.restaurantSearchKey=''; S.restaurantQuery=''; S.restaurantSearchDegraded=false; S.storageWarning=false; S.saved=false; S.custom=[];
 try{localStorage.removeItem(KEY);localStorage.removeItem(HISTORY_KEY);localStorage.removeItem(ITEM_NOTES_KEY);}catch{}
 try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transaction(PHOTO_STORE,'readwrite'); tx.objectStore(PHOTO_STORE).clear(); tx.oncomplete=resolve; tx.onerror=resolve;});}catch{}
 home();
