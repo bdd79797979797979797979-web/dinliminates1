@@ -2336,7 +2336,7 @@ function revealHungryRestaurant(){
  card.classList.add('is-revealing');
  cover?.classList.remove('hidden');
  result.classList.add('hidden');
- if(reveal){reveal.disabled=true;reveal.textContent='Revealing…';}
+ if(reveal){reveal.disabled=true;reveal.textContent='Unveiling…';}
  window.setTimeout(()=>{
    if(S.hungryRestaurantChoice!==item)return;
    card.classList.remove('is-revealing');
@@ -2346,7 +2346,7 @@ function revealHungryRestaurant(){
    const again=$('hungryMysteryAgain'),choose=$('hungryMysteryChoose');
    if(again)again.disabled=hungryRestaurantPool().length<2;
    if(choose)choose.focus?.();
- },2800);
+ },1850);
 }
 function tryAnotherHungryRestaurant(){
  const current=S.hungryRestaurantChoice;
