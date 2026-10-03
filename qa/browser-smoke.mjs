@@ -58,6 +58,8 @@ await page.route('**/*',async route=>{
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(150);
 assert.equal(await page.locator('#home h1').innerText(),'Meal Decisions Simplified');
+assert.equal(await page.locator('#foodStart strong').innerText(),'AT HOME');
+assert.equal(await page.locator('#restStart strong').innerText(),'RESTAURANT');
 const menuBefore=await page.evaluate(()=>{const d=getComputedStyle(document.getElementById('drawer')),bg=getComputedStyle(document.getElementById('drawerBg'));return {drawerPos:d.position,drawerTop:d.top,drawerRight:d.right,drawerBottom:d.bottom,bgPos:bg.position};});
 assert.equal(menuBefore.drawerPos,'fixed','Home Menu drawer must be fixed to the viewport');
 assert.equal(menuBefore.drawerTop,'0px','Home Menu drawer must start at the top');
