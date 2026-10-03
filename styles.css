@@ -5984,3 +5984,36 @@ body.home-scroll-lock{
   overflow:hidden!important;
   overscroll-behavior:none!important;
 }
+
+
+/* CP764 — keep DINE IN and DINE OUT as two unmistakably separate floating windows. */
+.luxury-home .home-actions{
+  gap:24px!important;
+}
+.luxury-home .home-card-photo{
+  width:min(84%,400px)!important;
+  border-radius:20px!important;
+  box-shadow:
+    0 22px 52px rgba(0,0,0,.62),
+    0 0 0 7px rgba(7,5,3,.72),
+    0 0 0 8px rgba(226,189,112,.18),
+    inset 0 1px 0 rgba(255,255,255,.20)!important;
+  transform-origin:center center!important;
+}
+.luxury-home .home-card-photo.is-pressed{
+  transform:none!important;
+  filter:saturate(1.04) brightness(1.035)!important;
+  box-shadow:
+    0 22px 52px rgba(0,0,0,.62),
+    0 0 0 7px rgba(7,5,3,.72),
+    0 0 0 8px rgba(226,189,112,.18),
+    inset 0 1px 0 rgba(255,255,255,.20)!important;
+}
+.luxury-home .home-card-photo.is-pressed .home-card-copy{transform:none!important}
+@media(max-width:390px){
+  .luxury-home .home-actions{gap:17px!important}
+  .luxury-home .home-card-photo{width:84%!important}
+}
+@media(max-height:700px){
+  .luxury-home .home-actions{gap:14px!important}
+}
