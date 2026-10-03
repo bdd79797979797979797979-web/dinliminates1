@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 762,
-  "sourceBranch":"cp762-home-cleanup",
-  "checkpoint":"CP762",
-  "deploymentTrigger":"CP762-home-cleanup-2026-10-02"
+  "build": 763,
+  "sourceBranch":"cp763-luxury-abstract-home-background",
+  "checkpoint":"CP763",
+  "deploymentTrigger":"CP763-luxury-abstract-home-background-2026-10-02"
 }
