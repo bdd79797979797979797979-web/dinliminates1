@@ -754,7 +754,7 @@ maybeShowHomeNudge();
 }
 function maybeShowHomeNudge(){
  const key='dinliminate.homeNudge.v1';
- try{if(localStorage.getItem(key))return;}catch{}
+ try{if(localStorage.getItem(key)){document.querySelector('#homeFirstNudge')?.remove();return;}}catch{}
  const foot=document.querySelector('#home .home-foot');
  if(!foot||document.querySelector('#homeFirstNudge'))return;
  const nudge=document.createElement('div');
