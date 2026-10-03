@@ -190,6 +190,10 @@ assert.equal(await page.locator('#restaurant .swipe-card-coach').count(),1);
 assert.equal(await page.locator('#restaurant .deck-filter-all').count(),0);
 assert.equal(await page.locator('#restaurant .deck-filter-label-all').innerText(),'ALL');
 assert.equal(await page.locator('#restaurant .deck-filter-label-maybe').innerText(),'MAYBES');
+const sourceParity=await page.evaluate(()=>{const f=document.getElementById('foodMaybeDeck'),r=document.getElementById('restaurantMaybeDeck');return {foodClass:f.className,restaurantClass:r.className,foodHTML:f.innerHTML,restaurantHTML:r.innerHTML};});
+assert.ok(sourceParity.foodClass.includes('all-maybe-toggle')&&sourceParity.restaurantClass.includes('all-maybe-toggle'),'Both visible screens must use the shared All-Maybes component class');
+assert.equal(sourceParity.restaurantHTML,sourceParity.foodHTML,'Meals and Restaurants All-Maybes rendered markup must match exactly');
+
 const restaurantFilterGeom=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck').getBoundingClientRect(),c=document.getElementById('restaurantCount').getBoundingClientRect();return {filterRight:f.right,countLeft:c.left};});
 assert.ok(restaurantFilterGeom.filterRight<=restaurantFilterGeom.countLeft,'Restaurants ALL/MAYBES must be left of count');
 const restaurantVisual=await page.evaluate(()=>{const f=document.getElementById('restaurantMaybeDeck'),m=document.getElementById('foodMaybeDeck'),fc=getComputedStyle(f),mc=getComputedStyle(m);return {restaurantFont:fc.fontSize,foodFont:mc.fontSize,restaurantLine:fc.lineHeight,foodLine:mc.lineHeight,restaurantHeight:fc.height,foodHeight:mc.height,restaurantPad:fc.padding,foodPad:mc.padding,restaurantBorder:fc.borderWidth,foodBorder:mc.borderWidth,restaurantGap:fc.gap,foodGap:mc.gap};});
