@@ -5478,3 +5478,176 @@ button,input,select,textarea{
 .app:has(#home:not(.hidden))::after{animation:homeAmbientLight 12s ease-in-out infinite alternate}
 @keyframes homeAmbientLight{0%{opacity:.74;transform:scale(1);filter:saturate(1)}50%{opacity:.9;transform:scale(1.012);filter:saturate(1.035)}100%{opacity:.78;transform:scale(1.006);filter:saturate(1)}}
 @media(prefers-reduced-motion:reduce){.quick-section .quick-cuts-collapse-toggle::after,.unified-swipe-actions .round-maybe::before,.count-inline.count-updated,.app:has(#home:not(.hidden))::after{animation:none!important}.home-first-nudge,.swipe-card-coach{transition:none!important;animation:none!important}}
+
+
+/* CP767 — Home menu, top-anchored utility panels, centered Details, flat ALL · MAYBES, and visible in-card swipe coach. */
+.app-topbar{
+  position:relative!important;
+  z-index:100!important;
+  pointer-events:auto!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar,
+.app:has(#home:not(.hidden)) .app-topbar .menu{
+  pointer-events:auto!important;
+}
+.drawer{z-index:110!important}
+.drawer-bg{z-index:109!important}
+.utility-modal{
+  top:calc(env(safe-area-inset-top) + 70px)!important;
+  bottom:auto!important;
+  left:50%!important;
+  transform:translate(-50%,0) scale(1)!important;
+  width:min(94vw,520px)!important;
+  max-height:calc(100svh - env(safe-area-inset-top) - 84px)!important;
+  overflow:auto!important;
+}
+.utility-modal.modal-opening{
+  transform:translate(-50%,-8px) scale(.985)!important;
+}
+.utility-modal.modal-open{
+  transform:translate(-50%,0) scale(1)!important;
+}
+.utility-modal.modal-closing{
+  transform:translate(-50%,-4px) scale(.99)!important;
+}
+#detailsModal{
+  left:50%!important;
+  transform:translate(-50%,0)!important;
+}
+#detailsModal.modal-opening,
+#detailsModal.details-modal.modal-opening{
+  transform:translate(-50%,8px) scale(.985)!important;
+}
+#detailsModal.modal-open,
+#detailsModal.details-modal.modal-open{
+  transform:translate(-50%,0) scale(1)!important;
+}
+#detailsModal.modal-closing,
+#detailsModal.details-modal.modal-closing{
+  transform:translate(-50%,5px) scale(.99)!important;
+}
+#food .quick-label,
+#restaurant .restaurant-choice-management{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:100%!important;
+}
+#food .quick-label-right,
+#restaurant .quick-label-right{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  min-width:0!important;
+}
+#food .quick-filter-toggle,
+#restaurant .quick-filter-toggle,
+#restaurant .restaurant-all-maybe-toggle{
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  color:#8f8b84!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.05em!important;
+  line-height:1!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+}
+#food .quick-filter-toggle > span,
+#restaurant .quick-filter-toggle > span,
+#restaurant .restaurant-all-maybe-toggle > span{
+  display:inline!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#8f8b84!important;
+  font-size:9px!important;
+  line-height:1!important;
+}
+#food .quick-filter-toggle .deck-filter-divider,
+#restaurant .quick-filter-toggle .deck-filter-divider,
+#restaurant .restaurant-all-maybe-toggle .deck-filter-divider{
+  color:#5f5b55!important;
+}
+#food .quick-filter-toggle.is-all .deck-filter-label-all,
+#restaurant .quick-filter-toggle.is-all .deck-filter-label-all,
+#restaurant .restaurant-all-maybe-toggle.is-all .deck-filter-label-all{
+  color:#63d992!important;
+}
+#food .quick-filter-toggle.is-maybe .deck-filter-label-maybe,
+#restaurant .quick-filter-toggle.is-maybe .deck-filter-label-maybe,
+#restaurant .restaurant-all-maybe-toggle.is-maybe .deck-filter-label-maybe{
+  color:#7bdca0!important;
+  text-decoration:underline!important;
+  text-decoration-thickness:1px!important;
+  text-underline-offset:3px!important;
+}
+#food .quick-filter-toggle:disabled,
+#restaurant .quick-filter-toggle:disabled,
+#restaurant .restaurant-all-maybe-toggle:disabled{
+  opacity:.38!important;
+}
+.swipe-card-coach{
+  left:50%!important;
+  bottom:72px!important;
+  width:calc(100% - 28px)!important;
+  max-width:none!important;
+  min-height:28px!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  padding:7px 10px!important;
+  z-index:30!important;
+  background:linear-gradient(180deg,rgba(8,8,8,.68),rgba(8,8,8,.82))!important;
+  border:1px solid rgba(244,220,171,.24)!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.06)!important;
+  pointer-events:auto!important;
+}
+.swipe-card-coach-cut{font-weight:900!important}
+.swipe-card-coach-mid{font-weight:900!important;letter-spacing:.12em!important}
+.swipe-card-coach-maybe{font-weight:900!important}
+@media(max-width:390px){
+  .utility-modal{
+    top:calc(env(safe-area-inset-top) + 64px)!important;
+    max-height:calc(100svh - env(safe-area-inset-top) - 76px)!important;
+  }
+  .swipe-card-coach{
+    bottom:68px!important;
+    width:calc(100% - 22px)!important;
+    padding:7px 7px!important;
+    font-size:7.8px!important;
+  }
+  #food .quick-label,
+  #restaurant .restaurant-choice-management{gap:5px!important}
+  #food .quick-label-right,
+  #restaurant .quick-label-right{gap:6px!important}
+  #food .quick-filter-toggle,
+  #restaurant .quick-filter-toggle,
+  #restaurant .restaurant-all-maybe-toggle,
+  #food .quick-filter-toggle > span,
+  #restaurant .quick-filter-toggle > span,
+  #restaurant .restaurant-all-maybe-toggle > span{font-size:8px!important}
+}
