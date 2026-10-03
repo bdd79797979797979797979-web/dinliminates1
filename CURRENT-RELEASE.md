@@ -1,3 +1,12 @@
+## CP763 — abstract luxury Home background — 2026-10-02
+- Replaced only the shared Home background with an abstract flowing brown-and-gold luxury image.
+- The background is intentionally not a home, restaurant, dining room, or food photograph.
+- Preserved the two inset DINE IN / DINE OUT photo windows and all CP762 Home behavior.
+- Kept the Home headline **Meal Decisions Simplified**; no swipe tagline was added.
+- Build/cache identity synchronized to CP763 / v763.
+- Recovery baseline: CP762 `cp762-home-cleanup`.
+- Current branch: `cp763-luxury-abstract-home-background`.
+
 ## CP762 Home cleanup — 2026-10-02
 - Preserved the Home headline **Meal Decisions Simplified** exactly as requested.
 - Did not add the “Beautifully swipe until it’s revealed.” tagline.
