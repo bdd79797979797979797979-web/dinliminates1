@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
-let APP_BUILD = '774';
+let APP_BUILD = '775';
 fetch('./app-release.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(meta=>{if(meta?.build)APP_BUILD=String(meta.build)}).catch(()=>{});
 const HUNGRY_IMAGE = 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" rx="52" fill="#090909"/><circle cx="600" cy="400" r="170" fill="none" stroke="#f5f1e8" stroke-width="18"/><circle cx="535" cy="365" r="14" fill="#f5f1e8"/><circle cx="665" cy="365" r="14" fill="#f5f1e8"/><path d="M515 495c52-62 118-62 170 0" fill="none" stroke="#f5f1e8" stroke-width="18" stroke-linecap="round"/></svg>');
 const RESTAURANT_TAXONOMY = window.DINLIMINATE_RESTAURANT_TAXONOMY;
@@ -869,15 +869,22 @@ function foodQuick() {
  });
  bindQuickCutsCollapse('food');
 }
-function dismissSwipeHint(){
- document.querySelectorAll('.swipe-card-coach').forEach(el=>{
-  el.classList.add('is-dismissing');
-  window.setTimeout(()=>el.remove(),220);
- });
- try{localStorage.setItem('dinliminate.swipeHint.v4','1')}catch{}
+function clearLegacySwipeInstructions(){
+ document.querySelectorAll('.swipe-card-coach,.swipe-hint,[data-swipe-instruction="true"]').forEach(el=>el.remove());
 }
+function dismissSwipeHint(){
+ clearLegacySwipeInstructions();
+ try{localStorage.setItem('dinliminate.swipeHint.v5','1')}catch{}
+}
+document.addEventListener('pointerdown',event=>{
+ const target=event.target;
+ if(!(target instanceof Element))return;
+ if(target.closest('#food .card,#restaurant .card,#food .unified-swipe-actions .round-action,#restaurant .unified-swipe-actions .round-action')){
+   dismissSwipeHint();
+ }
+},true);
 function maybeShowInCardSwipeCoach(){
- try{if(localStorage.getItem('dinliminate.swipeHint.v4'))return;}catch{}
+ try{if(localStorage.getItem('dinliminate.swipeHint.v5')||localStorage.getItem('dinliminate.swipeHint.v4')){clearLegacySwipeInstructions();return;}}catch{}
  const card=S.screen==='restaurant' ? $('restaurantCard') : $('foodCard');
  if(!card || card.querySelector('.swipe-card-coach'))return;
  const coach=document.createElement('div');
@@ -886,9 +893,6 @@ function maybeShowInCardSwipeCoach(){
  coach.setAttribute('aria-label','Swipe left to Cut or right for Maybe. This lesson disappears after your first meaningful interaction.');
  coach.innerHTML='<span class="swipe-card-coach-cut">← CUT</span><span class="swipe-card-coach-mid">· SWIPE ·</span><span class="swipe-card-coach-maybe">MAYBE →</span>';
  card.appendChild(coach);
-}
-function maybeShowSwipeHint(){
- maybeShowInCardSwipeCoach();
 }
 function startFood() {
 S.foodActions = [];
@@ -904,7 +908,7 @@ foodQuick();
 show('food');
 drawFood();
 save();
-maybeShowSwipeHint();
+maybeShowInCardSwipeCoach();
 }
 function setChoiceCount(el,count,singular='choice',plural='choices'){
  const value=Number(count)||0;
@@ -1943,7 +1947,7 @@ show('restaurant');
 restaurantQuick();
 $('restaurantSearchBox')?.classList.add('hidden');
 $('restaurantQuery').value = '';
-maybeShowSwipeHint();
+maybeShowInCardSwipeCoach();
 
 // Restaurants should proactively request device location the first time the user enters
 // this screen, but never overwrite an active location or a typed address search.
