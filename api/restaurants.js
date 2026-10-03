@@ -1231,7 +1231,7 @@ if(mode==='search'){
  // redundant Overpass discovery pass. This prevents 100-mile provider result
  // caps from replacing nearby restaurants with a biased subset of the huge box.
  const providerRadius=wideSearch?Math.min(radius,WIDE_PROVIDER_RADIUS_CAP):radius;
- const discoveryPromise=searchTerm&&!wideSearch ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null;
+ const discoveryPromise=wideSearch ? wideRadiusOverpass(lat,lon,radius,searchTerm) : (searchTerm ? overpass(lat,lon,radius,'restaurant|fast_food',searchTerm) : null);
  const primaryPromise=wideSearch
   ? Promise.allSettled([arcgisWidePlaces(lat,lon,radius,searchTerm)])
   : Promise.allSettled([
