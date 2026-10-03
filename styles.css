@@ -6512,7 +6512,7 @@ button,input,select,textarea{
 /* CP801 — persistent Home background.
    A real local JPEG is owned by the app shell so returning Home never
    depends on an external image or a section-level background rule. */
-.app.home-active{
+.app.home-active:has(#home:not(.hidden)){
   min-height:100svh!important;
   width:100%!important;
   padding:0 14px!important;
@@ -6525,7 +6525,7 @@ button,input,select,textarea{
   background-attachment:scroll,scroll!important;
   background-color:#090909!important;
 }
-.app.home-active #home{background:transparent!important}
+.app.home-active:has(#home:not(.hidden)) #home{background:transparent!important}
 .app:not(.home-active){background-image:none!important}
 
 /* CP801 — one canonical Dinliminate wordmark across Home, Meals, Restaurants, and Winner. */
