@@ -95,7 +95,9 @@ schemaVersion:4,
 notes:{},
 restaurantSearchOrigin:null,
 restaurantSearchKey:'',
-quickCutsCollapsed:{food:true,restaurant:true}
+quickCutsCollapsed:{food:true,restaurant:true},
+mealTimeCutsCollapsed:true,
+mealTimeFilter:null
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
@@ -698,7 +700,7 @@ restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
-restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant},
+restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant}, mealTimeCutsCollapsed:!!S.mealTimeCutsCollapsed, mealTimeFilter:S.mealTimeFilter||null,
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image})),
 customQuickCuts:(S.customQuickCuts||[]).map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has('quickcut:'+x.id))?'idb:quickcut:'+x.id:x.image}))
 };
@@ -752,6 +754,8 @@ S.restaurantSearchKey = String(d.restaurantSearchKey||'');
 S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
 S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
+S.mealTimeCutsCollapsed = Object.prototype.hasOwnProperty.call(d,'mealTimeCutsCollapsed') ? !!d.mealTimeCutsCollapsed : true;
+S.mealTimeFilter = MEAL_TIME_CUTS.includes(d.mealTimeFilter) ? d.mealTimeFilter : null;
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
 S.schemaVersion = STORAGE_VERSION;
@@ -793,13 +797,25 @@ function maybeShowHomeNudge(){
  window.setTimeout(()=>nudge.classList.add('is-faded'),4200);
  window.setTimeout(()=>nudge.remove(),4700);
 }
-function foodPool(){
- const base = allFoods().filter(item=>{
+const MEAL_TIME_CUTS=['Breakfast','Lunch / Dinner','Snacks / Desserts'];
+function mealTimeFor(item){
+ const category=String(item?.category||'').trim().toLowerCase();
+ const cuts=(Array.isArray(item?.quickCuts)?item.quickCuts:[item?.category]).map(x=>String(x||'').trim().toLowerCase());
+ if(category==='breakfast' || cuts.includes('breakfast')) return 'Breakfast';
+ if(category==='snack' || category==='dessert' || category==='desserts' || cuts.some(x=>x==='snack'||x==='dessert'||x==='desserts')) return 'Snacks / Desserts';
+ return 'Lunch / Dinner';
+}
+function foodBasePool(){
+ return allFoods().filter(item=>{
   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
+  if(S.mealTimeFilter && mealTimeFor(item)!==S.mealTimeFilter)return false;
   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
   return true;
  });
+}
+function foodPool(){
+ const base=foodBasePool();
  return S.maybeDeck ? base.filter(item=>S.maybe.has(item.id)) : base;
 }
 function buildFood() {
@@ -826,12 +842,7 @@ function setMaybeDeck(kind, enabled){
 }
 function maybeDeckCount(kind){
  if(kind==='food'){
-  return allFoods().filter(item=>{
-   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
-   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
-   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
-   return S.maybe.has(item.id);
-  }).length;
+  return foodBasePool().filter(item=>S.maybe.has(item.id)).length;
  }
  return restaurantPoolBase().filter(row=>row._maybe).length;
 }
@@ -867,9 +878,14 @@ function renderQuickCutsCollapse(kind){
  const chips=kind==='food' ? document.getElementById('foodQuick') : document.getElementById('restQuick');
  if(!section||!toggle||!chips)return;
  const collapsed=!!S.quickCutsCollapsed?.[kind];
- section.classList.toggle('is-collapsed',collapsed);
+ if(kind==='food'){
+  section.classList.remove('is-collapsed');
+  chips.classList.toggle('is-rail-collapsed',collapsed);
+ }else{
+  section.classList.toggle('is-collapsed',collapsed);
+ }
  toggle.setAttribute('aria-expanded',String(!collapsed));
- toggle.setAttribute('aria-label',(collapsed?'Expand ':'Collapse ')+'Quick Cuts');
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Quick Cuts');
  toggle.title=collapsed?'Show Quick Cuts':'Hide Quick Cuts';
  chips.setAttribute('aria-hidden',String(collapsed));
 }
@@ -881,11 +897,52 @@ function bindQuickCutsCollapse(kind){
   event.preventDefault();
   event.stopPropagation();
   S.quickCutsCollapsed = {...(S.quickCutsCollapsed||{food:false,restaurant:false}),[kind]:!S.quickCutsCollapsed?.[kind]};
+  if(kind==='food' && !S.quickCutsCollapsed.food){S.mealTimeCutsCollapsed=true;renderMealTimeCuts();}
   if(kind==='restaurant' && !S.quickCutsCollapsed.restaurant) collapseRestaurantSearch(false);
   renderQuickCutsCollapse(kind);
   save();
  };
  renderQuickCutsCollapse(kind);
+}
+function renderMealTimeCuts(){
+ const section=document.querySelector('#food .quick-section');
+ const toggle=document.getElementById('foodMealTimeToggle');
+ const chips=document.getElementById('mealTimeQuick');
+ if(!section||!toggle||!chips)return;
+ const collapsed=!!S.mealTimeCutsCollapsed;
+ chips.classList.toggle('is-rail-collapsed',collapsed);
+ chips.setAttribute('aria-hidden',String(collapsed));
+ toggle.setAttribute('aria-expanded',String(!collapsed));
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Time Cuts');
+ toggle.title=collapsed?'Show Meal Time Cuts':'Hide Meal Time Cuts';
+ toggle.classList.toggle('is-filtered',!!S.mealTimeFilter);
+ toggle.setAttribute('aria-pressed',S.mealTimeFilter?'true':'false');
+ chips.innerHTML=MEAL_TIME_CUTS.map(label=>'<button class="chip meal-time-chip'+(S.mealTimeFilter===label?' is-active':'')+'" data-meal-time="'+esc(label)+'" type="button" aria-pressed="'+(S.mealTimeFilter===label?'true':'false')+'">'+esc(label)+'</button>').join('');
+ chips.querySelectorAll('[data-meal-time]').forEach(btn=>{
+  btn.onclick=()=>{
+   const label=btn.dataset.mealTime;
+   S.mealTimeFilter=S.mealTimeFilter===label?null:label;
+   S.index=0;
+   buildFood();
+   renderMealTimeCuts();
+   foodQuick();
+   drawFood();
+   save();
+  };
+ });
+}
+function bindMealTimeCuts(){
+ const toggle=document.getElementById('foodMealTimeToggle');
+ if(!toggle)return;
+ toggle.onclick=(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
+  S.mealTimeCutsCollapsed=!S.mealTimeCutsCollapsed;
+  if(!S.mealTimeCutsCollapsed){S.quickCutsCollapsed.food=true;renderQuickCutsCollapse('food');}
+  renderMealTimeCuts();
+  save();
+ };
+ renderMealTimeCuts();
 }
 function foodQuick() {
  const labels=foodQuickLabels();
@@ -911,6 +968,8 @@ function foodQuick() {
   };
  });
  bindQuickCutsCollapse('food');
+ renderMealTimeCuts();
+ bindMealTimeCuts();
 }
 function clearLegacySwipeInstructions(){
  document.querySelectorAll('.swipe-card-coach,.swipe-hint,[data-swipe-instruction="true"]').forEach(el=>el.remove());
