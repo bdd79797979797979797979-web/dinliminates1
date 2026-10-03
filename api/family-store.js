@@ -299,13 +299,65 @@ async function finalizeTiebreak(sql,round){
   const item=pool.find(x=>String(x?.id)===chosen.id)||null;
   return completeRound(sql,round,item);
 }
+async function expireActiveRound(sql,family){
+  if(!family?.active_round_id)return family;
+  const round=(await sql.query('select * from family_rounds where round_id=$1 and family_id=$2',[family.active_round_id,family.family_id]))[0];
+  if(!round)return family;
+  if(!round.expires_at||new Date(round.expires_at).getTime()>Date.now())return family;
+  if(['complete','ended'].includes(round.status))return family;
+  await sql.query("update family_rounds set status='ended',completed_at=now(),updated_at=now() where round_id=$1 and status not in ('complete','ended')",[round.round_id]);
+  await sql.query('update family_rooms set active_round_id=null,updated_at=now(),last_activity_at=now() where family_id=$1 and active_round_id=$2',[family.family_id,round.round_id]);
+  return (await sql.query('select * from family_rooms where family_id=$1',[family.family_id]))[0]||family;
+}
+async function recoverFamilyHost(sql,family){
+  if(!family?.host_member_id)return family;
+  const host=(await sql.query('select * from family_members where member_id=$1 and family_id=$2 and active=true',[family.host_member_id,family.family_id]))[0];
+  if(!host)return family;
+  if(Date.now()-new Date(host.last_seen_at).getTime()<90000)return family;
+  const replacement=(await sql.query('select * from family_members where family_id=$1 and active=true and member_id<>$2 order by joined_at asc limit 1',[family.family_id,host.member_id]))[0];
+  if(!replacement)return family;
+  await sql.query("update family_members set role='member' where family_id=$1 and role='host'",[family.family_id]);
+  await sql.query("update family_members set role='host' where member_id=$1 and family_id=$2",[replacement.member_id,family.family_id]);
+  await sql.query('update family_rooms set host_member_id=$1,updated_at=now(),last_activity_at=now() where family_id=$2',[replacement.member_id,family.family_id]);
+  await event(sql,family.family_id,family.active_round_id,replacement.member_id,'host_recovered',{fromMemberId:host.member_id});
+  return (await sql.query('select * from family_rooms where family_id=$1',[family.family_id]))[0]||family;
+}
+async function leaveFamily(sessionToken){
+  const sql=db();
+  const me=await auth(sql,sessionToken);
+  const family=(await sql.query('select * from family_rooms where family_id=$1',[me.family_id]))[0];
+  if(!family)return {ok:true};
+  const members=await sql.query('select * from family_members where family_id=$1 and active=true order by joined_at asc',[family.family_id]);
+  if(members.length<=1){
+    await sql.query('update family_members set active=false,last_seen_at=now() where member_id=$1',[me.member_id]);
+    await sql.query('update family_rooms set member_count=0,host_member_id=null,updated_at=now(),last_activity_at=now() where family_id=$1',[family.family_id]);
+    return {ok:true,empty:true};
+  }
+  await sql.query('update family_members set active=false,role=\'member\',last_seen_at=now() where member_id=$1',[me.member_id]);
+  if(family.active_round_id){await sql.query('update family_round_members set included=false,last_seen_at=now() where round_id=$1 and member_id=$2',[family.active_round_id,me.member_id]);}
+  let nextFamily=family;
+  if(family.host_member_id===me.member_id){
+    const replacement=(await sql.query('select member_id from family_members where family_id=$1 and active=true order by joined_at asc limit 1',[family.family_id]))[0];
+    if(replacement){
+      await sql.query("update family_members set role='member' where family_id=$1 and role='host'",[family.family_id]);
+      await sql.query("update family_members set role='host' where member_id=$1 and family_id=$2",[replacement.member_id,family.family_id]);
+      await sql.query('update family_rooms set host_member_id=$1 where family_id=$2',[replacement.member_id,family.family_id]);
+    }
+  }
+  await sql.query('update family_rooms set member_count=(select count(*)::integer from family_members where family_id=$1 and active=true),updated_at=now(),last_activity_at=now() where family_id=$1',[family.family_id]);
+  await event(sql,family.family_id,family.active_round_id,me.member_id,'member_left',{});
+  return {ok:true};
+}
 async function getFamilyState(sessionToken) {
   const sql = db();
   const me = await auth(sql, sessionToken);
   await sql.query('update family_members set last_seen_at=now() where member_id=$1', [me.member_id]);
   await sql.query('update family_rooms set last_activity_at=now() where family_id=$1', [me.family_id]);
 
-  const family = (await sql.query('select * from family_rooms where family_id=$1', [me.family_id]))[0];
+  let family = (await sql.query('select * from family_rooms where family_id=$1', [me.family_id]))[0];
+  family = await expireActiveRound(sql,family);
+  family = await recoverFamilyHost(sql,family);
+  const refreshedMe=(await sql.query('select * from family_members where member_id=$1',[me.member_id]))[0]||me;
   const members = await sql.query('select * from family_members where family_id=$1 and active=true order by joined_at asc', [me.family_id]);
   let round = null;
   let lastCompletedRound = null;
@@ -338,7 +390,7 @@ async function getFamilyState(sessionToken) {
 
   return {
     family:publicFamily(family),
-    me:publicMember(me),
+    me:publicMember(refreshedMe),
     members:members.map(publicMember),
     activeRound:publicRound(round),
     lastCompletedRound:publicRound(lastCompletedRound),
@@ -486,4 +538,4 @@ async function transferHost(sessionToken, targetMemberId) {
   await event(sql,family.family_id,family.active_round_id,me.member_id,'host_transferred',{toMemberId:target.member_id});
   return {ok:true,hostMemberId:target.member_id};
 }
-module.exports = {createFamily,joinFamily,getFamilyState,createRound,startRound,submitVote,markStageSubmitted,rotateCode,endRound,transferHost};
+module.exports = {createFamily,joinFamily,getFamilyState,createRound,startRound,submitVote,markStageSubmitted,rotateCode,endRound,transferHost,leaveFamily};
