@@ -180,6 +180,29 @@ await page.waitForTimeout(200);
 assert.equal(await page.locator('#homeFirstNudge').count(),0);
 await page.evaluate(()=>{localStorage.removeItem('dinliminate.swipeHint.v4');localStorage.removeItem('dinliminate.swipeHint.v5');});
 
+async function assertUtilityTop(id){
+  await page.locator('#menu').click();
+  await page.waitForTimeout(220);
+  await page.locator('#'+id).click();
+  await page.waitForTimeout(240);
+  const geom=await page.evaluate(({id})=>{
+    const modal=document.getElementById(id+'Modal');
+    const menu=document.getElementById('menu');
+    const mr=modal?.getBoundingClientRect(), br=menu?.getBoundingClientRect();
+    return {modalTop:mr?.top??-1,modalBottom:mr?.bottom??-1,menuBottom:br?.bottom??-1,modalVisible:!!modal};
+  },{id});
+  assert.equal(geom.modalVisible,true,id+' must open');
+  assert.ok(geom.modalTop>=geom.menuBottom-1,id+' must open underneath the hamburger');
+  assert.ok(geom.modalTop<=geom.menuBottom+24,id+' must stay close beneath the hamburger');
+  await page.locator('#'+id+'Modal [data-close]').click();
+  await page.waitForTimeout(220);
+}
+await assertUtilityTop('manageFoods');
+await assertUtilityTop('history');
+await assertUtilityTop('settings');
+
+
+
 await page.locator('#restStart').click();
 await page.waitForTimeout(600);
 assert.equal(await page.locator('#restaurant').isVisible(),true);
