@@ -15,14 +15,14 @@ new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Scrip
 assert.equal(release.build,786,'Current release must be Build 786');
 assert.equal(release.checkpoint,'CP786','Current release checkpoint must be CP786');
 assert.equal(manifest.build,786,'Release manifest build must be 786');
-assert.equal(manifest.checkpoint,'CP786','Release manifest checkpoint must be CP785');
+assert.equal(manifest.checkpoint,'CP786','Release manifest checkpoint must be CP786');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
 
 assert.ok(html.includes('Meal Decisions Simplified'),'Home headline must be current');
-assert.ok(html.includes('<strong>DINE IN</strong><span>Reveal your meal</span>'),'Dine In Home treatment must remain current');
-assert.ok(html.includes('<strong>DINE OUT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
+assert.ok(html.includes('<strong>AT HOME</strong><span>Your meal awaits</span>'),'At Home Home treatment must remain current');
+assert.ok(html.includes('<strong>RESTAURANT</strong><span>Your table awaits</span>'),'Restaurant Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
 assert.ok(html.includes('styles.css?v=786')&&html.includes('app.js?v=786'),'Frontend asset cache-busting must be v786');
