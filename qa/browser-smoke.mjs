@@ -111,9 +111,9 @@ assert.equal(await page.locator('#home .sub').innerText(),'Swipe. Dinliminate. E
 assert.equal(await page.locator('#addToPhone').count(),1);
 assert.equal(await page.locator('#shareApp').count(),1);
 assert.equal(await page.locator('#foodStart').locator('strong').innerText(),'AT HOME');
-assert.equal(await page.locator('#foodStart .home-card-copy > span').innerText(),'Reveal your meal');
+assert.equal(await page.locator('#foodStart .home-card-copy > span').innerText(),'Your meal awaits');
 assert.equal(await page.locator('#restStart').locator('strong').innerText(),'RESTAURANT');
-assert.equal(await page.locator('#restStart .home-card-copy > span').innerText(),'Reveal your restaurant');
+assert.equal(await page.locator('#restStart .home-card-copy > span').innerText(),'Your table awaits');
 assert.equal(await page.locator('#homeFirstNudge').innerText(),'Swipe until it’s revealed.');
 assert.equal(await page.locator('#homeFirstNudge').isVisible(),true);
 assert.equal(await page.locator('#foodStart .home-card-copy strong').innerText(),'AT HOME');
