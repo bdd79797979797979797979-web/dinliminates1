@@ -5808,3 +5808,144 @@ button,input,select,textarea{
 #restaurant .restaurant-choice-management #restaurantMaybeDeck:active{
   transform:scale(.96)!important;
 }
+
+/* CP780 — correct Home composition: full Pexels canvas + existing Dine In/Dine Out photo windows.
+   Keep navigation anchored to the app, not the browser viewport. */
+.app:has(#home:not(.hidden)){
+  position:relative!important;
+  min-height:100svh!important;
+  width:100%!important;
+  background-image:var(--cp776-home-photo)!important;
+  background-size:cover!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:scroll!important;
+  padding:0 14px!important;
+}
+.app:has(#home:not(.hidden)) .app-topbar{
+  position:absolute!important;
+  top:0!important;
+  left:14px!important;
+  right:14px!important;
+  z-index:50!important;
+  height:58px!important;
+  padding:0 2px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home{
+  position:relative!important;
+  z-index:2!important;
+  min-height:100svh!important;
+  height:100svh!important;
+  margin:0!important;
+  padding:calc(env(safe-area-inset-top) + 72px) 0 max(18px,calc(env(safe-area-inset-bottom) + 18px))!important;
+  background:transparent!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+}
+.app:has(#home:not(.hidden)) #home .luxury-orb,
+.app:has(#home:not(.hidden)) #home .home-photo-rail{
+  display:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-intro,
+.app:has(#home:not(.hidden)) #home .home-actions,
+.app:has(#home:not(.hidden)) #home .home-foot{
+  position:relative!important;
+  z-index:5!important;
+}
+.app:has(#home:not(.hidden)) #home .home-intro .eyebrow,
+.app:has(#home:not(.hidden)) #home .home-intro h1,
+.app:has(#home:not(.hidden)) #home .home-intro .sub{
+  color:#fff!important;
+  text-shadow:0 2px 18px rgba(0,0,0,.45)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-actions{
+  width:min(100%,430px)!important;
+  margin:24px auto 0!important;
+  gap:14px!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo{
+  position:relative!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  min-height:96px!important;
+  height:96px!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background-image:var(--home-photo)!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-color:#171615!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  border-radius:20px!important;
+  box-shadow:none!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo.food-choice{background-position:center 58%!important}
+.app:has(#home:not(.hidden)) #home .home-card-photo.restaurant-choice{background-position:center 50%!important}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-overlay{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  background:linear-gradient(90deg,rgba(8,8,8,.72) 0%,rgba(8,8,8,.36) 48%,rgba(8,8,8,.06) 100%),linear-gradient(0deg,rgba(0,0,0,.66) 0%,transparent 62%)!important;
+  z-index:1!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy{
+  position:relative!important;
+  z-index:2!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:2px!important;
+  padding:0 15px 13px!important;
+  text-align:left!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{
+  color:#fff!important;
+  font-size:21px!important;
+  line-height:1.05!important;
+  text-shadow:0 2px 12px rgba(0,0,0,.45)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{
+  color:#f0e9df!important;
+  font-size:10px!important;
+  line-height:1.2!important;
+  text-shadow:0 2px 10px rgba(0,0,0,.42)!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo .arrow{
+  position:absolute!important;
+  z-index:2!important;
+  right:14px!important;
+  bottom:12px!important;
+  width:30px!important;
+  height:30px!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:rgba(0,0,0,.42)!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  color:#f2d59b!important;
+  font-size:21px!important;
+}
+.app:has(#home:not(.hidden)) #home .home-card-photo::after{
+  content:""!important;
+  position:absolute!important;
+  inset:1px!important;
+  border-radius:19px!important;
+  pointer-events:none!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  z-index:3!important;
+}
+.app:has(#home:not(.hidden)) #home .home-foot{
+  margin-top:auto!important;
+  padding:12px 0 0!important;
+}
+@media(max-width:390px){
+  .app:has(#home:not(.hidden)){padding-left:12px!important;padding-right:12px!important}
+  .app:has(#home:not(.hidden)) .app-topbar{left:12px!important;right:12px!important}
+  .app:has(#home:not(.hidden)) #home{padding-left:0!important;padding-right:0!important;padding-top:calc(env(safe-area-inset-top) + 68px)!important}
+  .app:has(#home:not(.hidden)) #home .home-actions{margin-top:18px!important;gap:12px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo{height:84px!important;min-height:84px!important;border-radius:18px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy strong{font-size:19px!important}
+  .app:has(#home:not(.hidden)) #home .home-card-photo .home-card-copy>span{font-size:9px!important}
+}
