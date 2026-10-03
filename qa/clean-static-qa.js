@@ -15,7 +15,7 @@ new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Scrip
 assert.equal(release.build,786,'Current release must be Build 786');
 assert.equal(release.checkpoint,'CP786','Current release checkpoint must be CP786');
 assert.equal(manifest.build,786,'Release manifest build must be 786');
-assert.equal(manifest.checkpoint,'CP785','Release manifest checkpoint must be CP785');
+assert.equal(manifest.checkpoint,'CP786','Release manifest checkpoint must be CP786');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
@@ -37,7 +37,7 @@ assert.ok(html.includes('class="deck-filter-toggle quick-filter-toggle all-maybe
 
 
 
-assert.ok(app.includes("let APP_BUILD = '785'"),'Offline release fallback must be current');
+assert.ok(app.includes("let APP_BUILD = '786'"),'Offline release fallback must be current');
 assert.ok(app.includes('function bindSwipeCard')&&app.includes('requestAnimationFrame'),'Swipe engine must use the current stabilized motion path');
 assert.ok(app.includes("bindCardButton('restMaybe'")&&app.includes("bindCardButton('restCut'"),'Restaurant decision buttons must use the protected binding');
 assert.ok(app.includes('detailNoteEdit')&&app.includes('detailNotesDelete'),'Per-note Edit and delete controls must be wired');
@@ -81,5 +81,5 @@ assert.ok(css.includes('min-height:44px')&&css.includes('height:44px'),'Current 
 assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.includes('passAround'),'Pass Around must remain absent from active UI/runtime');
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
-console.log('Dinliminate CP785 static QA: PASS');
+console.log('Dinliminate CP786 static QA: PASS');
 console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v786',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
