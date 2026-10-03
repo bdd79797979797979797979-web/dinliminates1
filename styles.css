@@ -7377,3 +7377,26 @@ button,input,select,textarea{
   transform:scale(.96)!important;
   background:rgba(0,0,0,.30)!important;
 }
+
+
+/* CP820 — Home uses the canonical ornate door image only. 
+   The local home-background.jpg is the single source for the full Home canvas.
+   Override all older Home background layers so stale/legacy Pexels or embedded
+   dining-table backgrounds can never appear on the front page. */
+.app:has(#home:not(.hidden)){
+  background-image:none!important;
+  background-color:#090909!important;
+}
+.app:has(#home:not(.hidden)) #home{
+  background:transparent!important;
+}
+.app:has(#home:not(.hidden)) .home-background-layer{
+  opacity:1!important;
+  visibility:visible!important;
+  background:#090909!important;
+}
+.app:has(#home:not(.hidden)) .home-background-layer img{
+  content:url("./home-background.jpg")!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+}
