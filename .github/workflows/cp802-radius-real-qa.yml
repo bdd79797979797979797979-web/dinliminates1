@@ -1,0 +1,20 @@
+name: Dinliminate CP802 Real Radius QA
+
+on:
+  push:
+    branches: ['cp802-launch-*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  radius:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node qa/cp802-radius-real-smoke.cjs
