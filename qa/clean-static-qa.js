@@ -13,7 +13,7 @@ const sw=fs.readFileSync('sw.js','utf8');
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
 assert.equal(release.build,786,'Current release must be Build 786');
-assert.equal(release.checkpoint,'CP785','Current release checkpoint must be CP786');
+assert.equal(release.checkpoint,'CP786','Current release checkpoint must be CP786');
 assert.equal(manifest.build,786,'Release manifest build must be 786');
 assert.equal(manifest.checkpoint,'CP785','Release manifest checkpoint must be CP785');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
