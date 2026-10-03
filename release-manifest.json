@@ -2,12 +2,12 @@
   "name": "Dinliminate",
   "version": "1.0",
   "build": 837,
-  "sourceBranch": "cp827-final-deploy",
+  "sourceBranch": "cp837-final-deploy",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
   "checkpoint": "CP837",
-  "deploymentTrigger": "CP837-final-deploy-trigger-2026-10-03"
+  "deploymentTrigger": "CP837-final-cuisine-cuts-meal-times-order-2026-10-03"
 }
