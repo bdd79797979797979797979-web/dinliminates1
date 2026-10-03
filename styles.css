@@ -6509,16 +6509,16 @@ button,input,select,textarea{
 .hungry-wheel-actions .cut{box-shadow:0 10px 28px #c6a46a2a}
 #celebration .firework-burst span{filter:drop-shadow(0 0 4px #c6a46a)}
 
-/* CP801 — Home background is owned by the persistent app shell.
-   The image is bundled locally and exposed as --home-bg-image by app.js,
-   so screen transitions cannot replace it with the legacy transparent rule. */
+/* CP801 — persistent Home background.
+   A real local JPEG is owned by the app shell so returning Home never
+   depends on an external image or a section-level background rule. */
 .app.home-active{
   min-height:100svh!important;
   width:100%!important;
   padding:0 14px!important;
   background-image:
     linear-gradient(180deg,rgba(8,7,6,.34),rgba(8,7,6,.54)),
-    var(--home-bg-image)!important;
+    url('./home-background.jpg')!important;
   background-size:cover,cover!important;
   background-position:center,center!important;
   background-repeat:no-repeat,no-repeat!important;
