@@ -6576,3 +6576,117 @@ button,input,select,textarea{
   justify-self:center!important;
   text-align:center!important;
 }
+
+/* CP802 — persistent Home door-photo layer. The image never leaves the DOM
+   when navigating through Meals, Restaurants, Winner, or back to Home. */
+.home-background-layer{
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  overflow:hidden!important;
+  background:#090909!important;
+  pointer-events:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  transition:opacity .18s ease!important;
+}
+.home-background-layer img{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  display:block!important;
+}
+.home-background-layer::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  background:
+    linear-gradient(180deg,rgba(5,4,3,.32),rgba(5,4,3,.50))!important;
+}
+.app.home-active .home-background-layer{
+  opacity:1!important;
+  visibility:visible!important;
+}
+.app.home-active:has(#home:not(.hidden)){
+  background-image:none!important;
+  background-color:#090909!important;
+}
+.app.home-active:has(#home:not(.hidden)) #home{
+  background:transparent!important;
+}
+
+/* CP802 — navigation: translucent menus; plain gold arrow-only backs. */
+.menu,#menu,#foodMenu,#restaurantMenu,#winnerMenu,
+.decision-menu,.winner-menu{
+  background:rgba(12,12,12,.34)!important;
+  border:1px solid rgba(198,164,106,.48)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+.menu span{background:#f1eadf!important}
+.decision-back,.winner-back{
+  width:42px!important;
+  min-width:42px!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  color:#c6a46a!important;
+  font-size:30px!important;
+  line-height:1!important;
+  text-align:left!important;
+  backdrop-filter:none!important;
+}
+
+/* CP802 — one canonical Dinliminate wordmark across visible app screens. */
+.app-topbar .brand,
+.app:has(#food:not(.hidden)) .decision-brand,
+.app:has(#restaurant:not(.hidden)) .decision-brand,
+#winner .winner-brand{
+  display:block!important;
+  text-align:center!important;
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  background:linear-gradient(115deg,#fff8e8 8%,#e7c98f 42%,#e28a4f 70%,#fff2d5 96%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 22px #d5a25b18!important;
+}
+.app.home-active:has(#home:not(.hidden)) .app-topbar .brand{font-size:20px!important}
+.app:has(#food:not(.hidden)) .decision-brand,
+.app:has(#restaurant:not(.hidden)) .decision-brand,
+#winner .winner-brand{justify-self:center!important}
+
+/* CP802 — wheel is all meals, no labels; first tap spins continuously,
+   second tap triggers a long automatic deceleration. */
+.hungry-wheel-ring svg{
+  transform:rotate(var(--wheel-rotation,0deg))!important;
+  transition:none!important;
+  overflow:visible!important;
+}
+.hungry-wheel-ring svg.is-continuous{transition:none!important}
+.hungry-wheel-ring svg.is-slowing{
+  transition:transform 2.85s cubic-bezier(.06,.69,.12,1)!important;
+}
+.wheel-label{display:none!important}
+.wheel-segment{vector-effect:non-scaling-stroke}
+.wheel-segment.is-landed{filter:drop-shadow(0 0 10px rgba(198,164,106,.82))}
+.hungry-wheel-pointer{z-index:8!important}
+.hungry-wheel-panel.has-landed .hungry-wheel-pointer{
+  filter:drop-shadow(0 0 7px rgba(198,164,106,.85)) drop-shadow(0 3px 5px rgba(0,0,0,.55))!important;
+}
+#celebration .firework-burst span{filter:drop-shadow(0 0 5px rgba(198,164,106,.65))!important}
+
+/* CP802 — Home layer and nav must not be hidden by legacy :has() rules. */
+.app:has(#home:not(.hidden)) .home-background-layer{display:block!important}
