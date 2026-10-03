@@ -6037,3 +6037,24 @@ button,input,select,textarea{
   white-space:nowrap!important;
   text-shadow:0 0 10px rgba(85,216,138,.18)!important;
 }
+
+/* CP782 — lock the global Menu drawer back to fixed viewport positioning.
+   CP776's Home direct-child layering rule must never turn the drawer into flow content. */
+.app:has(#home:not(.hidden)) > #drawer{
+  position:fixed!important;
+  top:0!important;
+  right:0!important;
+  left:auto!important;
+  bottom:auto!important;
+  z-index:70!important;
+  height:100dvh!important;
+  transform:translateX(104%)!important;
+}
+.app:has(#home:not(.hidden)) > #drawer.is-open{
+  transform:translateX(0)!important;
+}
+.app:has(#home:not(.hidden)) > #drawerBg{
+  position:fixed!important;
+  inset:0!important;
+  z-index:60!important;
+}
