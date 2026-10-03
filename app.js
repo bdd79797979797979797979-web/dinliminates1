@@ -248,6 +248,191 @@ const removeAllById = (id) => document.querySelectorAll('#'+id).forEach(el => el
 const removeFoodOverlays = () => ['manageFoodsModal','manageFoodsModalBg','foodEditorModal','foodEditorModalBg'].forEach(removeAllById);
 const uniq = (a) => [...new Map((a || []).filter(Boolean).map(x => [String(x.id || x.name), x])).values()];
 const allFoods = () => [...getDefaultFoods(), ...S.custom.map(x=>({...x,quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}))];
+const FAMILY_STORAGE_KEY='dinliminate.family.session.v1';
+const FAMILY_MAX_MEMBERS=8;
+const FAMILY_POLL_MS=2500;
+const F={
+  screen:'entry',
+  familyId:'',
+  participantToken:'',
+  participantId:'',
+  nickname:'',
+  familyName:'',
+  joinCode:'',
+  state:null,
+  formError:'',
+  busy:false,
+  pollTimer:null,
+  pollBusy:false,
+  view:'entry'
+};
+function loadFamilySession(){
+  try{
+    const raw=localStorage.getItem(FAMILY_STORAGE_KEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    F.familyId=String(d.familyId||'');
+    F.participantToken=String(d.participantToken||'');
+    F.participantId=String(d.participantId||'');
+    F.nickname=String(d.nickname||'');
+    F.familyName=String(d.familyName||'');
+    F.joinCode=String(d.joinCode||'');
+    return !!(F.familyId&&F.participantToken);
+  }catch{return false}
+}
+function saveFamilySession(){
+  try{
+    localStorage.setItem(FAMILY_STORAGE_KEY,JSON.stringify({
+      familyId:F.familyId,participantToken:F.participantToken,participantId:F.participantId,
+      nickname:F.nickname,familyName:F.familyName,joinCode:F.joinCode
+    }));
+    return true;
+  }catch{return false;}
+}
+function clearFamilySession(){
+  try{localStorage.removeItem(FAMILY_STORAGE_KEY);}catch{}
+  F.familyId='';F.participantToken='';F.participantId='';F.nickname='';F.familyName='';F.joinCode='';F.state=null;stopFamilyPolling();
+}
+function familyCodeDisplay(code){
+  const c=String(code||'').replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,6);
+  return c.length===6?c.slice(0,3)+' · '+c.slice(3):c;
+}
+async function familyRequest(action,payload={}){
+  const headers={'Content-Type':'application/json','Accept':'application/json'};
+  if(F.participantToken)headers['x-family-token']=F.participantToken;
+  const response=await fetch('./api/family',{method:'POST',headers,body:JSON.stringify({action,...payload})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+    const err=new Error(String(data.error||'Family Mode could not complete that action.'));
+    err.status=response.status;
+    throw err;
+  }
+  return data.result||data.state||data;
+}
+async function refreshFamilyState(){
+  if(!F.familyId||!F.participantToken)return null;
+  const headers={'Accept':'application/json','x-family-token':F.participantToken};
+  const response=await fetch('./api/family?familyId='+encodeURIComponent(F.familyId),{headers,cache:'no-store'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+    const err=new Error(String(data.error||'Could not refresh Family Mode.'));
+    err.status=response.status;
+    throw err;
+  }
+  F.state=data.state||null;
+  if(F.state?.family){
+    F.familyName=String(F.state.family.familyName||F.familyName||'');
+    F.joinCode=String(F.state.family.joinCode||F.joinCode||'');
+    saveFamilySession();
+  }
+  return F.state;
+}
+function startFamilyPolling(){
+  stopFamilyPolling();
+  if(!F.familyId||!F.participantToken)return;
+  F.pollTimer=window.setInterval(async()=>{
+    if(F.pollBusy||document.hidden||S.screen!=='family')return;
+    F.pollBusy=true;
+    try{await refreshFamilyState();renderFamily();}catch{}finally{F.pollBusy=false;}
+  },FAMILY_POLL_MS);
+}
+function stopFamilyPolling(){
+  if(F.pollTimer){clearInterval(F.pollTimer);F.pollTimer=null;}
+}
+function familyEntryView(){
+  const el=$('familyView');if(!el)return;
+  el.innerHTML='<div class="family-hero"><p class="family-kicker">DECIDE TOGETHER</p><h1>Family Mode</h1><p>Bring everyone into one simple dinner decision. Create a family or join one with a code.</p><div class="family-choice-grid"><button class="family-choice" id="familyCreateBtn"><strong>Create</strong><span>Start a new family.</span></button><button class="family-choice" id="familyJoinBtn"><strong>Join</strong><span>Enter a family code.</span></button></div></div>';
+  $('familyCreateBtn').onclick=()=>{F.view='create';F.formError='';renderFamily();};
+  $('familyJoinBtn').onclick=()=>{F.view='join';F.formError='';renderFamily();};
+}
+function familyFormView(mode){
+  const isCreate=mode==='create';
+  const title=isCreate?'Create':'Join';
+  const subtitle=isCreate?'Start a reusable family room.':'Enter the code someone shared with you.';
+  const nameLabel='Your name';
+  const form=isCreate
+    ? '<div class="family-field"><label for="familyNickname">Your name</label><input id="familyNickname" maxlength="40" autocomplete="name" placeholder="Brian"></div><div class="family-field"><label for="familyNameInput">Family name <span style="color:#555">(optional)</span></label><input id="familyNameInput" maxlength="80" autocomplete="organization" placeholder="Dunn Family"></div>'
+    : '<div class="family-field"><label for="familyCodeInput">Family code</label><input class="family-code-input" id="familyCodeInput" maxlength="8" autocomplete="off" placeholder="K7P · 4Q2" inputmode="text"></div><div class="family-field"><label for="familyNickname">Your name</label><input id="familyNickname" maxlength="40" autocomplete="name" placeholder="Devona"></div>';
+  const action=isCreate?'Create':'Join';
+  $('familyView').innerHTML='<div class="family-hero"><button class="family-back-link" id="familyFormBack">‹ Family Mode</button><p class="family-kicker">'+title.toUpperCase()+'</p><h1>'+title+'</h1><p>'+subtitle+'</p><form class="family-form" id="familyForm">'+form+'<div class="family-error" id="familyFormError">'+esc(F.formError||'')+'</div><button class="family-primary" type="submit">'+action+'</button></form></div>';
+  if(!isCreate){
+    const code=$('familyCodeInput');
+    code.addEventListener('input',()=>{code.value=code.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
+  }
+  $('familyFormBack').onclick=()=>{F.view='entry';F.formError='';renderFamily();};
+  $('familyForm').onsubmit=async e=>{
+    e.preventDefault();
+    if(F.busy)return;
+    F.busy=true;F.formError='';renderFamily();
+    try{
+      const nickname=String($('familyNickname')?.value||'').trim();
+      if(!nickname){F.formError='Enter your name.';throw new Error(F.formError);}
+      if(isCreate){
+        const familyName=String($('familyNameInput')?.value||'').trim();
+        const result=await familyRequest('create',{nickname,familyName});
+        Object.assign(F,{familyId:String(result.familyId),participantToken:String(result.participantToken),participantId:String(result.participantId),nickname,familyName:String(result.familyName||familyName||''),joinCode:String(result.joinCode||'')});
+      }else{
+        const code=String($('familyCodeInput')?.value||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+        if(code.length!==6){F.formError='Enter the 6-character family code.';throw new Error(F.formError);}
+        const result=await familyRequest('join',{code,nickname});
+        Object.assign(F,{familyId:String(result.familyId),participantToken:String(result.participantToken),participantId:String(result.participantId),nickname,familyName:String(result.familyName||''),joinCode:String(result.joinCode||code)});
+      }
+      saveFamilySession();
+      await refreshFamilyState();
+      F.view='lobby';startFamilyPolling();renderFamily();
+    }catch(err){
+      F.formError=err?.message||'Could not connect to that family.';
+      renderFamily();
+    }finally{F.busy=false;}
+  };
+  if(!isCreate)$('familyCodeInput')?.focus();else $('familyNickname')?.focus();
+}
+function familyLobbyView(){
+  const state=F.state;
+  if(!state?.family){F.view='entry';return familyEntryView();}
+  const members=Array.isArray(state.members)?state.members:[];
+  const hostId=String(state.family.currentHostId||'');
+  const isHost=hostId===String(state.me?.participantId||F.participantId);
+  const rows=members.map(m=>{
+    const ready=m.participantId===String(state.me?.participantId||F.participantId);
+    return '<div class="family-member"><span class="family-member-name">'+esc(m.nickname||'Member')+'</span><span class="family-member-state '+(ready?'ready':'')+'">'+(ready?'You':'Joined')+'</span></div>';
+  }).join('');
+  $('familyView').innerHTML='<div class="family-hero" style="padding-top:5vh"><p class="family-kicker">FAMILY MODE</p><div class="family-lobby-card"><div class="family-lobby-kicker">FAMILY</div><h1 class="family-lobby-title">'+esc(state.family.familyName||'Family')+'</h1><div class="family-lobby-code">'+esc(familyCodeDisplay(state.family.joinCode))+'</div><div class="family-share"><button class="family-primary" id="familyShareCode">Share Code</button><button class="family-secondary" id="familyCopyCode">Copy Code</button></div><div class="family-members">'+rows+'</div><div class="family-meta">'+members.length+' of '+FAMILY_MAX_MEMBERS+' member'+(members.length===1?'':'s')+' joined.</div>'+(isHost?'<button class="family-primary" id="familyStartDecision" style="margin-top:16px">Start Dinner Decision</button>':'<div class="family-waiting">Waiting for the host to start the dinner decision.</div>')+'<div class="family-host-note">The host will choose Meals or Restaurants and set the dinner time before the family begins.</div><button class="family-leave" id="familyLeave">Leave Family</button></div></div>';
+  $('familyShareCode').onclick=async()=>{
+    const text='Join my Dinliminate Family '+(state.family.familyName?'"'+state.family.familyName+'" ':'')+'with code '+familyCodeDisplay(state.family.joinCode)+'.';
+    if(navigator.share){try{await navigator.share({title:'Dinliminate Family',text});return;}catch(err){if(err?.name==='AbortError')return;}}
+    try{await navigator.clipboard.writeText(text);appToast('Family invite copied.');}catch{appToast('Family code: '+familyCodeDisplay(state.family.joinCode));}
+  };
+  $('familyCopyCode').onclick=async()=>{
+    try{await navigator.clipboard.writeText(String(state.family.joinCode||''));appToast('Family code copied.');}catch{appToast('Family code: '+familyCodeDisplay(state.family.joinCode));}
+  };
+  $('familyLeave').onclick=async()=>{
+    const ok=await appConfirm('Leave this family?','You can rejoin with the family code later.','Leave');
+    if(!ok)return;
+    clearFamilySession();F.view='entry';renderFamily();
+  };
+  if(isHost)$('familyStartDecision').onclick=()=>{appToast('Host setup is next.');};
+}
+function renderFamily(){
+  const screen=$('family');
+  if(!screen)return;
+  if(F.busy){
+    $('familyView').innerHTML='<div class="family-loading">Connecting…</div>';
+    return;
+  }
+  if(F.view==='create'||F.view==='join')return familyFormView(F.view);
+  if(F.view==='lobby')return familyLobbyView();
+  return familyEntryView();
+}
+function openFamilyMode(){
+  loadFamilySession();
+  if(F.familyId&&F.participantToken){
+    F.view='lobby';
+    refreshFamilyState().catch(()=>{}).finally(()=>renderFamily());
+    startFamilyPolling();
+  }else{F.view='entry';renderFamily();}
+  show('family');
+}
 const STORAGE_VERSION = 4;
 const PHOTO_DB_NAME = 'dinliminate.photos';
 const PHOTO_STORE = 'images';
@@ -380,7 +565,7 @@ document.querySelectorAll('.screen').forEach(x => x.classList.add('hidden'));
 $(screen)?.classList.remove('hidden');
 S.screen = screen;
 $('globalBack')?.classList.add('hidden');
-$('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant');
+$('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant' || screen === 'family');
 window.scrollTo?.(0,0);
 }
 function closeOverlays() {
@@ -2231,6 +2416,9 @@ save();
 home();
 }
 $('foodStart').onclick = startFood;
+$('familyMode').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); openFamilyMode(); };
+$('familyBackTop')?.addEventListener('click',home);
+$('familyMenu')?.addEventListener('click',openDrawer);
 $('restStart').onclick = openRestaurant;
 ['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
 ['#restStart .home-card-overlay','#restStart .home-card-copy','#restStart .arrow','#restStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();openRestaurant();},{capture:true});});
