@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 838,
-  "sourceBranch": "cp837-final-deploy",
+  "build": 839,
+  "sourceBranch": "cp839-meal-times-all-default",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP838",
-  "deploymentTrigger": "CP838-add-meal-theme-visuals-2026-10-03"
+  "checkpoint": "CP839",
+  "deploymentTrigger": "CP839-meal-times-all-default-2026-10-03"
 }
