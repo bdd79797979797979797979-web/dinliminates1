@@ -6518,7 +6518,7 @@ button,input,select,textarea{
   padding:0 14px!important;
   background-image:
     linear-gradient(180deg,rgba(8,7,6,.34),rgba(8,7,6,.54)),
-    url('./home-background.jpg')!important;
+    url('/api/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1758568938040-fb8b7275ca5f%3Fauto%3Dformat%26fit%3Dcrop%26fm%3Djpg%26q%3D72%26w%3D2400')!important;
   background-size:cover,cover!important;
   background-position:center,center!important;
   background-repeat:no-repeat,no-repeat!important;
