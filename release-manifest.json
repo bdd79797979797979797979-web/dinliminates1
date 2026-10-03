@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 777,
-  "sourceBranch": "cp776-launch-full-pexels-home-background",
+  "build": 778,
+  "sourceBranch": "cp778-luxury-gold-wordmark",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP777",
-  "deploymentTrigger": "CP777-meals-all-maybes-wiring-2026-10-02"
+  "checkpoint": "CP778",
+  "deploymentTrigger": "CP778-luxury-gold-wordmark-2026-10-02"
 }
