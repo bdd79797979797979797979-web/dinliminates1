@@ -7787,3 +7787,5 @@ button,input,select,textarea{
     gap:6px!important;
   }
 }
+
+/* CP841 release trigger — preserve final synchronized header CSS. */
