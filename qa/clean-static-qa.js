@@ -12,10 +12,10 @@ const sw=fs.readFileSync('sw.js','utf8');
 
 new vm.Script(foodsSource); new vm.Script(app); new vm.Script(api); new vm.Script(fs.readFileSync('api/image.js','utf8').replace('export default async function handler','async function handler')); new vm.Script(fs.readFileSync('api/restaurant-photo.js','utf8'));
 
-assert.equal(release.build,775,'Current release must be Build 774');
-assert.equal(release.checkpoint,'CP775','Current release checkpoint must be CP774');
-assert.equal(manifest.build,775,'Release manifest build must be 774');
-assert.equal(manifest.checkpoint,'CP775','Release manifest checkpoint must be CP774');
+assert.equal(release.build,775,'Current release must be Build 775');
+assert.equal(release.checkpoint,'CP775','Current release checkpoint must be CP775');
+assert.equal(manifest.build,775,'Release manifest build must be 775');
+assert.equal(manifest.checkpoint,'CP775','Release manifest checkpoint must be CP775');
 assert.equal(manifest.sourceBranch,release.sourceBranch,'Release manifest branch must match app-release');
 assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release endpoint must use app-release.json');
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
@@ -25,7 +25,7 @@ assert.ok(html.includes('<strong>DINE IN</strong><span>Reveal your meal</span>')
 assert.ok(html.includes('<strong>DINE OUT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
-assert.ok(html.includes('styles.css?v=774')&&html.includes('app.js?v=774'),'Frontend asset cache-busting must be v774');
+assert.ok(html.includes('styles.css?v=774')&&html.includes('app.js?v=774'),'Frontend asset cache-busting must be v775');
 assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursToggle"'),'Restaurant Search and Open/All controls must remain hidden for now');
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 
@@ -72,4 +72,4 @@ assert.ok(!html.includes('Pass Around')&&!app.includes('Pass Around')&&!app.incl
 assert.ok(!html.includes('All Cut')&&!html.includes('allCuts*='),'All Cut must remain absent');
 
 console.log('Dinliminate CP775 static QA: PASS');
-console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r25',swCache:'v674',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
+console.log(JSON.stringify({build:release.build,checkpoint:release.checkpoint,foods:foods.length,api:'r27',swCache:'v775',hiddenRestaurantSearch:true,hiddenOpenAll:true}));
