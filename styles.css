@@ -7658,3 +7658,103 @@ button,input,select,textarea{
   overflow:hidden!important;
   isolation:isolate!important;
 }
+
+
+/* CP838 — Meals controls and Meal Time editor use the same Add Meal visual language. */
+#food .food-quick-control{
+  color:#d7cec1!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.01em!important;
+}
+#food .food-quick-control.is-filtered{
+  color:#e2c17f!important;
+}
+#food .meal-time-quick .meal-time-chip{
+  min-height:36px!important;
+  height:36px!important;
+  padding:0 11px!important;
+  border:1px solid #302c27!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#191816,#121211)!important;
+  color:#d7cec1!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.02em!important;
+  text-transform:none!important;
+  transition:transform .14s ease,border-color .18s ease,box-shadow .18s ease,color .18s ease,background .18s ease!important;
+}
+#food .meal-time-quick .meal-time-chip:hover{
+  border-color:#4b412f!important;
+  color:#eee5d7!important;
+}
+#food .meal-time-quick .meal-time-chip:active{
+  transform:translateY(1px) scale(.985)!important;
+}
+#food .meal-time-quick .meal-time-chip.is-active{
+  border-color:#806943!important;
+  background:linear-gradient(145deg,#242018,#15130f)!important;
+  color:#e2c17f!important;
+  box-shadow:inset 0 0 0 1px #c6a46a33,0 5px 14px rgba(0,0,0,.24)!important;
+}
+#foodEditorForm .meal-time-editor{
+  border:1px solid #332f2a!important;
+  border-radius:16px!important;
+  padding:10px!important;
+  background:#11100f!important;
+}
+#foodEditorForm .meal-time-editor legend{
+  padding:0 6px!important;
+  color:#9f978c!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+}
+#foodEditorForm .meal-time-editor .meal-category-helper{
+  margin:1px 2px 8px!important;
+  color:#817a71!important;
+  font-size:8.5px!important;
+  line-height:1.45!important;
+}
+#foodEditorForm .meal-time-editor-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+#foodEditorForm .meal-time-option{
+  display:flex!important;
+  align-items:center!important;
+  min-height:48px!important;
+  padding:7px 8px!important;
+  border:1px solid #3a342b!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#191816,#121211)!important;
+  color:#d7cec1!important;
+  box-shadow:none!important;
+  transition:transform .14s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease,color .18s ease!important;
+}
+#foodEditorForm .meal-time-option:hover{
+  border-color:#4b412f!important;
+}
+#foodEditorForm .meal-time-option:active{
+  transform:translateY(1px) scale(.99)!important;
+}
+#foodEditorForm .meal-time-option:has(input:checked){
+  border-color:#806943!important;
+  background:linear-gradient(145deg,#242018,#15130f)!important;
+  color:#e2c17f!important;
+  box-shadow:inset 0 0 0 1px #c6a46a33,0 5px 14px rgba(0,0,0,.24)!important;
+}
+#foodEditorForm .meal-time-option span{
+  color:inherit!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+}
+@media(max-width:390px){
+  #food .meal-time-quick .meal-time-chip{min-height:34px!important;height:34px!important;padding:0 9px!important;font-size:8.5px!important}
+  #foodEditorForm .meal-time-editor-grid{grid-template-columns:1fr!important;gap:6px!important}
+  #foodEditorForm .meal-time-option{min-height:44px!important}
+}
