@@ -1,0 +1,46 @@
+name: Dinliminate Family CP807 Audit
+
+on:
+  push:
+    branches:
+      - cp807-audit-family-foundation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  family-foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependency
+        run: npm install --no-audit --no-fund
+
+      - name: Validate package JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+
+      - name: Validate Family API syntax
+        run: node --check api/family.js
+
+      - name: Validate Family store syntax
+        run: node --check api/family-store.js
+
+      - name: Validate existing app syntax
+        run: node --check app.js
+
+      - name: Validate schema structure
+        run: |
+          test "$(grep -c '^create table if not exists family_' data/family-mode-schema.sql)" -eq 5
+          grep -q "create table if not exists family_round_members" data/family-mode-schema.sql
+          grep -q "create table if not exists family_votes" data/family-mode-schema.sql
+          grep -q "create table if not exists family_events" data/family-mode-schema.sql
+          echo "Family schema structure OK"
