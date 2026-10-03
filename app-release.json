@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 786,
-  "sourceBranch": "cp786-launch-home-luxury-polish",
-  "checkpoint": "CP786",
-  "deploymentTrigger": "CP786-home-luxury-polish-2026-10-03"
+  "build": 829,
+  "sourceBranch": "cp829-meal-multi-photo-final",
+  "checkpoint": "CP829",
+  "deploymentTrigger": "CP829-meal-multi-photo-2026-10-03"
 }
