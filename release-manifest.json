@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 839,
-  "sourceBranch": "cp839-meal-times-all-default",
+  "build": 840,
+  "sourceBranch": "cp840-door-background-canonical",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP839",
-  "deploymentTrigger": "CP839-meal-times-all-default-2026-10-03"
+  "checkpoint": "CP840",
+  "deploymentTrigger": "CP840-canonical-door-background-2026-10-03"
 }
