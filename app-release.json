@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 775,
-  "sourceBranch": "cp775-legacy-wiring-fireworks",
-  "checkpoint": "CP775",
-  "deploymentTrigger": "CP774-selected-premium-polish-2026-10-02"
+  "build": 776,
+  "sourceBranch": "cp776-full-pexels-home-background",
+  "checkpoint": "CP776",
+  "deploymentTrigger": "CP776-full-pexels-home-background-2026-10-02"
 }
