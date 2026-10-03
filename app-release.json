@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 837,
+  "build": 838,
   "sourceBranch": "cp837-final-deploy",
-  "checkpoint": "CP837",
-  "deploymentTrigger": "CP837-final-cuisine-cuts-meal-times-order-2026-10-03"
+  "checkpoint": "CP838",
+  "deploymentTrigger": "CP838-add-meal-theme-visuals-2026-10-03"
 }
