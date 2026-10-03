@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const DATABASE_URL = String(process.env.FAMILY_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim();
 const MAX_FAMILY_SIZE = 8;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const FAMILY_INACTIVITY_MS = 30 * 24 * 60 * 60 * 1000;
 
 function db() {
   if (!DATABASE_URL) {
@@ -154,6 +155,9 @@ async function joinFamily(codeValue, nameValue) {
   const familyRows = await sql.query('select * from family_rooms where join_code=$1 limit 1', [joinCode]);
   const family = familyRows[0];
   if (!family) fail('FAMILY_NOT_FOUND', 'That Family code was not found.', 404);
+  if (Number(family.member_count || 0) === 0 && Date.now() - new Date(family.last_activity_at).getTime() > FAMILY_INACTIVITY_MS) {
+    fail('FAMILY_EXPIRED', 'That Family has expired. Create a new Family.', 410);
+  }
 
   const claimed = await sql.query(
     'update family_rooms set member_count=member_count+1, updated_at=now(), last_activity_at=now() where family_id=$1 and member_count < $2 returning *',
