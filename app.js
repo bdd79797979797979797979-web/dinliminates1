@@ -5,16 +5,6 @@
 const getDefaultFoods = () => Array.isArray(window.DINLIMINATE_FOODS) ? window.DINLIMINATE_FOODS : [];
 const DEFAULT_FOOD_IMAGE = 'https://images.pexels.com/photos/16365767/pexels-photo-16365767.jpeg?auto=compress&cs=tinysrgb&w=1800';
 const $ = (id) => document.getElementById(id);
-function loadBundledHomeBackground(){
-  fetch('./home-background.b64',{cache:'force-cache'})
-    .then(r=>r.ok?r.text():'')
-    .then(b64=>{
-      const clean=String(b64||'').trim();
-      if(clean)document.documentElement.style.setProperty('--home-bg-image','url("data:image/jpeg;base64,'+clean+'")');
-    })
-    .catch(()=>{});
-}
-loadBundledHomeBackground();
 const KEY = 'dinliminate.clean.cp1';
 const HISTORY_KEY = 'dinliminate.clean.history';
 const APP_VERSION = '1.0';
@@ -88,6 +78,11 @@ hungryWheelSpinning:false,
 hungryWheelRotation:0,
 hungryWheelDisplayItems:null,
 hungryWheelLandedId:null,
+hungryWheelSpinPhase:'idle',
+hungryWheelVelocity:0,
+hungryWheelFrame:null,
+hungryWheelLastFrame:0,
+
 hungryWheelDragging:false,
 hungryWheelDragAngle:0,
 hungryWheelDragRotation:0,
@@ -107,6 +102,23 @@ function imageProxyUrl(raw){
  const src=String(raw||'');
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
  try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
+}
+const HOME_DOOR_IMAGE='https://images.pexels.com/photos/6162883/pexels-photo-6162883.jpeg?auto=compress&cs=tinysrgb&w=1800';
+const HOME_DOOR_PROXY=imageProxyUrl(HOME_DOOR_IMAGE);
+function bindPersistentHomeBackground(){
+ const img=$('homeBackgroundImage');
+ if(!img||img.dataset.bound)return;
+ img.dataset.bound='true';
+ img.src=HOME_DOOR_PROXY;
+ img.dataset.fallback=HOME_DOOR_IMAGE;
+ img.referrerPolicy='no-referrer';
+ img.loading='eager';
+ img.fetchPriority='high';
+ img.decoding='async';
+ img.addEventListener('error',()=>{
+   const fallback=img.dataset.fallback||HOME_DOOR_IMAGE;
+   if(img.src!==fallback){img.src=fallback;}
+ });
 }
 function foodPhoto(item){
 if(!item)return HUNGRY_IMAGE;
@@ -2200,39 +2212,28 @@ function renderHungryWheel(){
  const svg=$('hungryWheel');
  const countEl=$('hungryWheelCount');
  if(!svg)return;
- const activeItems=allFoods().filter(item=>!S.hidden.has(String(item.id)));
- const basePool=activeItems.length?activeItems:allFoods();
- let items=Array.isArray(S.hungryWheelDisplayItems)
-   ? S.hungryWheelDisplayItems.map(item=>basePool.find(x=>String(x.id)===String(item?.id))).filter(Boolean)
-   : [];
- if(items.length<Math.min(12,basePool.length)){
-   items=sampleHungryWheel(basePool,S.hungryWheelChoice,12);
-   S.hungryWheelDisplayItems=items;
- }
- const pool=items.length?items:basePool.slice(0,12);
- if(countEl)countEl.textContent=basePool.length+' meals available · '+pool.length+' on the wheel';
+ const basePool=hungryWheelPool();
+ const pool=basePool.length?basePool:allFoods();
+ S.hungryWheelDisplayItems=pool;
+ if(countEl)countEl.textContent=pool.length+' meals on the wheel';
  const cx=180,cy=180,r=168,inner=35,step=360/Math.max(1,pool.length);
- const fills=['#171716','#27323a','#3d3324','#eee7d8','#20272d','#4a3b27','#191918','#30404a','#5a482b','#ded5c3','#222a2e','#6a5530'];
- svg.setAttribute('aria-label','Second-chance dinner wheel with '+basePool.length+' available meals');
+ const fills=['#171716','#26333b','#4a3a25','#d9cdb7','#20282d','#5a4426','#191918','#31414a','#745b31','#c9bea9','#242c30','#846736'];
+ svg.setAttribute('aria-label','Dinner wheel with '+pool.length+' meals');
  svg.innerHTML=pool.map((item,index)=>{
-   const start=-90+index*step, end=start+step-.28;
+   const start=-90+index*step, end=start+step-.08;
    const p1=wheelPoint(cx,cy,r,start),p2=wheelPoint(cx,cy,r,end);
    const q1=wheelPoint(cx,cy,inner,end),q2=wheelPoint(cx,cy,inner,start);
    const d='M '+p1.x.toFixed(2)+' '+p1.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+p2.x.toFixed(2)+' '+p2.y.toFixed(2)+' L '+q1.x.toFixed(2)+' '+q1.y.toFixed(2)+' A '+inner+' '+inner+' 0 0 0 '+q2.x.toFixed(2)+' '+q2.y.toFixed(2)+' Z';
    const landed=String(S.hungryWheelLandedId||'')===String(item.id);
    const fill=landed?'#c6a46a':fills[index%fills.length];
-   const textColor=['#eee7d8','#20272d','#191918'].includes(fill)?'#111':'#f5f1e8';
-   const escaped=esc(item.name||'Meal');
-   const mid=start+step/2, label=esc(String(item.name||'Meal').length>18?String(item.name||'Meal').slice(0,17)+'…':String(item.name||'Meal'));
-   const lp=wheelPoint(cx,cy,118,mid);
-   return '<path class="wheel-segment'+(landed?' is-landed':'')+'" data-wheel-index="'+index+'" d="'+d+'" fill="'+fill+'" stroke="#0b0b0b" stroke-width="1.4"><title>'+escaped+'</title></path>'+
-          '<text class="wheel-label" x="'+lp.x.toFixed(2)+'" y="'+lp.y.toFixed(2)+'" fill="'+textColor+'" transform="rotate('+(mid+90).toFixed(2)+' '+lp.x.toFixed(2)+' '+lp.y.toFixed(2)+')" text-anchor="middle" dominant-baseline="middle">'+label+'</text>';
+   return '<path class="wheel-segment'+(landed?' is-landed':'')+'" data-wheel-index="'+index+'" d="'+d+'" fill="'+fill+'" stroke="#0b0b0b" stroke-width="1.15"><title>Meal choice</title></path>';
  }).join('')+
  '<circle class="wheel-center" cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.7"/>'+
  '<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
- svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
  svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
+ svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
 }
+
 function hungryWheelPool(){
 const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
 return active.length?active:allFoods();
@@ -2361,125 +2362,90 @@ function tryAnotherHungryRestaurant(){
  }
  if(!next)appToast('No other restaurant options are available.');
 }
-function wheelSegmentIndexForRotation(rotation,count){
- const step=360/Math.max(1,count);
- const local=(((-rotation)%360)+360)%360;
- return ((Math.round(local/step-0.5)%count)+count)%count;
-}
 function finishHungryWheelRotation(item,rotation){
  const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
  S.hungryWheelRotation=rotation;
  S.hungryWheelChoice=item||null;
  S.hungryWheelLandedId=item?.id?String(item.id):null;
  S.hungryWheelSpinning=false;
+ S.hungryWheelSpinPhase='idle';
+ if(S.hungryWheelFrame){cancelAnimationFrame(S.hungryWheelFrame);S.hungryWheelFrame=null;}
  if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
- svg?.style.setProperty('--wheel-resting-rotation',rotation+'deg');
- svg?.style.setProperty('--wheel-rotation',rotation+'deg');
- svg?.classList.remove('is-spinning','is-dragging');
+ svg?.classList.remove('is-spinning','is-continuous','is-slowing');
+ if(svg){
+   svg.style.setProperty('--wheel-rotation',rotation+'deg');
+   svg.style.setProperty('--wheel-resting-rotation',rotation+'deg');
+ }
  showHungryWheelResult(item);
  renderHungryWheel();
+ triggerCelebration(true);
  triggerSwipeHaptic();
 }
-function spinHungryWheel(){
- const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
- if(!svg||S.hungryWheelSpinning||S.hungryWheelDragging)return;
+
+function startContinuousWheelSpin(){
+ const svg=$('hungryWheel');
+ if(!svg||S.hungryWheelSpinning)return;
  const pool=hungryWheelPool();
  if(!pool.length){appToast('There are no meals available to spin.');return;}
+ S.hungryWheelDisplayItems=pool;
+ S.hungryWheelSpinning=true;
+ S.hungryWheelSpinPhase='spinning';
+ S.hungryWheelWheelStartAt=performance.now();
+ S.hungryWheelVelocity=420;
+ S.hungryWheelLandedId=null;
+ S.hungryWheelChoice=null;
+ $('hungryWheelResult')?.classList.add('hidden');
+ $('hungryWheelChoose')?.classList.add('hidden');
+ $('hungryWheelPanel')?.classList.remove('has-landed');
+ const spin=$('hungryWheelSpin');
+ if(spin){spin.disabled=false;spin.textContent='Slow It Down';spin.setAttribute('aria-busy','true');}
+ svg.classList.remove('is-slowing');
+ svg.classList.add('is-continuous');
+ const frame=(now)=>{
+   if(!S.hungryWheelSpinning||S.hungryWheelSpinPhase!=='spinning')return;
+   const dt=Math.min(40,Math.max(0,now-(S.hungryWheelLastFrame||now)));
+   S.hungryWheelLastFrame=now;
+   S.hungryWheelRotation+=S.hungryWheelVelocity*(dt/1000);
+   svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
+   S.hungryWheelFrame=requestAnimationFrame(frame);
+ };
+ S.hungryWheelLastFrame=performance.now();
+ S.hungryWheelFrame=requestAnimationFrame(frame);
+}
+
+function slowAndStopHungryWheel(){
+ const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ if(!svg||!S.hungryWheelSpinning||S.hungryWheelSpinPhase!=='spinning')return;
+ const pool=Array.isArray(S.hungryWheelDisplayItems)&&S.hungryWheelDisplayItems.length?S.hungryWheelDisplayItems:hungryWheelPool();
+ if(!pool.length){S.hungryWheelSpinning=false;return;}
  const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
- const item=Number.isInteger(forced)&&forced>=0&&forced<pool.length?pool[forced]:pool[Math.floor(Math.random()*pool.length)];
- const display=sampleHungryWheel(pool,item,12);
- S.hungryWheelDisplayItems=display;
- const selectedIndex=Math.max(0,display.findIndex(x=>String(x.id)===String(item.id)));
- renderHungryWheel();
- const step=360/Math.max(1,display.length);
- const targetBase=-(selectedIndex*step+step/2);
+ const idx=Number.isInteger(forced)&&forced>=0&&forced<pool.length
+   ? forced
+   : Math.floor(Math.random()*pool.length);
+ const item=pool[idx];
+ const step=360/pool.length;
+ const targetBase=-(idx*step+step/2);
  const current=S.hungryWheelRotation;
- const turns=4+Math.floor(Math.random()*2);
- const target=targetBase+360*Math.round((current-targetBase)/360)+360*turns;
- const spinToken=++S.hungryWheelSpinToken;
+ const target=targetBase+360*Math.ceil((current-targetBase+720)/360);
+ const token=++S.hungryWheelSpinToken;
+ S.hungryWheelSpinPhase='slowing';
+ if(S.hungryWheelFrame){cancelAnimationFrame(S.hungryWheelFrame);S.hungryWheelFrame=null;}
  S.hungryWheelChoice=item;
  S.hungryWheelSpinning=true;
- S.hungryWheelLandedId=null;
- if(spin){spin.disabled=true;spin.setAttribute('aria-busy','true');spin.textContent='Spinning…';}
- $('hungryWheelChoose')?.classList.add('hidden');
- $('hungryWheelResult')?.classList.add('hidden');
- $('hungryWheelPanel')?.classList.remove('has-landed');
- svg.style.setProperty('--wheel-resting-rotation',current+'deg');
+ if(spin){spin.disabled=true;spin.textContent='Slowing…';}
+ svg.classList.remove('is-continuous');
+ svg.classList.add('is-slowing');
  svg.style.setProperty('--wheel-rotation',target+'deg');
- svg.classList.remove('is-spinning');
- void svg.offsetWidth;
- svg.classList.add('is-spinning');
- const finish=()=>{
-   if(spinToken!==S.hungryWheelSpinToken)return;
-   finishHungryWheelRotation(item,target);
- };
+ const finish=()=>{if(token!==S.hungryWheelSpinToken)return;finishHungryWheelRotation(item,target);};
  svg.addEventListener('transitionend',finish,{once:true});
- window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
+ window.setTimeout(()=>{if(S.hungryWheelSpinning&&S.hungryWheelSpinPhase==='slowing')finish();},3400);
 }
-function wheelAngleFromEvent(event,stage){
- const r=stage.getBoundingClientRect();
- return Math.atan2(event.clientY-(r.top+r.height/2),event.clientX-(r.left+r.width/2))*180/Math.PI;
-}
-function wheelDelta(a,b){let d=a-b;while(d>180)d-=360;while(d<-180)d+=360;return d;}
-function bindHungryWheelGesture(){
- const stage=document.querySelector('.hungry-wheel-stage'),svg=$('hungryWheel');
- if(!stage||!svg||stage.dataset.gestureBound)return;
- stage.dataset.gestureBound='true';
- stage.addEventListener('pointerdown',event=>{
-   if(S.hungryWheelSpinning)return;
-   event.preventDefault();
-   stage.setPointerCapture?.(event.pointerId);
-   S.hungryWheelDragging=true;
-   S.hungryWheelDragAngle=wheelAngleFromEvent(event,stage);
-   S.hungryWheelDragRotation=S.hungryWheelRotation;
-   S.hungryWheelDragLastTime=performance.now();
-   S.hungryWheelDragVelocity=0;
-   svg.classList.add('is-dragging');
-   $('hungryWheelChoose')?.classList.add('hidden');
-   $('hungryWheelResult')?.classList.add('hidden');
-   S.hungryWheelLandedId=null;
- });
- stage.addEventListener('pointermove',event=>{
-   if(!S.hungryWheelDragging)return;
-   event.preventDefault();
-   const now=performance.now(),angle=wheelAngleFromEvent(event,stage),delta=wheelDelta(angle,S.hungryWheelDragAngle),dt=Math.max(8,now-S.hungryWheelDragLastTime);
-   S.hungryWheelDragAngle=angle;
-   S.hungryWheelDragRotation+=delta;
-   S.hungryWheelRotation=S.hungryWheelDragRotation;
-   S.hungryWheelDragVelocity=(delta/dt)*1000;
-   S.hungryWheelDragLastTime=now;
-   svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
-   svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
- });
- const end=event=>{
-   if(!S.hungryWheelDragging)return;
-   event.preventDefault();
-   S.hungryWheelDragging=false;
-   stage.releasePointerCapture?.(event.pointerId);
-   const display=Array.isArray(S.hungryWheelDisplayItems)&&S.hungryWheelDisplayItems.length?S.hungryWheelDisplayItems:hungryWheelPool().slice(0,12);
-   if(!display.length){svg.classList.remove('is-dragging');return;}
-   const velocity=Math.max(-900,Math.min(900,S.hungryWheelDragVelocity));
-   const momentum=Math.max(-900,Math.min(900,velocity*0.22));
-   const raw=S.hungryWheelRotation+momentum+(Math.abs(momentum)<90?(velocity>=0?8:-8):0);
-   const idx=wheelSegmentIndexForRotation(raw,display.length);
-   const step=360/display.length,targetBase=-(idx*step+step/2);
-   const target=targetBase+360*Math.round((raw-targetBase)/360);
-   const item=display[idx];
-   const token=++S.hungryWheelSpinToken;
-   S.hungryWheelChoice=item;
-   S.hungryWheelSpinning=true;
-   S.hungryWheelLandedId=null;
-   svg.classList.remove('is-dragging');
-   svg.style.setProperty('--wheel-rotation',target+'deg');
-   svg.classList.add('is-spinning');
-   $('hungryWheelSpin').disabled=true;
-   $('hungryWheelSpin').textContent='Settling…';
-   const finish=()=>{if(token!==S.hungryWheelSpinToken)return;finishHungryWheelRotation(item,target);};
-   svg.addEventListener('transitionend',finish,{once:true});
-   window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},2600);
- };
- stage.addEventListener('pointerup',end);
- stage.addEventListener('pointercancel',end);
+
+function spinHungryWheel(){
+ const spin=$('hungryWheelSpin');
+ if(S.hungryWheelSpinPhase==='spinning'){slowAndStopHungryWheel();return;}
+ if(S.hungryWheelSpinning)return;
+ startContinuousWheelSpin();
 }
 
 function winner(item, explicitType=null) {
@@ -2494,6 +2460,8 @@ S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
 S.hungryWheelDisplayItems=null;
 S.hungryWheelLandedId=null;
+S.hungryWheelSpinPhase='idle';
+S.hungryWheelVelocity=0;S.hungryWheelFrame=null;
 S.hungryRestaurantChoice=null;
 S.hungryRestaurantPendingChoice=null;
 S.hungryWheelSpinToken++;
@@ -2538,12 +2506,12 @@ if(hungry){
     startHungryRestaurantMystery();
   }else{
     renderHungryWheel();
-    bindHungryWheelGesture();
+
     $('hungryWheelPanel')?.classList.remove('has-landed');
     $('hungryWheelResult')?.classList.add('hidden');
     $('hungryWheelChoose')?.classList.add('hidden');
     const spinBtn=$('hungryWheelSpin');
-    if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';}
+    if(spinBtn){spinBtn.disabled=false;spinBtn.textContent='Spin the Wheel';spinBtn.setAttribute('aria-busy','false');}
   }
 }else{
   triggerCelebration(chosenFromWheel);
@@ -3503,6 +3471,8 @@ S.hungryWheelChoice=null;
 S.hungryWheelRotation=0;
 S.hungryWheelDisplayItems=null;
 S.hungryWheelLandedId=null;
+S.hungryWheelSpinPhase='idle';
+S.hungryWheelVelocity=0;S.hungryWheelFrame=null;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
@@ -3672,7 +3642,7 @@ $('hungryWheelSpin').onclick = (event) => {
  event?.stopPropagation?.();
  spinHungryWheel();
 };
-bindHungryWheelGesture();
+
 $('hungryWheelChoose').onclick = () => {
   const choice=S.hungryWheelChoice;
   if(!choice || S.hungryWheelSpinning)return;
@@ -3698,6 +3668,7 @@ updateOffline();
 bindHomeImageFallbacks();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel,hungryRestaurantPool,hungryRestaurantPick,renderHungryRestaurantMystery,revealHungryRestaurant};
+bindPersistentHomeBackground();
 load();
 renderLocationSource();
 renderFindButton();
