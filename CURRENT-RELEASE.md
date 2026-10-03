@@ -1,3 +1,12 @@
+## CP764 — separate Home DINE IN / DINE OUT windows — 2026-10-02
+- Restored a clearly visible gap and independent floating-window framing between DINE IN and DINE OUT.
+- Removed the click/press geometry scaling so tapping either window does not make the two windows visually collapse together.
+- Preserved the CP763 abstract brown-and-gold shared Home background.
+- Preserved the Home headline **Meal Decisions Simplified** and the removal of the Home swipe tagline.
+- Build/cache identity synchronized to CP764 / v764.
+- Recovery baseline: CP763 `cp763-luxury-abstract-home-background`.
+- Current branch: `cp764-home-windows-separated`.
+
 ## CP763 — abstract luxury Home background — 2026-10-02
 - Replaced only the shared Home background with an abstract flowing brown-and-gold luxury image.
 - The background is intentionally not a home, restaurant, dining room, or food photograph.
