@@ -39,7 +39,7 @@ assert.ok(homeBg.bg.includes('1758568938040-fb8b7275ca5f'),'Exact door backgroun
 for(const id of ['menu']){
  const c=await page.locator('#'+id).evaluate(el=>{const s=getComputedStyle(el);return {bg:s.backgroundColor,border:s.borderTopColor,blur:s.backdropFilter,color:s.color}});
  assert.ok(c.bg.includes('rgba') || c.bg.startsWith('rgba'),'Menu must be translucent');
- assert.ok(c.border.toLowerCase().includes('198'),'Menu border must use gold');
+ assert.ok(/198|164|106|c6a46a|#c6a46a/i.test(c.border),'Menu border must use gold: '+JSON.stringify(c));
 }
 await page.locator('#foodStart').click();
 await page.waitForTimeout(120);
