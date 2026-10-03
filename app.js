@@ -896,6 +896,7 @@ function maybeShowInCardSwipeCoach(){
  card.appendChild(coach);
 }
 function startFood() {
+S.quickCutsCollapsed={...(S.quickCutsCollapsed||{}),food:true};
 S.foodActions = [];
 S.maybe.clear();
 S.maybeDeck = false;
@@ -1933,6 +1934,7 @@ if(searchSeq===restaurantSearchSeq) setFindBusy(false);
 }
 }
 function openRestaurant() {
+S.quickCutsCollapsed={...(S.quickCutsCollapsed||{}),restaurant:true};
 renderRestaurantSearchControl();
 S.screen = 'restaurant';
 S.restaurantActions = [];
@@ -3453,10 +3455,22 @@ const homeActionHandler = (event) => {
  else if(action==='share') shareApp();
 };
 document.addEventListener('click', homeActionHandler, true);
-$('foodStart').onclick = startFood;
-$('restStart').onclick = openRestaurant;
-['#foodStart .home-card-overlay','#foodStart .home-card-copy','#foodStart .arrow','#foodStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();startFood();},{capture:true});});
-['#restStart .home-card-overlay','#restStart .home-card-copy','#restStart .arrow','#restStart .home-photo-img'].forEach(sel=>{const el=document.querySelector(sel);if(el)el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();openRestaurant();},{capture:true});});
+const bindHomeEntry=(id,handler)=>{
+  const el=$(id);if(!el)return;
+  let busy=false;
+  const fire=(event)=>{
+    if(busy)return;
+    if(event){event.preventDefault();event.stopPropagation();}
+    busy=true;
+    Promise.resolve(handler()).finally(()=>window.setTimeout(()=>{busy=false;},180));
+  };
+  el.addEventListener('click',fire,{capture:true});
+  el.addEventListener('pointerup',event=>{
+    if(event.pointerType==='touch'||event.pointerType==='pen')fire(event);
+  },{capture:true});
+};
+bindHomeEntry('foodStart',startFood);
+bindHomeEntry('restStart',openRestaurant);
 bindCardButton('foodCut',()=>foodCut());
 bindCardButton('foodMaybe',()=>foodMaybe());
 bindCardButton('foodBack',foodBack);
