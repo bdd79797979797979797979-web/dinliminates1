@@ -6420,3 +6420,61 @@ button,input,select,textarea{
   border-color:rgba(239,215,171,.82)!important;
   box-shadow:inset 0 1px 0 rgba(255,250,234,.18),0 5px 15px rgba(0,0,0,.38)!important;
 }
+
+
+/* CP792 — premium side-by-side home choices.
+   Two equal cards on phones and larger screens; preserve the existing visual treatment. */
+.luxury-home .home-actions{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch!important;
+  gap:10px!important;
+}
+.luxury-home .home-card-photo{
+  width:100%!important;
+  height:clamp(230px,34svh,310px)!important;
+  min-height:0!important;
+  border-radius:22px!important;
+  display:flex!important;
+  align-items:flex-end!important;
+}
+.luxury-home .home-card-photo .home-card-copy{
+  padding:0 13px 14px!important;
+}
+.luxury-home .home-card-photo .home-card-copy strong{
+  font-size:clamp(16px,4.7vw,22px)!important;
+  line-height:1.02!important;
+}
+.luxury-home .home-card-photo .home-card-copy>span{
+  font-size:8px!important;
+}
+.luxury-home .home-card-photo .arrow{
+  right:12px!important;
+  bottom:11px!important;
+  width:30px!important;
+  height:30px!important;
+}
+.luxury-home .home-card-photo.food-choice{
+  background-position:center 52%!important;
+}
+.luxury-home .home-card-photo.restaurant-choice{
+  background-position:center!important;
+}
+
+@media(max-width:390px){
+  .luxury-home .home-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    margin-top:15px!important;
+  }
+  .luxury-home .home-card-photo{
+    height:clamp(248px,33svh,276px)!important;
+    min-height:248px!important;
+    border-radius:19px!important;
+  }
+  .luxury-home .home-card-photo .home-card-copy{
+    padding:0 11px 12px!important;
+  }
+  .luxury-home .home-card-photo .home-card-copy strong{
+    font-size:18px!important;
+  }
+}
