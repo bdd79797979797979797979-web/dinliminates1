@@ -27,7 +27,7 @@ const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(String(e)));
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'networkidle'});
-assert.equal(errors.length,0,'CP802 Home must have no JS page errors');
+assert.equal(errors.length,0,'CP802 Home must have no JS page errors: '+errors.join(' | '));
 
 const homeBg=await page.evaluate(()=>{
  const app=document.querySelector('.app'), c=getComputedStyle(app);
