@@ -145,7 +145,7 @@ async function arcgisPlaces(lat,lon,radius,searchTerm='',timeout=7000){
 }
 
 const WIDE_PHOTON_RING_MILES=60;
-const WIDE_PHOTON_RING_POINTS=6;
+const WIDE_PHOTON_RING_POINTS=9;
 const WIDE_PHOTON_QUERY_TIMEOUT_MS=2800;
 function widePhotonCenters(lat,lon,radius){
  const ring=Math.min(WIDE_PHOTON_RING_MILES,Math.max(55,Number(radius)||100));
