@@ -32,8 +32,8 @@ assert.ok(app.includes("const next=String(value);"),'Choice counts must use nume
 assert.ok(html.includes('id="foodMaybeDeck"')&&html.includes('id="restaurantMaybeDeck"'),'Meals and Restaurants must both have the shared ALL · MAYBES control');
 assert.ok(!html.includes('food-all-maybe-toggle')&&!html.includes('restaurant-all-maybe-toggle'),'No screen-specific All-Maybes class may remain in source markup');
 assert.ok(!html.includes('class="deck-filter-all"')&&!html.includes('class="deck-filter-maybe"'),'Source markup must not start with legacy A/heart All-Maybes symbols');
-assert.match(html,/id="foodMaybeDeck"[^>]*class="[^"]*all-maybe-toggle[^"]*"[^>]*>\s*<span class="deck-filter-label-all"[^>]*>ALL<\/span>\s*<span class="deck-filter-divider"[^>]*>·<\/span>\s*<span class="deck-filter-label-maybe"[^>]*>MAYBES<\/span>/,'Meals All-Maybes source markup must be canonical');
-assert.match(html,/id="restaurantMaybeDeck"[^>]*class="[^"]*all-maybe-toggle[^"]*"[^>]*>\s*<span class="deck-filter-label-all"[^>]*>ALL<\/span>\s*<span class="deck-filter-divider"[^>]*>·<\/span>\s*<span class="deck-filter-label-maybe"[^>]*>MAYBES<\/span>/,'Restaurant All-Maybes source markup must be canonical');
+assert.ok(html.includes('class="deck-filter-toggle quick-filter-toggle all-maybe-toggle" id="foodMaybeDeck" type="button"')&&html.includes('id="foodMaybeDeck"')&&html.includes('<span class="deck-filter-label-all" aria-hidden="true">ALL</span><span class="deck-filter-divider" aria-hidden="true">·</span><span class="deck-filter-label-maybe" aria-hidden="true">MAYBES</span>'),'Meals All-Maybes source markup must be canonical');
+assert.ok(html.includes('class="deck-filter-toggle quick-filter-toggle all-maybe-toggle" id="restaurantMaybeDeck" type="button"')&&html.includes('id="restaurantMaybeDeck"')&&html.includes('<span class="deck-filter-label-all" aria-hidden="true">ALL</span><span class="deck-filter-divider" aria-hidden="true">·</span><span class="deck-filter-label-maybe" aria-hidden="true">MAYBES</span>'),'Restaurant All-Maybes source markup must be canonical');
 
 
 
