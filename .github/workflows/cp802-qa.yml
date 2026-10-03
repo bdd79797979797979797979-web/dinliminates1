@@ -1,0 +1,22 @@
+name: Dinliminate CP802 Door Menu Wheel QA
+
+on:
+  push:
+    branches: ['cp*-launch-*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cp802:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: node qa/cp802-smoke.mjs
