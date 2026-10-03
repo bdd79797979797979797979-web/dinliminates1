@@ -110,14 +110,14 @@ assert.equal(deckPos.restaurantTransform,'none','Restaurants ALL/MAYBES must not
 assert.equal(await page.locator('#home .sub').innerText(),'Swipe. Dinliminate. Enjoy.');
 assert.equal(await page.locator('#addToPhone').count(),1);
 assert.equal(await page.locator('#shareApp').count(),1);
-assert.equal(await page.locator('#foodStart').locator('strong').innerText(),'DINE IN');
+assert.equal(await page.locator('#foodStart').locator('strong').innerText(),'AT HOME');
 assert.equal(await page.locator('#foodStart .home-card-copy > span').innerText(),'Reveal your meal');
-assert.equal(await page.locator('#restStart').locator('strong').innerText(),'DINE OUT');
+assert.equal(await page.locator('#restStart').locator('strong').innerText(),'RESTAURANT');
 assert.equal(await page.locator('#restStart .home-card-copy > span').innerText(),'Reveal your restaurant');
 assert.equal(await page.locator('#homeFirstNudge').innerText(),'Swipe until it’s revealed.');
 assert.equal(await page.locator('#homeFirstNudge').isVisible(),true);
-assert.equal(await page.locator('#foodStart .home-card-copy strong').innerText(),'DINE IN');
-assert.equal(await page.locator('#restStart .home-card-copy strong').innerText(),'DINE OUT');
+assert.equal(await page.locator('#foodStart .home-card-copy strong').innerText(),'AT HOME');
+assert.equal(await page.locator('#restStart .home-card-copy strong').innerText(),'RESTAURANT');
 const ambient=await page.evaluate(()=>getComputedStyle(document.querySelector('.app'),'::after').animationDuration);
 assert.equal(ambient,'0s');
 const homeGeom=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,innerHeight}));
