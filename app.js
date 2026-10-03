@@ -3552,7 +3552,7 @@ const closeDrawer=()=>{
  const drawer=$('drawer'),bg=$('drawerBg');
  drawer?.classList.remove('is-open');
  bg?.classList.remove('is-open');
- ['#menu','#foodMenu','#restaurantMenu','#winnerMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','false'));
+ ['#menu','#foodMenu','#restaurantMenu','#winnerMenu','#familyMenu'].forEach(sel=>document.querySelector(sel)?.setAttribute('aria-expanded','false'));
  drawerCloseTimer=setTimeout(()=>{drawer?.classList.add('hidden');bg?.classList.add('hidden');},180);
 };
 const openDrawer=()=>{
