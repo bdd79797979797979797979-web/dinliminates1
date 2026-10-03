@@ -1,3 +1,18 @@
+# CURRENT RELEASE — BUILD 766 / CP766
+
+Date: 2026-10-02
+
+Current candidate branch: `cp766-premium-micro-polish-full`
+Recovery baseline: **CP765** `cp765-exact-cp755`
+Hosted test target: `dinliminate22`
+Status: candidate
+
+## CP766 — requested premium micro-polish verified
+- Starting source: exact CP755 reset from CP765.
+- Verified requested Quick Cuts sheen, in-card swipe lesson, tactile decision-button feedback, choice-count transition, Maybe glow, faster Details treatment, slow Home ambient light, whole-card Home interaction feedback, and one-time Home onboarding cue.
+- Verified the legacy floating `#swipeHint` implementation is absent.
+- No CP761–CP764 Home changes were merged into this checkpoint.
+
 # CURRENT RELEASE — BUILD 765 / CP765
 
 Date: 2026-10-02
