@@ -919,13 +919,14 @@ function renderMealTimeCuts(){
  toggle.setAttribute('aria-expanded',String(!collapsed));
  toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Time Cuts');
  toggle.title=collapsed?'Show Meal Time Cuts':'Hide Meal Time Cuts';
- toggle.classList.toggle('is-filtered',!!S.mealTimeFilter);
- toggle.setAttribute('aria-pressed',S.mealTimeFilter?'true':'false');
- chips.innerHTML=MEAL_TIME_CUTS.map(label=>'<button class="chip meal-time-chip'+(S.mealTimeFilter===label?' is-active':'')+'" data-meal-time="'+esc(label)+'" type="button" aria-pressed="'+(S.mealTimeFilter===label?'true':'false')+'">'+esc(label)+'</button>').join('');
+ const filtered=!!S.mealTimeFilters?.size;
+ toggle.classList.toggle('is-filtered',filtered);
+ toggle.setAttribute('aria-pressed',filtered?'true':'false');
+ chips.innerHTML=MEAL_TIME_CUTS.map(label=>'<button class="chip meal-time-chip'+(S.mealTimeFilters?.has(label)?' is-active':'')+'" data-meal-time="'+esc(label)+'" type="button" aria-pressed="'+(S.mealTimeFilters?.has(label)?'true':'false')+'">'+esc(label)+'</button>').join('');
  chips.querySelectorAll('[data-meal-time]').forEach(btn=>{
   btn.onclick=()=>{
    const label=btn.dataset.mealTime;
-   S.mealTimeFilter=S.mealTimeFilter===label?null:label;
+   if(S.mealTimeFilters.has(label))S.mealTimeFilters.delete(label);else S.mealTimeFilters.add(label);
    S.index=0;
    buildFood();
    renderMealTimeCuts();
@@ -2973,13 +2974,13 @@ const managerWasOpen = !!$('manageFoodsModal');
 if(managerWasOpen){ $('manageFoodsModal')?.remove(); $('manageFoodsModalBg')?.remove(); }
 const cats=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).map(x=>String(x.name||'').trim()).filter(Boolean)];
 const existingCuts=Array.isArray(item?.quickCuts)&&item.quickCuts.length ? [...item.quickCuts] : [item?.category||'American'];
-const existingMealTime=mealTimeFor(item);
+const existingMealTimes=new Set(mealTimesFor(item));
 const nut=item?.nutrition||{};
 const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n'):'';
 const descriptionText=String(item?.description||'').trim();
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
-'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. The Custom box creates a reusable cuisine or Quick Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Time</legend><p class="meal-category-helper">Choose when this meal belongs in the decision deck. Every meal has one Meal Time.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="radio" name="editMealTime" value="'+esc(label)+'" '+(existingMealTime===label?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. The Custom box creates a reusable cuisine or Quick Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Time</legend><p class="meal-category-helper">Choose when this meal belongs in the decision deck. Every meal has one Meal Time.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="checkbox" name="editMealTime" value="'+esc(label)+'" '+(existingMealTimes.has(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
 '<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
 '<label>Calories<input id="editFoodCalories" type="number" required min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
 '<label>Protein<input id="editFoodProtein" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
@@ -3058,8 +3059,8 @@ if(data){ $('editFoodPhoto').value=data; appToast('New photo selected. Save the 
 $('foodEditorForm').onsubmit=async e=>{
 e.preventDefault();
 const name=$('editFoodName').value.trim();
-const mealTime=String(document.querySelector('input[name="editMealTime"]:checked')?.value||'').trim();
-if(!MEAL_TIME_CUTS.includes(mealTime)){appToast('Choose a Meal Time.');return;}
+const mealTimes=[...document.querySelectorAll('input[name="editMealTime"]:checked')].map(x=>String(x.value||'').trim()).filter(x=>MEAL_TIME_CUTS.includes(x));
+if(!mealTimes.length){appToast('Choose at least one Meal Time.');return;}
 let quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value);
 if(!quickCuts.length){appToast('Choose at least one cuisine or Quick Cut.');return;}
 const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0];
@@ -3108,7 +3109,7 @@ if(photo.startsWith('data:image/')){
 }else if(String(photo).startsWith('idb:')){
  /* Existing device photo is intentionally preserved when no new upload was chosen. */
 }
-const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,mealTime,image:photo,description,ingredients,recipe,nutrition};
+const updated={...defaultItem,...(previous||{}),builtInEdit:true,builtInId:id,id,name,primary:defaultItem.primary,category:cat,quickCuts,mealTimes,image:photo,description,ingredients,recipe,nutrition};
 if(idx>=0)S.custom[idx]=updated;else S.custom.push(updated);
 S.maybe.delete(id); S.hidden.delete(id);
 } else if(isEdit){
@@ -3118,7 +3119,7 @@ const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(id!==item.id && allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')){const ok=await putStoredPhoto(id,photo);if(!ok){appToast('Could not save that photo on this device.');return;}}
 if(id!==item.id&&String(photo).startsWith('idb:')){const oldPhoto=await getStoredPhoto(item.id);if(oldPhoto){const ok=await putStoredPhoto(id,oldPhoto);if(!ok){appToast('Could not move the saved photo.');return;}photo=oldPhoto;}}
-const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,mealTime,image:photo,description,ingredients,recipe,nutrition};
+const updated={...S.custom[idx],id,name,primary:S.custom[idx].primary,category:cat,quickCuts,mealTimes,image:photo,description,ingredients,recipe,nutrition};
 S.custom[idx]=updated;
 if(id!==item.id){ await deleteStoredPhoto(item.id); const oldNoteKey='food:'+item.id,newNoteKey='food:'+id; if(S.notes[oldNoteKey]){S.notes[newNoteKey]=S.notes[oldNoteKey];delete S.notes[oldNoteKey];saveItemNotes();} }
 S.maybe.delete(item.id); S.hidden.delete(item.id);
@@ -3126,7 +3127,7 @@ S.maybe.delete(item.id); S.hidden.delete(item.id);
 const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 if(allFoods().some(x=>x.id===id)){appToast('A meal with that name already exists.');return;}
 if(photo.startsWith('data:image/')) await putStoredPhoto(id,photo);
-const added={id,name,primary:id,category:cat,quickCuts,mealTime,image:photo,description,ingredients,recipe};
+const added={id,name,primary:id,category:cat,quickCuts,mealTimes,image:photo,description,ingredients,recipe};
 if(nutrition)added.nutrition=nutrition;
 S.custom.push(added);
 }
