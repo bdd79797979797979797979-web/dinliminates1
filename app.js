@@ -1077,7 +1077,27 @@ return String(d.display||'Current location');
 }catch{return null}
 finally{clearTimeout(timer);if(reverseLocationController===ctl)reverseLocationController=null;}
 }
-async function useLocation() {
+async function locationAccessFlow() {
+  if (!navigator.geolocation) {
+    $('status').textContent='Location is not available in this browser.';
+    return;
+  }
+  let permissionState='prompt';
+  try {
+    const permission=await navigator.permissions?.query({name:'geolocation'});
+    if(permission?.state) permissionState=permission.state;
+  } catch {}
+  if(permissionState!=='prompt') {
+    useLocation();
+    return;
+  }
+  const body='<div class="location-permission-copy"><div class="location-permission-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.2" fill="currentColor"/></svg></div><span class="location-permission-kicker">NEARBY DINING</span><h4>Know your location</h4><p>Use your location to find restaurants around you. Dinliminate uses it for the nearby search and does not require location access for meal decisions.</p><div class="location-permission-actions"><button class="secondary" id="locationNotNow" type="button">Not now</button><button class="cut" id="locationAllow" type="button">Allow</button></div></div>';
+  const modal=openModal('locationPermissionModal','Location',body);
+  modal.classList.add('location-permission-modal');
+  const closeModal=()=>modal.querySelector('[data-close]')?.click();
+  $('locationNotNow')?.addEventListener('click',closeModal);
+  $('locationAllow')?.addEventListener('click',()=>{closeModal();useLocation();});
+}\nasync function useLocation() {
 if (!navigator.geolocation) {
 $('status').textContent='Location is not available in this browser.';
 return;
@@ -2234,7 +2254,7 @@ $('backToStart').onclick = () => home();
 $('history').onclick = () => { $('drawer').classList.add('hidden'); $('drawerBg').classList.add('hidden'); historyView(); };
 $('shareApp').onclick = shareAndAddApp;
 $('locate').onclick = () => {
-  useLocation();
+  locationAccessFlow();
 };
 $('find').onclick = () => {
   searchRestaurants();
