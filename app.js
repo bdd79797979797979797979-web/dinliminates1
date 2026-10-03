@@ -95,7 +95,10 @@ schemaVersion:4,
 notes:{},
 restaurantSearchOrigin:null,
 restaurantSearchKey:'',
-quickCutsCollapsed:{food:true,restaurant:true}
+quickCutsCollapsed:{food:true,restaurant:true},
+mealPhotoVisits:{},
+foodPhotoItemId:'',
+foodPhotoIndex:0
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
@@ -142,6 +145,151 @@ function foodPhotoFallback(item){
 const groups=Array.isArray(item?.quickCuts)&&item.quickCuts.length?item.quickCuts:[item?.category];
 for(const label of groups){if(QUICK_IMAGES[label])return imageProxyUrl(QUICK_IMAGES[label]);if(customQuickCutByName(label)?.image)return customQuickCutImage(label);}
 return imageProxyUrl(QUICK_IMAGES.American);
+}
+
+const MAX_MEAL_PHOTOS = 5;
+function makeMealPhotoId(){
+ return 'meal-photo-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
+}
+function mealPhotoStorageKey(mealId,photoId){
+ return 'meal:'+String(mealId||'meal')+':'+String(photoId||makeMealPhotoId());
+}
+function normalizeMealPhotoObject(raw,index=0,item=null){
+ if(raw&&typeof raw==='object'&&raw.src!==undefined){
+   const crop=raw.crop&&typeof raw.crop==='object'?raw.crop:{};
+   return {
+     id:String(raw.id||('legacy-'+index)),
+     src:String(raw.src||''),
+     kind:String(raw.kind||((item?.builtInEdit&&index===0)?'curated':'personal')),
+     storageKey:String(raw.storageKey||''),
+     crop:{
+       x:Number.isFinite(Number(crop.x))?Math.max(0,Math.min(100,Number(crop.x))):50,
+       y:Number.isFinite(Number(crop.y))?Math.max(0,Math.min(100,Number(crop.y))):50,
+       zoom:Number.isFinite(Number(crop.zoom))?Math.max(1,Math.min(2.2,Number(crop.zoom))):1
+     }
+   };
+ }
+ const src=String(raw||'');
+ const legacyStorage=src.startsWith('idb:')?src.slice(4):'';
+ return {
+   id:index===0?'legacy-cover':'legacy-'+index,
+   src,
+   kind:(item?.builtInEdit&&index===0)?'curated':'personal',
+   storageKey:legacyStorage,
+   crop:{x:50,y:50,zoom:1}
+ };
+}
+function mealPhotoList(item){
+ if(!item)return [];
+ const raw=Array.isArray(item.photos)&&item.photos.length?item.photos:
+   (item.image?[item.image]:[]);
+ return raw.map((p,i)=>normalizeMealPhotoObject(p,i,item))
+   .filter(p=>p.src)
+   .slice(0,MAX_MEAL_PHOTOS);
+}
+function mealCoverPhoto(item){
+ return mealPhotoList(item)[0]||null;
+}
+function mealPhotoStyle(photo){
+ const p=normalizeMealPhotoObject(photo);
+ return {
+   objectPosition:String(p.crop?.x??50)+'% '+String(p.crop?.y??50)+'%',
+   transform:'scale('+String(p.crop?.zoom??1)+')'
+ };
+}
+function applyMealPhotoStyle(img,photo){
+ if(!img)return;
+ const style=mealPhotoStyle(photo);
+ img.style.objectPosition=style.objectPosition;
+ img.style.transform=style.transform;
+ img.style.transformOrigin='center center';
+}
+function selectedMealCardPhoto(item){
+ const photos=mealPhotoList(item);
+ if(!photos.length)return {photo:null,index:0};
+ const key=String(item.id||item.name||'');
+ if(S.foodPhotoItemId!==key){
+   S.foodPhotoItemId=key;
+   const visits=Math.max(0,Number(S.mealPhotoVisits?.[key]||0));
+   S.mealPhotoVisits[key]=visits+1;
+   S.foodPhotoIndex=photos.length>1&&visits>0 ? visits%photos.length : 0;
+ }else if(S.foodPhotoIndex>=photos.length){
+   S.foodPhotoIndex=0;
+ }
+ return {photo:photos[S.foodPhotoIndex]||photos[0],index:S.foodPhotoIndex};
+}
+function selectMealPhoto(item,index){
+ const photos=mealPhotoList(item); if(!photos.length)return null;
+ S.foodPhotoItemId=String(item.id||item.name||'');
+ S.foodPhotoIndex=Math.max(0,Math.min(Number(index)||0,photos.length-1));
+ return photos[S.foodPhotoIndex]||photos[0];
+}
+async function persistMealPhotoCollection(photos,mealId,previousMealId=''){
+ const out=[];
+ for(const raw of Array.isArray(photos)?photos:[]){
+   const photo=normalizeMealPhotoObject(raw,out.length);
+   if(!photo.src)continue;
+   const src=String(photo.src);
+   if(src.startsWith('data:image/')){
+     const nextKey=mealPhotoStorageKey(mealId,photo.id);
+     if(photo.storageKey!==nextKey){
+       const ok=await putStoredPhoto(nextKey,src);
+       if(!ok)throw new Error('Could not save a meal photo on this device.');
+       if(photo.storageKey)await deleteStoredPhoto(photo.storageKey);
+       photo.storageKey=nextKey;
+     }else if(!storedPhotoIds.has(nextKey)){
+       const ok=await putStoredPhoto(nextKey,src);
+       if(!ok)throw new Error('Could not save a meal photo on this device.');
+     }
+   }
+   out.push(photo);
+   if(out.length>=MAX_MEAL_PHOTOS)break;
+ }
+ return out;
+}
+function serializeMealRecord(item){
+ const photos=mealPhotoList(item).map(photo=>{
+   const p=normalizeMealPhotoObject(photo);
+   const src=String(p.src||'');
+   if(src.startsWith('data:image/')){
+     const key=p.storageKey||mealPhotoStorageKey(item.id,p.id);
+     if(storedPhotoIds.has(key)){p.src='idb:'+key;p.storageKey=key;}
+   }
+   return p;
+ }).filter(p=>p.src).slice(0,MAX_MEAL_PHOTOS);
+ return {...item,photos,image:photos[0]?.src||item.image||DEFAULT_FOOD_IMAGE};
+}
+async function hydrateMealPhotoCollection(item){
+ if(!item||typeof item!=='object')return false;
+ const photos=mealPhotoList(item),out=[]; let changed=false;
+ for(const raw of photos){
+   const p=normalizeMealPhotoObject(raw,out.length,item);
+   const src=String(p.src||'');
+   if(src.startsWith('idb:')){
+     const key=src.slice(4);
+     const data=await getStoredPhoto(key);
+     if(data){p.src=data;p.storageKey=key;storedPhotoIds.add(key);changed=true;}
+     else {changed=true;continue;}
+   }
+   out.push(p);
+ }
+ if(!out.length&&item.image&&!String(item.image).startsWith('idb:')){
+   out.push(normalizeMealPhotoObject({id:'recovered-cover',src:String(item.image),kind:item.builtInEdit?'curated':'personal'},0,item));
+ }
+ if(out.length){
+   item.photos=out.slice(0,MAX_MEAL_PHOTOS);
+   item.image=item.photos[0].src;
+ }else if(item.image) {
+   item.image=DEFAULT_FOOD_IMAGE;
+   item.photos=[];
+ }
+ return changed;
+}
+function persistEditorPhoto(photo){
+ const p=normalizeMealPhotoObject(photo);
+ if(!p.id)p.id=makeMealPhotoId();
+ p.crop=p.crop||{x:50,y:50,zoom:1};
+ return p;
 }
 const KNOWN_RESTAURANT_WEBSITES={
   "mcdonald's":'https://www.mcdonalds.com',"taco bell":'https://www.tacobell.com',"wendy's":'https://www.wendys.com',"the thirsty goat":'https://www.thirstygoatsango.com',"sweet p's":'https://sweetpssouthernstyle.com',"sweet p's southern style":'https://sweetpssouthernstyle.com',"gray smoke barbecue":'https://graysmokebarbecue.com/',"gray smoke":'https://graysmokebarbecue.com/',"gray's smoke":'https://graysmokebarbecue.com/',"cap's neighborhood bar & grill":'https://capssangogrill.com/',"caps neighborhood bar & grill":'https://capssangogrill.com/',"caps neighborhood bar and grill":'https://capssangogrill.com/',"cap’s neighborhood bar & grill":'https://capssangogrill.com/',"burger king":'https://www.bk.com',"kfc":'https://www.kfc.com',"chick fil a":'https://www.chick-fil-a.com',"popeyes":'https://www.popeyes.com',"subway":'https://www.subway.com',"sonic":'https://www.sonicdrivein.com',"arby's":'https://www.arbys.com',"whataburger":'https://whataburger.com',"five guys":'https://www.fiveguys.com',"culver's":'https://www.culvers.com',"raising cane's":'https://www.raisingcanes.com',"wingstop":'https://www.wingstop.com',"bojangles":'https://www.bojangles.com',"cook out":'https://www.cookout.com',"dairy queen":'https://www.dairyqueen.com',"zaxby's":'https://www.zaxbys.com',"church's chicken":'https://www.churchs.com',"captain d's":'https://www.captainds.com',"long john silver's":'https://www.ljsilvers.com',"jimmy john's":'https://www.jimmyjohns.com',"jersey mike's":'https://www.jerseymikes.com',"firehouse subs":'https://www.firehousesubs.com',"little caesars":'https://littlecaesars.com',"domino's":'https://www.dominos.com',"papa john's":'https://www.papajohns.com',"pizza hut":'https://www.pizzahut.com',"marco's pizza":'https://www.marcos.com',"krystal":'https://www.krystal.com',"steak 'n shake":'https://www.steaknshake.com',"white castle":'https://www.whitecastle.com',"freddy's":'https://www.freddys.com',"panda express":'https://www.pandaexpress.com',"jack in the box":'https://www.jackinthebox.com',"hardee's":'https://www.hardees.com',"del taco":'https://www.deltaco.com',"checkers":'https://www.checkers.com',"rally's":'https://www.rallys.com',"chipotle":'https://www.chipotle.com',"applebee's":'https://www.applebees.com',"chili's":'https://www.chilis.com',"olive garden":'https://www.olivegarden.com',"waffle house":'https://www.wafflehouse.com'
@@ -580,7 +728,7 @@ const allFoods = () => {
  const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))&&!deletedIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American']}));
  return merged.concat(customOnly);
 };
-const STORAGE_VERSION = 5;
+const STORAGE_VERSION = 6;
 const ITEM_NOTES_KEY = 'dinliminate.item.notes.v1';
 function loadItemNotes(){
  try{
@@ -654,11 +802,7 @@ await new Promise((resolve,reject)=>{const tx=db.transaction(PHOTO_STORE,'readwr
 async function hydrateCustomPhotos() {
 let changed=false;
 for (const item of S.custom) {
-if (String(item.image||'').startsWith('idb:')) {
-const data=await getStoredPhoto(item.id);
-if (data) { item.image=data; storedPhotoIds.add(item.id); changed=true; }
-else item.image=DEFAULT_FOOD_IMAGE;
-}
+ const did=await hydrateMealPhotoCollection(item); changed=did||changed;
 }
 for (const item of (S.customQuickCuts||[])) {
  const key='quickcut:'+String(item.id);
@@ -668,11 +812,9 @@ for (const item of (S.customQuickCuts||[])) {
  }
 }
 for (const item of (S.deletedCustomMeals||[])) {
- if(String(item.image||'').startsWith('idb:')){
-  const data=await getStoredPhoto(item.id);
-  if(data){item.image=data;storedPhotoIds.add(item.id);}else item.image=DEFAULT_FOOD_IMAGE;
- }
+ const did=await hydrateMealPhotoCollection(item); changed=did||changed;
 }
+if(changed)save();
 if(changed && S.screen==='food'){ buildFood(); foodQuick(); drawFood(); }
 }
 function updateStorageIndicator() {
@@ -681,11 +823,20 @@ el.classList.toggle('hidden', !S.storageWarning);
 }
 async function migrateCustomPhotos() {
 let changed=false;
-for(const item of S.custom){
-if(typeof item.image==='string' && item.image.startsWith('data:image/')){
-const ok=await putStoredPhoto(item.id,item.image);
-if(ok){ item.image='idb:'+item.id; changed=true; }
-}
+for(const item of [...S.custom,...(S.deletedCustomMeals||[])]) {
+ const photos=mealPhotoList(item);
+ if(!photos.length&&item.image)photos.push(normalizeMealPhotoObject({id:'legacy-cover',src:item.image,kind:item.builtInEdit?'curated':'personal'},0,item));
+ const migrated=[];
+ for(const raw of photos){
+   const p=normalizeMealPhotoObject(raw,migrated.length,item);
+   if(String(p.src||'').startsWith('data:image/')){
+     const key=p.storageKey||mealPhotoStorageKey(item.id,p.id);
+     const ok=await putStoredPhoto(key,p.src);
+     if(ok){p.storageKey=key;changed=true;}
+   }
+   migrated.push(p);
+ }
+ if(migrated.length){item.photos=migrated.slice(0,MAX_MEAL_PHOTOS);item.image=item.photos[0].src;}
 }
 if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood(); } }
 }
@@ -699,7 +850,8 @@ restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
 restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant},
-custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image})),
+mealPhotoVisits:S.mealPhotoVisits||{},
+custom:S.custom.map(serializeMealRecord),
 customQuickCuts:(S.customQuickCuts||[]).map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has('quickcut:'+x.id))?'idb:quickcut:'+x.id:x.image}))
 };
 try {
@@ -752,6 +904,8 @@ S.restaurantSearchKey = String(d.restaurantSearchKey||'');
 S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
 S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
+S.mealPhotoVisits=(d.mealPhotoVisits&&typeof d.mealPhotoVisits==='object'&&!Array.isArray(d.mealPhotoVisits))?d.mealPhotoVisits:{};
+S.foodPhotoItemId='';S.foodPhotoIndex=0;
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
 S.schemaVersion = STORAGE_VERSION;
