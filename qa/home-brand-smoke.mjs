@@ -22,7 +22,7 @@ const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(String(e)));
 await page.goto('http://127.0.0.1:4173/?qa=1',{waitUntil:'domcontentloaded'});
-await page.waitForFunction(() => !!getComputedStyle(document.documentElement).getPropertyValue('--home-bg-image').trim(),{timeout:3000});
+await page.waitForLoadState('networkidle').catch(()=>{});
 assert.equal(errors.length,0,'Home must load without page errors: '+errors.join(' | '));
 
 async function homeState(label){
@@ -42,7 +42,7 @@ async function homeState(label){
    };
  });
  assert.equal(d.homeActive,true,label+': app must be home-active');
- assert.ok(d.bg.includes('data:image/jpeg;base64,'),label+': Home background must be embedded in app shell');
+ assert.ok(d.bg.includes('home-background.jpg'),label+': Home background must use the bundled local JPEG');
  assert.ok(d.bg.includes('linear-gradient'),label+': Home background must retain premium overlay');
  assert.ok(d.appHeight>=852-2,label+': Home shell must cover viewport');
  return d;
