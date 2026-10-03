@@ -1,8 +1,8 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 755,
-  "sourceBranch": "cp755-premium-micro-polish",
-  "checkpoint": "CP755",
-  "deploymentTrigger": "CP755-premium-micro-polish-2026-10-02"
+  "build": 765,
+  "sourceBranch": "cp765-exact-cp755",
+  "checkpoint": "CP765",
+  "deploymentTrigger": "CP765-exact-cp755-2026-10-02"
 }
