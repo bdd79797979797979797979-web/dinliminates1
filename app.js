@@ -3570,9 +3570,59 @@ $('settings').onclick = () => { closeDrawer(); window.setTimeout(()=>settingsVie
 $('backToStart').onclick = () => { closeDrawer(); window.setTimeout(()=>home(),190); };
 $('history').onclick = () => { closeDrawer(); window.setTimeout(()=>historyView(),190); };
 
+async function locationPermissionState(){
+  try{
+    const permission = await navigator.permissions?.query?.({name:'geolocation'});
+    return permission?.state || 'unknown';
+  }catch{
+    return 'unknown';
+  }
+}
+function closeLocationPermissionSheet(){
+  const modal=$('locationPermissionModal'),bg=$('locationPermissionBg');
+  modal?.classList.add('hidden');
+  bg?.classList.add('hidden');
+  modal?.setAttribute('aria-hidden','true');
+}
+function openLocationPermissionSheet(state='prompt'){
+  const modal=$('locationPermissionModal'),bg=$('locationPermissionBg'),title=$('locationPermissionTitle'),copy=$('locationPermissionText'),allow=$('locationPermissionAllow');
+  if(!modal||!bg)return;
+  if(state==='denied'){
+    if(title)title.textContent='Location access is off';
+    if(copy)copy.textContent='Turn on Location for this site in your browser settings, then come back and tap Use My Location again.';
+    if(allow)allow.textContent='Try Again';
+  }else{
+    if(title)title.textContent='Know your location';
+    if(copy)copy.textContent='Use your location to find restaurants around you. Dinliminate uses it only to set your search area.';
+    if(allow)allow.textContent='Allow Location';
+  }
+  modal.classList.remove('hidden');
+  bg.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>allow?.focus());
+}
+async function requestLocationFromPrompt(){
+  const state=await locationPermissionState();
+  if(state==='granted'){
+    useLocation();
+    return;
+  }
+  if(state==='denied'){
+    openLocationPermissionSheet('denied');
+    return;
+  }
+  openLocationPermissionSheet('prompt');
+}
 $('locate').onclick = () => {
-  useLocation();
+  requestLocationFromPrompt();
 };
+$('locationPermissionCancel')?.addEventListener('click',closeLocationPermissionSheet);
+$('locationPermissionBg')?.addEventListener('click',closeLocationPermissionSheet);
+$('locationPermissionAllow')?.addEventListener('click',async()=>{
+  closeLocationPermissionSheet();
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+  useLocation();
+});
 $('find').onclick = () => {
   searchRestaurants();
 };
