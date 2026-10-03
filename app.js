@@ -3901,6 +3901,7 @@ S.hungryWheelLandedId=null;
 S.hungryWheelSpinPhase='idle';
 S.hungryWheelVelocity=0;S.hungryWheelFrame=null;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
+S.foodPhotoItemId='';S.foodPhotoIndex=0;
 S.maybe.clear(); S.foodMaybeRound=false; S.cutCats.clear(); S.foodCuts.clear(); S.restaurantCuts.clear(); S.restaurantMaybeRound=false;
 S.pool=[]; S.restaurantPool=[]; S.restaurantSearchOrigin=null; S.index=0; S.restaurantIndex=0; S.saved=false;
 try{localStorage.removeItem(KEY);}catch{}
@@ -3928,6 +3929,7 @@ if(!await appConfirm('Restore built-in defaults?','This returns every built-in m
  const builtInOverrides=S.custom.filter(x=>defaultIds.has(String(x.id)));
  for(const item of builtInOverrides){
   if(String(item.image||'').startsWith('idb:')){await deleteStoredPhoto(item.id);storedPhotoIds.delete(item.id);}
+  await cleanupMealPhotoStorage(mealPhotoList(item),[]);
  }
  S.custom=S.custom.filter(x=>!defaultIds.has(String(x.id)));
  S.deleted.clear();
@@ -4395,11 +4397,21 @@ function familyDinnerTargetIso(value){
   if(d.getTime()<=Date.now()+120000)d.setDate(d.getDate()+1);
   return d.toISOString();
 }
+function familyShareableMealImage(item){
+ const src=String(item?.image||item?.photo||'').trim();
+ if(/^https:\/\//i.test(src))return src;
+ if(familySetupType==='food'){
+   const curated=getDefaultFoods().find(x=>String(x?.id)===String(item?.id));
+   if(curated?.image)return String(curated.image);
+   return foodPhotoFallback(item);
+ }
+ return restaurantFallbackImage(item);
+}
 function familyBuildSnapshot(){
   const items=familySetupItems();
   const pool=items.map(item=>({
     id:String(item.id), name:String(item.name||''), category:String(item.category||''), cuisine:String(item.cuisine||''),
-    image:/^https:\/\//i.test(String(item.image||item.photo||''))?String(item.image||item.photo||''):((familySetupType==='food')?foodPhotoFallback(item):restaurantFallbackImage(item)), address:String(item.address||''), website:String(item.website||''), phone:String(item.phone||''),
+    image:familyShareableMealImage(item), address:String(item.address||''), website:String(item.website||''), phone:String(item.phone||''),
     distance:Number.isFinite(Number(item.distance))?Number(item.distance):null
   })).filter(item=>item.id&&item.name);
   return {
