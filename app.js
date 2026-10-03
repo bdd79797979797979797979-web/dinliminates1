@@ -382,8 +382,7 @@ function familyFormView(mode){
       F.view='lobby';startFamilyPolling();renderFamily();
     }catch(err){
       F.formError=err?.message||'Could not connect to that family.';
-      renderFamily();
-    }finally{F.busy=false;}
+    }finally{F.busy=false;renderFamily();}
   };
   if(!isCreate)$('familyCodeInput')?.focus();else $('familyNickname')?.focus();
 }
