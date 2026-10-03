@@ -6508,3 +6508,41 @@ button,input,select,textarea{
 @keyframes wheelResultIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
 .hungry-wheel-actions .cut{box-shadow:0 10px 28px #c6a46a2a}
 #celebration .firework-burst span{filter:drop-shadow(0 0 4px #c6a46a)}
+
+/* CP801 — Home background must be owned by the persistent app shell, not the
+   Home section. This avoids legacy transparent-background overrides when
+   navigating back from Meals/Restaurants/Winner. */
+.app.home-active{
+  min-height:100svh!important;
+  width:100%!important;
+  padding:0 14px!important;
+  background:
+    linear-gradient(180deg,rgba(8,7,6,.34),rgba(8,7,6,.54)),
+    url("data:image/jpeg;base64,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")!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-attachment:scroll!important;
+}
+.app.home-active #home{background:transparent!important}
+.app:not(.home-active){background-image:none!important}
+
+/* CP801 — one canonical Dinliminate wordmark across Home, Meals, Restaurants, and Winner. */
+.app-topbar .brand,
+.decision-brand,
+.winner-brand{
+  display:block!important;
+  text-align:center!important;
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  background:linear-gradient(115deg,#fff8e8 8%,#e7c98f 42%,#e28a4f 70%,#fff2d5 96%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 22px #d5a25b18!important;
+}
+.app-topbar .brand-mark{margin:0 auto!important}
+.app-topbar{justify-content:center!important}
+.decision-brand,.winner-brand{justify-self:center!important}
