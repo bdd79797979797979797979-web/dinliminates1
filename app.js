@@ -97,7 +97,7 @@ restaurantSearchOrigin:null,
 restaurantSearchKey:'',
 quickCutsCollapsed:{food:true,restaurant:true},
 mealTimeCutsCollapsed:true,
-mealTimeFilter:null
+mealTimeFilters:new Set()
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
@@ -577,9 +577,9 @@ const allFoods = () => {
  const merged=defaults.filter(item=>!deletedIds.has(String(item.id))).map(item=>{
   const override=overrides.get(String(item.id));
   if(!override)return item;
-  return Object.assign({},item,override,{builtInEdit:true,builtInId:String(item.id),quickCuts:Array.isArray(override.quickCuts)&&override.quickCuts.length?override.quickCuts:[override.category||item.category||'American'],mealTime:mealTimeFor(override)});
+  return Object.assign({},item,override,{builtInEdit:true,builtInId:String(item.id),quickCuts:Array.isArray(override.quickCuts)&&override.quickCuts.length?override.quickCuts:[override.category||item.category||'American'],mealTimes:mealTimesFor(override)});
  });
- const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))&&!deletedIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American'],mealTime:mealTimeFor(x)}));
+ const customOnly=S.custom.filter(x=>!defaultIds.has(String(x.id))&&!deletedIds.has(String(x.id))).map(x=>Object.assign({},x,{quickCuts:Array.isArray(x.quickCuts)&&x.quickCuts.length?x.quickCuts:[x.category||'American'],mealTimes:mealTimesFor(x)}));
  return merged.concat(customOnly);
 };
 const STORAGE_VERSION = 5;
@@ -700,7 +700,7 @@ restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
 saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
-restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant}, mealTimeCutsCollapsed:!!S.mealTimeCutsCollapsed, mealTimeFilter:S.mealTimeFilter||null,
+restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant}, mealTimeCutsCollapsed:!!S.mealTimeCutsCollapsed, mealTimeFilters:[...S.mealTimeFilters],
 custom:S.custom.map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has(x.id))?'idb:'+x.id:x.image})),
 customQuickCuts:(S.customQuickCuts||[]).map(x=>({...x,image:(String(x.image||'').startsWith('data:image/') && storedPhotoIds.has('quickcut:'+x.id))?'idb:quickcut:'+x.id:x.image}))
 };
@@ -755,7 +755,7 @@ S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
 S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
 S.mealTimeCutsCollapsed = Object.prototype.hasOwnProperty.call(d,'mealTimeCutsCollapsed') ? !!d.mealTimeCutsCollapsed : true;
-S.mealTimeFilter = MEAL_TIME_CUTS.includes(d.mealTimeFilter) ? d.mealTimeFilter : null;
+S.mealTimeFilters = new Set((Array.isArray(d.mealTimeFilters)?d.mealTimeFilters:(d.mealTimeFilter?[d.mealTimeFilter]:[])).filter(x=>MEAL_TIME_CUTS.includes(x)));
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
 S.schemaVersion = STORAGE_VERSION;
@@ -798,19 +798,21 @@ function maybeShowHomeNudge(){
  window.setTimeout(()=>nudge.remove(),4700);
 }
 const MEAL_TIME_CUTS=['Breakfast','Lunch / Dinner','Snacks / Desserts'];
-function mealTimeFor(item){
- const value=String(item?.mealTime||'').trim();
- if(MEAL_TIME_CUTS.includes(value)) return value;
+function mealTimesFor(item){
+ const raw=Array.isArray(item?.mealTimes)?item.mealTimes:(item?.mealTime?[item.mealTime]:[]);
+ const explicit=raw.map(x=>String(x||'').trim()).filter(x=>MEAL_TIME_CUTS.includes(x));
+ if(explicit.length)return [...new Set(explicit)];
  const category=String(item?.category||'').trim().toLowerCase();
  const cuts=(Array.isArray(item?.quickCuts)?item.quickCuts:[item?.category]).map(x=>String(x||'').trim().toLowerCase());
- if(category==='breakfast' || cuts.includes('breakfast')) return 'Breakfast';
- if(category==='snack' || category==='dessert' || category==='desserts' || cuts.some(x=>x==='snack'||x==='dessert'||x==='desserts')) return 'Snacks / Desserts';
- return 'Lunch / Dinner';
+ if(category==='breakfast' || cuts.includes('breakfast')) return ['Breakfast'];
+ if(category==='snack' || category==='dessert' || category==='desserts' || cuts.some(x=>x==='snack'||x==='dessert'||x==='desserts')) return ['Snacks / Desserts'];
+ return ['Lunch / Dinner'];
 }
+function mealTimeFor(item){ return mealTimesFor(item)[0]||'Lunch / Dinner'; }
 function foodBasePool(){
  return allFoods().filter(item=>{
   if(S.hidden.has(item.id)||S.foodCuts.has(item.id))return false;
-  if(S.mealTimeFilter && mealTimeFor(item)!==S.mealTimeFilter)return false;
+  if(S.mealTimeFilters?.size){const times=mealTimesFor(item);if(!times.some(t=>S.mealTimeFilters.has(t)))return false;}
   const cuts=Array.isArray(item.quickCuts)?item.quickCuts:[item.category];
   if([...S.cutCats].some(label=>cuts.includes(label)))return false;
   return true;
@@ -1005,6 +1007,7 @@ S.maybeDeck = false;
 S.foodMaybeRound = false;
 S.cutCats.clear();
 S.foodCuts.clear();
+S.mealTimeFilters.clear();
 S.index = 0;
 S.winnerItem = null;
 buildFood();
