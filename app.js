@@ -103,23 +103,6 @@ function imageProxyUrl(raw){
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
  try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
 }
-const HOME_DOOR_IMAGE='./home-background.jpg';
-const HOME_DOOR_PROXY=HOME_DOOR_IMAGE;
-function bindPersistentHomeBackground(){
- const img=$('homeBackgroundImage');
- if(!img||img.dataset.bound)return;
- img.dataset.bound='true';
- img.src=HOME_DOOR_PROXY;
- img.dataset.fallback=HOME_DOOR_IMAGE;
- img.referrerPolicy='no-referrer';
- img.loading='eager';
- img.fetchPriority='high';
- img.decoding='async';
- img.addEventListener('error',()=>{
-   const fallback=img.dataset.fallback||HOME_DOOR_IMAGE;
-   if(img.src!==fallback){img.src=fallback;}
- });
-}
 function foodPhoto(item){
 if(!item)return HUNGRY_IMAGE;
 const src=String(item.image||'');
@@ -3727,9 +3710,9 @@ window.addEventListener('online',()=>{if(S.screen==='restaurant')maybeAutoRefres
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.screen==='restaurant')maybeAutoRefreshRestaurantLocation();});
 updateOffline();
 bindHomeImageFallbacks();
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=823').catch(() => {}));
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=824').catch(() => {}));
 if(new URLSearchParams(location.search).get('qa')==='1') window.__DINLIMINATE_TEST__={safeExternalUrl,restaurantWebsiteUrl,knownRestaurantWebsite,restaurantPhoneSearchUrl,phoneHref,restaurantCategory,restaurantCuisineTags,restaurantCuisineEvidence,restaurantQuickMatches,restaurantMatchesQuery,normalizeRestaurantSearch,restaurantSearchTermMatches,dedupeRestaurantPool,restaurantNameSimilarityUI,restaurantNameCoreMatchUI,restaurantAddressSimilarityUI,restaurantFallbackImage,loadRestaurantPhoto,addressLooksComplete,locationMovedMiles,winner,recordHistory,hungryWheelPool,renderHungryWheel,spinHungryWheel,hungryRestaurantPool,hungryRestaurantPick,renderHungryRestaurantMystery,revealHungryRestaurant};
-bindPersistentHomeBackground();
+
 load();
 renderLocationSource();
 renderFindButton();
