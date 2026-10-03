@@ -804,7 +804,7 @@ function renderMaybeDeckToggle(kind){
  const btn=$(id);if(!btn)return;
  const hasMaybe=maybeDeckCount(kind)>0;
  btn.dataset.mode=S.maybeDeck?'maybe':'all';
- btn.disabled=!hasMaybe && !S.maybeDeck;
+ btn.disabled=S.maybeDeck && !hasMaybe;
  const target=S.maybeDeck?'Show all choices':'Show Maybe choices';
  btn.setAttribute('aria-label',S.maybeDeck?'Viewing Maybe choices. Tap to show all choices.':'Viewing all choices. Tap to show Maybe choices.');
  btn.setAttribute('aria-pressed',S.maybeDeck?'true':'false');
