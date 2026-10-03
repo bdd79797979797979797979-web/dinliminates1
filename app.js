@@ -881,6 +881,7 @@ function bindQuickCutsCollapse(kind){
   event.preventDefault();
   event.stopPropagation();
   S.quickCutsCollapsed = {...(S.quickCutsCollapsed||{food:false,restaurant:false}),[kind]:!S.quickCutsCollapsed?.[kind]};
+  if(kind==='restaurant' && !S.quickCutsCollapsed.restaurant) collapseRestaurantSearch(false);
   renderQuickCutsCollapse(kind);
   save();
  };
@@ -2089,19 +2090,16 @@ function scheduleRestaurantProviderSearch(){
  restaurantQueryTimer=setTimeout(()=>{searchRestaurants();},650);
 }
 function renderRestaurantSearchControl(){
- const btn=$('restaurantSearch');
+ const btn=$('restaurantSearchToggle');
  const box=$('restaurantSearchBox');
  if(!btn||!box)return;
  const isOpen=!box.classList.contains('hidden');
- const label=isOpen?'Close restaurant search':'Open restaurant search';
- btn.dataset.state=isOpen?'close':'open';
- btn.setAttribute('aria-label',label);
- btn.title=label;
- btn.innerHTML=isOpen
-  ? '<svg class="restaurant-search-icon restaurant-search-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Close restaurant search</span>'
-  : '<svg class="restaurant-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.2 15.2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr-only">Open restaurant search</span>';
+ btn.classList.toggle('is-open',isOpen);
+ btn.setAttribute('aria-expanded',String(isOpen));
+ btn.setAttribute('aria-label',isOpen?'Close Search':'Open Search');
+ btn.title=isOpen?'Close Search':'Open Search';
 }
-function closeRestaurantSearch(){
+function collapseRestaurantSearch(clear=false){
  clearTimeout(restaurantQueryTimer);
  restaurantQueryTimer=0;
  restaurantSearchSeq++;
@@ -2110,29 +2108,36 @@ function closeRestaurantSearch(){
  setFindBusy(false);
  const box=$('restaurantSearchBox');
  if(box)box.classList.add('hidden');
- const input=$('restaurantQuery');
- if(input)input.value='';
- S.restaurantQuery='';
- S.restaurantIndex=0;
+ if(clear){
+   const input=$('restaurantQuery');
+   if(input)input.value='';
+   S.restaurantQuery='';
+   S.restaurantIndex=0;
+ }
  renderRestaurantSearchControl();
+}
+function closeRestaurantSearch(){
+ collapseRestaurantSearch(true);
  drawRestaurants();
  save();
 }
 function bindRestaurantTools(){
- const restaurantSearchButton=$('restaurantSearch');
- if(restaurantSearchButton) restaurantSearchButton.onclick=()=>{
+ const searchButton=$('restaurantSearchToggle');
+ if(searchButton)searchButton.onclick=()=>{
    const box=$('restaurantSearchBox');
    if(!box)return;
    const willOpen=box.classList.contains('hidden');
-   if(!willOpen){
-     closeRestaurantSearch();
+   if(willOpen){
+     S.quickCutsCollapsed={...(S.quickCutsCollapsed||{}),restaurant:true};
+     renderQuickCutsCollapse('restaurant');
+     box.classList.remove('hidden');
+     const input=$('restaurantQuery');
+     if(input)input.value=S.restaurantQuery||'';
+     renderRestaurantSearchControl();
+     input?.focus();
      return;
    }
-   clearTimeout(restaurantQueryTimer);
-   box.classList.remove('hidden');
-   $('restaurantQuery').value=S.restaurantQuery;
-   renderRestaurantSearchControl();
-   $('restaurantQuery').focus();
+   collapseRestaurantSearch(false);
  };
 $('restaurantQuery').oninput=()=>{
    const previousQuery=String(S.restaurantQuery||'').trim();
@@ -2154,6 +2159,7 @@ $('restaurantQuery').oninput=()=>{
      if(String(S.restaurantQuery||'').trim())searchRestaurants();
    }
  };
+ renderRestaurantSearchControl();
 }
 
 function triggerCelebration(goldOnly=false) {
