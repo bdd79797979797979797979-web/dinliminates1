@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 767,
-  "sourceBranch": "cp767-home-menu-details-flat-toggle",
+  "build": 768,
+  "sourceBranch": "cp768-window-geometry-cleanup",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP767"
+  "checkpoint": "CP768"
 }
