@@ -5690,7 +5690,7 @@ button,input,select,textarea{
 #winner #celebration:not(.hidden) .firework-burst span{animation-duration:2.7s!important;animation-iteration-count:infinite!important}
 
 
-/* CP776 — full-page Home photo canvas using Pexels photo 8417853. */
+/* CP776 — Home full-screen layout foundation. No full-page image is defined here. */
 .app:has(#home:not(.hidden)){
   min-height:100svh!important;
   padding:0!important;
@@ -5808,17 +5808,12 @@ button,input,select,textarea{
   transform:scale(.96)!important;
 }
 
-/* CP780 — correct Home composition: full Pexels canvas + existing Dine In/Dine Out photo windows.
-   Keep navigation anchored to the app, not the browser viewport. */
+/* CP780 — retained Home composition/layout rules; the legacy full-page
+   Pexels background has been removed. The door layer is the only Home canvas. */
 .app:has(#home:not(.hidden)){
   position:relative!important;
   min-height:100svh!important;
   width:100%!important;
-  background-image:var(--cp776-home-photo)!important;
-  background-size:cover!important;
-  background-position:center center!important;
-  background-repeat:no-repeat!important;
-  background-attachment:scroll!important;
   padding:0 14px!important;
 }
 .app:has(#home:not(.hidden)) .app-topbar{
