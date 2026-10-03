@@ -910,9 +910,9 @@ drawFood();
 save();
 maybeShowInCardSwipeCoach();
 }
-function setChoiceCount(el,count,singular='choice',plural='choices'){
+function setChoiceCount(el,count){
  const value=Number(count)||0;
- const next=value+' '+(value===1?singular:plural);
+ const next=String(value);
  if(!el||el.textContent===next)return;
  el.textContent=next;
  el.classList.remove('count-updated');
