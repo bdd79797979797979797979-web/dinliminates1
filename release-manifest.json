@@ -1,12 +1,12 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 763,
-  "sourceBranch":"cp763-luxury-abstract-home-background",
+  "build": 764,
+  "sourceBranch":"cp764-home-windows-separated",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint":"CP763"
+  "checkpoint":"CP764"
 }
