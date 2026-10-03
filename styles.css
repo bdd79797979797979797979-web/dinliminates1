@@ -5262,7 +5262,7 @@ button,input,select,textarea{
   overflow:hidden;
   background:
     linear-gradient(180deg,rgba(5,5,5,.66) 0%,rgba(7,6,5,.30) 24%,rgba(6,5,4,.52) 64%,rgba(5,5,5,.92) 100%),
-    url("/api/image?url=https%3A%2F%2Fimages.pexels.com%2Fphotos%2F6162883%2Fpexels-photo-6162883.jpeg%3Fcs%3Dsrgb%26dl%3Dpexels-luisbecerrafotografo-6162883.jpg%26fm%3Djpg") center center / cover no-repeat;
+    none;
   box-shadow:inset 0 0 110px rgba(0,0,0,.48);
 }
 .app:has(#home:not(.hidden))::after{
