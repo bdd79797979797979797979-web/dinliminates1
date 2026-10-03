@@ -30,8 +30,8 @@ assert.ok(!html.includes('id="restaurantSearch"')&&!html.includes('id="hoursTogg
 assert.ok(html.includes('id="restaurantQuery"')&&html.includes('id="restaurantSearchBox"'),'Hidden Restaurant search implementation may remain available for later re-exposure');
 assert.ok(app.includes("const next=String(value);"),'Choice counts must use numeric-only labels');
 assert.ok(html.includes('id="foodMaybeDeck"')&&html.includes('id="restaurantMaybeDeck"'),'Meals and Restaurants must both have the shared ALL · MAYBES control');
-assert.ok(html.includes('<strong>AT HOME</strong><span>Choose your meal</span>'),'Home meal choice must read AT HOME');
-assert.ok(html.includes('<strong>RESTAURANT</strong><span>Choose where to eat</span>'),'Home restaurant choice must read RESTAURANT');
+assert.ok(html.includes('<strong>AT HOME</strong><span>Reveal your meal</span>'),'Home meal choice must read AT HOME');
+assert.ok(html.includes('<strong>RESTAURANT</strong><span>Reveal your restaurant</span>'),'Home restaurant choice must read RESTAURANT');
 assert.ok(!html.includes('<strong>DINE IN</strong>')&&!html.includes('<strong>DINE OUT</strong>'),'Legacy DINE IN/DINE OUT home labels must not return');
 assert.ok(!html.includes('food-all-maybe-toggle')&&!html.includes('restaurant-all-maybe-toggle'),'No screen-specific All-Maybes class may remain in source markup');
 assert.ok(!html.includes('class="deck-filter-all"')&&!html.includes('class="deck-filter-maybe"'),'Source markup must not start with legacy A/heart All-Maybes symbols');
