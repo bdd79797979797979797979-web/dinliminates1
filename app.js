@@ -97,7 +97,7 @@ restaurantSearchOrigin:null,
 restaurantSearchKey:'',
 quickCutsCollapsed:{food:true,restaurant:true},
 mealTimeCutsCollapsed:true,
-mealTimeFilters:new Set()
+mealTimeFilters:new Set(['Breakfast','Lunch / Dinner','Snacks / Desserts'])
 };
 const IMAGE_PROXY_HOSTS=new Set(['images.pexels.com','images.unsplash.com','commons.wikimedia.org','upload.wikimedia.org','static.wixstatic.com','static.spotapps.co','www.goodnes.com','hips.hearstapps.com','calliesbiscuits.com','vinovoss.com','www.southernliving.com','southernbite.com','snapcalorie-webflow-website.s3.us-east-2.amazonaws.com','butterhearth.com','slicelife.imgix.net','cdn.shopify.com','savouryflavor.com','resizer.otstatic.com','kookycrunch.com','cdn.apartmenttherapy.info','shop.barebells.com','b1880159.assetcdn.net','www.mybakingaddiction.com','a.fsimg.co.nz','ourstate.s3.amazonaws.com','whitneybond.com','thedailymeal.com','crockncle.com','www.africanbites.com','www.foodrepublic.com','shop.camelliabrand.com','parade.com','sweetasirem.com','www.sugardale.com','myhomemaderecipe.com','www.finedininglovers.com']);
 function imageProxyUrl(raw){
@@ -755,7 +755,7 @@ S.locationSource = String(d.locationSource||'none');
 S.locationFreshAt = Number.isFinite(Number(d.locationFreshAt)) ? Number(d.locationFreshAt) : null;
 S.quickCutsCollapsed = {food:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'food') ? !!d.quickCutsCollapsed.food : true,restaurant:Object.prototype.hasOwnProperty.call(d.quickCutsCollapsed||{},'restaurant') ? !!d.quickCutsCollapsed.restaurant : true};
 S.mealTimeCutsCollapsed = Object.prototype.hasOwnProperty.call(d,'mealTimeCutsCollapsed') ? !!d.mealTimeCutsCollapsed : true;
-S.mealTimeFilters = new Set((Array.isArray(d.mealTimeFilters)?d.mealTimeFilters:(d.mealTimeFilter?[d.mealTimeFilter]:[])).filter(x=>MEAL_TIME_CUTS.includes(x)));
+S.mealTimeFilters = new Set((Array.isArray(d.mealTimeFilters)?d.mealTimeFilters:(d.mealTimeFilter?[d.mealTimeFilter]:[])).filter(x=>MEAL_TIME_CUTS.includes(x))); if(!S.mealTimeFilters.size) S.mealTimeFilters = new Set(MEAL_TIME_CUTS);
 if(S.locationSource==='device' && S.location)S.locationSource='last';
 S.restaurantSearchDegraded = !!d.restaurantSearchDegraded;
 S.schemaVersion = STORAGE_VERSION;
@@ -919,14 +919,24 @@ function renderMealTimeCuts(){
  toggle.setAttribute('aria-expanded',String(!collapsed));
  toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Times');
  toggle.title=collapsed?'Show Meal Times':'Hide Meal Times';
- const filtered=!!S.mealTimeFilters?.size;
+ const allMealTimesSelected=MEAL_TIME_CUTS.every(label=>S.mealTimeFilters?.has(label));
+ const filtered=!allMealTimesSelected;
  toggle.classList.toggle('is-filtered',filtered);
  toggle.setAttribute('aria-pressed',filtered?'true':'false');
+ toggle.setAttribute('data-all-selected',allMealTimesSelected?'true':'false');
  chips.innerHTML=MEAL_TIME_CUTS.map(label=>'<button class="chip meal-time-chip'+(S.mealTimeFilters?.has(label)?' is-active':'')+'" data-meal-time="'+esc(label)+'" type="button" aria-pressed="'+(S.mealTimeFilters?.has(label)?'true':'false')+'">'+esc(label)+'</button>').join('');
  chips.querySelectorAll('[data-meal-time]').forEach(btn=>{
   btn.onclick=()=>{
    const label=btn.dataset.mealTime;
-   if(S.mealTimeFilters.has(label))S.mealTimeFilters.delete(label);else S.mealTimeFilters.add(label);
+   if(S.mealTimeFilters.has(label)){
+    if(S.mealTimeFilters.size===1){
+     S.mealTimeFilters = new Set(MEAL_TIME_CUTS);
+    }else{
+     S.mealTimeFilters.delete(label);
+    }
+   }else{
+    S.mealTimeFilters.add(label);
+   }
    S.index=0;
    buildFood();
    renderMealTimeCuts();
@@ -1008,7 +1018,7 @@ S.maybeDeck = false;
 S.foodMaybeRound = false;
 S.cutCats.clear();
 S.foodCuts.clear();
-S.mealTimeFilters.clear();
+S.mealTimeFilters = new Set(MEAL_TIME_CUTS);
 S.index = 0;
 S.winnerItem = null;
 buildFood();
