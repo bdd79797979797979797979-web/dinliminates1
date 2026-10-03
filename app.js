@@ -750,6 +750,21 @@ function home() {
 closeOverlays();
 S.screen = 'home';
 show('home');
+maybeShowHomeNudge();
+}
+function maybeShowHomeNudge(){
+ const key='dinliminate.homeNudge.v1';
+ try{if(localStorage.getItem(key))return;}catch{}
+ const foot=document.querySelector('#home .home-foot');
+ if(!foot||document.querySelector('#homeFirstNudge'))return;
+ const nudge=document.createElement('div');
+ nudge.id='homeFirstNudge';
+ nudge.className='home-first-nudge';
+ nudge.textContent='Swipe until it’s revealed.';
+ foot.parentNode.insertBefore(nudge,foot);
+ try{localStorage.setItem(key,'1')}catch{}
+ window.setTimeout(()=>nudge.classList.add('is-faded'),4200);
+ window.setTimeout(()=>nudge.remove(),4700);
 }
 function foodPool(){
  const base = allFoods().filter(item=>{
