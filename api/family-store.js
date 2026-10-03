@@ -199,6 +199,39 @@ async function advanceInitialStageIfReady(sql,round){
   ))[0];
   return updated||round;
 }
+async function ensureFinalistsStage(sql,round){
+  if(!round||round.status!=='finalists')return round;
+  const members=await sql.query('select member_id from family_round_members where round_id=$1 and included=true order by joined_at asc',[round.round_id]);
+  const memberIds=members.map(m=>m.member_id);
+  const votes=memberIds.length?await sql.query('select member_id,item_id,choice from family_votes where round_id=$1 and stage=$2',[round.round_id,'initial']):[];
+  const byItem=new Map();
+  for(const v of votes){const id=String(v.item_id);const row=byItem.get(id)||{support:0,choose:0,maybe:0};if(v.choice==='maybe'){row.support++;row.maybe++;}else if(v.choice==='choose'){row.support++;row.choose++;}byItem.set(id,row);}
+  const snapshot=round.snapshot||{};
+  const excluded=new Set(Array.isArray(snapshot.hostExcluded)?snapshot.hostExcluded.map(String):[]);
+  const pool=Array.isArray(snapshot.pool)?snapshot.pool.filter(item=>item&&item.id&&!excluded.has(String(item.id))):[];
+  const total=Math.max(1,memberIds.length);
+  const scored=pool.map((item,index)=>{const v=byItem.get(String(item.id))||{support:0,choose:0,maybe:0};return {item,index,support:v.support,choose:v.choose,maybe:v.maybe,qualified:v.support*2>=total,weighted:v.support+v.choose};});
+  const qualified=scored.filter(x=>x.qualified).sort((a,b)=>b.support-a.support||b.choose-a.choose||b.weighted-a.weighted||a.index-b.index);
+  let selected=qualified.slice(0,8);
+  if(selected.length===0){ selected=scored.slice().sort((a,b)=>b.support-a.support||b.weighted-a.weighted||b.choose-a.choose||a.index-b.index).slice(0,Math.min(8,scored.length)); }
+  const finalists=selected.map(x=>x.item);
+  if(!finalists.length){
+    const updated=(await sql.query("update family_rounds set status='ended',updated_at=now(),completed_at=now() where round_id=$1 and status='finalists' returning *",[round.round_id]))[0];
+    return updated||round;
+  }
+  if(finalists.length===1){
+    const updated=(await sql.query("update family_rounds set status='complete',current_stage=1,stage_started_at=now(),stage_deadline_at=null,winner_item=$1::jsonb,winner_saved=false,completed_at=now(),updated_at=now(),snapshot=$2::jsonb where round_id=$3 and status='finalists' returning *",[JSON.stringify(finalists[0]),JSON.stringify({...snapshot,finalists:finalists.map(x=>String(x.id))}),round.round_id]))[0];
+    await sql.query('update family_rooms set active_round_id=null,updated_at=now(),last_activity_at=now() where family_id=$1 and active_round_id=$2',[round.family_id,round.round_id]);
+    return updated||round;
+  }
+  const plan=snapshot.timePlan||{};
+  const targetMs=Number(plan.targetMs)||Date.now()+10*60*1000;
+  const available=Math.max(2*60*1000,targetMs-Date.now()-2*60*1000);
+  const finalistMs=Math.max(2*60*1000,Math.min(Number(plan.finalistMs)||available,available));
+  const deadline=new Date(Math.min(Date.now()+finalistMs,targetMs-2*60*1000));
+  const updated=(await sql.query("update family_rounds set status='final_swiping',current_stage=2,stage_started_at=now(),stage_deadline_at=$1,snapshot=$2::jsonb,updated_at=now() where round_id=$3 and status='finalists' returning *",[deadline,JSON.stringify({...snapshot,finalists:finalists.map(x=>String(x.id))}),round.round_id]))[0];
+  return updated||round;
+}
 async function getFamilyState(sessionToken) {
   const sql = db();
   const me = await auth(sql, sessionToken);
@@ -215,6 +248,7 @@ async function getFamilyState(sessionToken) {
     round = (await sql.query('select * from family_rounds where round_id=$1 and family_id=$2', [family.active_round_id, family.family_id]))[0] || null;
     if (round) {
       round = await advanceInitialStageIfReady(sql, round);
+      round = await ensureFinalistsStage(sql, round);
       roundMembers = await sql.query(
         'select frm.*, fm.display_name, fm.role from family_round_members frm join family_members fm on fm.member_id=frm.member_id where frm.round_id=$1 order by frm.joined_at asc',
         [round.round_id]
@@ -310,7 +344,8 @@ async function submitVote(sessionToken, payload) {
   );
   await sql.query('update family_members set last_seen_at=now() where member_id=$1', [me.member_id]);
   await sql.query('update family_round_members set last_seen_at=now() where round_id=$1 and member_id=$2', [roundId, me.member_id]);
-  await advanceInitialStageIfReady(sql, round);
+  const progressed=await advanceInitialStageIfReady(sql, round);
+  if(progressed) await ensureFinalistsStage(sql, progressed);
   return {ok:true,roundId,stage:currentStage,itemId:item,choice:currentChoice};
 }
 async function markStageSubmitted(sessionToken, payload) {
@@ -325,8 +360,8 @@ async function markStageSubmitted(sessionToken, payload) {
   );
   if (!rows[0]) fail('ROUND_ACCESS', 'You are not part of this dinner decision.', 403);
   await sql.query('update family_round_members set ' + col + '=now(),last_seen_at=now() where round_id=$1 and member_id=$2', [roundId, me.member_id]);
-  const round=(await sql.query('select * from family_rounds where round_id=$1 and family_id=$2',[roundId,me.family_id]))[0];
-  if(round) await advanceInitialStageIfReady(sql, round);
+  let round=(await sql.query('select * from family_rounds where round_id=$1 and family_id=$2',[roundId,me.family_id]))[0];
+  if(round){ round=await advanceInitialStageIfReady(sql, round); round=await ensureFinalistsStage(sql, round); }
   return {ok:true,roundId,stage:currentStage};
 }
 async function rotateCode(sessionToken) {
