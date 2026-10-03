@@ -6431,7 +6431,7 @@ button,input,select,textarea{
 }
 .luxury-home .home-card-photo{
   width:100%!important;
-  height:clamp(230px,34svh,310px)!important;
+  height:clamp(270px,38svh,330px)!important;
   min-height:0!important;
   border-radius:22px!important;
   display:flex!important;
@@ -6467,8 +6467,8 @@ button,input,select,textarea{
     margin-top:15px!important;
   }
   .luxury-home .home-card-photo{
-    height:clamp(248px,33svh,276px)!important;
-    min-height:248px!important;
+    height:clamp(275px,35svh,305px)!important;
+    min-height:275px!important;
     border-radius:19px!important;
   }
   .luxury-home .home-card-photo .home-card-copy{
