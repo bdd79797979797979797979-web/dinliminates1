@@ -1,7 +1,7 @@
-const CACHE='dinliminate-shell-v802';
+const CACHE='dinliminate-shell-v806';
 const IMAGE_CACHE='dinliminate-images-v1';
-const HOME_DOOR='/api/image?url='+encodeURIComponent('https://images.pexels.com/photos/6162883/pexels-photo-6162883.jpeg?auto=compress&cs=tinysrgb&w=1800');
-const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./data/restaurant-taxonomy.js','./manifest.webmanifest','./app-release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png','./fallback-food.svg','./fallback-restaurant.svg'];
+const HOME_DOOR='./home-background.jpg';
+const SHELL=['./','./index.html','./styles.css','./app.js','./data/foods.js','./data/restaurant-taxonomy.js','./manifest.webmanifest','./app-release.json','./release-manifest.json','./icon.svg','./icon-512.png','./apple-touch-icon.png','./fallback-food.svg','./fallback-restaurant.svg','./home-background.jpg'];
 self.addEventListener('install',event=>{
   event.waitUntil(Promise.all([caches.open(CACHE).then(c=>c.addAll(SHELL).then(()=>fetch(HOME_DOOR).then(r=>r.ok?c.put(HOME_DOOR,r.clone()):null).catch(()=>null))),caches.open(IMAGE_CACHE)]).then(()=>self.skipWaiting()));
 });
