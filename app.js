@@ -2684,13 +2684,21 @@ function spinHungryWheel(){
  startContinuousWheelSpin();
 }
 
-function winner(item, explicitType=null) {
+async function winner(item, explicitType=null) {
 const chosenFromWheel=!!S.hungryWheelChoice && String(S.hungryWheelChoice.id)===String(item?.id);
-S.winnerItem = item;
-S.winnerType = explicitType || (S.screen === 'restaurant' ? 'restaurant' : 'food');
-if (item?.category !== 'Hungry' && item?.id) recordHistory(item, S.winnerType);
+const winnerType=explicitType || (S.screen === 'restaurant' ? 'restaurant' : 'food');
+let winnerItem=item;
+if(winnerType==='food' && item?.category!=='Hungry'){
+ const selected=selectedMealCardPhoto(item);
+ if(selected.photo){
+   winnerItem={...item,image:selected.photo.src,photoId:selected.photo.id,photoCrop:{...(selected.photo.crop||{})},photos:mealPhotoList(item)};
+ }
+}
+S.winnerItem = winnerItem;
+S.winnerType = winnerType;
+if (winnerItem?.category !== 'Hungry' && winnerItem?.id) await recordHistory(winnerItem, S.winnerType);
 show('winner');
-const hungry = item?.category === 'Hungry';
+const hungry = winnerItem?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
@@ -2715,26 +2723,27 @@ $('hungryNote').textContent=hungry
  ? (S.winnerType==='restaurant'?"You eliminated everything. It’s either this or Waffle House.":"You eliminated everything. It’s either this or Fish Sticks.")
  : '';
 $('hungryNote').classList.toggle('hidden',!hungry);
-$('winName').textContent = hungry ? 'HUNGRY ☹' : item.name;
+$('winName').textContent = hungry ? 'HUNGRY ☹' : winnerItem.name;
 const winImg = $('winImg');
 if (!winImg) return;
 winImg.classList.toggle('hungry-image', hungry);
 winImg.classList.toggle('hidden',hungry);
-const winnerBaseFallback=S.winnerType==='restaurant'?restaurantFallbackImage(item):HUNGRY_IMAGE;
-const winnerImage=imageProxyUrl(item?.image || item?.photo || item?.photoFallback || winnerBaseFallback);
-const winnerFallback=imageProxyUrl(item?.photoFallback || item?.image || winnerBaseFallback);
+const winnerBaseFallback=S.winnerType==='restaurant'?restaurantFallbackImage(winnerItem):HUNGRY_IMAGE;
+const winnerImage=imageProxyUrl(winnerItem?.image || winnerItem?.photo || winnerItem?.photoFallback || winnerBaseFallback);
+const winnerFallback=imageProxyUrl(winnerItem?.photoFallback || winnerItem?.image || winnerBaseFallback);
 winImg.src = winnerImage;
 winImg.dataset.fallback = winnerFallback;
-winImg.alt = item.name || 'Hungry';
+winImg.alt = winnerItem.name || 'Hungry';
 winImg.referrerPolicy='no-referrer';
 winImg.loading='eager';
+applyMealPhotoStyle(winImg,winnerItem.photoCrop?{crop:winnerItem.photoCrop,src:winnerImage}:{crop:{x:50,y:50,zoom:1},src:winnerImage});
 winImg.onerror=function(){
   const fb=this.dataset.fallback||HUNGRY_IMAGE;
   const current=this.currentSrc||this.src;
   if(fb && current!==fb){this.src=fb;return;}
   if(!String(current||'').startsWith('data:image/svg') && HUNGRY_IMAGE){this.src=HUNGRY_IMAGE;}
 };
-winImg.dataset.restaurantPhotoKey = String(item?.id||item?.canonicalId||'');
+winImg.dataset.restaurantPhotoKey = String(winnerItem?.id||winnerItem?.canonicalId||'');
 if ($('celebration')) $('celebration').classList.toggle('hidden', hungry);
 triggerWinnerMoment(hungry);
 if(hungry){
@@ -2742,7 +2751,6 @@ if(hungry){
     startHungryRestaurantMystery();
   }else{
     renderHungryWheel();
-
     $('hungryWheelPanel')?.classList.remove('has-landed');
     $('hungryWheelResult')?.classList.add('hidden');
     $('hungryWheelChoose')?.classList.add('hidden');
@@ -2751,7 +2759,7 @@ if(hungry){
   }
 }else{
   if(!(chosenFromWheel && $('celebration') && !$('celebration').classList.contains('hidden')))triggerCelebration(chosenFromWheel);
-  hydrateRestaurantPhoto(item,'#winner');
+  hydrateRestaurantPhoto(winnerItem,'#winner');
 }
 save();
 }
@@ -2940,21 +2948,24 @@ function historyImageSource(row){
  const fallback=row?.type==='restaurant'?restaurantFallbackImage(row):HUNGRY_IMAGE;
  return imageProxyUrl(row?.image||row?.photoFallback||fallback);
 }
-function recordHistory(item, type, options={}) {
+async function recordHistory(item, type, options={}) {
 const history = readHistory();
 const familyRoundId=String(options.familyRoundId||'').trim();
 if(familyRoundId && history.some(x=>String(x?.familyRoundId||'')===familyRoundId)) return false;
-history.unshift({
-id:String(Date.now())+'-'+Math.random().toString(36).slice(2),
+const historyId=String(Date.now())+'-'+Math.random().toString(36).slice(2);
+const sourceImage=String(item?.image||item?.photo||'').trim();
+const entry={
+id:historyId,
 date:(() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
 type,
 name:item.name,
 sourceItemId:type==='food'?(item.id||''):'',
-image:item.image||item.photo||'',
+image:sourceImage,
 photoFallback:type==='restaurant'?(item.photoFallback||restaurantFallbackImage(item)):(item.photoFallback||''),
 photoSource:item.photoSource||'',
-googlePlaceId:item.googlePlaceId||'',
 photoIsGeneric:item.photoIsGeneric!==false,
+photoId:type==='food'?String(item.photoId||''):'',
+photoCrop:type==='food'&&item.photoCrop?normalizeMealPhotoObject({id:'history',src:sourceImage,crop:item.photoCrop}).crop:null,
 category:item.category||restaurantCategory(item),
 cuisine:item.cuisine||'',
 quickCuts:type==='food'&&Array.isArray(item.quickCuts)?item.quickCuts.slice():[],
@@ -2969,7 +2980,18 @@ lon:Number.isFinite(Number(item.lon))?Number(item.lon):null,
 distance:Number.isFinite(Number(item.distance))?Number(item.distance):null,
 familyRoundId:familyRoundId||null,
 familyMode:!!options.familyMode
-});
+};
+if(type==='food'&&sourceImage.startsWith('idb:')){
+ const data=await getStoredPhoto(sourceImage.slice(4));
+ if(data){
+   const key='history:'+historyId;
+   if(await putStoredPhoto(key,data)){entry.image='idb:'+key;entry.photoStorageKey=key;}
+ }
+} else if(type==='food'&&sourceImage.startsWith('data:image/')){
+ const key='history:'+historyId;
+ if(await putStoredPhoto(key,sourceImage)){entry.image='idb:'+key;entry.photoStorageKey=key;}
+}
+history.unshift(entry);
 writeHistory(history);
 return true;
 }
