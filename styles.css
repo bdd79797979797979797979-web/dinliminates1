@@ -5877,3 +5877,27 @@ body:has(.app #home:not(.hidden)){
   #food #foodMaybeDeck > span,#restaurant #restaurantMaybeDeck > span{font-size:8px!important}
   .swipe-card-coach{bottom:66px!important;width:calc(100% - 18px)!important;font-size:7.8px!important}
 }
+
+
+/* CP769 — hard final override for CP767 browser-test regressions. */
+.app:has(#home:not(.hidden)) .app-topbar{position:relative!important;display:flex!important;justify-content:center!important;align-items:center!important;height:58px!important;padding:0!important;z-index:201!important;background:transparent!important}
+.app:has(#home:not(.hidden)) .app-topbar .brand-mark{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;display:block!important;z-index:202!important;pointer-events:none!important}
+.app:has(#home:not(.hidden)) .app-topbar .brand{color:#d8b36b!important;font-size:21px!important;font-weight:900!important;letter-spacing:-.055em!important;text-shadow:0 0 22px rgba(216,179,107,.14)!important;white-space:nowrap!important}
+.app:has(#home:not(.hidden)) .app-topbar #menu{position:absolute!important;right:10px!important;top:9px!important;margin:0!important;z-index:203!important}
+.drawer{position:fixed!important;inset:auto 14px auto auto!important;top:calc(env(safe-area-inset-top) + 64px)!important;left:auto!important;right:14px!important;bottom:auto!important;width:min(88vw,420px)!important;height:auto!important;max-height:calc(100svh - env(safe-area-inset-top) - 82px)!important;overflow:auto!important;margin:0!important;transform-origin:top right!important}
+.drawer.is-open{transform:translateY(0) scale(1)!important;opacity:1!important}
+.drawer-bg{position:fixed!important;inset:0!important;z-index:209!important}
+.utility-modal{position:fixed!important;top:calc(env(safe-area-inset-top) + 64px)!important;left:50%!important;right:auto!important;bottom:auto!important;margin:0!important;width:min(92vw,520px)!important;height:auto!important;max-height:calc(100svh - env(safe-area-inset-top) - 82px)!important;overflow:auto!important;transform:translate(-50%,-8px) scale(.985)!important;z-index:220!important}
+.utility-modal.modal-open{transform:translate(-50%,0) scale(1)!important}
+.utility-modal.modal-closing{transform:translate(-50%,-5px) scale(.99)!important}
+#detailsModal{position:fixed!important;top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;margin:0!important;width:min(92vw,520px)!important;height:auto!important;max-height:84svh!important;transform:translate(-50%,-50%) scale(.985)!important;z-index:230!important}
+#detailsModal.modal-open,#detailsModal.details-modal.modal-open{transform:translate(-50%,-50%) scale(1)!important}
+#detailsModal.modal-closing,#detailsModal.details-modal.modal-closing{transform:translate(-50%,-50%) scale(.99)!important}
+#food #foodMaybeDeck,#restaurant #restaurantMaybeDeck{appearance:none!important;-webkit-appearance:none!important;width:auto!important;min-width:0!important;height:22px!important;min-height:22px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;outline:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;transform:none!important;font-size:9px!important;font-weight:900!important;letter-spacing:.05em!important;color:#8f8b84!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:visible!important}
+#food #foodMaybeDeck::before,#food #foodMaybeDeck::after,#restaurant #restaurantMaybeDeck::before,#restaurant #restaurantMaybeDeck::after{content:none!important;display:none!important}
+#food #foodMaybeDeck>span,#restaurant #restaurantMaybeDeck>span{display:inline!important;width:auto!important;min-width:0!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;transform:none!important}
+#food .quick-cuts-collapse-toggle,#restaurant .quick-cuts-collapse-toggle{appearance:none!important;-webkit-appearance:none!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;margin:0!important;outline:0!important}
+#food .quick-cuts-chevron,#restaurant .quick-cuts-chevron{display:none!important}
+#food .quick-cuts-collapse-toggle::before,#restaurant .quick-cuts-collapse-toggle::before{content:none!important;display:none!important}
+.swipe-card-coach button,.swipe-card-coach .swipe-card-coach-dismiss{display:none!important;visibility:hidden!important;pointer-events:none!important}
+@media(max-width:390px){.app:has(#home:not(.hidden)) .app-topbar .brand{font-size:20px!important}.app:has(#home:not(.hidden)) .app-topbar #menu{right:8px!important}.drawer{top:calc(env(safe-area-inset-top) + 58px)!important;right:10px!important;width:min(91vw,390px)!important;max-height:calc(100svh - 76px)!important}.utility-modal{top:calc(env(safe-area-inset-top) + 58px)!important;max-height:calc(100svh - 76px)!important}#detailsModal{width:min(94vw,520px)!important;max-height:88svh!important}}
