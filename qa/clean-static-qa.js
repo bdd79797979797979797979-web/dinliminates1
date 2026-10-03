@@ -21,8 +21,8 @@ assert.ok(releaseApi.includes("require('../app-release.json')"),'Vercel release 
 assert.ok(!releaseApi.includes("require('../release.json')"),'Obsolete release.json must not be referenced');
 
 assert.ok(html.includes('Meal Decisions Simplified'),'Home headline must be current');
-assert.ok(html.includes('<strong>DINE IN</strong><span>Reveal your meal</span>'),'Dine In Home treatment must remain current');
-assert.ok(html.includes('<strong>DINE OUT</strong><span>Reveal your restaurant</span>'),'Dine Out Home treatment must remain current');
+assert.ok(html.includes('<strong>MEAL AT HOME</strong><span>Enter to reveal your meal</span>'),'Meal At Home Home treatment must remain current');
+assert.ok(html.includes('<strong>RESTAURANT</strong><span>Enter to discover your restaurant</span>'),'Restaurant Home treatment must remain current');
 assert.ok(app.includes('Swipe until it’s revealed.'),'One-time Home onboarding line must be present in runtime');
 assert.ok(html.includes('id="addToPhone"')&&html.includes('id="shareApp"'),'Home Add and Share controls must both exist');
 assert.ok(html.includes('styles.css?v=785')&&html.includes('app.js?v=785'),'Frontend asset cache-busting must be v785');
