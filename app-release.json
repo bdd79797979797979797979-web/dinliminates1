@@ -2,7 +2,7 @@
   "name": "Dinliminate",
   "version": "1.0",
   "build": 786,
-  "sourceBranch": "cp786-home-card-wording",
+  "sourceBranch": "cp786-launch-home-card-wording",
   "checkpoint": "CP786",
   "deploymentTrigger": "CP786-home-card-wording-2026-10-03"
 }
