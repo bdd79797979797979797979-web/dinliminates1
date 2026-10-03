@@ -840,6 +840,14 @@ for(const item of [...S.custom,...(S.deletedCustomMeals||[])]) {
 }
 if(changed){ save(); if(S.screen==='food'){ buildFood(); foodQuick(); drawFood(); } }
 }
+function serializeWinnerItem(item){
+ if(!item||typeof item!=='object')return item;
+ const out={...item};
+ const ref=String(out._historyPhotoRef||'').trim();
+ if(ref)out.image=ref;
+ else if(String(out.image||'').startsWith('data:image/'))out.image=DEFAULT_FOOD_IMAGE;
+ return out;
+}
 function save() {
 const data = {
 screen:S.screen, hidden:[...S.hidden], hiddenRestaurants:S.hiddenRestaurants,
@@ -848,7 +856,7 @@ pool:S.pool, index:S.index, foodActions:S.foodActions,
 restaurantPool:S.restaurantPool, restaurantIndex:S.restaurantIndex,
 restaurantCuts:[...S.restaurantCuts], restaurantActions:S.restaurantActions,
 restaurantQuery:S.restaurantQuery, location:S.location, locationSource:S.locationSource,
-saved:S.saved, winnerItem:S.winnerItem, winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
+saved:S.saved, winnerItem:serializeWinnerItem(S.winnerItem), winnerType:S.winnerType, schemaVersion:STORAGE_VERSION, deleted:[...(S.deleted||[])], deletedCustomMeals:S.deletedCustomMeals||[],
 restaurantSearchOrigin:S.restaurantSearchOrigin, restaurantSearchKey:S.restaurantSearchKey||'', restaurantSearchDegraded:!!S.restaurantSearchDegraded, locationFreshAt:S.locationFreshAt||null, maybeDeck:!!S.maybeDeck, foodMaybeRound:!!S.foodMaybeRound, restaurantMaybeRound:!!S.restaurantMaybeRound, quickCutsCollapsed:{food:!!S.quickCutsCollapsed?.food,restaurant:!!S.quickCutsCollapsed?.restaurant},
 mealPhotoVisits:S.mealPhotoVisits||{},
 custom:S.custom.map(serializeMealRecord),
@@ -2887,11 +2895,12 @@ function renderMealDetailPhotoGallery(item,initialIndex=0){
  const host=$('mealDetailPhotoGallery'),photos=mealPhotoList(item);
  if(!host||!photos.length)return;
  let index=Math.max(0,Math.min(Number(initialIndex)||0,photos.length-1));
- host.innerHTML='<div class="meal-detail-photo-frame"><img id="mealDetailPhotoImg" src="'+esc(photos[index].src.startsWith('idb:')?FINAL_FOOD_IMAGE:photos[index].src)+'" alt="'+esc(item.name||'Meal')+'"><div class="meal-detail-photo-overlay"><span class="meal-detail-photo-counter"></span><div class="meal-detail-photo-dots"></div></div></div>';
+ host.innerHTML='<div class="meal-detail-photo-frame"><img id="mealDetailPhotoImg" src="'+esc(String(photos[index].src).startsWith('idb:')?FINAL_FOOD_IMAGE:photos[index].src)+'" alt="'+esc(item.name||'Meal')+'" data-stored-photo-ref="'+esc(String(photos[index].src).startsWith('idb:')?photos[index].src:'')+'">'+(photos.length>1?'<div class="meal-detail-photo-overlay"><span class="meal-detail-photo-counter"></span><div class="meal-detail-photo-dots"></div></div>':'')+'</div>';
  const img=$('mealDetailPhotoImg'),counter=host.querySelector('.meal-detail-photo-counter'),dots=host.querySelector('.meal-detail-photo-dots');
  const render=()=>{
    const photo=photos[index]||photos[0];
    img.src=String(photo.src).startsWith('idb:')?FINAL_FOOD_IMAGE:photo.src;
+   img.dataset.storedPhotoRef=String(photo.src).startsWith('idb:')?photo.src:'';
    img.alt=item.name||'Meal';
    applyMealPhotoStyle(img,photo);
    if(counter)counter.textContent=(index+1)+' / '+photos.length;
@@ -2909,6 +2918,7 @@ function renderMealDetailPhotoGallery(item,initialIndex=0){
  img.draggable=false;
  render();
  bindImageFallback('#detailsModal #mealDetailPhotoImg',FINAL_FOOD_IMAGE,FINAL_FOOD_IMAGE);
+ hydrateStoredPhotoImages('#detailsModal');
  return {getIndex:()=>index};
 }
 function detailsSheet(item,type){
@@ -3028,11 +3038,11 @@ if(type==='food'&&sourceImage.startsWith('idb:')){
  const data=await getStoredPhoto(sourceImage.slice(4));
  if(data){
    const key='history:'+historyId;
-   if(await putStoredPhoto(key,data)){entry.image='idb:'+key;entry.photoStorageKey=key;}
+   if(await putStoredPhoto(key,data)){entry.image='idb:'+key;entry.photoStorageKey=key;item._historyPhotoRef='idb:'+key;}
  }
 } else if(type==='food'&&sourceImage.startsWith('data:image/')){
  const key='history:'+historyId;
- if(await putStoredPhoto(key,sourceImage)){entry.image='idb:'+key;entry.photoStorageKey=key;}
+ if(await putStoredPhoto(key,sourceImage)){entry.image='idb:'+key;entry.photoStorageKey=key;item._historyPhotoRef='idb:'+key;}
 }
 history.unshift(entry);
 writeHistory(history);
@@ -4503,19 +4513,19 @@ function familyMarkRoundSaved(roundId){
   const rows=familySavedRoundsRead();if(rows.includes(id))return;
   rows.unshift(id);try{localStorage.setItem(FAMILY_SAVED_ROUNDS_KEY,JSON.stringify(rows.slice(0,120)));}catch{}
 }
-function recordFamilyWinner(round){
+async function recordFamilyWinner(round){
   const item=round?.winnerItem,id=String(round?.id||'');
   if(!item||!id||familySavedRound(id))return false;
   const type=round.decisionType==='restaurant'?'restaurant':'food';
-  const didRecord=recordHistory(item,type,{familyRoundId:id,familyMode:true});
+  const didRecord=await recordHistory(item,type,{familyRoundId:id,familyMode:true});
   if(didRecord!==false) familyMarkRoundSaved(id);
   return didRecord!==false;
 }
-function familyRenderWinner(round){
+async function familyRenderWinner(round){
   const item=round?.winnerItem;if(!item)return;
   const nextId=String(round.id||''),changed=familyWinnerRoundId!==nextId;
   familyWinnerRoundId=nextId;
-  const savedNow=recordFamilyWinner(round);
+  const savedNow=await recordFamilyWinner(round);
   $('familyWinnerName').textContent=String(item.name||'Dinner is decided');
   $('familyWinnerImg').src=item.image?imageProxyUrl(item.image):HUNGRY_IMAGE;
   $('familyWinnerImg').alt=String(item.name||'Dinner winner');
