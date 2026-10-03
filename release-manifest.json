@@ -1,13 +1,13 @@
 {
   "name": "Dinliminate",
   "version": "1.0",
-  "build": 775,
-  "sourceBranch": "cp775-legacy-wiring-fireworks",
+  "build": 776,
+  "sourceBranch": "cp776-full-pexels-home-background",
   "releaseMode": "candidate",
   "production": false,
   "vercelProject": "dinliminates1",
   "vercelProductionVerified": false,
   "netlify": "dinliminate22 preview",
-  "checkpoint": "CP775",
-  "deploymentTrigger": "CP775-launch-legacy-wiring-fireworks-2026-10-02"
+  "checkpoint": "CP776",
+  "deploymentTrigger": "CP776-full-pexels-home-background-2026-10-02"
 }
