@@ -5716,8 +5716,7 @@ button,input,select,textarea{
 .app:has(#home:not(.hidden)) .app-topbar .brand-mark{position:relative!important;z-index:51!important}
 .app:has(#home:not(.hidden)) .app-topbar #menu{
   position:absolute!important;right:2px!important;top:9px!important;z-index:51!important;
-  box-shadow:none!important;
-}
+  }
 .app:has(#home:not(.hidden)) #home{
   position:relative!important;
   z-index:2!important;
