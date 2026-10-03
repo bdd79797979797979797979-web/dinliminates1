@@ -1,0 +1,43 @@
+name: Dinliminate Family CP808 Audit
+
+on:
+  push:
+    branches:
+      - cp808-audit-family-entry
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Syntax
+        run: node --check app.js && node --check api/family.js && node --check api/family-store.js && node --check data/foods.js && node --check data/restaurant-taxonomy.js
+      - name: Family UI contract
+        run: |
+          grep -q 'id="family"' index.html
+          grep -q 'id="familyMode"' index.html
+          grep -q 'id="familyCreateChoice"' index.html
+          grep -q 'id="familyJoinChoice"' index.html
+          grep -q 'id="familyCreateForm"' index.html
+          grep -q 'id="familyJoinForm"' index.html
+          grep -q 'FAMILY_SESSION_KEY' app.js
+          grep -q "familyApi('create'" app.js
+          grep -q "familyApi('join'" app.js
+          echo "Family UI contract OK"
+      - name: Family foundation files
+        run: |
+          test -f package.json
+          test -f data/family-mode-schema.sql
+          test -f api/family.js
+          test -f api/family-store.js
+          echo "Family foundation files OK"
+      - name: Baseline protection
+        run: |
+          ! grep -q 'c94476e32134aaa247046bb57111be2731abbe52' RECOVERY-CP808-FAMILY-CREATE-JOIN-2026-10-03.md
+          grep -q '35e4ecd30123d42e44b240987573ac16ed609da7' RECOVERY-CP808-FAMILY-CREATE-JOIN-2026-10-03.md
+          echo "CP806 baseline protected"
