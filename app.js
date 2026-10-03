@@ -889,8 +889,8 @@ function renderQuickCutsCollapse(kind){
   section.classList.toggle('is-collapsed',collapsed);
  }
  toggle.setAttribute('aria-expanded',String(!collapsed));
- toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Quick Cuts');
- toggle.title=collapsed?'Show Quick Cuts':'Hide Quick Cuts';
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+(kind==='food'?'Cuisine Cuts':'Quick Cuts'));
+ toggle.title=collapsed?'Show '+(kind==='food'?'Cuisine Cuts':'Quick Cuts'):'Hide '+(kind==='food'?'Cuisine Cuts':'Quick Cuts');
  chips.setAttribute('aria-hidden',String(collapsed));
 }
 function bindQuickCutsCollapse(kind){
@@ -917,8 +917,8 @@ function renderMealTimeCuts(){
  chips.classList.toggle('is-rail-collapsed',collapsed);
  chips.setAttribute('aria-hidden',String(collapsed));
  toggle.setAttribute('aria-expanded',String(!collapsed));
- toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Time Cuts');
- toggle.title=collapsed?'Show Meal Time Cuts':'Hide Meal Time Cuts';
+ toggle.setAttribute('aria-label',(collapsed?'Show ':'Hide ')+'Meal Timess');
+ toggle.title=collapsed?'Show Meal Timess':'Hide Meal Timess';
  const filtered=!!S.mealTimeFilters?.size;
  toggle.classList.toggle('is-filtered',filtered);
  toggle.setAttribute('aria-pressed',filtered?'true':'false');
@@ -2715,7 +2715,7 @@ function detailsSheet(item,type){
    const aboutSection=about?'<section class="detail-section"><div class="detail-section-title">About</div><p class="detail-body-copy">'+esc(about)+'</p></section>':'';
    const detailRows='<div class="detail-info-list">'+
      '<div class="detail-info-row"><span>Cuisine</span><strong>'+esc(cat)+'</strong></div>'+
-     '<div class="detail-info-row"><span>Meal Time</span><strong>'+esc(mealTimesFor(item).join(' · '))+'</strong></div>'+
+     '<div class="detail-info-row"><span>Meal Times</span><strong>'+esc(mealTimesFor(item).join(' · '))+'</strong></div>'+
      (ingredients.length?'<div class="detail-info-row detail-info-row-stack"><span>Ingredients</span><strong>'+esc(ingredients.slice(0,16).join(' · '))+'</strong></div>':'')+
      (recipe?'<div class="detail-info-row detail-info-row-stack"><span>Preparation</span><strong>'+esc(recipe).replace(/\n/g,'<br>')+'</strong></div>':'')+
      '</div>';
@@ -2982,7 +2982,7 @@ const ingredientsText=Array.isArray(item?.ingredients)?item.ingredients.join('\n
 const descriptionText=String(item?.description||'').trim();
 const body='<form class="add" id="foodEditorForm">'+
 '<input id="editFoodName" placeholder="Meal name" required value="'+esc(item?.name||'')+'">'+
-'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Quick Cuts</legend><p class="meal-category-helper">Choose every category you want this meal associated with. The Custom box creates a reusable cuisine or Quick Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Time</legend><p class="meal-category-helper">Choose when this meal belongs in the decision deck. Every meal has one Meal Time.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="checkbox" name="editMealTime" value="'+esc(label)+'" '+(existingMealTimes.has(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
+'<fieldset class="quick-cut-editor meal-category-editor"><legend>Cuisine &amp; Cuisine Cuts</legend><p class="meal-category-helper">Choose every cuisine category or food type you want this meal associated with. Custom adds a reusable Cuisine Cut with its own name and photo.</p><div id="editFoodQuickCuts" class="quick-cut-editor-grid custom-taxonomy-grid"></div></fieldset><fieldset class="quick-cut-editor meal-time-editor"><legend>Meal Times</legend><p class="meal-category-helper">Choose one or more Meal Times for this meal.</p><div id="editFoodMealTime" class="quick-cut-editor-grid meal-time-editor-grid">'+MEAL_TIME_CUTS.map(label=>'<label class="quick-cut-tile meal-time-option"><input type="checkbox" name="editMealTime" value="'+esc(label)+'" '+(existingMealTimes.has(label)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'+
 '<div class="meal-editor-section"><div class="meal-editor-section-title">Nutrition per serving</div><p class="meal-editor-helper">Fill in the five numbers that will appear in the meal Details screen.</p><div class="meal-nutrition-editor-grid">'+
 '<label>Calories<input id="editFoodCalories" type="number" required min="0" step="1" inputmode="numeric" placeholder="520" value="'+esc(nut.calories??'')+'"><span>kcal</span></label>'+
 '<label>Protein<input id="editFoodProtein" type="number" required min="0" step="0.1" inputmode="decimal" placeholder="27" value="'+esc(nut.protein??'')+'"><span>g</span></label>'+
@@ -3003,19 +3003,19 @@ const renderEditorQuickCuts=focusId=>{
  host.insertAdjacentHTML('beforeend',(S.customQuickCuts||[]).map(qc=>{
    const name=String(qc?.name||'').trim();if(!name)return '';
    const src=customQuickCutImage(name);
-   return '<div class="custom-qc-tile" data-custom-qc-id="'+esc(qc.id)+'"><label class="quick-cut-tile custom-qc-select"><input type="checkbox" name="editQuickCut" value="'+esc(name)+'" '+(existingCuts.includes(name)?'checked':'')+'><span class="custom-qc-photo" style="background-image:url(\''+esc(src)+'\')"></span><span class="custom-qc-label">'+esc(name)+'</span></label><div class="custom-qc-tools"><label class="custom-qc-upload" title="Upload Quick Cut photo"><span aria-hidden="true">＋</span><input type="file" accept="image/*" data-custom-qc-file="'+esc(qc.id)+'"></label><input class="custom-qc-rename" type="text" value="'+esc(name)+'" aria-label="Rename '+esc(name)+'" data-custom-qc-rename="'+esc(qc.id)+'"><button type="button" class="custom-qc-delete" data-custom-qc-delete="'+esc(qc.id)+'" aria-label="Delete '+esc(name)+'">×</button></div></div>';
+   return '<div class="custom-qc-tile" data-custom-qc-id="'+esc(qc.id)+'"><label class="quick-cut-tile custom-qc-select"><input type="checkbox" name="editQuickCut" value="'+esc(name)+'" '+(existingCuts.includes(name)?'checked':'')+'><span class="custom-qc-photo" style="background-image:url(\''+esc(src)+'\')"></span><span class="custom-qc-label">'+esc(name)+'</span></label><div class="custom-qc-tools"><label class="custom-qc-upload" title="Upload Cuisine Cut photo"><span aria-hidden="true">＋</span><input type="file" accept="image/*" data-custom-qc-file="'+esc(qc.id)+'"></label><input class="custom-qc-rename" type="text" value="'+esc(name)+'" aria-label="Rename '+esc(name)+'" data-custom-qc-rename="'+esc(qc.id)+'"><button type="button" class="custom-qc-delete" data-custom-qc-delete="'+esc(qc.id)+'" aria-label="Delete '+esc(name)+'">×</button></div></div>';
  }).join(''));
  host.insertAdjacentHTML('beforeend','<button type="button" class="quick-cut-custom-add" id="addCustomQuickCut"><span>＋</span><b>Custom</b><small>New box</small></button>');
  host.querySelectorAll('[data-custom-qc-file]').forEach(input=>input.onchange=async()=>{
    const id=input.dataset.customQcFile,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
-   try{const data=await readImageFile(input.files?.[0]);if(!data)return;const storageId='quickcut:'+id;const ok=await putStoredPhoto(storageId,data);if(!ok){appToast('Could not save that Quick Cut photo on this device.');return;}qc.image=data;save();foodQuick();renderEditorQuickCuts(id);appToast('Quick Cut photo updated.');}catch(e){appToast(e.message);}
+   try{const data=await readImageFile(input.files?.[0]);if(!data)return;const storageId='quickcut:'+id;const ok=await putStoredPhoto(storageId,data);if(!ok){appToast('Could not save that Cuisine Cut photo on this device.');return;}qc.image=data;save();foodQuick();renderEditorQuickCuts(id);appToast('Cuisine Cut photo updated.');}catch(e){appToast(e.message);}
  });
  host.querySelectorAll('[data-custom-qc-rename]').forEach(input=>input.onchange=()=>{
    const id=input.dataset.customQcRename,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
    const old=String(qc.name||'').trim(),next=input.value.trim();
-   if(!next){input.value=old;appToast('Give the Custom Quick Cut a name.');return;}
+   if(!next){input.value=old;appToast('Give the Custom Cuisine Cut a name.');return;}
    const conflict=[...FOOD_QUICK,'Other',...(S.customQuickCuts||[]).filter(x=>x!==qc).map(x=>x.name)].some(x=>normKey(x)===normKey(next));
-   if(conflict){input.value=old;appToast('That Quick Cut name is already in use.');return;}
+   if(conflict){input.value=old;appToast('That Cuisine Cut name is already in use.');return;}
    qc.name=next;
    const selectedIndex=existingCuts.indexOf(old);if(selectedIndex>=0)existingCuts[selectedIndex]=next;
    S.custom.forEach(meal=>{
@@ -3027,8 +3027,8 @@ const renderEditorQuickCuts=focusId=>{
  });
  host.querySelectorAll('[data-custom-qc-delete]').forEach(btn=>btn.onclick=async()=>{
    const id=btn.dataset.customQcDelete,qc=(S.customQuickCuts||[]).find(x=>String(x.id)===String(id));if(!qc)return;
-   const name=String(qc.name||'Custom Quick Cut');
-   if(!await appConfirm('Delete '+name+'?','This removes the Custom Quick Cut from your category list and unassigns it from meals.','Delete Quick Cut'))return;
+   const name=String(qc.name||'Custom Cuisine Cut');
+   if(!await appConfirm('Delete '+name+'?','This removes the Custom Cuisine Cut from your category list and unassigns it from meals.','Delete Cuisine Cut'))return;
    S.customQuickCuts=S.customQuickCuts.filter(x=>String(x.id)!==String(id));
    const cutIndex=existingCuts.indexOf(name);if(cutIndex>=0)existingCuts.splice(cutIndex,1);
    S.custom.forEach(meal=>{
@@ -3064,7 +3064,7 @@ const name=$('editFoodName').value.trim();
 const mealTimes=[...document.querySelectorAll('input[name="editMealTime"]:checked')].map(x=>String(x.value||'').trim()).filter(x=>MEAL_TIME_CUTS.includes(x));
 if(!mealTimes.length){appToast('Choose at least one Meal Time.');return;}
 let quickCuts=[...document.querySelectorAll('input[name="editQuickCut"]:checked')].map(x=>x.value);
-if(!quickCuts.length){appToast('Choose at least one cuisine or Quick Cut.');return;}
+if(!quickCuts.length){appToast('Choose at least one cuisine or Cuisine Cut.');return;}
 const preferred=item?.category&&quickCuts.includes(item.category)?item.category:quickCuts[0];
 quickCuts=[preferred,...quickCuts.filter(x=>x!==preferred)];
 const cat=preferred;
@@ -3340,11 +3340,11 @@ async function appDiagnosisView(existingModal){
    const missingFoodNames=requiredFoodNames.filter(x=>!normalizedNames.has(x.toLowerCase()));
    missingFoodNames.length?warn('food','Requested meal coverage',missingFoodNames.length+' named requested meal(s) are not present by exact display name.',missingFoodNames.join(', ')):pass('food','Requested meal coverage','The current catalog contains the requested restored meal set by exact display name.');
    const invalidFood=foods.filter(x=>!x?.name||!x?.category||!x?.image||!Array.isArray(x?.quickCuts)||!x.quickCuts.length||!Array.isArray(x?.ingredients)||!x.ingredients.length||!x?.nutrition||!x?.recipe);
-   invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required Details data.',invalidFood.slice(0,8).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>8?' + more':'')):pass('food','Meal details','All built-in meals have photo, Quick Cut, ingredients, nutrition, and recipe/detail data.');
+   invalidFood.length?fail('food','Meal details',invalidFood.length+' meal(s) are missing required Details data.',invalidFood.slice(0,8).map(x=>x?.name||x?.id).join(', ')+(invalidFood.length>8?' + more':'')):pass('food','Meal details','All built-in meals have photo, Cuisine Cut, ingredients, nutrition, and recipe/detail data.');
    const foodQuick=foodQuickLabels();
-   const expectedFoodQuick=['American','Southern','Mexican','Italian','Asian','Pasta','Breakfast','Soup/Stew','Healthy','Seafood','Potato','Snack'];
+   const expectedFoodQuick=['American','Southern','Mexican','Italian','Asian','Pasta','Soup/Stew','Healthy','Seafood','Potato','Other'];
    const foodQuickContract=expectedFoodQuick.every((x,i)=>foodQuick[i]===x)&&foodQuick.length>=expectedFoodQuick.length;
-   foodQuickContract?pass('food','Meal Quick Cuts','The restored Food Quick Cut order is present.','Other remains conditional for custom meals.'):fail('food','Meal Quick Cuts','Food Quick Cuts are out of sync.','Expected American, Southern, Mexican, Italian, Asian, Pasta, Breakfast, Soup/Stew, Healthy, Seafood, Potato, Snack.');
+   foodQuickContract?pass('food','Meal Cuisine Cuts','The current Food Cuisine Cut order is present.','Other remains conditional for custom meals.'):fail('food','Meal Cuisine Cuts','Food Cuisine Cuts are out of sync.','Expected American, Southern, Mexican, Italian, Asian, Pasta, Soup/Stew, Healthy, Seafood, Potato, Other.');
    const forbiddenPork=foods.some(x=>String(x?.name||'').toLowerCase().includes('pork')&&false);
    const legacy=foods.filter(x=>/stouffer|frozen dinner/i.test(String(x?.name||'')));
    legacy.length?fail('food','Legacy meal cleanup',legacy.length+' Stouffer/frozen-dinner choice(s) remain.',legacy.map(x=>x.name).join(', ')):pass('food','Legacy meal cleanup','Stouffer/frozen-dinner legacy choice is absent.');
@@ -3365,11 +3365,11 @@ async function appDiagnosisView(existingModal){
    restaurantSearchBox?info('restaurant','Restaurant search','Restaurant search remains available in source but is intentionally hidden in the current UI.','The visible Restaurant shell does not expose a Search control right now.'):fail('restaurant','Restaurant search','Restaurant search input is missing from the source.');
    const restTaxonomy=Array.isArray(REST_QUICK)?REST_QUICK:[];
    const expectedRest=['Fast Food','Burgers','Pizza','Mexican','American','Italian','Asian','BBQ','Seafood','Breakfast'];
-   expectedRest.every(x=>restTaxonomy.includes(x))?pass('restaurant','Restaurant Quick Cuts','Restaurant Quick Cuts include Fast Food and the current cuisine/category taxonomy.'):fail('restaurant','Restaurant Quick Cuts','The Restaurant taxonomy is missing one or more required categories.','Expected Fast Food, Burgers, Pizza, Mexican, American, Italian, Asian, BBQ, Seafood, Breakfast.');
+   expectedRest.every(x=>restTaxonomy.includes(x))?pass('restaurant','Restaurant Cuisine Cuts','Restaurant Cuisine Cuts include Fast Food and the current cuisine/category taxonomy.'):fail('restaurant','Restaurant Cuisine Cuts','The Restaurant taxonomy is missing one or more required categories.','Expected Fast Food, Burgers, Pizza, Mexican, American, Italian, Asian, BBQ, Seafood, Breakfast.');
    const openAllPresent=!!document.querySelector('#restaurant [data-filter="open"], #restaurant [data-restaurant-filter="open"]')&&!!document.querySelector('#restaurant [data-filter="all"], #restaurant [data-restaurant-filter="all"]');
    openAllPresent?info('restaurant','Open / All filter','Open and All controls are available in the current shell.','All is the inclusive state for open, unknown, and closed results.'):info('restaurant','Open / All filter','Open / All controls are intentionally hidden for now.','The hour-state logic remains available without exposing the filter UI.');
    const freshPoolSource=typeof searchRestaurants==='function'&&typeof restaurantPoolBase==='function';
-   freshPoolSource?pass('restaurant','Fresh restaurant result pool','Current search results are filtered from the active restaurant pool.','Quick Cuts and search work from the current loaded result pool rather than a separate stale base list.'):fail('restaurant','Fresh restaurant result pool','The active restaurant pool functions could not be confirmed.');
+   freshPoolSource?pass('restaurant','Fresh restaurant result pool','Current search results are filtered from the active restaurant pool.','Cuisine Cuts and search work from the current loaded result pool rather than a separate stale base list.'):fail('restaurant','Fresh restaurant result pool','The active restaurant pool functions could not be confirmed.');
    const deDupSource=typeof dedupeRestaurantPool==='function'&&typeof diagnosisRestaurantDuplicates==='function';
    deDupSource?pass('restaurant','Restaurant de-duplication','The current restaurant pipeline has identity/distance de-duplication plus diagnosis review logic.'):warn('restaurant','Restaurant de-duplication','De-duplication safeguards could not be fully confirmed from source.');
    const photoSourceChecks=typeof hydrateRestaurantPhoto==='function'&&typeof loadRestaurantPhoto==='function';
@@ -3377,14 +3377,14 @@ async function appDiagnosisView(existingModal){
    info('restaurant','Photo/search credential independence','Restaurant photography and search are integrated without requiring a Google credential in the client.','The backend can use provider/official/web verification paths when available; the diagnosis does not require a Google key to run.');
    const restaurantIds=Object.keys(window).filter(()=>false);
    const currentRestaurants=S.restaurantPool||[];
-   currentRestaurants.length?info('restaurant','Current restaurant pool',currentRestaurants.length+' restaurant result(s) are loaded on this device.', 'Run the restaurant search to inspect live counts and current Quick Cut behavior.'):info('restaurant','Current restaurant pool','No Restaurant results are loaded on this screen.','This is normal while the diagnosis is opened from Home or Settings.');
+   currentRestaurants.length?info('restaurant','Current restaurant pool',currentRestaurants.length+' restaurant result(s) are loaded on this device.', 'Run the restaurant search to inspect live counts and current Cuisine Cut behavior.'):info('restaurant','Current restaurant pool','No Restaurant results are loaded on this screen.','This is normal while the diagnosis is opened from Home or Settings.');
    const healthUrl='./api/restaurant-search?mode=health&diagnosis='+Date.now();
    try{
     const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),5000);
     const rr=await fetch(healthUrl,{cache:'no-store',signal:ctl.signal});
     clearTimeout(tm);
     const d=await rr.json().catch(()=>null);
-    rr.ok&&d?.ok?pass('restaurant','Restaurant API health','Healthy · version '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','Health check is read-only and does not alter the current restaurant pool.'):warn('restaurant','Restaurant API health','Health endpoint returned HTTP '+rr.status+'.','This can affect location, radius, search, Quick Cuts, and restaurant cards.');
+    rr.ok&&d?.ok?pass('restaurant','Restaurant API health','Healthy · version '+String(d.version||'unknown')+' · max radius '+String(d.maxRadiusMiles||'unknown')+' mi.','Health check is read-only and does not alter the current restaurant pool.'):warn('restaurant','Restaurant API health','Health endpoint returned HTTP '+rr.status+'.','This can affect location, radius, search, Cuisine Cuts, and restaurant cards.');
    }catch(e){warn('restaurant','Restaurant API health','Health check failed or timed out.','The diagnosis does not change location or search state.');
    }
    
@@ -3564,7 +3564,7 @@ home();
 function resetRestoreView(){
  document.querySelector('#settingsModal')?.remove();document.querySelector('#settingsModalBg')?.remove();
  removeFoodOverlays();
- const body='<div class="reset-restore-view"><div class="reset-restore-hero"><span class="manage-kicker">RESET &amp; RESTORE</span><h4>Choose what to return.</h4><p>Restore the original meal catalog without touching your custom meals, or start fresh by clearing all local app data.</p></div><div class="reset-restore-actions"><button class="reset-restore-option restore-action" id="restoreDefaultsOption" type="button"><span class="reset-restore-icon">↺</span><span><b>Restore Defaults</b><small>Return built-in meals to their original state and recover deleted built-in meals. Custom meals, Custom Quick Cuts, History, and notes remain.</small></span><span>›</span></button><button class="reset-restore-option reset-action" id="fullResetOption" type="button"><span class="reset-restore-icon">×</span><span><b>Full Reset</b><small>Erase meals, Custom Quick Cuts, history, notes, hidden choices, saved state, and device-stored photos.</small></span><span>›</span></button></div></div>';
+ const body='<div class="reset-restore-view"><div class="reset-restore-hero"><span class="manage-kicker">RESET &amp; RESTORE</span><h4>Choose what to return.</h4><p>Restore the original meal catalog without touching your custom meals, or start fresh by clearing all local app data.</p></div><div class="reset-restore-actions"><button class="reset-restore-option restore-action" id="restoreDefaultsOption" type="button"><span class="reset-restore-icon">↺</span><span><b>Restore Defaults</b><small>Return built-in meals to their original state and recover deleted built-in meals. Custom meals, Custom Cuisine Cuts, History, and notes remain.</small></span><span>›</span></button><button class="reset-restore-option reset-action" id="fullResetOption" type="button"><span class="reset-restore-icon">×</span><span><b>Full Reset</b><small>Erase meals, Custom Cuisine Cuts, history, notes, hidden choices, saved state, and device-stored photos.</small></span><span>›</span></button></div></div>';
  const modal=openModal('resetRestoreModal','Reset & Restore',body);
  $('restoreDefaultsOption').onclick=async()=>{modal.remove();$('resetRestoreModalBg')?.remove();await systemRestoreFlow();};
  $('fullResetOption').onclick=async()=>{modal.remove();$('resetRestoreModalBg')?.remove();await resetAppDataFlow();};
@@ -3578,7 +3578,7 @@ try{const db=await openPhotoDB(); await new Promise(resolve=>{const tx=db.transa
 home();
 }
 async function systemRestoreFlow(){
-if(!await appConfirm('Restore built-in defaults?','This returns every built-in meal to its original catalog state and recovers deleted built-in meals. Custom meals, Custom Quick Cuts, History, and notes stay on this device.','Restore Defaults'))return;
+if(!await appConfirm('Restore built-in defaults?','This returns every built-in meal to its original catalog state and recovers deleted built-in meals. Custom meals, Custom Cuisine Cuts, History, and notes stay on this device.','Restore Defaults'))return;
  const defaultIds=new Set(getDefaultFoods().map(x=>String(x.id)));
  const builtInOverrides=S.custom.filter(x=>defaultIds.has(String(x.id)));
  for(const item of builtInOverrides){
