@@ -105,7 +105,7 @@ function imageProxyUrl(raw){
  if(!/^https:\/\//i.test(src)||src.startsWith('/api/image?')||src.startsWith('data:')||src.startsWith('blob:'))return src;
  try{const u=new URL(src);if(!IMAGE_PROXY_HOSTS.has(u.hostname))return src;return '/api/image?url='+encodeURIComponent(u.href);}catch{return src;}
 }
-const HOME_DOOR_IMAGE='./home-background.jpg';
+const HOME_DOOR_IMAGE='./home-background.jpg?v=840';
 const HOME_DOOR_PROXY=HOME_DOOR_IMAGE;
 function bindPersistentHomeBackground(){
  const img=$('homeBackgroundImage');
