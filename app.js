@@ -3874,10 +3874,30 @@ async function familyOpen(){
   $('familyEntry')?.classList.add('hidden');$('familyCreateForm')?.classList.add('hidden');$('familyJoinForm')?.classList.add('hidden');$('familyLobby')?.classList.remove('hidden');
   familyRenderState({family:session.family,me:session.member,members:[],activeRound:null}); await familyRefreshState(); startFamilyLobbyPolling();
 }
-function familyLeave(){stopFamilyLobbyPolling();familySessionClear();familyShowEntry();show('family');}
+async function familyLeave(){
+  const session=familySessionRead();
+  const active=!!session?.family?.activeRoundId;
+  const message=active?'A Family dinner decision is active. Your saved picks stay on the server, but leaving removes you from this decision. Leave Family Mode?':'Leave this Family on this device?';
+  if(!await appConfirm('Leave Family Mode',message,'Leave'))return;
+  stopFamilyLobbyPolling();
+  if(session?.token){
+    try{await familyApi('leave',{token:session.token});}
+    catch(err){familySetStatus('familyLobbyStatus',err.message||'Could not leave the Family.','error');return;}
+  }
+  familySessionClear();
+  familyShowEntry();
+  show('family');
+}
+async function familyBackFromMode(){
+  const session=familySessionRead();
+  const active=!!session?.family?.activeRoundId;
+  if(active && !await appConfirm('Leave the decision?', 'Your saved choices stay with this Family, and you can return later. The current decision will keep moving without you.', 'Leave decision'))return;
+  stopFamilyLobbyPolling();
+  show('home');
+}
 
 $('familyMode')?.addEventListener('click',()=>{closeDrawer();window.setTimeout(familyOpen,190);});
-$('familyBackTop')?.addEventListener('click',home);
+$('familyBackTop')?.addEventListener('click',familyBackFromMode);
 $('familyMenu')?.addEventListener('click',openDrawer);
 $('familyCreateChoice')?.addEventListener('click',familyShowCreate);
 $('familyJoinChoice')?.addEventListener('click',familyShowJoin);
