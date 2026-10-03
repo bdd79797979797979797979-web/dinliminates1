@@ -750,6 +750,7 @@ function show(screen) {
 document.querySelectorAll('.screen').forEach(x => x.classList.add('hidden'));
 $(screen)?.classList.remove('hidden');
 S.screen = screen;
+document.querySelector('.app')?.classList.toggle('home-active',screen === 'home');
 $('globalBack')?.classList.add('hidden');
 $('appTopbar')?.classList.toggle('hidden', screen === 'food' || screen === 'restaurant' || screen === 'winner');
 window.scrollTo?.(0,0);
