@@ -6554,3 +6554,25 @@ button,input,select,textarea{
   font-weight:850!important;
   letter-spacing:-.05em!important;
 }
+
+/* CP801 — canonical wordmark final override after all legacy screen-specific rules. */
+.app .app-topbar .brand,
+.app #food .decision-brand,
+.app #restaurant .decision-brand,
+.app #winner .winner-brand{
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:850!important;
+  letter-spacing:-.05em!important;
+  background:linear-gradient(115deg,#fff8e8 8%,#e7c98f 42%,#e28a4f 70%,#fff2d5 96%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 22px #d5a25b18!important;
+}
+.app #food .decision-brand,
+.app #restaurant .decision-brand,
+.app #winner .winner-brand{
+  justify-self:center!important;
+  text-align:center!important;
+}
