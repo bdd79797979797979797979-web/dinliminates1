@@ -308,6 +308,7 @@ async function getFamilyState(sessionToken) {
   const family = (await sql.query('select * from family_rooms where family_id=$1', [me.family_id]))[0];
   const members = await sql.query('select * from family_members where family_id=$1 and active=true order by joined_at asc', [me.family_id]);
   let round = null;
+  let lastCompletedRound = null;
   let roundMembers = [];
   let myVotes = [];
 
@@ -328,12 +329,19 @@ async function getFamilyState(sessionToken) {
       );
     }
   }
+  if (!round || round.status === 'complete') {
+    lastCompletedRound = (await sql.query(
+      "select * from family_rounds where family_id=$1 and status='complete' order by completed_at desc nulls last, created_at desc limit 1",
+      [family.family_id]
+    ))[0] || null;
+  }
 
   return {
     family:publicFamily(family),
     me:publicMember(me),
     members:members.map(publicMember),
     activeRound:publicRound(round),
+    lastCompletedRound:publicRound(lastCompletedRound),
     roundMembers:roundMembers.map(function(r){
       return {
         memberId:r.member_id, name:r.display_name, role:r.role, included:Boolean(r.included),
