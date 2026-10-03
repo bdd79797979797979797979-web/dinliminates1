@@ -5777,7 +5777,7 @@ button,input,select,textarea{
   overflow:hidden!important;
   background:
     linear-gradient(180deg,rgba(4,3,2,.56) 0%,rgba(7,5,3,.18) 26%,rgba(6,5,4,.28) 64%,rgba(3,2,2,.72) 100%),
-    url('/api/image?url=https%3A%2F%2Fimages.pexels.com%2Fphotos%2F6162883%2Fpexels-photo-6162883.jpeg%3Fauto%3Dcompress%26cs%3Dtinysrgb%26w%3D1800') center 48%/cover no-repeat!important;
+    url('/api/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1758568938040-fb8b7275ca5f%3Fauto%3Dformat%26fit%3Dcrop%26fm%3Djpg%26q%3D72%26w%3D2400') center 52%/cover no-repeat!important;
   isolation:isolate!important;
 }
 .luxury-home::before{
