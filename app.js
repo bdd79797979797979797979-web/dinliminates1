@@ -2173,7 +2173,7 @@ burst.appendChild(p);
 el.appendChild(burst);
 }
 el.classList.remove('hidden');
-window.setTimeout(()=>el.classList.add('hidden'),4600);
+window.setTimeout(()=>el.classList.add('hidden'),14000);
 }
 function triggerWinnerMoment(hungry=false){
  const el=$('winner');if(!el)return;
