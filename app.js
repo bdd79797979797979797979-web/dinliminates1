@@ -5,14 +5,9 @@
 const getDefaultFoods = () => Array.isArray(window.DINLIMINATE_FOODS) ? window.DINLIMINATE_FOODS : [];
 const DEFAULT_FOOD_IMAGE = 'https://images.pexels.com/photos/16365767/pexels-photo-16365767.jpeg?auto=compress&cs=tinysrgb&w=1800';
 const $ = (id) => document.getElementById(id);
+const HOME_BACKGROUND_IMAGE = "url('/api/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1758568938040-fb8b7275ca5f%3Fauto%3Dformat%26fit%3Dcrop%26fm%3Djpg%26q%3D72%26w%3D2400')";
 function loadBundledHomeBackground(){
-  fetch('./home-background.b64',{cache:'force-cache'})
-    .then(r=>r.ok?r.text():'')
-    .then(b64=>{
-      const clean=String(b64||'').trim();
-      if(clean)document.documentElement.style.setProperty('--home-bg-image','url("data:image/jpeg;base64,'+clean+'")');
-    })
-    .catch(()=>{});
+  document.documentElement.style.setProperty('--home-bg-image',HOME_BACKGROUND_IMAGE);
 }
 loadBundledHomeBackground();
 const KEY = 'dinliminate.clean.cp1';
@@ -88,6 +83,10 @@ hungryWheelSpinning:false,
 hungryWheelRotation:0,
 hungryWheelDisplayItems:null,
 hungryWheelLandedId:null,
+hungryWheelPhase:'idle',
+hungryWheelAnimationFrame:0,
+hungryWheelStopTarget:0,
+hungryWheelStopStartedAt:0,
 hungryWheelDragging:false,
 hungryWheelDragAngle:0,
 hungryWheelDragRotation:0,
@@ -2196,290 +2195,145 @@ function sampleHungryWheel(pool,selected=null,count=12){
  }
  return chosen.slice(0,take);
 }
+
 function renderHungryWheel(){
- const svg=$('hungryWheel');
- const countEl=$('hungryWheelCount');
+ const svg=$('hungryWheel'),countEl=$('hungryWheelCount');
  if(!svg)return;
- const activeItems=allFoods().filter(item=>!S.hidden.has(String(item.id)));
- const basePool=activeItems.length?activeItems:allFoods();
- let items=Array.isArray(S.hungryWheelDisplayItems)
-   ? S.hungryWheelDisplayItems.map(item=>basePool.find(x=>String(x.id)===String(item?.id))).filter(Boolean)
-   : [];
- if(items.length<Math.min(12,basePool.length)){
-   items=sampleHungryWheel(basePool,S.hungryWheelChoice,12);
-   S.hungryWheelDisplayItems=items;
- }
- const pool=items.length?items:basePool.slice(0,12);
- if(countEl)countEl.textContent=basePool.length+' meals available · '+pool.length+' on the wheel';
- const cx=180,cy=180,r=168,inner=35,step=360/Math.max(1,pool.length);
- const fills=['#171716','#27323a','#3d3324','#eee7d8','#20272d','#4a3b27','#191918','#30404a','#5a482b','#ded5c3','#222a2e','#6a5530'];
- svg.setAttribute('aria-label','Second-chance dinner wheel with '+basePool.length+' available meals');
+ const pool=hungryWheelPool();
+ if(countEl)countEl.textContent=pool.length+' meals on the wheel';
+ const cx=180,cy=180,r=168,inner=34,step=360/Math.max(1,pool.length);
+ const fills=['#171716','#26333b','#3c3121','#eee6d5','#20282e','#4d3c25','#1b1b1a','#31414b','#624c2a','#d9d0bf','#252f33','#6c5630'];
+ svg.setAttribute('aria-label','Dinner wheel with '+pool.length+' meals');
  svg.innerHTML=pool.map((item,index)=>{
-   const start=-90+index*step, end=start+step-.28;
+   const start=-90+index*step, end=start+step-.08;
    const p1=wheelPoint(cx,cy,r,start),p2=wheelPoint(cx,cy,r,end);
    const q1=wheelPoint(cx,cy,inner,end),q2=wheelPoint(cx,cy,inner,start);
    const d='M '+p1.x.toFixed(2)+' '+p1.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+p2.x.toFixed(2)+' '+p2.y.toFixed(2)+' L '+q1.x.toFixed(2)+' '+q1.y.toFixed(2)+' A '+inner+' '+inner+' 0 0 0 '+q2.x.toFixed(2)+' '+q2.y.toFixed(2)+' Z';
    const landed=String(S.hungryWheelLandedId||'')===String(item.id);
    const fill=landed?'#c6a46a':fills[index%fills.length];
-   const textColor=['#eee7d8','#20272d','#191918'].includes(fill)?'#111':'#f5f1e8';
-   const escaped=esc(item.name||'Meal');
-   const mid=start+step/2, label=esc(String(item.name||'Meal').length>18?String(item.name||'Meal').slice(0,17)+'…':String(item.name||'Meal'));
-   const lp=wheelPoint(cx,cy,118,mid);
-   return '<path class="wheel-segment'+(landed?' is-landed':'')+'" data-wheel-index="'+index+'" d="'+d+'" fill="'+fill+'" stroke="#0b0b0b" stroke-width="1.4"><title>'+escaped+'</title></path>'+
-          '<text class="wheel-label" x="'+lp.x.toFixed(2)+'" y="'+lp.y.toFixed(2)+'" fill="'+textColor+'" transform="rotate('+(mid+90).toFixed(2)+' '+lp.x.toFixed(2)+' '+lp.y.toFixed(2)+')" text-anchor="middle" dominant-baseline="middle">'+label+'</text>';
+   return '<path class="wheel-segment'+(landed?' is-landed':'')+'" data-wheel-index="'+index+'" d="'+d+'" fill="'+fill+'" stroke="#0b0b0b" stroke-width="1.25"></path>';
  }).join('')+
  '<circle class="wheel-center" cx="180" cy="180" r="36" fill="#0e0e0d" stroke="#c6a46a" stroke-width="1.7"/>'+
  '<circle cx="180" cy="180" r="7" fill="#c6a46a"/>';
+ svg.style.transform='rotate('+S.hungryWheelRotation+'deg)';
  svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
- svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
 }
 function hungryWheelPool(){
-const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
-return active.length?active:allFoods();
+ const active=allFoods().filter(item=>!S.hidden.has(String(item.id)));
+ return active.length?active:allFoods();
 }
 function showHungryWheelResult(item){
-const panel=$('hungryWheelPanel'),result=$('hungryWheelResult'),name=$('hungryWheelResultName'),img=$('hungryWheelResultImg'),choose=$('hungryWheelChoose'),spin=$('hungryWheelSpin');
-if(name)name.textContent=item?.name||'';
-if(img){
- const src=foodPhoto(item);
- img.src=src;
- img.alt=item?.name||'Chosen meal';
- img.onerror=function(){
-   const fb=foodPhotoFallback(item);
-   if(this.src!==fb)this.src=fb;
- };
-}
-result?.classList.remove('hidden');
-panel?.classList.add('has-landed');
-if(choose){choose.disabled=false;choose.classList.remove('hidden');}
-if(spin){spin.disabled=false;spin.textContent='Spin Again';}
-}
-function hungryRestaurantPool(){
- const raw=(S.restaurantPool||[]).filter(row=>{
-   if(!row)return false;
-   if(row._hidden||restaurantHidden(row))return false;
-   if(!restaurantMatchesQuery(row))return false;
-   if([...S.restaurantCuts].some(label=>restaurantQuickMatches(row,label)))return false;
-   return true;
- });
- const unique=dedupeRestaurantPool(raw);
- return unique.length?unique:raw;
-}
-function hungryRestaurantPick(excludeId=null){
- const pool=hungryRestaurantPool();
- if(!pool.length)return null;
- const candidates=excludeId==null?pool:pool.filter(row=>String(row.id)!==String(excludeId));
- const source=candidates.length?candidates:pool;
- const forced=Number(window.__DINLIMINATE_TEST_MYSTERY_INDEX);
- const index=Number.isInteger(forced)&&forced>=0&&forced<source.length?forced:Math.floor(Math.random()*source.length);
- return source[index]||null;
-}
-function renderHungryRestaurantMystery(item,covered=true){
- const card=$('hungryMysteryCard'),img=$('hungryMysteryImg'),result=$('hungryMysteryResult');
- const choose=$('hungryMysteryChoose'),again=$('hungryMysteryAgain'),reveal=$('hungryMysteryReveal');
- if(!card||!img||!result)return;
- if(item){
-   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
-   img.src=src;
-   img.alt=item.name||'Mystery restaurant';
-   img.onerror=function(){
-     const fb=restaurantFallbackImage(item);
-     if(this.src!==fb)this.src=fb;
-   };
-   img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
- }
- card.classList.toggle('is-revealed',!covered);
- const cover=card.querySelector('.hungry-mystery-cover');
- if(cover)cover.classList.toggle('hidden',!covered);
- result.classList.toggle('hidden',covered||!item);
- if(item&&!covered){
-   $('hungryMysteryResultImg').src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
-   $('hungryMysteryResultImg').alt=item.name||'Chosen restaurant';
-   $('hungryMysteryResultImg').dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
-   $('hungryMysteryResultName').textContent=item.name||'';
-   const meta=[restaurantCategory(item),Number.isFinite(Number(item.distance))?Number(item.distance).toFixed(1)+' mi':String(item.address||'').split(',')[0]].filter(Boolean).join(' · ');
-   $('hungryMysteryResultMeta').textContent=meta;
-   hydrateRestaurantPhoto(item,'#hungryRestaurantPanel');
- }
- if(again){const canAgain=hungryRestaurantPool().length>=2;again.classList.toggle('hidden',covered||!canAgain);again.disabled=false;}
- if(choose)choose.classList.toggle('hidden',covered);
- if(reveal)reveal.classList.toggle('hidden',!covered);
-}
-function startHungryRestaurantMystery(){
- const countEl=$('hungryRestaurantCount');
- const pool=hungryRestaurantPool();
- if(countEl)countEl.textContent=pool.length?pool.length+' restaurants from your current search':'No restaurant options available';
- S.hungryRestaurantChoice=null;
- S.hungryRestaurantPendingChoice=null;
- const img=$('hungryMysteryImg');
- if(img){img.removeAttribute('src');img.alt='Mystery restaurant';}
- renderHungryRestaurantMystery(null,true);
- const reveal=$('hungryMysteryReveal');
- if(reveal)reveal.disabled=!pool.length;
-}
-function revealHungryRestaurant(){
- if(S.hungryRestaurantChoice)return;
- const item=S.hungryRestaurantPendingChoice||hungryRestaurantPick();
- if(!item){appToast('No restaurant options are available for a mystery pick.');return;}
- S.hungryRestaurantChoice=item;
- S.hungryRestaurantPendingChoice=null;
- const card=$('hungryMysteryCard'),reveal=$('hungryMysteryReveal'),result=$('hungryMysteryResult'),cover=card?.querySelector('.hungry-mystery-cover');
- if(!card||!result){renderHungryRestaurantMystery(item,false);return;}
- const img=$('hungryMysteryImg');
+ const panel=$('hungryWheelPanel'),result=$('hungryWheelResult'),name=$('hungryWheelResultName'),img=$('hungryWheelResultImg'),choose=$('hungryWheelChoose'),spin=$('hungryWheelSpin');
+ if(name)name.textContent=item?.name||'';
  if(img){
-   const src=imageProxyUrl(item?.photo||item?.image||item?.photoFallback||restaurantFallbackImage(item));
-   img.src=src; img.alt=item.name||'Mystery restaurant'; img.dataset.restaurantPhotoKey=String(item.id||item.canonicalId||'');
-   img.onerror=function(){const fb=restaurantFallbackImage(item);if(this.src!==fb)this.src=fb;};
+   const src=foodPhoto(item);
+   img.src=src;img.alt=item?.name||'Chosen meal';
+   img.onerror=function(){const fb=foodPhotoFallback(item);if(this.src!==fb)this.src=fb;};
  }
- card.classList.remove('is-revealed');
- card.classList.add('is-revealing');
- cover?.classList.remove('hidden');
- result.classList.add('hidden');
- if(reveal){reveal.disabled=true;reveal.textContent='Revealing…';}
- window.setTimeout(()=>{
-   if(S.hungryRestaurantChoice!==item)return;
-   card.classList.remove('is-revealing');
-   card.classList.add('is-revealed');
-   cover?.classList.add('hidden');
-   renderHungryRestaurantMystery(item,false);
-   const again=$('hungryMysteryAgain'),choose=$('hungryMysteryChoose');
-   if(again)again.disabled=hungryRestaurantPool().length<2;
-   if(choose)choose.focus?.();
- },2800);
+ result?.classList.remove('hidden');
+ panel?.classList.add('has-landed');
+ if(choose){choose.disabled=false;choose.classList.remove('hidden');}
+ if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
 }
-function tryAnotherHungryRestaurant(){
- const current=S.hungryRestaurantChoice;
- const next=hungryRestaurantPick(current?.id);
- S.hungryRestaurantChoice=null;
- S.hungryRestaurantPendingChoice=next;
- renderHungryRestaurantMystery(null,true);
- const reveal=$('hungryMysteryReveal');
- if(reveal){
-   reveal.disabled=!next;
-   reveal.textContent='Reveal';
-   reveal.classList.remove('hidden');
+function cancelHungryWheelAnimation(){
+ if(S.hungryWheelAnimationFrame){
+   cancelAnimationFrame(S.hungryWheelAnimationFrame);
+   S.hungryWheelAnimationFrame=0;
  }
- if(!next)appToast('No other restaurant options are available.');
 }
-function wheelSegmentIndexForRotation(rotation,count){
- const step=360/Math.max(1,count);
- const local=(((-rotation)%360)+360)%360;
- return ((Math.round(local/step-0.5)%count)+count)%count;
+function wheelIndexForRotation(rotation,count){
+ const n=Math.max(1,count),step=360/n;
+ let local=(((-rotation)%360)+360)%360;
+ return Math.floor(local/step)%n;
+}
+function wheelTargetForIndex(rotation,index,count,minTurns=5){
+ const n=Math.max(1,count),step=360/n;
+ const targetBase=-(index*step+step/2);
+ let delta=targetBase-(rotation%360);
+ while(delta<=0)delta+=360;
+ return rotation + minTurns*360 + delta;
 }
 function finishHungryWheelRotation(item,rotation){
- const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
+ cancelHungryWheelAnimation();
  S.hungryWheelRotation=rotation;
  S.hungryWheelChoice=item||null;
  S.hungryWheelLandedId=item?.id?String(item.id):null;
  S.hungryWheelSpinning=false;
+ S.hungryWheelPhase='idle';
+ const spin=$('hungryWheelSpin');
  if(spin){spin.disabled=false;spin.setAttribute('aria-busy','false');spin.textContent='Spin Again';}
- svg?.style.setProperty('--wheel-resting-rotation',rotation+'deg');
- svg?.style.setProperty('--wheel-rotation',rotation+'deg');
- svg?.classList.remove('is-spinning','is-dragging');
- showHungryWheelResult(item);
+ $('hungryWheelChoose')?.classList.remove('hidden');
  renderHungryWheel();
+ showHungryWheelResult(item);
  triggerSwipeHaptic();
+}
+function animateHungryWheel(now){
+ if(!S.hungryWheelSpinning)return;
+ const svg=$('hungryWheel');
+ if(!svg)return;
+ const last=Number(S.hungryWheelLastFrame||now);
+ const dt=Math.min(.05,Math.max(.008,(now-last)/1000));
+ S.hungryWheelLastFrame=now;
+ if(S.hungryWheelPhase==='spinning'){
+   const speed=1080;
+   S.hungryWheelRotation+=speed*dt;
+   svg.style.transform='rotate('+S.hungryWheelRotation+'deg)';
+   S.hungryWheelAnimationFrame=requestAnimationFrame(animateHungryWheel);
+   return;
+ }
+ const elapsed=now-S.hungryWheelStopStartedAt;
+ const duration=4600;
+ const t=Math.min(1,elapsed/duration);
+ const eased=1-Math.pow(1-t,3);
+ const start=Number(S.hungryWheelStopStart||S.hungryWheelRotation);
+ S.hungryWheelRotation=start+(S.hungryWheelStopTarget-start)*eased;
+ svg.style.transform='rotate('+S.hungryWheelRotation+'deg)';
+ if(t>=1){
+   S.hungryWheelAnimationFrame=0;
+   const pool=hungryWheelPool();
+   const index=Math.max(0,Math.min(pool.length-1,Number(S.hungryWheelStopIndex)||0));
+   finishHungryWheelRotation(pool[index],S.hungryWheelRotation);
+   return;
+ }
+ S.hungryWheelAnimationFrame=requestAnimationFrame(animateHungryWheel);
 }
 function spinHungryWheel(){
  const svg=$('hungryWheel'),spin=$('hungryWheelSpin');
- if(!svg||S.hungryWheelSpinning||S.hungryWheelDragging)return;
+ if(!svg)return;
  const pool=hungryWheelPool();
  if(!pool.length){appToast('There are no meals available to spin.');return;}
- const forced=Number(window.__DINLIMINATE_TEST_WHEEL_INDEX);
- const item=Number.isInteger(forced)&&forced>=0&&forced<pool.length?pool[forced]:pool[Math.floor(Math.random()*pool.length)];
- const display=sampleHungryWheel(pool,item,12);
- S.hungryWheelDisplayItems=display;
- const selectedIndex=Math.max(0,display.findIndex(x=>String(x.id)===String(item.id)));
- renderHungryWheel();
- const step=360/Math.max(1,display.length);
- const targetBase=-(selectedIndex*step+step/2);
- const current=S.hungryWheelRotation;
- const turns=4+Math.floor(Math.random()*2);
- const target=targetBase+360*Math.round((current-targetBase)/360)+360*turns;
- const spinToken=++S.hungryWheelSpinToken;
- S.hungryWheelChoice=item;
+ if(S.hungryWheelPhase==='spinning'){
+   const index=Math.floor(Math.random()*pool.length);
+   const target=wheelTargetForIndex(S.hungryWheelRotation,index,pool.length,4);
+   S.hungryWheelPhase='stopping';
+   S.hungryWheelStopIndex=index;
+   S.hungryWheelStopStart=S.hungryWheelRotation;
+   S.hungryWheelStopTarget=target;
+   S.hungryWheelStopStartedAt=performance.now();
+   if(spin){spin.textContent='Slowing…';spin.disabled=true;spin.setAttribute('aria-busy','true');}
+   S.hungryWheelLastFrame=performance.now();
+   cancelHungryWheelAnimation();
+   S.hungryWheelAnimationFrame=requestAnimationFrame(animateHungryWheel);
+   triggerSwipeHaptic();
+   return;
+ }
+ cancelHungryWheelAnimation();
  S.hungryWheelSpinning=true;
+ S.hungryWheelPhase='spinning';
+ S.hungryWheelChoice=null;
  S.hungryWheelLandedId=null;
- if(spin){spin.disabled=true;spin.setAttribute('aria-busy','true');spin.textContent='Spinning…';}
- $('hungryWheelChoose')?.classList.add('hidden');
+ S.hungryWheelRotation=Number(S.hungryWheelRotation)||0;
+ S.hungryWheelStopTarget=0;
+ S.hungryWheelStopIndex=-1;
+ S.hungryWheelStopStartedAt=0;
+ S.hungryWheelLastFrame=performance.now();
+ renderHungryWheel();
  $('hungryWheelResult')?.classList.add('hidden');
+ $('hungryWheelChoose')?.classList.add('hidden');
  $('hungryWheelPanel')?.classList.remove('has-landed');
- svg.style.setProperty('--wheel-resting-rotation',current+'deg');
- svg.style.setProperty('--wheel-rotation',target+'deg');
- svg.classList.remove('is-spinning');
- void svg.offsetWidth;
- svg.classList.add('is-spinning');
- const finish=()=>{
-   if(spinToken!==S.hungryWheelSpinToken)return;
-   finishHungryWheelRotation(item,target);
- };
- svg.addEventListener('transitionend',finish,{once:true});
- window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},6200);
-}
-function wheelAngleFromEvent(event,stage){
- const r=stage.getBoundingClientRect();
- return Math.atan2(event.clientY-(r.top+r.height/2),event.clientX-(r.left+r.width/2))*180/Math.PI;
-}
-function wheelDelta(a,b){let d=a-b;while(d>180)d-=360;while(d<-180)d+=360;return d;}
-function bindHungryWheelGesture(){
- const stage=document.querySelector('.hungry-wheel-stage'),svg=$('hungryWheel');
- if(!stage||!svg||stage.dataset.gestureBound)return;
- stage.dataset.gestureBound='true';
- stage.addEventListener('pointerdown',event=>{
-   if(S.hungryWheelSpinning)return;
-   event.preventDefault();
-   stage.setPointerCapture?.(event.pointerId);
-   S.hungryWheelDragging=true;
-   S.hungryWheelDragAngle=wheelAngleFromEvent(event,stage);
-   S.hungryWheelDragRotation=S.hungryWheelRotation;
-   S.hungryWheelDragLastTime=performance.now();
-   S.hungryWheelDragVelocity=0;
-   svg.classList.add('is-dragging');
-   $('hungryWheelChoose')?.classList.add('hidden');
-   $('hungryWheelResult')?.classList.add('hidden');
-   S.hungryWheelLandedId=null;
- });
- stage.addEventListener('pointermove',event=>{
-   if(!S.hungryWheelDragging)return;
-   event.preventDefault();
-   const now=performance.now(),angle=wheelAngleFromEvent(event,stage),delta=wheelDelta(angle,S.hungryWheelDragAngle),dt=Math.max(8,now-S.hungryWheelDragLastTime);
-   S.hungryWheelDragAngle=angle;
-   S.hungryWheelDragRotation+=delta;
-   S.hungryWheelRotation=S.hungryWheelDragRotation;
-   S.hungryWheelDragVelocity=(delta/dt)*1000;
-   S.hungryWheelDragLastTime=now;
-   svg.style.setProperty('--wheel-resting-rotation',S.hungryWheelRotation+'deg');
-   svg.style.setProperty('--wheel-rotation',S.hungryWheelRotation+'deg');
- });
- const end=event=>{
-   if(!S.hungryWheelDragging)return;
-   event.preventDefault();
-   S.hungryWheelDragging=false;
-   stage.releasePointerCapture?.(event.pointerId);
-   const display=Array.isArray(S.hungryWheelDisplayItems)&&S.hungryWheelDisplayItems.length?S.hungryWheelDisplayItems:hungryWheelPool().slice(0,12);
-   if(!display.length){svg.classList.remove('is-dragging');return;}
-   const velocity=Math.max(-900,Math.min(900,S.hungryWheelDragVelocity));
-   const momentum=Math.max(-900,Math.min(900,velocity*0.22));
-   const raw=S.hungryWheelRotation+momentum+(Math.abs(momentum)<90?(velocity>=0?8:-8):0);
-   const idx=wheelSegmentIndexForRotation(raw,display.length);
-   const step=360/display.length,targetBase=-(idx*step+step/2);
-   const target=targetBase+360*Math.round((raw-targetBase)/360);
-   const item=display[idx];
-   const token=++S.hungryWheelSpinToken;
-   S.hungryWheelChoice=item;
-   S.hungryWheelSpinning=true;
-   S.hungryWheelLandedId=null;
-   svg.classList.remove('is-dragging');
-   svg.style.setProperty('--wheel-rotation',target+'deg');
-   svg.classList.add('is-spinning');
-   $('hungryWheelSpin').disabled=true;
-   $('hungryWheelSpin').textContent='Settling…';
-   const finish=()=>{if(token!==S.hungryWheelSpinToken)return;finishHungryWheelRotation(item,target);};
-   svg.addEventListener('transitionend',finish,{once:true});
-   window.setTimeout(()=>{if(S.hungryWheelSpinning)finish();},2600);
- };
- stage.addEventListener('pointerup',end);
- stage.addEventListener('pointercancel',end);
+ if(spin){spin.disabled=false;spin.setAttribute('aria-busy','true');spin.textContent='Tap Again to Slow';}
+ triggerSwipeHaptic();
+ S.hungryWheelAnimationFrame=requestAnimationFrame(animateHungryWheel);
 }
 
 function winner(item, explicitType=null) {
@@ -2492,6 +2346,9 @@ const hungry = item?.category === 'Hungry';
 S.hungryWheelChoice=null;
 S.hungryWheelSpinning=false;
 S.hungryWheelRotation=0;
+S.hungryWheelPhase='idle';
+S.hungryWheelStopTarget=0;
+S.hungryWheelStopStartedAt=0;
 S.hungryWheelDisplayItems=null;
 S.hungryWheelLandedId=null;
 S.hungryRestaurantChoice=null;
@@ -2538,8 +2395,7 @@ if(hungry){
     startHungryRestaurantMystery();
   }else{
     renderHungryWheel();
-    bindHungryWheelGesture();
-    $('hungryWheelPanel')?.classList.remove('has-landed');
+        $('hungryWheelPanel')?.classList.remove('has-landed');
     $('hungryWheelResult')?.classList.add('hidden');
     $('hungryWheelChoose')?.classList.add('hidden');
     const spinBtn=$('hungryWheelSpin');
@@ -3498,9 +3354,14 @@ else if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>appToa
 }
 function resetRound(){
 S.hungryWheelSpinToken++;
+cancelHungryWheelAnimation();
 S.hungryWheelSpinning=false;
+S.hungryWheelPhase='idle';
 S.hungryWheelChoice=null;
 S.hungryWheelRotation=0;
+S.hungryWheelPhase='idle';
+S.hungryWheelStopTarget=0;
+S.hungryWheelStopStartedAt=0;
 S.hungryWheelDisplayItems=null;
 S.hungryWheelLandedId=null;
 S.winnerItem=null; S.winnerType='food'; S.foodActions=[]; S.restaurantActions=[];
@@ -3672,7 +3533,6 @@ $('hungryWheelSpin').onclick = (event) => {
  event?.stopPropagation?.();
  spinHungryWheel();
 };
-bindHungryWheelGesture();
 $('hungryWheelChoose').onclick = () => {
   const choice=S.hungryWheelChoice;
   if(!choice || S.hungryWheelSpinning)return;
