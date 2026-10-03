@@ -6622,3 +6622,26 @@ button,input,select,textarea{
   background:#c6a46a!important;
   box-shadow:0 0 7px #f1d894!important;
 }
+
+/* CP802 — specificity lock for the shared glass navigation controls. */
+.app:has(#home:not(.hidden)) .app-topbar #menu,
+.app .decision-bar .decision-menu,
+.app #winner .winner-nav .winner-menu{
+  background:rgba(10,10,10,.34)!important;
+  border:1px solid rgba(198,164,106,.58)!important;
+  color:#f2dfb6!important;
+  backdrop-filter:blur(13px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(13px) saturate(120%)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,248,226,.10)!important;
+}
+.app #food .decision-bar .decision-back,
+.app #restaurant .decision-bar .decision-back,
+.app #winner .winner-nav .winner-back,
+.app .decision-bar .decision-back{
+  background:rgba(10,10,10,.34)!important;
+  border:1px solid rgba(198,164,106,.58)!important;
+  color:#f2d59b!important;
+  backdrop-filter:blur(13px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(13px) saturate(120%)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,248,226,.10)!important;
+}
