@@ -5647,3 +5647,28 @@ button,input,select,textarea{
   overflow:auto!important;
   box-sizing:border-box!important;
 }
+
+
+/* CP774 — root Details geometry: centered, viewport-bounded, internally scrollable. */
+#detailsModal{
+  position:fixed!important;
+  top:50%!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:min(92vw,520px)!important;
+  height:auto!important;
+  max-height:84svh!important;
+  overflow:auto!important;
+  border-radius:24px!important;
+  box-sizing:border-box!important;
+  transform:translate(-50%,-50%) scale(.985)!important;
+}
+#detailsModal.modal-open,
+#detailsModal.details-modal.modal-open{
+  transform:translate(-50%,-50%) scale(1)!important;
+}
+#detailsModal.modal-closing,
+#detailsModal.details-modal.modal-closing{
+  transform:translate(-50%,-50%) scale(.99)!important;
+}
