@@ -3807,7 +3807,7 @@ function familyDisplayMemberList(members,me){
 function familyRenderState(data){
   const family=data?.family,me=data?.me; if(!family||!me)return;
   $('familyJoinCodeDisplay').textContent=family.joinCode||'—';
-  $('familyMemberCount').textContent=String(family.memberCount||0)+' here';
+  $('familyMemberCount').textContent=String(family.memberCount||0)+' of 8 here';
   familyDisplayMemberList(data.members||[],me);
   const activeRound=data.activeRound||null;
   const completed=data.lastCompletedRound||((activeRound&&activeRound.status==='complete')?activeRound:null);
@@ -4008,7 +4008,7 @@ async function familyLockSetup(){
     const data=await familyApi('create-round',{token:session.token,decisionType:familySetupType,snapshot:familyBuildSnapshot(),dinnerTargetAt});
     familySessionWrite({...session,family:{...(session.family||{}),activeRoundId:data.id}});
     $('familySetup')?.classList.add('hidden'); $('familyLobby')?.classList.remove('hidden');
-    familySetStatus('familyLobbyStatus','Dinner setup locked. Everyone stays on their own phone; swiping comes next.');
+    familySetStatus('familyLobbyStatus','Choices locked. Everyone stays on their own phone; swiping comes next.');
     await familyRefreshState();
   }catch(err){ familySetStatus('familySetupStatus',err.message||'Could not lock the dinner setup.','error'); }
   finally{ if(button){button.disabled=false;button.textContent='Lock choices';} }
@@ -4152,10 +4152,25 @@ function familyRenderWinner(round){
   const item=round?.winnerItem;if(!item)return;
   const nextId=String(round.id||''),changed=familyWinnerRoundId!==nextId;
   familyWinnerRoundId=nextId;
-  recordFamilyWinner(round);
+  const savedNow=recordFamilyWinner(round);
   $('familyWinnerName').textContent=String(item.name||'Dinner is decided');
   $('familyWinnerImg').src=item.image?imageProxyUrl(item.image):HUNGRY_IMAGE;
   $('familyWinnerImg').alt=String(item.name||'Dinner winner');
+  const savedEl=$('familyWinnerSaved');
+  if(savedEl){
+    clearTimeout(savedEl.__hideTimer);
+    const showSaved=changed&&savedNow;
+    savedEl.classList.toggle('hidden',!showSaved);
+    if(showSaved){
+      savedEl.classList.remove('is-visible');
+      void savedEl.offsetWidth;
+      savedEl.classList.add('is-visible');
+      savedEl.__hideTimer=window.setTimeout(()=>{
+        savedEl.classList.remove('is-visible');
+        window.setTimeout(()=>savedEl.classList.add('hidden'),180);
+      },2200);
+    }
+  }
   if(changed)familyWinnerCelebrate();
 }
 async function familyShareWinner(){
