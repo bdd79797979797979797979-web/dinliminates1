@@ -6148,3 +6148,25 @@ button,input,select,textarea{
 #restaurant .all-maybe-toggle .deck-filter-divider{color:#5f5b55!important}
 #food .all-maybe-toggle:active > span,
 #restaurant .all-maybe-toggle:active > span{transform:scale(.96)!important}
+
+/* CP785 — utility panels open directly beneath the top header/menu.
+   Manage Meals, History, and Settings share this positioning. */
+.utility-modal{
+  top:calc(env(safe-area-inset-top) + 62px)!important;
+  max-height:calc(100dvh - env(safe-area-inset-top) - 76px)!important;
+}
+.utility-modal.modal-opening{
+  transform:translate(-50%,-8px) scale(.985)!important;
+}
+.utility-modal.modal-open{
+  transform:translate(-50%,0) scale(1)!important;
+}
+.utility-modal.modal-closing{
+  transform:translate(-50%,-4px) scale(.99)!important;
+}
+@media(max-width:390px){
+  .utility-modal{
+    top:calc(env(safe-area-inset-top) + 62px)!important;
+    max-height:calc(100dvh - env(safe-area-inset-top) - 76px)!important;
+  }
+}
